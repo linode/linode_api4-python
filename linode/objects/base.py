@@ -1,7 +1,4 @@
-from urllib import request
-import json
-
-from linode import config
+from linode.api import api_call
 
 class Base(object):
     """
@@ -24,13 +21,8 @@ class Base(object):
 
 
     def _populate(self):
-        url = type(self).api_endpoint.format(**self.__dict__)
-        url = '{}{}'.format(config.base_url, url)
-        r = request.Request(url)
-        r.add_header("Authorization", "token {}".format(config.api_token))
-        resp = request.urlopen(r)
+        json = api_call(type(self).api_endpoint, model=self)
 
-        j = json.loads(str(resp.read(), 'utf-8'))
-        for key in j:
+        for key in json:
             if key in type(self).properties:
-                setattr(self, key, j[key])
+                setattr(self, key, json[key])
