@@ -19,6 +19,20 @@ class Base(object):
 
         return object.__getattribute__(self, name)
 
+    def save(self):
+        resp = api_call(type(self).api_endpoint, model=self, method="PUT", data=self._serialize())
+
+        if 'error' in resp:
+            return False
+        return True
+
+    def invalidate(self):
+        #TODO - this doesn't unset fields, so they won't be reloaded.  This can't happen
+        # until we can distinguish between mandatory, immutable fields and volitale fileds
+        self._populated = False
+
+    def _serialize(self):
+       return {a: getattr(self, a) for a in type(self).properties}
 
     def _populate(self):
         json = api_call(type(self).api_endpoint, model=self)
