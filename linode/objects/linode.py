@@ -1,15 +1,28 @@
-from .base import Base
+from .base import Base, Property
 from linode.api import api_call
 
 class Linode(Base): 
     api_endpoint = '/linodes/{id}'
-    properties = ('id', 'label', 'group', 'status', 'created', 'updated', 'total_transfer', 
-        'ip_addresses', 'distribution', 'host', 'alerts', 'ssh_command', 'lish_command', )
+    properties = {
+        'id': Property(identifier=True),
+        'label': Property(mutable=True),
+        'group': Property(mutable=True),
+        'status': Property(volatile=True),
+        'created': Property(),
+        'updated': Property(volatile=True),
+        'total_transfer': Property(),
+        'ip_addresses': Property(),
+        'distribution': Property(),
+        'host': Property(),
+        'alerts': Property(),
+        'ssh_command': Property(),
+        'lish_command': Property(),
+    }
 
     def __init__(self, id):
         Base.__init__(self)
 
-        self.id = id
+        self._set('id', id)
 
     def boot(self, config=None):
         # TODO: Implement configs
