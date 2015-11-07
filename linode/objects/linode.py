@@ -25,7 +25,7 @@ class Linode(Base):
 
         self._set('id', id)
 
-    def __repr(self):
+    def __repr__(self):
         return "Linode: {}".format(self.id)
 
     def boot(self, config=None):

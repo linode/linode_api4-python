@@ -6,6 +6,8 @@ def get_mapping(id):
         'lnde': linode.objects.Linode,
         'disk': linode.objects.Disk,
         'dist': linode.objects.Distribution,
+        'serv': linode.objects.Service,
+        'dctr': linode.objects.Datacenter,
     }
 
     parts = id.split('_')
