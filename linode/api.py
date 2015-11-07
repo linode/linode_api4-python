@@ -2,6 +2,7 @@ import httplib2
 import json
 
 from linode import config
+from linode import mappings
 
 h = httplib2.Http()
 
@@ -25,3 +26,11 @@ def api_call(endpoint, model=None, method="GET", data=None):
 
     j = json.loads(str(content, 'utf-8'))
     return j
+
+def get_objects(endpoint, prop, model=None):
+    json = api_call(endpoint, model=model)
+
+    if not prop in json:
+        return False
+
+    return mappings.make_list(json[prop])

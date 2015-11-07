@@ -17,6 +17,7 @@ class Linode(Base):
         'alerts': Property(),
         'ssh_command': Property(),
         'lish_command': Property(),
+        'distribution': Property(relationship=True),
     }
 
     def __init__(self, id):

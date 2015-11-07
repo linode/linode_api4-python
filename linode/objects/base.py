@@ -1,13 +1,15 @@
 from linode.api import api_call
 from linode import config
+from linode import mappings
 
 from datetime import datetime
 
 class Property:
-    def __init__(self, mutable=False, identifier=False, volatile=False):
+    def __init__(self, mutable=False, identifier=False, volatile=False, relationship=False):
         self.mutable = mutable
         self.identifier = identifier
         self.volatile = volatile
+        self.relationship = relationship
 
 class Base(object):
     """
@@ -28,7 +30,7 @@ class Base(object):
                 or (type(self).properties[name].volatile \
                 and object.__getattribute__(self, '_last_updated')
                 + config.volatile_refresh_timeout < datetime.now()):
-                self._populate()
+                self._api_get()
 
         return object.__getattribute__(self, name)
 
@@ -47,7 +49,8 @@ class Base(object):
         return True
 
     def invalidate(self):
-        for key in (k for k in type(self).properties.keys() if type(self).properties[k].mutable):
+        for key in (k for k in type(self).properties.keys()
+            if not type(self).properties[k].identifier):
             self._set(key, None)
 
         self._populated = False
@@ -55,13 +58,24 @@ class Base(object):
     def _serialize(self):
        return {a: getattr(self, a) for a in type(self).properties}
 
-    def _populate(self):
+    def _api_get(self):
         json = api_call(type(self).api_endpoint, model=self)
+        self._populate(json)
 
+    def _populate(self, json):
         for key in json:
             if key in (k for k in type(self).properties.keys()
                 if not type(self).properties[k].identifier):
-                self._set(key, json[key])
+
+                if type(self).properties[key].relationship:
+                    if not 'id' in json[key]:
+                        continue
+                    obj = mappings.make(json[key]['id'])
+                    if obj:
+                        obj._populate(json[key])
+                    self._set(key, obj)
+                else:
+                    self._set(key, json[key])
 
         self._set('_last_updated', datetime.now())
 
