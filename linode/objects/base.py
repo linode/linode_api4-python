@@ -63,11 +63,15 @@ class Base(object):
         self._populate(json)
 
     def _populate(self, json):
+        if not json:
+            return
+
         for key in json:
             if key in (k for k in type(self).properties.keys()
                 if not type(self).properties[k].identifier):
 
-                if type(self).properties[key].relationship:
+                if type(self).properties[key].relationship  \
+                    and not json[key] is None:
                     if not 'id' in json[key]:
                         continue
                     obj = mappings.make(json[key]['id'])

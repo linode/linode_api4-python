@@ -1,7 +1,7 @@
 from .base import Base, Property
 
 class Distribution(Base):
-    api_endpoint = '/distributions' 
+    api_endpoint = '/distributions'
     properties = {
         'id': Property(identifier=True),
         'label': Property(),
@@ -17,3 +17,6 @@ class Distribution(Base):
         Base.__init__(self)
 
         self._set('id', id)
+
+    def __repr__(self):
+        return "Distribution: {}".format(self.id)

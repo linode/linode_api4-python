@@ -25,6 +25,9 @@ class Linode(Base):
 
         self._set('id', id)
 
+    def __repr(self):
+        return "Linode: {}".format(self.id)
+
     def boot(self, config=None):
         # TODO: Implement configs
         resp = api_call("{}/boot".format(Linode.api_endpoint), model=self, method="POST")
