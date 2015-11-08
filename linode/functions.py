@@ -13,7 +13,7 @@ def get_datacenters():
 def get_linodes():
     return api.get_objects('/linodes', 'linodes')
 
-def create_linode(service, datacenter, source=None):
+def create_linode(service, datacenter, source=None, opts={}):
     if not 'linode' in service.service_type:
         raise AttributeError("{} is not a linode service!".format(service.label))
 
@@ -22,10 +22,11 @@ def create_linode(service, datacenter, source=None):
          'datacenter': datacenter.id,
          'source': source.id if source else None,
      }
+    params.update(opts)
 
     result = api.api_call('/linodes', method='POST', data=params)
 
-    if 'error' in result:
+    if not 'linode' in result:
         return result
 
     l = Linode(result['linode']['id'])

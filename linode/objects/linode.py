@@ -18,6 +18,8 @@ class Linode(Base):
         'ssh_command': Property(),
         'lish_command': Property(),
         'distribution': Property(relationship=True),
+        #'disks': Property(relationship=True),
+        #'configs': Property(relationship=True),
     }
 
     def __init__(self, id):
