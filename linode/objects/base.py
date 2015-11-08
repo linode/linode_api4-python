@@ -11,6 +11,23 @@ class Property:
         self.volatile = volatile
         self.relationship = relationship
 
+class MappedObject:
+    def __init__(self, **vals):
+        print("Making a mapped object with {}".format(vals))
+        MappedObject._expand_vals(self.__dict__, **vals)
+
+    def _expand_vals(target, **vals):
+        for v in vals:
+            if type(vals[v]) is dict:
+                vals[v] = MappedObject(**vals[v])
+            elif type(vals[v]) is list:
+                # oh mama
+                vals[v] = [ MappedObject(**i) if type(i) is dict else i for i in vals[v] ]
+        target.update(vals)
+
+    def __repr__(self):
+        return "Mapping containing {}".format(vars(self).keys())
+
 class Base(object):
     """
     The Base class knows how to look up api properties of a model, and lazy-load them.
@@ -78,6 +95,8 @@ class Base(object):
                     if obj:
                         obj._populate(json[key])
                     self._set(key, obj)
+                elif type(json[key]) is dict:
+                    self._set(key, MappedObject(**json[key]))
                 else:
                     self._set(key, json[key])
 
