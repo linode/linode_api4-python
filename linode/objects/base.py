@@ -13,7 +13,6 @@ class Property:
 
 class MappedObject:
     def __init__(self, **vals):
-        print("Making a mapped object with {}".format(vals))
         MappedObject._expand_vals(self.__dict__, **vals)
 
     def _expand_vals(target, **vals):
