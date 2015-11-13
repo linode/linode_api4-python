@@ -13,7 +13,7 @@ class Linode(Base):
         'total_transfer': Property(),
         'ip_addresses': Property(),
         'distribution': Property(),
-        'host': Property(),
+        'datacenter': Property(relationship=True),
         'alerts': Property(),
         'ssh_command': Property(),
         'lish_command': Property(),

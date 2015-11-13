@@ -1,17 +1,44 @@
 from linode import api
-from linode.objects import Linode
+from linode.objects import Base, Linode
 
-def get_distributions():
-    return api.get_objects('/distributions', 'distributions')
+def filter_list(results, **filter_by):
+    if not results or not len(results):
+        return results
 
-def get_services():
-    return api.get_objects('/services', 'services')
+    if not filter_by or not len(filter_by):
+        return results
 
-def get_datacenters():
-    return api.get_objects('/datacenters', 'datacenters')
+    for key in filter_by.keys():
+        if not key in vars(results[0]):
+            raise ValueError("Cannot filter {} by {}".format(type(results[0]), key))
+        if isinstance(vars(results[0])[key], Base) and isinstance(filter_by[key], Base):
+            results = [ r for r in results if vars(r)[key].id == filter_by[key].id ]
+        elif isinstance(vars(results[0])[key], str) and isinstance(filter_by[key], str):
+            results = [ r for r in results if filter_by[key].lower() in vars(r)[key].lower()  ]
+        else:
+            results = [ r for r in results if vars(r)[key].lower() == filter_by[key].lower() ]
 
-def get_linodes():
-    return api.get_objects('/linodes', 'linodes')
+    return results
+
+def get(obj_type, **filters):
+    results = api.get_objects("/{}".format(obj_type), obj_type)
+
+    if filters and len(filters):
+        results = filter_list(results, **filters)
+
+    return results
+
+def get_distributions(**filters):
+    return get('distributions', **filters)
+
+def get_services(**filters):
+    return get('services', **filters)
+
+def get_datacenters(**filters):
+    return get('datacenters', **filters)
+
+def get_linodes(**filters):
+    return get('linodes', **filters)
 
 def create_linode(service, datacenter, source=None, opts={}):
     if not 'linode' in service.service_type:
