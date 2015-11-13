@@ -25,6 +25,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> l.group = 'python_sdk'
 >>> l.label = 'awesome_box'
 >>> l.save()
+True
 >>> l.status
 'brand_new'
 ```

@@ -72,7 +72,8 @@ class Base(object):
         self._populated = False
 
     def _serialize(self):
-       return {a: getattr(self, a) for a in type(self).properties}
+       return { a: getattr(self, a) for a in type(self).properties
+            if type(self).properties[a].mutable }
 
     def _api_get(self):
         json = api_call(type(self).api_endpoint, model=self)

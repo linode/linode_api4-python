@@ -16,7 +16,7 @@ def filter_list(results, **filter_by):
         elif isinstance(vars(results[0])[key], str) and isinstance(filter_by[key], str):
             results = [ r for r in results if filter_by[key].lower() in vars(r)[key].lower()  ]
         else:
-            results = [ r for r in results if vars(r)[key].lower() == filter_by[key].lower() ]
+            results = [ r for r in results if vars(r)[key] == filter_by[key] ]
 
     return results
 
