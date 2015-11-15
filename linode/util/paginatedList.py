@@ -62,7 +62,11 @@ class PaginatedList(object):
         if not self.lists[j_page]:
             self._load_page(j_page)
 
-        ret = [ x for x in self.lists[i_page][i_normalized:] ]
+        # if we're entirely in one list, this is easy
+        if i_page == j_page:
+            return self.lists[i_page][i_normalized:j_normalized]
+
+        ret = self.lists[i_page][i_normalized:]
 
         for page in range(i_page, j_page):
             if not self.lists[page]:
