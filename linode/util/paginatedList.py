@@ -74,3 +74,9 @@ class PaginatedList(object):
         ret += self.lists[j_page][:j_normalized]
 
         return ret
+
+    def __setitem__(self, index, value):
+        raise AttributeError('Assigning to indicies in paginated lists is not supported')
+
+    def __delitem__(self, index, value):
+        raise AttributeError('Assigning to indicies in paginated lists is not supported')
