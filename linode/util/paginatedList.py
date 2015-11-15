@@ -3,10 +3,10 @@ import math
 class PaginatedList(object):
     def __init__(self, page_endpoint, page=[], max_pages=1, total_items=None):
         self.page_endpoint = page_endpoint
-        self.page_size = len(page) 
+        self.page_size = len(page)
         self.max_pages = max_pages
         self.lists = [ None for i in range(0, self.max_pages) ]
-        self.lists[0] = page 
+        self.lists[0] = page
 
         self.total_items = total_items
         if not total_items:
@@ -16,12 +16,16 @@ class PaginatedList(object):
         from linode.api import api_call
         from linode import mappings
 
-        print("Loading page {}".format(page_number))  
+        print("Loading page {}".format(page_number))
         j = api_call("/{}?page={}".format(self.page_endpoint, page_number+1))
         l = mappings.make_list(j[self.page_endpoint])
         self.lists[page_number] = l
 
     def __getitem__(self, index):
+        # this comes in here now, but we're hadling it elsewhere
+        if isinstance(index, slice):
+            return self._get_slice(index)
+
         if index > self.page_size * self.max_pages:
             raise IndexError('list index out of range')
         normalized_index = index % self.page_size
@@ -35,3 +39,38 @@ class PaginatedList(object):
     def __len__(self):
         return self.total_items
 
+    def _get_slice(self, s):
+        i = s.start if s.start else 0
+        j = s.stop if s.stop else self.total_items
+
+        if not s.step is None and not s.step == 1:
+            raise NotImplementedError('TODO')
+        if i > j:
+            raise NotImplementedError('TODO')
+
+        if i < 0 or j < 0 or i > self.page_size * self.max_pages \
+            or j > self.page_size * self.max_pages:
+            raise IndexError('list index out of range')
+
+        i_normalized = i % self.page_size
+        j_normalized = j % self.page_size
+        i_page = math.ceil((i+1)/self.page_size)-1
+        j_page = math.ceil((j+1)/self.page_size)-1
+
+        if not self.lists[i_page]:
+            self._load_page(i_page)
+        if not self.lists[j_page]:
+            self._load_page(j_page)
+
+        ret = [ x for x in self.lists[i_page][i_normalized:] ]
+
+        for page in range(i_page, j_page):
+            if not self.lists[page]:
+                self._load_page(page)
+
+            if page != i_page and page != j_page:
+                ret += self.lists[page]
+
+        ret += self.lists[j_page][:j_normalized]
+
+        return ret
