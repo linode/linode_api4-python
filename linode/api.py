@@ -33,4 +33,4 @@ def get_objects(endpoint, prop, model=None):
     if not prop in json:
         return False
 
-    return mappings.make_list(json[prop])
+    return mappings.make_paginated_list(json, prop)

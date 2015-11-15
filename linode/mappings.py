@@ -1,4 +1,5 @@
 import linode.objects
+from linode import util
 
 
 def get_mapping(id):
@@ -41,3 +42,10 @@ def make_list(json_arr):
         result.append(o)
 
     return result
+
+def make_paginated_list(json, key):
+    l = make_list(json[key])
+    p = util.PaginatedList(key, page=l, max_pages=json['total_pages'], \
+         total_items=json['total_results'])
+
+    return p
