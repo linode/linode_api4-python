@@ -89,12 +89,23 @@ class Base(object):
 
                 if type(self).properties[key].relationship  \
                     and not json[key] is None:
-                    if not 'id' in json[key]:
-                        continue
-                    obj = mappings.make(json[key]['id'])
-                    if obj:
-                        obj._populate(json[key])
-                    self._set(key, obj)
+                    if isinstance(json[key], list):
+                        objs = []
+                        for d in json[key]:
+                            if not 'id' in d:
+                                continue
+                            obj = mappings.make(d['id'])
+                            if obj:
+                                obj._populate(d)
+                            objs.append(obj)
+                        self._set(key, objs)
+                    else:
+                        if not 'id' in json[key]:
+                            continue
+                        obj = mappings.make(json[key]['id'])
+                        if obj:
+                            obj._populate(json[key])
+                        self._set(key, obj)
                 elif type(json[key]) is dict:
                     self._set(key, MappedObject(**json[key]))
                 else:
