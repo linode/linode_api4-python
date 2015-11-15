@@ -1,10 +1,9 @@
-from os import path
 from datetime import timedelta
 
-file_path = path.expanduser('~/.linode/api_token')
-api_token = open(file_path).read().rstrip()
-
-base_path = path.expanduser('~/.linode/base_url')
-base_url = open(base_path).read().rstrip()
-
+api_token = None
+base_url = "http://api.linode.com/v1"
 volatile_refresh_timeout = timedelta(seconds=15)
+
+def initialize(token):
+    global api_token
+    api_token = token
