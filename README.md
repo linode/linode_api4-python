@@ -10,6 +10,7 @@ Python 3.4.2 (default, Jan  7 2015, 11:54:58)
 [GCC 4.2.1 Compatible Apple LLVM 6.0 (clang-600.0.56)] on darwin
 Type "help", "copyright", "credits" or "license" for more information.
 >>> import linode
+>>> linode.initialize("my-api-key")
 >>> serv = linode.get_services(label='linode 1024')[0]
 >>> serv.label
 'Linode 1024'

@@ -11,6 +11,9 @@ def api_call(endpoint, model=None, method="GET", data=None):
     Makes a call to the linode api.  Data should only be given if the method is
     POST or PUT, and should be a dictionary
     """
+    if not config.api_token:
+        raise RuntimeError("no api token!  Please call linode.initialize") #TODO
+
     if model:
         endpoint = endpoint.format(**vars(model))
     url = '{}{}'.format(config.base_url, endpoint)
