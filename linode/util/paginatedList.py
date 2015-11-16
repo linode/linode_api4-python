@@ -16,7 +16,6 @@ class PaginatedList(object):
         from linode.api import api_call
         from linode import mappings
 
-        print("Loading page {}".format(page_number))
         j = api_call("/{}?page={}".format(self.page_endpoint, page_number+1))
         l = mappings.make_list(j[self.page_endpoint])
         self.lists[page_number] = l
