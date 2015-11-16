@@ -43,7 +43,7 @@ def get_linodes(**filters):
 def get_stackscripts(**filters):
     return get('stackscripts', **filters)
 
-def create_linode(service, datacenter, source=None, opts={}):
+def create_linode(service, datacenter, source=None, **kwargs):
     if not 'linode' in service.service_type:
         raise AttributeError("{} is not a linode service!".format(service.label))
 
@@ -52,7 +52,7 @@ def create_linode(service, datacenter, source=None, opts={}):
          'datacenter': datacenter.id,
          'source': source.id if source else None,
      }
-    params.update(opts)
+    params.update(kwargs)
 
     result = api.api_call('/linodes', method='POST', data=params)
 

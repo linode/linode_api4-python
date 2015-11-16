@@ -16,7 +16,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 'Linode 1024'
 >>> dc = linode.get_datacenters(label='newark')[0]
 >>> distro = linode.get_distributions(label='ubuntu 14.04')[0]
->>> l = linode.create_linode(serv, dc, source=distro, opts={'root_pass':'password123'})
+>>> l = linode.create_linode(serv, dc, source=distro, root_pass='password123')
 >>> l.label
 'linode810475'
 >>> l.group
