@@ -5,11 +5,13 @@ from linode import mappings
 from datetime import datetime
 
 class Property:
-    def __init__(self, mutable=False, identifier=False, volatile=False, relationship=False):
+    def __init__(self, mutable=False, identifier=False, volatile=False, relationship=False, \
+            derived_class=None):
         self.mutable = mutable
         self.identifier = identifier
         self.volatile = volatile
         self.relationship = relationship
+        self.derived_class = derived_class
 
 class MappedObject:
     def __init__(self, **vals):
@@ -43,10 +45,14 @@ class Base(object):
     def __getattribute__(self, name):
         if name in type(self).properties.keys():
             if (object.__getattribute__(self, name) is None and not self._populated) \
-                or (type(self).properties[name].volatile \
-                and object.__getattribute__(self, '_last_updated')
-                + config.volatile_refresh_timeout < datetime.now()):
-                self._api_get()
+                    or (type(self).properties[name].volatile \
+                    and object.__getattribute__(self, '_last_updated')
+                    + config.volatile_refresh_timeout < datetime.now()):
+                if type(self).properties[name].derived_class:
+                    #load derived object(s)
+                    self._set(name, type(self).properties[name].derived_class._api_get_derived(self))
+                else:
+                    self._api_get()
 
         return object.__getattribute__(self, name)
 

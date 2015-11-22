@@ -30,12 +30,12 @@ def api_call(endpoint, model=None, method="GET", data=None):
     j = json.loads(str(content, 'utf-8'))
     return j
 
-def get_objects(endpoint, prop, model=None):
+def get_objects(endpoint, prop, model=None, parent_id=None):
     json = api_call(endpoint, model=model)
 
     if not prop in json:
         return False
 
     if 'total_pages' in json:
-        return mappings.make_paginated_list(json, prop)
-    return mappings.make_list(json[prop])
+        return mappings.make_paginated_list(json, prop, parent_id=parent_id)
+    return mappings.make_list(json[prop], parent_id=parent_id)

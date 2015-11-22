@@ -1,4 +1,5 @@
 from .base import Base, Property
+from .disk import Disk
 from linode.api import api_call
 
 class Linode(Base): 
@@ -18,8 +19,8 @@ class Linode(Base):
         'ssh_command': Property(),
         'lish_command': Property(),
         'distribution': Property(relationship=True),
-        #'disks': Property(relationship=True),
-        #'configs': Property(relationship=True),
+        'disks': Property(derived_class=Disk),
+        #'configs': Property(derived_class=Config),
     }
 
     def __init__(self, id):

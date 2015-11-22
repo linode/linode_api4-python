@@ -1,7 +1,10 @@
-from .base import Base, Property
+from .dbase import DerivedBase
+from .base import Property
 
-class Disk(Base):
+class Disk(DerivedBase):
     api_endpoint = '/linodes/{linode_id}/disks/{id}'
+    derived_url_path = 'disks'
+
     properties = {
         'id': Property(identifier=True),
         'created': Property(),
@@ -10,10 +13,10 @@ class Disk(Base):
         'status': Property(),
         'type': Property(),
         'updated': Property(),
+        'linode_id': Property(identifier=True),
     }
 
-    def __init__(self, linode_id, id):
-        Base.__init__(self)
+    def __init__(self, id, linode_id):
+        DerivedBase.__init__(self, linode_id, parent_id_name='linode_id')
 
         self._set('id', id)
-        self._set('linode_id' ,linode_id)

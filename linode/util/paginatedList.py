@@ -1,12 +1,13 @@
 import math
 
 class PaginatedList(object):
-    def __init__(self, page_endpoint, page=[], max_pages=1, total_items=None):
+    def __init__(self, page_endpoint, page=[], max_pages=1, total_items=None, parent_id=None):
         self.page_endpoint = page_endpoint
         self.page_size = len(page)
         self.max_pages = max_pages
         self.lists = [ None for i in range(0, self.max_pages) ]
         self.lists[0] = page
+        self.objects_parent_id = parent_id
 
         self.total_items = total_items
         if not total_items:
@@ -17,7 +18,7 @@ class PaginatedList(object):
         from linode import mappings
 
         j = api_call("/{}?page={}".format(self.page_endpoint, page_number+1))
-        l = mappings.make_list(j[self.page_endpoint])
+        l = mappings.make_list(j[self.page_endpoint], parent_id=self.objects_parent_id)
         self.lists[page_number] = l
 
     def __getitem__(self, index):
