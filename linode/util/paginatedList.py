@@ -18,6 +18,10 @@ class PaginatedList(object):
         from linode import mappings
 
         j = api_call("/{}?page={}".format(self.page_endpoint, page_number+1))
+
+        if j['total_pages'] != self.total_pages or j['total_results'] != len(self):
+            raise RuntimeError('List {} has changed since creation!'.format(self))
+
         l = mappings.make_list(j[self.page_endpoint], parent_id=self.objects_parent_id)
         self.lists[page_number] = l
 
