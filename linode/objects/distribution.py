@@ -9,7 +9,7 @@ class Distribution(Base):
         'recommended': Property(),
         'vendor': Property(),
         'experimental': Property(),
-        'created': Property(),
+        'created': Property(is_datetime=True),
         'x64': Property(),
     }
 

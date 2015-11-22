@@ -4,7 +4,7 @@ from linode.api import api_call
 class StackScript(Base): 
     api_endpoint = '/stackscripts/{id}'
     properties = {
-        "created": Property(),
+        "created": Property(is_datetime=True),
         "label": Property(mutable=True),
         "script": Property(),
         "description": Property(mutable=True),

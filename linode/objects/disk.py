@@ -7,12 +7,12 @@ class Disk(DerivedBase):
 
     properties = {
         'id': Property(identifier=True),
-        'created': Property(),
+        'created': Property(is_datetime=True),
         'label': Property(mutable=True),
         'size': Property(),
         'status': Property(),
         'type': Property(),
-        'updated': Property(),
+        'updated': Property(is_datetime=True),
         'linode_id': Property(identifier=True),
     }
 

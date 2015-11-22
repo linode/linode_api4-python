@@ -3,15 +3,17 @@ from linode import config
 from linode import mappings
 
 from datetime import datetime
+import time
 
 class Property:
     def __init__(self, mutable=False, identifier=False, volatile=False, relationship=False, \
-            derived_class=None):
+            derived_class=None, is_datetime=False):
         self.mutable = mutable
         self.identifier = identifier
         self.volatile = volatile
         self.relationship = relationship
         self.derived_class = derived_class
+        self.is_datetime = is_datetime
 
 class MappedObject:
     def __init__(self, **vals):
@@ -114,6 +116,13 @@ class Base(object):
                         self._set(key, obj)
                 elif type(json[key]) is dict:
                     self._set(key, MappedObject(**json[key]))
+                elif type(self).properties[key].is_datetime:
+                    try:
+                        t = time.strptime(json[key], "%Y-%m-%dT%H:%M:%S")
+                        self._set(key, datetime.fromtimestamp(time.mktime(t)))
+                    except:
+                        #TODO - handle this better (or log it?)
+                        self._set(key, json[key])
                 else:
                     self._set(key, json[key])
 
