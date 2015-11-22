@@ -3,7 +3,9 @@ from .disk import Disk
 from .config import Config
 from linode.api import api_call
 
-class Linode(Base): 
+from random import choice
+
+class Linode(Base):
     api_endpoint = '/linodes/{id}'
     properties = {
         'id': Property(identifier=True),
@@ -53,3 +55,38 @@ class Linode(Base):
         if 'error' in resp:
             return False
         return True
+
+    def deploy_distro(self, distro, root_pass=None, root_key=None, swap_size=None, label=None,
+            stackscript=None, **stackscript_args):
+        params = {
+            "distribution": distro.id,
+        }
+
+        gen_pass = ''
+        if root_pass:
+            params['root_pass'] = root_pass
+        else:
+            gen_pass = ''.join([ \
+                choice('abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*_+-=')
+                for _ in range(0, 32) ])
+            params['root_pass'] = gen_pass
+
+        if root_key:
+            params['root_key'] = root_key
+        if swap_size:
+            params['swap_size'] = swap_size
+        if label:
+            params['label'] = label
+        if stackscript:
+            params['stackscript'] = stackscript.id
+            if stackscript_args:
+                params['stackscript_data'] = stackscript_agrs
+
+        result = api_call('/linodes/{}/deploy'.format(self.id), method='POST', data=params)
+
+        print(result)
+        self._populate(result['linode'])
+        if root_pass:
+            return self
+        else:
+            return self, gen_pass
