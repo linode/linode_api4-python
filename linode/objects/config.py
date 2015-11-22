@@ -23,3 +23,6 @@ class Config(DerivedBase):
         DerivedBase.__init__(self, linode_id, parent_id_name='linode_id')
 
         self._set('id', id)
+
+    def __repr__(self):
+        return "Config {}".format(self.id)
