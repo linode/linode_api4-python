@@ -58,6 +58,11 @@ class Linode(Base):
 
     def deploy_distro(self, distro, root_pass=None, root_key=None, swap_size=None, label=None,
             stackscript=None, **stackscript_args):
+        """
+        Deploy a distro to a linode.  If not root password is provided, one will be generated
+        and returned with the result.  If a stackscript is provided, any other keyword arguments
+        provided will be passed as stackscript parameters.
+        """
         params = {
             "distribution": distro.id,
         }
@@ -80,11 +85,11 @@ class Linode(Base):
         if stackscript:
             params['stackscript'] = stackscript.id
             if stackscript_args:
-                params['stackscript_data'] = stackscript_agrs
+                params['stackscript_data'] = stackscript_args
 
         result = api_call('/linodes/{}/deploy'.format(self.id), method='POST', data=params)
 
-        print(result)
+        #TODO: handle errors
         self._populate(result['linode'])
         if root_pass:
             return self
