@@ -6,6 +6,11 @@ from linode import mappings
 
 h = httplib2.Http()
 
+class ApiError(RuntimeError):
+    def __init__(self, message, status=400):
+        super(RuntimeError, self).__init__(message)
+        self.status=status
+
 def api_call(endpoint, model=None, method="GET", data=None):
     """
     Makes a call to the linode api.  Data should only be given if the method is
@@ -25,9 +30,15 @@ def api_call(endpoint, model=None, method="GET", data=None):
 
     resp, content = h.request(url, method=method, body=body, headers=headers)
 
-    # TODO - what if it fails?
-
     j = json.loads(str(content, 'utf-8'))
+
+    if 'error' in j and j['error']:
+        if not config.mute_errors:
+            raise ApiError(j['reason'], resp['status'])
+        else:
+            #TODO - log or something?
+            return None
+
     return j
 
 def get_objects(endpoint, prop, model=None, parent_id=None):
