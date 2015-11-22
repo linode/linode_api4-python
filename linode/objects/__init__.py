@@ -6,3 +6,5 @@ from .distribution import Distribution
 from .service import Service
 from .datacenter import Datacenter
 from .stackscript import StackScript
+from .config import Config
+from .kernel import Kernel

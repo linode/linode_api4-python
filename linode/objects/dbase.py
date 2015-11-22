@@ -12,7 +12,6 @@ class DerivedBase(Base):
     def __init__(self, parent_id, parent_id_name='parent_id'):
         Base.__init__(self)
 
-        print("I am setting {} to {}".format(parent_id_name, parent_id))
         self._set(parent_id_name, parent_id)
 
     @classmethod

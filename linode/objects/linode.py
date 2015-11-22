@@ -1,5 +1,6 @@
 from .base import Base, Property
 from .disk import Disk
+from .config import Config
 from linode.api import api_call
 
 class Linode(Base): 
@@ -20,7 +21,7 @@ class Linode(Base):
         'lish_command': Property(),
         'distribution': Property(relationship=True),
         'disks': Property(derived_class=Disk),
-        #'configs': Property(derived_class=Config),
+        'configs': Property(derived_class=Config),
     }
 
     def __init__(self, id):

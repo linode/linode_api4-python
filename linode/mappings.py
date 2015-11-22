@@ -10,6 +10,8 @@ def get_mapping(id):
         'serv': linode.objects.Service,
         'dctr': linode.objects.Datacenter,
         'stck': linode.objects.StackScript,
+        'conf': linode.objects.Config,
+        'krnl': linode.objects.Kernel,
     }
 
     parts = id.split('_')

@@ -93,8 +93,7 @@ class Base(object):
 
         for key in json:
             if key in (k for k in type(self).properties.keys()
-                if not type(self).properties[k].identifier):
-
+                    if not type(self).properties[k].identifier):
                 if type(self).properties[key].relationship  \
                     and not json[key] is None:
                     if isinstance(json[key], list):

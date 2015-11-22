@@ -43,6 +43,9 @@ def get_linodes(**filters):
 def get_stackscripts(**filters):
     return get('stackscripts', **filters)
 
+def get_kernels(**filters):
+    return get('kernels', **filters)
+
 def create_linode(service, datacenter, source=None, **kwargs):
     if not 'linode' in service.service_type:
         raise AttributeError("{} is not a linode service!".format(service.label))
