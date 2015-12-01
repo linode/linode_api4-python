@@ -12,6 +12,8 @@ def get_mapping(id):
         'stck': linode.objects.StackScript,
         'conf': linode.objects.Config,
         'krnl': linode.objects.Kernel,
+        'ljob': linode.objects.Job,
+        'imag': linode.objects.Image,
     }
 
     parts = id.split('_')

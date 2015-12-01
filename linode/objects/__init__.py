@@ -8,3 +8,5 @@ from .datacenter import Datacenter
 from .stackscript import StackScript
 from .config import Config
 from .kernel import Kernel
+from .job import Job
+from .image import Image

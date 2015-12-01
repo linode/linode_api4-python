@@ -1,6 +1,7 @@
 from .base import Base, Property
 from .disk import Disk
 from .config import Config
+from .job import Job
 from linode.api import api_call
 
 from random import choice
@@ -24,6 +25,7 @@ class Linode(Base):
         'distribution': Property(relationship=True),
         'disks': Property(derived_class=Disk),
         'configs': Property(derived_class=Config),
+        'jobs': Property(derived_class=Job),
     }
 
     def __init__(self, id):
