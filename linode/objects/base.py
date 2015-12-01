@@ -115,6 +115,9 @@ class Base(object):
                         self._set(key, obj)
                 elif type(json[key]) is dict:
                     self._set(key, MappedObject(**json[key]))
+                elif type(json[key]) is list:
+                    mapping = MappedObject(_list=json[key])
+                    self._set(key, mapping._list)
                 elif type(self).properties[key].is_datetime:
                     try:
                         t = time.strptime(json[key], "%Y-%m-%dT%H:%M:%S")
