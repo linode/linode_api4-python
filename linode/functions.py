@@ -1,5 +1,5 @@
 from linode import api
-from linode.objects import Base, Linode
+from linode.objects import Base, Linode, Distribution
 
 def filter_list(results, **filter_by):
     if not results or not len(results):
@@ -53,6 +53,11 @@ def create_linode(service, datacenter, source=None, **kwargs):
     if not 'linode' in service.service_type:
         raise AttributeError("{} is not a linode service!".format(service.label))
 
+    ret_pass = None
+    if type(source) is Distribution and not 'root_pass' in kwargs:
+        ret_pass = Linode.generate_root_password()
+        kwargs['root_pass'] = ret_pass
+
     params = {
          'service': service.id,
          'datacenter': datacenter.id,
@@ -67,4 +72,7 @@ def create_linode(service, datacenter, source=None, **kwargs):
 
     l = Linode(result['linode']['id'])
     l._populate(result['linode'])
-    return l
+    if not ret_pass:
+        return l
+    else:
+        return l, ret_pass

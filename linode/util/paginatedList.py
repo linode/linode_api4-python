@@ -30,7 +30,7 @@ class PaginatedList(object):
         if isinstance(index, slice):
             return self._get_slice(index)
 
-        if index > self.page_size * self.max_pages:
+        if index >= self.page_size * self.max_pages:
             raise IndexError('list index out of range')
         normalized_index = index % self.page_size
         target_page = math.ceil((index+1)/self.page_size)-1

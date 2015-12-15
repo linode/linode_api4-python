@@ -38,7 +38,7 @@ class Linode(Base):
 
     def boot(self, config=None):
         # TODO: Implement configs
-        resp = api_call("{}/boot".format(Linode.api_endpoint), model=self, method="POST")
+        resp = api_call("{}/boot".format(Linode.api_endpoint), model=self, method="POST", data='junk')
 
         if 'error' in resp:
             return False
@@ -52,7 +52,7 @@ class Linode(Base):
         return True
 
     def reboot(self):
-        resp = api_call("{}/reboot".format(Linode.api_endpoint), model=self, method="POST")
+        resp = api_call("{}/reboot".format(Linode.api_endpoint), model=self, method="POST", data="junk")
 
         if 'error' in resp:
             return False
@@ -73,10 +73,7 @@ class Linode(Base):
         if root_pass:
             params['root_pass'] = root_pass
         else:
-            gen_pass = ''.join([ \
-                choice('abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*_+-=')
-                for _ in range(0, 32) ])
-            params['root_pass'] = gen_pass
+            params['root_pass'] = Linode.generate_root_password()
 
         if root_key:
             params['root_key'] = root_key
@@ -97,3 +94,6 @@ class Linode(Base):
             return self
         else:
             return self, gen_pass
+
+    def generate_root_password():
+        return ''.join([choice('abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*_+-=') for _ in range(0, 32) ])
