@@ -37,8 +37,7 @@ class Linode(Base):
         return "Linode: {}".format(self.id)
 
     def boot(self, config=None):
-        # TODO: Implement configs
-        resp = api_call("{}/boot".format(Linode.api_endpoint), model=self, method="POST", data='junk')
+        resp = api_call("{}/boot".format(Linode.api_endpoint), model=self, method="POST", data={'config': config.id} if config else 'junk')
 
         if 'error' in resp:
             return False
