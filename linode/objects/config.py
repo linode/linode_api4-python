@@ -23,3 +23,16 @@ class Config(DerivedBase):
         DerivedBase.__init__(self, linode_id, parent_id_name='linode_id')
 
         self._set('id', id)
+
+    def _populate(self, json):
+        """
+        Override popupate to map the disks more nicely
+        """
+        DerivedBase._populate(self, json)
+
+        import linode.mappings as mapper
+
+        for key in vars(self.disks):
+            print("Looking at {}".format(key))
+            if self.disks.__getattribute__(key):
+                self.disks.__setattr__(key, mapper.make(self.disks.__getattribute__(key).id, parent_id=self.linode_id))
