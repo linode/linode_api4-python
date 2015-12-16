@@ -72,6 +72,13 @@ class Base(object):
             return False
         return True
 
+    def delete(self):
+        resp = api_call(type(self).api_endpoint, model=self, method="DELETE")
+
+        if 'error' in resp:
+            return False
+        return True
+
     def invalidate(self):
         for key in (k for k in type(self).properties.keys()
             if not type(self).properties[k].identifier):
