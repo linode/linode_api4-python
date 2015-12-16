@@ -15,6 +15,3 @@ class Image(Base):
         Base.__init__(self)
 
         self._set('id', id)
-
-    def __repr__(self):
-        return "Image: {}".format(self.id)

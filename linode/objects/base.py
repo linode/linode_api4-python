@@ -58,6 +58,9 @@ class Base(object):
 
         return object.__getattribute__(self, name)
 
+    def __repr__(self):
+        return "{}: {}".format(type(self).__name__, self.id)
+
     def __setattr__(self, name, value):
         if name in type(self).properties.keys() and not type(self).properties[name].mutable:
             raise AttributeError("'{}' is not a mutable field of '{}'"
@@ -77,12 +80,13 @@ class Base(object):
 
         if 'error' in resp:
             return False
+        self.invalidate()
         return True
 
     def invalidate(self):
         for key in (k for k in type(self).properties.keys()
             if not type(self).properties[k].identifier):
-            self._set(key, None)
+                self._set(key, None)
 
         self._populated = False
 

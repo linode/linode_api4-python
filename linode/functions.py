@@ -49,6 +49,9 @@ def get_kernels(**filters):
 def get_images(**filters):
     return get('images', **filters)
 
+def get_zones(**filters):
+    return get('zones', **filters)
+
 def create_linode(service, datacenter, source=None, **kwargs):
     if not 'linode' in service.service_type:
         raise AttributeError("{} is not a linode service!".format(service.label))

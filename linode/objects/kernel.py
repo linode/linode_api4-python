@@ -19,6 +19,3 @@ class Kernel(Base):
         Base.__init__(self)
 
         self._set('id', id)
-
-    def __repr__(self):
-        return "Kernel {}".format(self.id)

@@ -38,9 +38,6 @@ class StackScript(Base):
 
         self._set('id', id)
 
-    def __repr__(self):
-        return "StackScript {}".format(self.id)
-
     def _populate(self, json):
         """
         Override the populate method to map user_defined_fields to

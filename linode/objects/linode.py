@@ -33,9 +33,6 @@ class Linode(Base):
 
         self._set('id', id)
 
-    def __repr__(self):
-        return "Linode: {}".format(self.id)
-
     def boot(self, config=None):
         resp = api_call("{}/boot".format(Linode.api_endpoint), model=self, method="POST", data={'config': config.id} if config else 'junk')
 

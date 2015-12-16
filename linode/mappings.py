@@ -14,6 +14,8 @@ def get_mapping(id):
         'krnl': linode.objects.Kernel,
         'ljob': linode.objects.Job,
         'imag': linode.objects.Image,
+        'zone': linode.objects.Zone,
+        'zrcd': linode.objects.ZoneRecord,
     }
 
     parts = id.split('_')
