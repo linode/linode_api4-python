@@ -34,7 +34,7 @@ class Linode(Base):
         self._set('id', id)
 
     def boot(self, config=None):
-        resp = api_call("{}/boot".format(Linode.api_endpoint), model=self, method="POST", data={'config': config.id} if config else 'junk')
+        resp = api_call("{}/boot".format(Linode.api_endpoint), model=self, method="POST", data={'config': config.id} if config else '')
 
         if 'error' in resp:
             return False
@@ -48,7 +48,7 @@ class Linode(Base):
         return True
 
     def reboot(self):
-        resp = api_call("{}/reboot".format(Linode.api_endpoint), model=self, method="POST", data="junk")
+        resp = api_call("{}/reboot".format(Linode.api_endpoint), model=self, method="POST")
 
         if 'error' in resp:
             return False
