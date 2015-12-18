@@ -8,6 +8,7 @@ class PaginatedList(object):
         self.lists = [ None for i in range(0, self.max_pages) ]
         self.lists[0] = page
         self.objects_parent_id = parent_id
+        self.cur = 0 # for being a generator
 
         self.total_items = total_items
         if not total_items:
@@ -88,3 +89,13 @@ class PaginatedList(object):
 
     def __delitem__(self, index, value):
         raise AttributeError('Assigning to indicies in paginated lists is not supported')
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.cur < len(self):
+            self.cur += 1
+            return self[self.cur-1]
+        else:
+            raise StopIteration()
