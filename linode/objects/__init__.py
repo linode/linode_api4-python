@@ -9,6 +9,5 @@ from .stackscript import StackScript
 from .config import Config
 from .kernel import Kernel
 from .job import Job
-from .image import Image
 from .zone import Zone
 from .zone_record import ZoneRecord

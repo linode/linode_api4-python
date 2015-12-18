@@ -1,6 +1,7 @@
 #!/usr/local/bin/python3
 import linode
 from linode import config
+from linode.linode_client import LinodeClient
 
 from os import path, makedirs
 import code
@@ -29,11 +30,11 @@ base_url = None
 if path.isfile(base_path):
     base_url = open(base_path).read().rstrip()
 
-config.api_token = api_token
-if base_url:
-    config.base_url = base_url
+lc = LinodeClient(api_token, base_url=base_url)
 
 banner="""## DEV MODE ##
->>> import linode"""
+>>> import linode
+>>> from linode import LinodeClient
+>>> lc = LinodeClient( ... )"""
 
 code.interact(local=locals(), banner=banner)

@@ -18,11 +18,3 @@ class Zone(Base):
         'ttl_se': Property(mutable=True),
         'records': Property(derived_class=ZoneRecord),
     }
-
-    def __init__(self, id):
-        Base.__init__(self)
-
-        self._set('id', id)
-
-    def __repr__(self):
-        return "Zone: {}".format(self.id)

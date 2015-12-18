@@ -17,8 +17,3 @@ class Job(DerivedBase):
         "success": Property(volatile=True),
         "linode_id": Property(identifier=True),
     }
-
-    def __init__(self, id, linode_id):
-        DerivedBase.__init__(self, linode_id, parent_id_name='linode_id')
-
-        self._set('id', id)

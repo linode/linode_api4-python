@@ -1,7 +1,8 @@
 import math
 
 class PaginatedList(object):
-    def __init__(self, page_endpoint, page=[], max_pages=1, total_items=None, parent_id=None):
+    def __init__(self, client, page_endpoint, page=[], max_pages=1, total_items=None, parent_id=None):
+        self.client = client
         self.page_endpoint = page_endpoint
         self.page_size = len(page)
         self.max_pages = max_pages
@@ -15,15 +16,14 @@ class PaginatedList(object):
             self.total_items = len(page)
 
     def _load_page(self, page_number):
-        from linode.api import api_call
         from linode import mappings
 
-        j = api_call("/{}?page={}".format(self.page_endpoint, page_number+1))
+        j = self.client.get("/{}?page={}".format(self.page_endpoint, page_number+1))
 
         if j['total_pages'] != self.max_pages or j['total_results'] != len(self):
             raise RuntimeError('List {} has changed since creation!'.format(self))
 
-        l = mappings.make_list(j[self.page_endpoint], parent_id=self.objects_parent_id)
+        l = mappings.make_list(j[self.page_endpoint], self.client, parent_id=self.objects_parent_id)
         self.lists[page_number] = l
 
     def __getitem__(self, index):

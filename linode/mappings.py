@@ -13,7 +13,6 @@ def get_mapping(id):
         'conf': linode.objects.Config,
         'krnl': linode.objects.Kernel,
         'ljob': linode.objects.Job,
-        'imag': linode.objects.Image,
         'zone': linode.objects.Zone,
         'zrcd': linode.objects.ZoneRecord,
     }
@@ -27,7 +26,7 @@ def get_mapping(id):
         return id_map[parts[0]]
     return None
 
-def make(id, parent_id=None):
+def make(id, client, parent_id=None):
     """
     Makes an api object based on an id.  The type depends on the mapping.
     """
@@ -35,25 +34,25 @@ def make(id, parent_id=None):
 
     if c:
         if issubclass(c, linode.objects.DerivedBase):
-            return c(id, parent_id)
+            return c(client, id, parent_id)
         else:
-            return c(id)
+            return c(client, id)
     return None
 
-def make_list(json_arr, parent_id=None):
+def make_list(json_arr, client, parent_id=None):
     result = []
 
     for obj in json_arr:
         if not 'id' in obj:
             continue
-        o = make(obj['id'], parent_id=parent_id)
+        o = make(obj['id'], client, parent_id=parent_id)
         o._populate(obj)
         result.append(o)
 
     return result
 
-def make_paginated_list(json, key, parent_id=None):
-    l = make_list(json[key], parent_id=parent_id)
-    p = util.PaginatedList(key, page=l, max_pages=json['total_pages'], \
+def make_paginated_list(json, key, client, parent_id=None):
+    l = make_list(json[key], client, parent_id=parent_id)
+    p = util.PaginatedList(client, key, page=l, max_pages=json['total_pages'], \
          total_items=json['total_results'], parent_id=parent_id)
     return p

@@ -1,5 +1,4 @@
 from .base import Base, Property
-from linode.api import api_call
 
 from enum import Enum
 
@@ -32,11 +31,6 @@ class StackScript(Base):
         "revision_note": Property(),
         "user_defined_fields": Property(),
     }
-
-    def __init__(self, id):
-        Base.__init__(self)
-
-        self._set('id', id)
 
     def _populate(self, json):
         """

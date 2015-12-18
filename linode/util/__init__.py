@@ -1,1 +1,1 @@
-from .paginatedList import PaginatedList
+from .paginated_list import PaginatedList

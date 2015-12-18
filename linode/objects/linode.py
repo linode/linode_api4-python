@@ -2,7 +2,6 @@ from .base import Base, Property
 from .disk import Disk
 from .config import Config
 from .job import Job
-from linode.api import api_call
 
 from random import choice
 
@@ -28,27 +27,22 @@ class Linode(Base):
         'jobs': Property(derived_class=Job),
     }
 
-    def __init__(self, id):
-        Base.__init__(self)
-
-        self._set('id', id)
-
     def boot(self, config=None):
-        resp = api_call("{}/boot".format(Linode.api_endpoint), model=self, method="POST", data={'config': config.id} if config else '')
+        resp = self._client.post("{}/boot".format(Linode.api_endpoint), model=self, data={'config': config.id} if config else None)
 
         if 'error' in resp:
             return False
         return True
 
     def shutdown(self):
-        resp = api_call("{}/shutdown".format(Linode.api_endpoint), model=self, method="POST")
+        resp = self._client.post("{}/shutdown".format(Linode.api_endpoint), model=self)
 
         if 'error' in resp:
             return False
         return True
 
     def reboot(self):
-        resp = api_call("{}/reboot".format(Linode.api_endpoint), model=self, method="POST")
+        resp = self._client.post("{}/reboot".format(Linode.api_endpoint), model=self)
 
         if 'error' in resp:
             return False
@@ -82,7 +76,7 @@ class Linode(Base):
             if stackscript_args:
                 params['stackscript_data'] = stackscript_args
 
-        result = api_call('/linodes/{}/deploy'.format(self.id), method='POST', data=params)
+        result = self._client.post('/linodes/{}/deploy'.format(self.id), data=params)
 
         #TODO: handle errors
         self._populate(result['linode'])

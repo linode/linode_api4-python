@@ -2,8 +2,9 @@ from .dbase import DerivedBase
 from .base import Property
 
 class Config(DerivedBase):
-    api_endpoint="/linodes/{linode_id}/configs/{id}" 
+    api_endpoint="/linodes/{linode_id}/configs/{id}"
     derived_url_path="configs"
+    parent_id_name="linode_id"
 
     properties = {
         "id": Property(identifier=True),
@@ -19,11 +20,6 @@ class Config(DerivedBase):
         "kernel_params": Property(mutable=True),
     }
 
-    def __init__(self, id, linode_id):
-        DerivedBase.__init__(self, linode_id, parent_id_name='linode_id')
-
-        self._set('id', id)
-
     def _populate(self, json):
         """
         Override popupate to map the disks more nicely
@@ -33,6 +29,7 @@ class Config(DerivedBase):
         import linode.mappings as mapper
 
         for key in vars(self.disks):
-            print("Looking at {}".format(key))
             if self.disks.__getattribute__(key):
-                self.disks.__setattr__(key, mapper.make(self.disks.__getattribute__(key).id, parent_id=self.linode_id))
+                self.disks.__setattr__(key,
+                        mapper.make(self.disks.__getattribute__(key).id,
+                        self._client, parent_id=self.linode_id))

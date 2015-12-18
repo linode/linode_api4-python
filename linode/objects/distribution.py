@@ -12,8 +12,3 @@ class Distribution(Base):
         'created': Property(is_datetime=True),
         'x64': Property(),
     }
-
-    def __init__(self, id):
-        Base.__init__(self)
-
-        self._set('id', id)

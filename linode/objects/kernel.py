@@ -14,8 +14,3 @@ class Kernel(Base):
         "x64": Property(),
         "xen": Property(),
     }
-
-    def __init__(self, id):
-        Base.__init__(self)
-
-        self._set('id', id)

@@ -14,8 +14,3 @@ class Service(Base):
         'transfer': Property(),
         'vcpus': Property(),
     }
-
-    def __init__(self, id):
-        Base.__init__(self)
-       
-        self._set('id', id)

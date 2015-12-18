@@ -1,4 +1,3 @@
-from linode.api import api_call
 from linode import config
 from linode import mappings
 
@@ -37,22 +36,28 @@ class Base(object):
     """
     properties = ()
 
-    def __init__(self):
+    def __init__(self, client, id):
         self._set('_populated', False)
         self._set('_last_updated', datetime.min)
+        self._set('_client', client)
 
         for prop in type(self).properties:
             self._set(prop, None)
 
+        self._set('id', id)
+
     def __getattribute__(self, name):
         if name in type(self).properties.keys():
-            if (object.__getattribute__(self, name) is None and not self._populated) \
+            if type(self).properties[name].identifier:
+                pass # don't load identifiers from the server, we have those
+            elif (object.__getattribute__(self, name) is None and not self._populated) \
                     or (type(self).properties[name].volatile \
                     and object.__getattribute__(self, '_last_updated')
                     + config.volatile_refresh_timeout < datetime.now()):
                 if type(self).properties[name].derived_class:
                     #load derived object(s)
-                    self._set(name, type(self).properties[name].derived_class._api_get_derived(self))
+                    self._set(name, type(self).properties[name].derived_class
+                            ._api_get_derived(self, getattr(self, '_client')))
                 else:
                     self._api_get()
 
@@ -68,7 +73,7 @@ class Base(object):
         self._set(name, value)
 
     def save(self):
-        resp = api_call(type(self).api_endpoint, model=self, method="PUT",
+        resp = self._client.put(type(self).api_endpoint, model=self,
             data=self._serialize())
 
         if 'error' in resp:
@@ -76,7 +81,7 @@ class Base(object):
         return True
 
     def delete(self):
-        resp = api_call(type(self).api_endpoint, model=self, method="DELETE")
+        resp = self._client.delete(type(self).api_endpoint, model=self)
 
         if 'error' in resp:
             return False
@@ -95,7 +100,7 @@ class Base(object):
             if type(self).properties[a].mutable }
 
     def _api_get(self):
-        json = api_call(type(self).api_endpoint, model=self)
+        json = self._client.get(type(self).api_endpoint, model=self)
         self._populate(json)
 
     def _populate(self, json):
@@ -112,7 +117,7 @@ class Base(object):
                         for d in json[key]:
                             if not 'id' in d:
                                 continue
-                            obj = mappings.make(d['id'])
+                            obj = mappings.make(d['id'], getattr(self,'_client'))
                             if obj:
                                 obj._populate(d)
                             objs.append(obj)
@@ -120,7 +125,7 @@ class Base(object):
                     else:
                         if not 'id' in json[key]:
                             continue
-                        obj = mappings.make(json[key]['id'])
+                        obj = mappings.make(json[key]['id'], getattr(self,'_client'))
                         if obj:
                             obj._populate(json[key])
                         self._set(key, obj)

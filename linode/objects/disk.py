@@ -4,6 +4,7 @@ from .base import Property
 class Disk(DerivedBase):
     api_endpoint = '/linodes/{linode_id}/disks/{id}'
     derived_url_path = 'disks'
+    parent_id_name='linode_id'
 
     properties = {
         'id': Property(identifier=True),
@@ -15,8 +16,3 @@ class Disk(DerivedBase):
         'updated': Property(is_datetime=True),
         'linode_id': Property(identifier=True),
     }
-
-    def __init__(self, id, linode_id):
-        DerivedBase.__init__(self, linode_id, parent_id_name='linode_id')
-
-        self._set('id', id)
