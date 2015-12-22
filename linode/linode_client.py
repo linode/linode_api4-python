@@ -4,7 +4,7 @@ import json
 
 from linode.api import ApiError
 from linode import mappings
-from linode.objects import Base, Distribution, Linode
+from linode.objects import Base, Distribution, Linode, Zone
 
 class LinodeClient:
     def __init__(self, token, base_url="https://api.linode.com/v2"):
@@ -150,3 +150,20 @@ class LinodeClient:
             return l
         else:
             return l, ret_pass
+
+    # create a zone
+    def create_zone(self, zone, master=True, **kwargs):
+        params = {
+            'zone': zone,
+            'type': 'master' if master else 'slave',
+        }
+        params.update(kwargs)
+
+        result = self.post('/zones', data=params)
+
+        if not 'zone' in result:
+            return result
+
+        z = Zone(self, result['zone']['id'])
+        z._populate(result['zone'])
+        return z
