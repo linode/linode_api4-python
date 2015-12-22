@@ -87,3 +87,27 @@ class Linode(Base):
 
     def generate_root_password():
         return ''.join([choice('abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*_+-=') for _ in range(0, 32) ])
+
+
+    def create_config(self, kernel, label=None, disks=None, **kwargs):
+
+        disk_list = []
+        if disks:
+            disk_list = [ d.id for d in disks ]
+
+        params = {
+            'kernel': kernel.id,
+            'label': label if label else "{}_config_{}".format(self.label, len(self.configs)),
+            'disk_list': disk_list,
+        }
+        params.update(kwargs)
+
+        result = self._client.post("{}/configs".format(Linode.api_endpoint), model=self, data=params)
+        self.invalidate()
+
+        if not 'config' in result:
+            return result
+
+        c = Config(self._client, result['config']['id'], self.id)
+        c._populate(result['config'])
+        return c
