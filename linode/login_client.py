@@ -4,16 +4,16 @@ from .api import ApiError
 
 class LinodeLoginClient:
     def __init__(self, client_id, client_secret, 
-            login_base_url="https://login.linode.com"):
-        self.login_base_url = login_base_url
+            base_url="https://login.linode.com"):
+        self.base_url = base_url
         self.client_id = client_id
         self.client_secret = client_secret
 
     def _login_uri(self, path):
-        return "{}{}".format(self.login_base_url, path)
+        return "{}{}".format(self.base_url, path)
 
     def generate_login_url(self, scopes=None, redirect_uri=None):
-        url = self.login_base_url + "/oauth/authorize"
+        url = self.base_url + "/oauth/authorize"
         split = list(urllib.parse.urlparse(url))
         params = {
             "client_id": self.client_id,
