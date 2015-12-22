@@ -36,11 +36,16 @@ class LinodeClient:
 
         if 399 < r.status_code < 600:
             j = None
+            error_msg = '{}: '.format(r.status_code)
             try:
                 j = r.json()
+                if 'errors' in j.keys():
+                    for e in j['errors']:
+                        error_msg += '{}; '.format(e['reason']) \
+                                if 'reason' in e.keys() else ''
             except:
                 pass
-            raise ApiError(j['reason'] if j and 'reason' in j.keys() else '', status=r.status_code)
+            raise ApiError(error_msg, status=r.status_code)
 
         j = r.json()
 
