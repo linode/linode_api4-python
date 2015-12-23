@@ -111,3 +111,23 @@ class Linode(Base):
         c = Config(self._client, result['config']['id'], self.id)
         c._populate(result['config'])
         return c
+
+    def create_disk(self, size, label=None, disk_type=None, read_only=False, **kwargs):
+
+        params = {
+            'size': size,
+            'label': label if label else "{}_disk_{}".format(self.label, len(self.disks)),
+            'read_only': read_only,
+            'disk_type': disk_type if disk_type else 'raw',
+        }
+        params.update(kwargs)
+
+        result = self._client.post("{}/disks".format(Linode.api_endpoint), model=self, data=params)
+        self.invalidate()
+
+        if not 'disk' in result:
+            return result
+
+        d = Disk(self._client, result['disk']['id'], self.id)
+        d._populate(result['disk'])
+        return d
