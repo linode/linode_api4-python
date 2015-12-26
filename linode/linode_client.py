@@ -4,7 +4,8 @@ import json
 
 from linode.api import ApiError
 from linode import mappings
-from linode.objects import Base, Distribution, Linode, Zone
+from linode.objects import Base, Distribution, Linode, Zone, StackScript
+from linode.util import PaginatedList
 
 class LinodeClient:
     def __init__(self, token, base_url="https://api.linode.com/v2"):
@@ -65,7 +66,7 @@ class LinodeClient:
         return self._api_call(*args, method=requests.get, **kwargs)
 
     def post(self, *args, **kwargs):
-        return self._api_call(*args, method=requests.post, **kwargs) 
+        return self._api_call(*args, method=requests.post, **kwargs)
 
     def put(self, *args, **kwargs):
         return self._api_call(*args, method=requests.put, **kwargs)
@@ -151,7 +152,6 @@ class LinodeClient:
         else:
             return l, ret_pass
 
-    # create a zone
     def create_zone(self, zone, master=True, **kwargs):
         params = {
             'zone': zone,
@@ -167,3 +167,40 @@ class LinodeClient:
         z = Zone(self, result['zone']['id'])
         z._populate(result['zone'])
         return z
+
+    def create_stackscript(self, label, script, distros, desc=None, public=False, **kwargs):
+        distro_list = None
+        if type(distros) is list or type(distros) is PaginatedList:
+            distro_list = [ d.id for d in distros ]
+        elif type(distros) is Distribution:
+            distro_list = [ distros.id ]
+        else:
+            raise ValueError('distros must be a list of Distributions of a single Distribution')
+
+        script_body = script
+        if not script.startswith("#!"):
+            # it doesn't look like a stackscript body, let's see if it's a file
+            import os
+            if os.path.isfile(script):
+                with open(script) as f:
+                    script_body = f.read()
+            else:
+                raise ValueError("script must be the script text or a path to a file")
+
+        params = {
+            "label": label,
+            "distributions": distro_list,
+            "is_public": public,
+            "script": script_body,
+            "description": desc if desc else '',
+        }
+        params.update(kwargs)
+
+        result = self.post('/stackscripts', data=params)
+
+        if not 'stackscript' in result:
+            return result
+
+        s = StackScript(self, result['stackscript']['id'])
+        s._populate(result['stackscript'])
+        return s
