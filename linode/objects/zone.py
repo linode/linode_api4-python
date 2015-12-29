@@ -18,3 +18,21 @@ class Zone(Base):
         'ttl_se': Property(mutable=True),
         'records': Property(derived_class=ZoneRecord),
     }
+
+
+    def create_record(self, record_type, **kwargs):
+
+        params = {
+            "type": record_type,
+        }
+        params.update(kwargs)
+
+        result = self._client.post("{}/records".format(Zone.api_endpoint), model=self, data=params)
+        self.invalidate()
+
+        if not 'record' in result:
+            return result
+
+        zr = ZoneRecord(self._client, result['record']['id'], self.id)
+        zr._populate(result['record'])
+        return zr
