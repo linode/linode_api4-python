@@ -152,22 +152,6 @@ class LinodeClient:
         else:
             return l, ret_pass
 
-    def create_zone(self, zone, master=True, **kwargs):
-        params = {
-            'zone': zone,
-            'type': 'master' if master else 'slave',
-        }
-        params.update(kwargs)
-
-        result = self.post('/zones', data=params)
-
-        if not 'zone' in result:
-            return result
-
-        z = Zone(self, result['zone']['id'])
-        z._populate(result['zone'])
-        return z
-
     def create_stackscript(self, label, script, distros, desc=None, public=False, **kwargs):
         distro_list = None
         if type(distros) is list or type(distros) is PaginatedList:
@@ -204,3 +188,19 @@ class LinodeClient:
         s = StackScript(self, result['stackscript']['id'])
         s._populate(result['stackscript'])
         return s
+
+    def create_zone(self, zone, master=True, **kwargs):
+        params = {
+            'zone': zone,
+            'type': 'master' if master else 'slave',
+        }
+        params.update(kwargs)
+
+        result = self.post('/zones', data=params)
+
+        if not 'zone' in result:
+            return result
+
+        z = Zone(self, result['zone']['id'])
+        z._populate(result['zone'])
+        return z

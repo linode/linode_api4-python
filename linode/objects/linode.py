@@ -88,7 +88,7 @@ class Linode(Base):
     def generate_root_password():
         return ''.join([choice('abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*_+-=') for _ in range(0, 32) ])
 
-
+    # create derived objects
     def create_config(self, kernel, label=None, disks=None, **kwargs):
 
         disk_list = []

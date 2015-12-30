@@ -24,7 +24,7 @@ class Disk(DerivedBase):
         if not 'disk' in result:
             return result
 
-        d = Disk(self._client, result['disk']['id'], self.id)
+        d = Disk(self._client, result['disk']['id'], self.linode_id)
         d._populate(result['disk'])
         return d
 
