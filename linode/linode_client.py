@@ -59,7 +59,11 @@ class LinodeClient:
             return False
 
         if 'total_pages' in json:
-            return mappings.make_paginated_list(json, prop, self, parent_id=parent_id)
+            formatted_endpoint = endpoint
+            if model:
+                formatted_endpoint = formatted_endpoint.format(**vars(model))
+            return mappings.make_paginated_list(json, prop, self, parent_id=parent_id, \
+                    page_url=formatted_endpoint[1:])
         return mappings.make_list(json[prop], self, parent_id=parent_id)
 
     def get(self, *args, **kwargs):

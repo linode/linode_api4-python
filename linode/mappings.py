@@ -51,8 +51,9 @@ def make_list(json_arr, client, parent_id=None):
 
     return result
 
-def make_paginated_list(json, key, client, parent_id=None):
+def make_paginated_list(json, key, client, parent_id=None, page_url=None):
     l = make_list(json[key], client, parent_id=parent_id)
-    p = util.PaginatedList(client, key, page=l, max_pages=json['total_pages'], \
-         total_items=json['total_results'], parent_id=parent_id)
+    p = util.PaginatedList(client, page_url if page_url else key, page=l, \
+         max_pages=json['total_pages'],  total_items=json['total_results'], parent_id=parent_id, \
+         key=key)
     return p
