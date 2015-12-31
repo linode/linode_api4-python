@@ -112,7 +112,17 @@ class Linode(Base):
         c._populate(result['config'])
         return c
 
-    def create_disk(self, size, label=None, disk_type=None, read_only=False, **kwargs):
+    def create_disk(self, size, label=None, disk_type=None, read_only=False, distribution=None, \
+            root_pass=None, **kwargs):
+
+        gen_pass = None
+        if distribution and not root_pass:
+            gen_pass  = Linode.generate_root_password()
+            root_pass = gen_pass
+
+
+        if distribution and not label:
+            label = "My {} Disk".format(distribution.label)
 
         params = {
             'size': size,
@@ -120,6 +130,11 @@ class Linode(Base):
             'read_only': read_only,
             'disk_type': disk_type if disk_type else 'raw',
         }
+        if distribution:
+            params.update({
+                'distribution': distribution.id,
+                'root_pass': root_pass,
+            })
         params.update(kwargs)
 
         result = self._client.post("{}/disks".format(Linode.api_endpoint), model=self, data=params)
@@ -130,4 +145,7 @@ class Linode(Base):
 
         d = Disk(self._client, result['disk']['id'], self.id)
         d._populate(result['disk'])
+
+        if gen_pass:
+            return d, gen_pass
         return d

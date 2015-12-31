@@ -4,6 +4,7 @@ from .base import Property
 class Job(DerivedBase):
     api_endpoint = '/linodes/{linode_id}/jobs/{id}'
     derived_url_path = 'jobs'
+    parent_id_name = 'linode_id' #override in child classes
 
     properties = {
         "action": Property(),
