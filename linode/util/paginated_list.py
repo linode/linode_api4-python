@@ -58,6 +58,17 @@ class PaginatedList(object):
 
         if not s.step is None and not s.step == 1:
             raise NotImplementedError('TODO')
+
+        if i < 0 and j < 0:
+            i = len(self) + i
+            j = len(self) + j
+
+        if i < 0 and not s.stop:
+            i = len(self) + i
+
+        if j < 0 and not s.start:
+            j = len(self) + j
+
         if i > j:
             raise NotImplementedError('TODO')
 
