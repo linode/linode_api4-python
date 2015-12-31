@@ -106,7 +106,16 @@ class LinodeClient:
 
         return results
 
-    def get_distributions(self, **filters):
+    def get_distributions(self, recommended_only=True, **filters):
+        # handle the special case for this endpoint
+        if recommended_only:
+            results = self._get_objects("/distributions/recommended", "distributions")
+
+            if filters and len(filters):
+                results = self._filter_list(results, **filters)
+
+            return results
+
         return self._get_and_filter('distributions', **filters)
 
     def get_services(self, **filters):
