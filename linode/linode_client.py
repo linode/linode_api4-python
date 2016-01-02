@@ -127,7 +127,15 @@ class LinodeClient:
     def get_linodes(self, **filters):
         return self._get_and_filter('linodes', **filters)
 
-    def get_stackscripts(self, **filters):
+    def get_stackscripts(self, mine_only=False, **filters):
+        if mine_only:
+            results = self._get_objects("/stackscripts/mine", "stackscripts")
+
+            if filters and len(filters):
+                results = self._filter_list(results, **filters)
+
+            return results
+
         return self._get_and_filter('stackscripts', **filters)
 
     def get_kernels(self, **filters):
