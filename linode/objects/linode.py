@@ -59,11 +59,12 @@ class Linode(Base):
             "distribution": distro.id,
         }
 
-        gen_pass = ''
+        gen_pass = None
         if root_pass:
             params['root_pass'] = root_pass
         else:
-            params['root_pass'] = Linode.generate_root_password()
+            gen_pass = Linode.generate_root_password()
+            params['root_pass'] = gen_pass
 
         if root_key:
             params['root_key'] = root_key
@@ -80,7 +81,7 @@ class Linode(Base):
 
         #TODO: handle errors
         self._populate(result['linode'])
-        if root_pass:
+        if not gen_pass:
             return self
         else:
             return self, gen_pass
