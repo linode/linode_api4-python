@@ -1,5 +1,5 @@
 from .base import Base
-from linode import api
+from .. import api
 
 class DerivedBase(Base):
     """

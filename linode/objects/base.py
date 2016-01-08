@@ -1,5 +1,5 @@
-from linode import config
-from linode import mappings
+from .. import config
+from .. import mappings
 
 from datetime import datetime
 import time
@@ -16,9 +16,9 @@ class Property:
 
 class MappedObject:
     def __init__(self, **vals):
-        MappedObject._expand_vals(self.__dict__, **vals)
+        self._expand_vals(self.__dict__, **vals)
 
-    def _expand_vals(target, **vals):
+    def _expand_vals(self, target, **vals):
         for v in vals:
             if type(vals[v]) is dict:
                 vals[v] = MappedObject(**vals[v])
