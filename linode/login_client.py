@@ -3,9 +3,13 @@ from enum import Enum
 from linode.api import ApiError
 
 try:
-    import urllib.parse as urlparse
+    from urllib.parse import urlparse
+    from urllib.parse import urlencode
+    from urllib.parse import urlunparse
 except ImportError:
     from urlparse import urlparse
+    from urllib import urlencode
+    from urlparse import urlunparse
 
 class OAuthScopes:
 
@@ -42,6 +46,7 @@ class OAuthScopes:
         'stackscripts': StackScripts,
     }
 
+    @staticmethod
     def parse(scopes):
         ret = []
 
@@ -64,6 +69,7 @@ class OAuthScopes:
 
         return ret
 
+    @staticmethod
     def _get_parsed_scope(resource, access):
         resource = resource.lower()
         access = access.lower()
@@ -75,6 +81,7 @@ class OAuthScopes:
 
         return None
 
+    @staticmethod
     def serialize(scopes):
         ret = ''
         if not type(scopes) is list:
@@ -97,7 +104,7 @@ class LinodeLoginClient:
 
     def generate_login_url(self, scopes=None, redirect_uri=None):
         url = self.base_url + "/oauth/authorize"
-        split = list(urlparse.urlparse(url))
+        split = list(urlparse(url))
         params = {
             "client_id": self.client_id,
         }
@@ -105,8 +112,8 @@ class LinodeLoginClient:
             params["scopes"] = OAuthScopes.serialize(scopes)
         if redirect_uri:
             params["redirect_uri"] = redirect_uri
-        split[4] = urlparse.urlencode(params)
-        return urlparse.urlunparse(split)
+        split[4] = urlencode(params)
+        return urlunparse(split)
 
     def finish_oauth(self, code):
         r = requests.post(self._login_uri("/oauth/token"), data={
