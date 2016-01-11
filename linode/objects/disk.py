@@ -32,7 +32,7 @@ class Disk(DerivedBase):
     def reset_root_password(self, root_password=None):
         rpass = root_password
         if not rpass:
-            from .linode import Linode
+            from linode.objects.linode import Linode
             rpass = Linode.generate_root_password()
 
         params = {

@@ -42,7 +42,8 @@ class PaginatedList(object):
         if index >= self.page_size * self.max_pages:
             raise IndexError('list index out of range')
         normalized_index = index % self.page_size
-        target_page = math.ceil((index+1)/self.page_size)-1
+        target_page = math.ceil((index+1.0)/self.page_size)-1
+        target_page = int(target_page)
 
         if not self.lists[target_page]:
             self._load_page(target_page)
@@ -108,9 +109,6 @@ class PaginatedList(object):
 
     def __delitem__(self, index, value):
         raise AttributeError('Assigning to indicies in paginated lists is not supported')
-
-    def __iter__(self):
-        return self
 
     def __next__(self):
         if self.cur < len(self):
