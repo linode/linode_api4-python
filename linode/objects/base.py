@@ -144,6 +144,7 @@ class Base(object):
                 else:
                     self._set(key, json[key])
 
+        self._set('_populated', True)
         self._set('_last_updated', datetime.now())
 
     def _set(self, name, value):
