@@ -4,13 +4,13 @@ class Kernel(Base):
     api_endpoint="/kernels/{id}"
     properties = {
         "created": Property(is_datetime=True),
-        "deprecated": Property(),
+        "deprecated": Property(filterable=True),
         "description": Property(),
         "id": Property(identifier=True),
-        "kvm": Property(),
-        "label": Property(),
+        "kvm": Property(filterable=True),
+        "label": Property(filterable=True),
         "updates": Property(),
-        "version": Property(),
-        "x64": Property(),
-        "xen": Property(),
+        "version": Property(filterable=True),
+        "x64": Property(filterable=True),
+        "xen": Property(filterable=True),
     }

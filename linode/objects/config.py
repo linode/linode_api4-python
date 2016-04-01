@@ -12,12 +12,17 @@ class Config(DerivedBase):
         "helpers": Property(),#TODO: mutable=True),
         "created": Property(is_datetime=True),
         "root_device": Property(mutable=True),
-        "kernel": Property(relationship=True, mutable=True),
-        "disks": Property(),#TODO: mutable=True),
+        "kernel": Property(relationship=True, mutable=True, filterable=True),
+        "disks": Property(filterable=True),#TODO: mutable=True),
         "updated": Property(),
-        "comments": Property(mutable=True),
-        "label": Property(mutable=True),
+        "comments": Property(mutable=True, filterable=True),
+        "label": Property(mutable=True, filterable=True),
         "kernel_params": Property(mutable=True),
+        "devtmpfs_automount": Property(mutable=True, filterable=True),
+        "root_device_ro": Property(mutable=True, filterable=True),
+        "run_level": Property(mutable=True, filterable=True),
+        "virt_mode": Property(mutable=True, filterable=True),
+        "ram_limit": Property(mutable=True, filterable=True),
     }
 
     def _populate(self, json):

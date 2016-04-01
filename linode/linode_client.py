@@ -11,7 +11,7 @@ class LinodeClient:
         self.base_url = base_url
         self.token = token
 
-    def _api_call(self, endpoint, model=None, method=None, data=None):
+    def _api_call(self, endpoint, model=None, method=None, data=None, filters=None):
         """
         Makes a call to the linode api.  Data should only be given if the method is
         POST or PUT, and should be a dictionary
@@ -26,9 +26,12 @@ class LinodeClient:
             endpoint = endpoint.format(**vars(model))
         url = '{}{}'.format(self.base_url, endpoint)
         headers = {
-            'Authorization': self.token,
+            'Authorization': "token {}".format(self.token),
             'Content-Type': 'application/json',
         }
+
+        if filters:
+            headers['X-Filter'] = json.dumps(filters)
 
         body = json.dumps(data)
 
@@ -51,8 +54,8 @@ class LinodeClient:
 
         return j
 
-    def _get_objects(self, endpoint, prop, model=None, parent_id=None):
-        json = self.get(endpoint, model=model)
+    def _get_objects(self, endpoint, prop, model=None, parent_id=None, filters=None):
+        json = self.get(endpoint, model=model, filters=filters)
 
         if not prop in json:
             return False
@@ -97,53 +100,57 @@ class LinodeClient:
 
         return results
 
-    def _get_and_filter(self, obj_type, **filters):
-        results = self._get_objects("/{}".format(obj_type), obj_type)
+    def _get_and_filter(self, obj_type, *filters):
+        parsed_filters = None
+        if filters:
+            if(len(filters) > 1):
+                from linode.objects.filtering import and_
+                parsed_filters = and_(*filters).dct
+            else:
+                parsed_filters = filters[0].dct
 
-        if filters and len(filters):
-            results = self._filter_list(results, **filters)
+        return self._get_objects("/{}".format(obj_type), obj_type, filters=parsed_filters)
 
-        return results
-
-    def get_distributions(self, recommended_only=True, **filters):
+    def get_distributions(self, recommended_only=True, *filters):
         # handle the special case for this endpoint
         if recommended_only:
             results = self._get_objects("/distributions/recommended", "distributions")
 
             if filters and len(filters):
-                results = self._filter_list(results, **filters)
+                results = self._filter_list(results, *filters)
 
             return results
 
-        return self._get_and_filter('distributions', **filters)
+        return self._get_and_filter('distributions', *filters)
 
-    def get_services(self, **filters):
-        return self._get_and_filter('services', **filters)
+    def get_services(self, *filters):
+        return self._get_and_filter('services', *filters)
 
-    def get_datacenters(self, **filters):
-        return self._get_and_filter('datacenters', **filters)
+    def get_datacenters(self, *filters):
+        return self._get_and_filter('datacenters', *filters)
 
-    def get_linodes(self, **filters):
-        return self._get_and_filter('linodes', **filters)
+    def get_linodes(self, *filters):
+        return self._get_and_filter('linodes', *filters)
 
-    def get_stackscripts(self, mine_only=False, **filters):
+    def get_stackscripts(self, mine_only=False, *filters):
         if mine_only:
             results = self._get_objects("/stackscripts/mine", "stackscripts")
 
             if filters and len(filters):
-                results = self._filter_list(results, **filters)
+                results = self._filter_list(results, *filters)
 
             return results
 
-        return self._get_and_filter('stackscripts', **filters)
+        return self._get_and_filter('stackscripts', *filters)
 
-    def get_kernels(self, **filters):
-        return self._get_and_filter('kernels', **filters)
+    def get_kernels(self, *filters):
+        return self._get_and_filter('kernels', *filters)
 
-    def get_zones(self, **filters):
-        return self._get_and_filter('zones', **filters)
+    def get_zones(self, *filters):
+        return self._get_and_filter('zones', *filters)
 
     # create things
+#TODO
     def create_linode(self, service, datacenter, source=None, **kwargs):
         if not 'linode' in service.service_type:
             raise AttributeError("{} is not a linode service!".format(service.label))

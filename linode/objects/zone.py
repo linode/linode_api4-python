@@ -5,13 +5,13 @@ class Zone(Base):
     api_endpoint = "/zones/{id}"
     properties = {
         'id': Property(identifier=True),
-        'zone': Property(mutable=True),
-        'display_group': Property(mutable=True),
+        'zone': Property(mutable=True, filterable=True),
+        'display_group': Property(mutable=True, filterable=True),
         'description': Property(mutable=True),
         'status': Property(mutable=True),
         'soa_email': Property(mutable=True),
         'retry_sec': Property(mutable=True),
-        'master_ips': Property(mutable=True),
+        'master_ips': Property(mutable=True, filterable=True),
         'axfr_ips': Property(mutable=True),
         'expire_sec': Property(mutable=True),
         'refresh_sec': Property(mutable=True),

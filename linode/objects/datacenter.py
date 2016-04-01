@@ -4,5 +4,5 @@ class Datacenter(Base):
     api_endpoint = "/datacenters/{id}"
     properties = {
         'id': Property(identifier=True),
-        'label': Property(),
+        'label': Property(filterable=True),
     }

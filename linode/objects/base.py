@@ -1,18 +1,20 @@
 from .. import config
 from .. import mappings
+from .filtering import FilterableMetaclass
 
 from datetime import datetime
 import time
 
 class Property:
     def __init__(self, mutable=False, identifier=False, volatile=False, relationship=False, \
-            derived_class=None, is_datetime=False):
+            derived_class=None, is_datetime=False, filterable=False):
         self.mutable = mutable
         self.identifier = identifier
         self.volatile = volatile
         self.relationship = relationship
         self.derived_class = derived_class
         self.is_datetime = is_datetime
+        self.filterable = filterable
 
 class MappedObject:
     def __init__(self, **vals):
@@ -30,11 +32,11 @@ class MappedObject:
     def __repr__(self):
         return "Mapping containing {}".format(vars(self).keys())
 
-class Base(object):
+class Base(object, metaclass=FilterableMetaclass):
     """
     The Base class knows how to look up api properties of a model, and lazy-load them.
     """
-    properties = ()
+    properties = {}
 
     def __init__(self, client, id):
         self._set('_populated', False)
@@ -50,7 +52,8 @@ class Base(object):
         if name in type(self).properties.keys():
             if type(self).properties[name].identifier:
                 pass # don't load identifiers from the server, we have those
-            elif (object.__getattribute__(self, name) is None and not self._populated) \
+            elif (object.__getattribute__(self, name) is None and not self._populated \
+                    or type(self).properties[name].derived_class) \
                     or (type(self).properties[name].volatile \
                     and object.__getattribute__(self, '_last_updated')
                     + config.volatile_refresh_timeout < datetime.now()):
