@@ -11,15 +11,24 @@ except ImportError:
     from urllib import urlencode
     from urlparse import urlunparse
 
+class AllWrapper():
+    def __repr__(self):
+        return '*'
+
 class OAuthScopes:
+
+    all = AllWrapper()
 
     class Linodes(Enum):
         view = 0
         create = 1
         modify = 2
         delete = 3
+        all = 4
 
         def __repr__(self):
+            if(self.name == 'all'):
+                return "linodes:*"
             return "linodes:{}".format(self.name)
 
     class Zones(Enum):
@@ -27,8 +36,11 @@ class OAuthScopes:
         create = 1
         modify = 2
         delete = 3
+        all = 4
 
         def __repr__(self):
+            if(self.name == 'all'):
+                return "zones:*"
             return "zones:{}".format(self.name)
 
     class StackScripts(Enum):
@@ -36,8 +48,11 @@ class OAuthScopes:
         create = 1
         modify = 2
         delete = 3
+        all = 4
 
         def __repr__(self):
+            if(self.name == 'all'):
+                return "stackscripts:*"
             return "stackscripts:{}".format(self.name)
 
     _scope_families = {
@@ -52,7 +67,7 @@ class OAuthScopes:
 
         # special all-scope case
         if scopes == '*':
-            return [ getattr(OAuthScopes._scope_families[s], 'delete')
+            return [ getattr(OAuthScopes._scope_families[s], 'all')
                     for s in OAuthScopes._scope_families ]
 
         for scope in scopes.split(','):
