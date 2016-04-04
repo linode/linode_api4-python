@@ -4,11 +4,11 @@ class Distribution(Base):
     api_endpoint = '/distributions'
     properties = {
         'id': Property(identifier=True),
-        'label': Property(),
-        'minimum_image_size': Property(),
-        'recommended': Property(),
-        'vendor': Property(),
-        'experimental': Property(),
+        'label': Property(filterable=True),
+        'minimum_image_size': Property(filterable=True),
+        'recommended': Property(filterable=True),
+        'vendor': Property(filterable=True),
+        'experimental': Property(filterable=True),
         'created': Property(is_datetime=True),
         'x64': Property(),
     }

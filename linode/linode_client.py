@@ -111,16 +111,7 @@ class LinodeClient:
 
         return self._get_objects("/{}".format(obj_type), obj_type, filters=parsed_filters)
 
-    def get_distributions(self, recommended_only=True, *filters):
-        # handle the special case for this endpoint
-        if recommended_only:
-            results = self._get_objects("/distributions/recommended", "distributions")
-
-            if filters and len(filters):
-                results = self._filter_list(results, *filters)
-
-            return results
-
+    def get_distributions(self, *filters):
         return self._get_and_filter('distributions', *filters)
 
     def get_services(self, *filters):
@@ -132,15 +123,7 @@ class LinodeClient:
     def get_linodes(self, *filters):
         return self._get_and_filter('linodes', *filters)
 
-    def get_stackscripts(self, mine_only=False, *filters):
-        if mine_only:
-            results = self._get_objects("/stackscripts/mine", "stackscripts")
-
-            if filters and len(filters):
-                results = self._filter_list(results, *filters)
-
-            return results
-
+    def get_stackscripts(self, *filters):
         return self._get_and_filter('stackscripts', *filters)
 
     def get_kernels(self, *filters):
@@ -150,7 +133,6 @@ class LinodeClient:
         return self._get_and_filter('zones', *filters)
 
     # create things
-#TODO
     def create_linode(self, service, datacenter, source=None, **kwargs):
         if not 'linode' in service.service_type:
             raise AttributeError("{} is not a linode service!".format(service.label))
