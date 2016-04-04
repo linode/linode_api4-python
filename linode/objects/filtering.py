@@ -53,11 +53,44 @@ class FilterableAttribute:
     def __le__(self, other):
         return Filter({ self.name: { "+lte": other } })
 
+class NonFilterableAttribute:
+    """This class is used to provide better error messages should a user attempt
+    to filter an object on an attribute that is defined in properties, but is
+    not filterable (otherwise they'd see "{} has no attribute {}" which is less
+    obvious
+    """
+    def __init__(self, clsname, atrname):
+        self.clsname = clsname
+        self.atrname = atrname
+
+    def __eq__(self, other):
+        raise AttributeError("{} cannot be filtered by {}".format(self.clsname, self.atrname))
+
+    def __ne__(self, other):
+        raise AttributeError("{} cannot be filtered by {}".format(self.clsname, self.atrname))
+
+    def contains(self, other):
+        raise AttributeError("{} cannot be filtered by {}".format(self.clsname, self.atrname))
+
+    def __gt__(self, other):
+        raise AttributeError("{} cannot be filtered by {}".format(self.clsname, self.atrname))
+
+    def __lt__(self, other):
+        raise AttributeError("{} cannot be filtered by {}".format(self.clsname, self.atrname))
+
+    def __ge__(self, other):
+        raise AttributeError("{} cannot be filtered by {}".format(self.clsname, self.atrname))
+
+    def __le__(self, other):
+        raise AttributeError("{} cannot be filtered by {}".format(self.clsname, self.atrname))
+
 class FilterableMetaclass(type):
     def __init__(cls, name, bases, dct):
         if hasattr(cls, 'properties'):
             for key in cls.properties.keys():
                 if cls.properties[key].filterable:
                     setattr(cls, key, FilterableAttribute(key))
+                else:
+                    setattr(cls, key, NonFilterableAttribute(cls.__name__, key))
 
         super(FilterableMetaclass, cls).__init__(name, bases, dct)
