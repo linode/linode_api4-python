@@ -20,7 +20,7 @@ class Filter:
 
     def __and__(self, other):
         if not isinstance(other, Filter):
-            raise TypeErrand("You can only and Filter types!")
+            raise TypeError("You can only and Filter types!")
         if '+and' in self.dct:
             return Filter({ '+and': self.dct['+and'] + [ other.dct ] })
         else:
