@@ -23,7 +23,7 @@ class Linode(Base):
         'lish_command': Property(),
         'distribution': Property(relationship=True, filterable=True),
         'disks': Property(derived_class=Disk),
-        'configs': Property(derived_class=Config)
+        'configs': Property(derived_class=Config),
     }
 
     def boot(self, config=None):
