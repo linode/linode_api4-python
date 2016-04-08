@@ -4,17 +4,16 @@ from linode import util
 
 def get_mapping(id):
     id_map = { 
-        'lnde': linode.objects.Linode,
+        'linode': linode.objects.Linode,
         'disk': linode.objects.Disk,
-        'dist': linode.objects.Distribution,
-        'serv': linode.objects.Service,
-        'dctr': linode.objects.Datacenter,
-        'stck': linode.objects.StackScript,
-        'conf': linode.objects.Config,
-        'krnl': linode.objects.Kernel,
-        'ljob': linode.objects.Job,
+        'distro': linode.objects.Distribution,
+        'service': linode.objects.Service,
+        'datacenter': linode.objects.Datacenter,
+        'stackscript': linode.objects.StackScript,
+        'config': linode.objects.Config,
+        'kernel': linode.objects.Kernel,
         'zone': linode.objects.Zone,
-        'zrcd': linode.objects.ZoneRecord,
+        'record': linode.objects.ZoneRecord,
     }
 
     parts = id.split('_')
