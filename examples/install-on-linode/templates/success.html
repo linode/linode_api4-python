@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+    <div class='row'>
+        <h1>Success!</h1>
+        <p>{{application_name}} has been deployed to <span class="pop">{{linode.label}}</span> in the {{linode.group}} group.</p>
+    </div>
+    <div class='row'>
+        <div class='boxy'>
+            <p>You can access your linode with the following command:</p>
+            <code>ssh root@{{linode.ip_addresses.public.ipv4[0]}}</code>
+            <br />
+            <br />
+            <p>Your root password is:</p>
+            <code>{{password}}</code>
+        </div>
+    </div>
+{% endblock %}

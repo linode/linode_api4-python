@@ -1,0 +1,68 @@
+<html>
+<head>
+    <title>Install On Linode</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+        integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <style>
+        body{
+            text-align: center;
+            background-color: #333333;
+        }
+        .form-group{
+            display: inline-block;
+            text-align: left;
+            width: 250px;
+            border: 1px solid #cccccc;
+            margin: 5px;
+            padding: 5px;
+        }
+        .form-group label{
+            color: #337ab7;
+        }
+        .form-group select{
+            font-size: 16px;
+            outline: none;
+            border: 0px solid #000000;
+            box-shadow: inset 0 1px 1px rgba(0,0,0,0);
+            -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,0);
+        }
+        .form-group select:focus{
+            box-shadow: inset 0 1px 1px rgba(0,0,0,0);
+            -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,0);
+        }
+        .btn-lg{
+            border-radius: 0px;
+            margin-top: 20px;
+        }
+        .row{
+            margin-bottom: 20px
+        }
+        .pop{
+            color: #337ab7;
+            font-weight: bold
+        }
+        code{
+            color: #337ab7;
+            background-color: #eeeeee
+        }
+        .boxy{
+            border: 1px solid #cccccc;
+            width: 400px;
+            background-color: #f9f9f9;
+            margin: auto;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class='container' style='background-color: white; border-left: grey; border-right: grey; height: 100%; padding: 20px;'>
+        {% block content %}
+        {% endblock %}
+    </div>
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
+        integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
+        crossorigin="anonymous"></script>
+</body>
+</html>

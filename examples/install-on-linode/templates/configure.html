@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block content %}
+    <form method="POST">
+        <div class='row'>
+            <h1>Deploy <span style="color: #337ab7;">{{application_name}}</span> to a Linode</h1>
+            <p>
+                This will create a brand new linode running {{application_name}} on your
+                account and give you the credentials.
+            </p>
+        </div>
+        <div class='row'>
+            <div class='form-group'>
+                <label for='service'>Plan</label>
+                <select name='service'i id='service' class='form-control'
+                    onblur="blurring(this)" onfocus="focusing(this)">
+                    {% for s in services %}
+                        <option value="{{s.id}}">{{s.label}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class='form-group'>
+                <label for='datacenter'>Datacenter</label>
+                <select name='datacenter' id='datacenter' class='form-control'
+                    onblur="blurring(this)" onfocus="focusing(this)">
+                    {% for o in datacenters %}
+                        <option value="{{o.id}}">{{o.label}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class='form-group'>
+                <label for='distribution'>Distribution</label>
+                <select name='distribution' id='distribution' class='form-control'
+                    onblur="blurring(this)" onfocus="focusing(this)">
+                    {% for d in stackscript.distributions %}
+                        <option value="{{d.id}}">{{d.label}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class='row'>
+            <input type="submit" value="Deploy Linode" class='btn btn-primary btn-lg'/>
+        </div>
+    </form>
+    <script>
+        function focusing(ele){
+            ele.parentElement.style.borderColor = "#337ab7";
+        }
+        function blurring(ele){
+            ele.parentElement.style.borderColor = "#cccccc";
+        }
+    </script>
+{% endblock %}

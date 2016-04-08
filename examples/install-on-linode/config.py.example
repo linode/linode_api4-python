@@ -1,0 +1,17 @@
+"""
+These are all your configuration values.  Copy this file to config.py and
+substitue these placeholders for your own.   config.py is excluded from source
+control.
+"""
+# oauth client details
+client_id = 'my-client-id'
+client_secret = 'my-client-secret'
+
+# application configuration
+stackscript_id = 'my-stackscript-id'
+application_name = 'my-application-name'
+secret_key = 'my-secret-key'
+
+# environment configuration
+api_base_url = 'https://api.alpha.linode.com/v4'
+login_base_url = 'https://login.alpha.linode.com'

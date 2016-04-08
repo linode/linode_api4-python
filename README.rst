@@ -1,29 +1,37 @@
-Linode SDK: Python
-==================
+python-linode-api
+=================
 
-The official python SDK for the `Linode API v2`_ in python3.
+The official python library for the `Linode API v4`_ in python.
 
 Installation
 ------------
 ::
 
-    pip3 install linode-sdk
+    pip install linode-api
+
+Building from Source
+--------------------
+
+To build and install this package:
+
+- Clone this repository
+- ``./setup.py install``
+
+This package uses the ``linode`` namespace.  This could conflict with libraries
+intended for previous versions of the Linode API.  Please be cautious when
+installing packages for both version of the API on the same machine.
 
 Usage
 -----
-::
 
-    from linode import linode_client
-    
-    lc = LinodeClient('my-api-token-here')
-    l = lc.get_linodes(label='my-cool-linode')[0]
-    l.boot()
+Read our `Python Guide`_ for extensive documentation on this library.
 
 Examples
 --------
 
 See the `Install on a Linode`_ example project for a simple use case demonstrating
-all of the concepts of the SDK.
+many of the features of this library.
 
-.. _Linode API v2: http://developers.linode.com
-.. _Install on a Linode: http://example.org
+.. _Linode API v4: https://developers.linode.com
+.. _Install on a Linode: https://github.com/linode/python-api/tree/master/examples/install-on-linode
+.. _Python Guide: https://developers.linode.com/guides/python-guide/
