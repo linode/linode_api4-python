@@ -30,7 +30,7 @@ setup(
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/linode/python-api',
+    url='https://github.com/linode/python-linode-api',
 
     # Author details
     author='Linode',
@@ -73,4 +73,11 @@ setup(
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
+
+    # What do we need for this to run
+    install_requires=[
+        "future",
+        "requests",
+        "enum34",
+    ]
 )

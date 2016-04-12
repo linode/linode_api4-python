@@ -1,7 +1,6 @@
 from .base import Base, Property
 from .disk import Disk
 from .config import Config
-from .job import Job
 
 from random import choice
 

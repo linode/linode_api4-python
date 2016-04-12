@@ -8,7 +8,6 @@ from .datacenter import Datacenter
 from .stackscript import StackScript
 from .config import Config
 from .kernel import Kernel
-from .job import Job
 from .zone import Zone
 from .zone_record import ZoneRecord
 from .filtering import and_, or_
