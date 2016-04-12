@@ -1,9 +1,9 @@
-# Install with Linode
+# Install on Linode
 
-A sample application for the official [linode python library]().
+A sample application for the official [linode python library](https://github.com/linode/python-linode-api).
 
-**Install with Linode** demonstrates a multi-user application developed with
-the linode apiv2 - users arrive at a third-party application, and are asked
+**Install on Linode** demonstrates a multi-user application developed with
+the Linode API V4 - users arrive at a third-party application, and are asked
 to authorize the application to make changes to their account, which are then
 executed and reported to the user.  In this example, the third-party application
 uses the `linodes:*` oauth scope to deploy a stackscript to a new linode.
@@ -25,7 +25,7 @@ To set up:
         to `localhost:5000/auth_callback`.
    * You will need to create a public stackscript to use for this application,
         or else pick an existing public stackscript.  You will need to take its
-        stackscript ID in the linode apiv2 ID format: `stck_123` for example.
+        stackscript ID in the linode Linode API V4 ID format: `stackscript_123` for example.
         You can run the utility script `./create_stackscript.py` to make a (blank)
         stackscript suitable for running this.
  * Run the application with `python3 app.py`
@@ -44,11 +44,11 @@ application will install the owner's application on the new linode and provide i
 on how to access the newly-created server.
 
 **Unauthenticated Services** - This application accesses several public endpoints of the
-linode apiv2, includes `/kernels`, `/datacenters`, and a single public stackscript
+Linode API V4, includes `/kernels`, `/datacenters`, and a single public stackscript
 (presumably controlled by the application's author).  The stackscript needs to be public
 so that the authenticated user's account can access it in order to install it on the linode.
 
-**Object Retreival** - This application retrieves objects from the linode apiv2 in two ways:
+**Object Retreival** - This application retrieves objects from the Linode API V4 in two ways:
 both as a list, and as a single requested object.  Lists are retrieved by asking the
 `LinodeClient` for a list of related objects, like `client.get_datacenters()`, while
 individual objects that we already know the ID for and will not change can be accessed by
