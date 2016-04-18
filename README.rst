@@ -24,7 +24,7 @@ installing packages for both version of the API on the same machine.
 Usage
 -----
 
-Read our `Python Guide`_ for extensive documentation on this library.
+Read our `Python Reference`_ for extensive documentation on this library.
 
 Examples
 --------
@@ -34,4 +34,4 @@ many of the features of this library.
 
 .. _Linode API v4: https://developers.linode.com
 .. _Install on a Linode: https://github.com/linode/python-api/tree/master/examples/install-on-linode
-.. _Python Guide: https://developers.linode.com/guides/python-guide/
+.. _Python Reference: https://developers.linode.com/libraries/python-reference/
