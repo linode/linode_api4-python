@@ -17,6 +17,9 @@ class PaginatedList(object):
         if not total_items:
             self.total_items = len(page)
 
+    def __repr__(self):
+        return "PaginatedList ({} items)".format(self.total_items)
+
     def _load_page(self, page_number):
         from linode import mappings
 
