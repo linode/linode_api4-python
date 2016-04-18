@@ -1,7 +1,7 @@
 from .base import Base, Property
 
 class Distribution(Base):
-    api_endpoint = '/distributions'
+    api_endpoint = '/distributions/{id}'
     properties = {
         'id': Property(identifier=True),
         'label': Property(filterable=True),
