@@ -7,7 +7,7 @@ from linode.objects import Base, Distribution, Linode, Zone, StackScript
 from linode.util import PaginatedList
 
 class LinodeClient:
-    def __init__(self, token, base_url="https://api.linode.com/v2"):
+    def __init__(self, token, base_url="https://api.linode.com/v4"):
         self.base_url = base_url
         self.token = token
 
