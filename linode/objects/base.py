@@ -1,10 +1,12 @@
-from .. import config
 from .. import mappings
 from .filtering import FilterableMetaclass
 
 from future.utils import with_metaclass
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
+
+# The interval to reload volatile properties
+volatile_refresh_timeout = timedelta(seconds=15)
 
 class Property:
     def __init__(self, mutable=False, identifier=False, volatile=False, relationship=False, \
@@ -57,7 +59,7 @@ class Base(object, with_metaclass(FilterableMetaclass)):
                     or type(self).properties[name].derived_class) \
                     or (type(self).properties[name].volatile \
                     and object.__getattribute__(self, '_last_updated')
-                    + config.volatile_refresh_timeout < datetime.now()):
+                    + volatile_refresh_timeout < datetime.now()):
                 if type(self).properties[name].derived_class:
                     #load derived object(s)
                     self._set(name, type(self).properties[name].derived_class
