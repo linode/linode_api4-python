@@ -8,6 +8,6 @@ from .datacenter import Datacenter
 from .stackscript import StackScript
 from .config import Config
 from .kernel import Kernel
-from .zone import Zone
-from .zone_record import ZoneRecord
+from .dns_zone import DnsZone
+from .dns_zone_record import DnsZoneRecord
 from .filtering import and_, or_

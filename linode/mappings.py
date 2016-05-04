@@ -12,8 +12,8 @@ def get_mapping(id):
         'stackscript': linode.objects.StackScript,
         'config': linode.objects.Config,
         'kernel': linode.objects.Kernel,
-        'zone': linode.objects.Zone,
-        'record': linode.objects.ZoneRecord,
+        'dnszone': linode.objects.DnsZone,
+        'dnsrecord': linode.objects.DnsZoneRecord,
     }
 
     parts = id.split('_')

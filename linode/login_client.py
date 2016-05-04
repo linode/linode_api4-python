@@ -31,7 +31,7 @@ class OAuthScopes:
                 return "linodes:*"
             return "linodes:{}".format(self.name)
 
-    class Zones(Enum):
+    class DnsZones(Enum):
         view = 0
         create = 1
         modify = 2
@@ -40,8 +40,8 @@ class OAuthScopes:
 
         def __repr__(self):
             if(self.name == 'all'):
-                return "zones:*"
-            return "zones:{}".format(self.name)
+                return "dnszones:*"
+            return "dnszones:{}".format(self.name)
 
     class StackScripts(Enum):
         view = 0
@@ -57,7 +57,7 @@ class OAuthScopes:
 
     _scope_families = {
         'linodes': Linodes,
-        'zones': Zones,
+        'dnszones': DnsZones,
         'stackscripts': StackScripts,
     }
 

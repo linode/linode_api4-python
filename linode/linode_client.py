@@ -3,7 +3,7 @@ import json
 
 from linode.api import ApiError
 from linode import mappings
-from linode.objects import Base, Distribution, Linode, Zone, StackScript
+from linode.objects import Base, Distribution, Linode, DnsZone, StackScript
 from linode.util import PaginatedList
 
 class LinodeClient:
@@ -129,8 +129,8 @@ class LinodeClient:
     def get_kernels(self, *filters):
         return self._get_and_filter('kernels', *filters)
 
-    def get_zones(self, *filters):
-        return self._get_and_filter('zones', *filters)
+    def get_dnszones(self, *filters):
+        return self._get_and_filter('dnszones', *filters)
 
     # create things
     def create_linode(self, service, datacenter, source=None, **kwargs):
@@ -198,18 +198,18 @@ class LinodeClient:
         s._populate(result['stackscript'])
         return s
 
-    def create_zone(self, zone, master=True, **kwargs):
+    def create_dnszone(self, dnszone, master=True, **kwargs):
         params = {
-            'zone': zone,
+            'dnszone': dnszone,
             'type': 'master' if master else 'slave',
         }
         params.update(kwargs)
 
-        result = self.post('/zones', data=params)
+        result = self.post('/dnszones', data=params)
 
-        if not 'zone' in result:
+        if not 'dnszone' in result:
             return result
 
-        z = Zone(self, result['zone']['id'])
-        z._populate(result['zone'])
+        z = DnsZone(self, result['dnszone']['id'])
+        z._populate(result['dnszone'])
         return z
