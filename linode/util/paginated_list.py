@@ -17,6 +17,12 @@ class PaginatedList(object):
         if not total_items:
             self.total_items = len(page)
 
+    def first(self):
+        return self[0]
+
+    def last(self):
+        return self[-1]
+
     def __repr__(self):
         return "PaginatedList ({} items)".format(self.total_items)
 
