@@ -15,7 +15,7 @@ class DnsZone(Base):
         'axfr_ips': Property(mutable=True),
         'expire_sec': Property(mutable=True),
         'refresh_sec': Property(mutable=True),
-        'ttl_se': Property(mutable=True),
+        'ttl_sec': Property(mutable=True),
         'records': Property(derived_class=DnsZoneRecord),
     }
 

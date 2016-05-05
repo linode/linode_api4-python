@@ -18,11 +18,10 @@ class Linode(Base):
         'distribution': Property(),
         'datacenter': Property(relationship=True, filterable=True),
         'alerts': Property(),
-        'ssh_command': Property(),
-        'lish_command': Property(),
         'distribution': Property(relationship=True, filterable=True),
         'disks': Property(derived_class=Disk),
         'configs': Property(derived_class=Config),
+        'services': Property(relationship=True),
     }
 
     def boot(self, config=None):
