@@ -21,15 +21,19 @@ class UserDefinedField():
 class StackScript(Base):
     api_endpoint = '/stackscripts/{id}'
     properties = {
-        "created": Property(is_datetime=True),
-        "label": Property(mutable=True, filterable=True),
-        "script": Property(),
-        "description": Property(mutable=True, filterable=True),
-        "distributions": Property(relationship=True, filterable=True),
-        "deployments_total": Property(filterable=True),
-        "is_public": Property(mutable=True, filterable=True),
-        "revision_note": Property(),
         "user_defined_fields": Property(),
+        "label": Property(mutable=True, filterable=True),
+        "customer_id": Property(),
+        "rev_note": Property(mutable=True),
+        "user_id": Property(),
+        "is_public": Property(mutable=True, filterable=True),
+        "created": Property(is_datetime=True),
+        "deployments_active": Property(),
+        "script": Property(mutable=True),
+        "distributions": Property(relationship=True, mutable=True, filterable=True),
+        "deployments_total": Property(),
+        "description": Property(mutable=True, filterable=True),
+        "updated": Property(is_datetime=True),
     }
 
     def _populate(self, json):
@@ -54,3 +58,5 @@ class StackScript(Base):
                     choices=choices))
 
         self._set('user_defined_fields', mapped_udfs)
+        for d in self.distributions:
+            d._set("_populated", False) # these come in as partials

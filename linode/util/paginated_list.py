@@ -23,6 +23,11 @@ class PaginatedList(object):
     def last(self):
         return self[-1]
 
+    def only(self):
+        if len(self) == 1:
+            return self[0]
+        raise ValueError("List {} has more than one element!".format(self))
+
     def __repr__(self):
         return "PaginatedList ({} items)".format(self.total_items)
 
