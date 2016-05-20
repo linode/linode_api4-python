@@ -21,11 +21,11 @@ class Disk(DerivedBase):
     def duplicate(self):
         result = self._client.post(Disk.api_endpoint, model=self, data={})
 
-        if not 'disk' in result:
+        if not 'id' in result:
             return result
 
-        d = Disk(self._client, result['disk']['id'], self.linode_id)
-        d._populate(result['disk'])
+        d = Disk(self._client, result['id'], self.linode_id)
+        d._populate(result)
         return d
 
 
@@ -41,12 +41,12 @@ class Disk(DerivedBase):
 
         result = self._client.post(Disk.api_endpoint, model=self, data=params)
 
-        if not 'disk' in result:
+        if not 'id' in result:
             if not root_password:
                 return result, rpass
             return result
 
-        self._populate(result['disk'])
+        self._populate(result)
         if not root_password:
             return True, rpass
         return True

@@ -29,9 +29,9 @@ class DnsZone(Base):
         result = self._client.post("{}/records".format(DnsZone.api_endpoint), model=self, data=params)
         self.invalidate()
 
-        if not 'record' in result:
+        if not 'id' in result:
             return result
 
-        zr = DnsZoneRecord(self._client, result['record']['id'], self.id)
-        zr._populate(result['record'])
+        zr = DnsZoneRecord(self._client, result['id'], self.id)
+        zr._populate(result)
         return zr

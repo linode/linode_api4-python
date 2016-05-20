@@ -66,11 +66,11 @@ class Linode(Base):
         result = self._client.post("{}/configs".format(Linode.api_endpoint), model=self, data=params)
         self.invalidate()
 
-        if not 'config' in result:
+        if not 'id' in result:
             return result
 
-        c = Config(self._client, result['config']['id'], self.id)
-        c._populate(result['config'])
+        c = Config(self._client, result['id'], self.id)
+        c._populate(result)
         return c
 
     def create_disk(self, size, label=None, filesystem=None, read_only=False, distribution=None, \
@@ -106,11 +106,11 @@ class Linode(Base):
         result = self._client.post("{}/disks".format(Linode.api_endpoint), model=self, data=params)
         self.invalidate()
 
-        if not 'disk' in result:
+        if not 'id' in result:
             return result
 
-        d = Disk(self._client, result['disk']['id'], self.id)
-        d._populate(result['disk'])
+        d = Disk(self._client, result['id'], self.id)
+        d._populate(result)
 
         if gen_pass:
             return d, gen_pass
