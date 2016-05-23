@@ -165,11 +165,11 @@ class LinodeClient:
 
         result = self.post('/linodes', data=params)
 
-        if not 'id' in result:
+        if not 'linode' in result:
             return result
 
-        l = Linode(self, result['id'])
-        l._populate(result)
+        l = Linode(self, result['linode']['id'])
+        l._populate(result['linode'])
         if not ret_pass:
             return l
         else:
@@ -205,11 +205,11 @@ class LinodeClient:
 
         result = self.post('/stackscripts', data=params)
 
-        if not 'id' in result:
+        if not 'stackscript' in result:
             return result
 
-        s = StackScript(self, result['id'])
-        s._populate(result)
+        s = StackScript(self, result['stackscript']['id'])
+        s._populate(result['stackscript'])
         return s
 
     def create_dnszone(self, dnszone, master=True, **kwargs):
@@ -221,9 +221,9 @@ class LinodeClient:
 
         result = self.post('/dnszones', data=params)
 
-        if not 'id' in result:
+        if not 'dnszone' in result:
             return result
 
-        z = DnsZone(self, result['id'])
-        z._populate(result)
+        z = DnsZone(self, result['dnszone']['id'])
+        z._populate(result['dnszone'])
         return z
