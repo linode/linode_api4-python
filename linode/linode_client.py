@@ -142,6 +142,20 @@ class LinodeClient:
             ret_pass = Linode.generate_root_password()
             kwargs['root_pass'] = ret_pass
 
+        if 'root_ssh_key' in kwargs:
+            root_ssh_key = kwargs['root_ssh_key']
+            accepted_types = ('ssh-dss', 'ssh-rsa', 'ecdsa-sha2-nistp', 'ssh-ed25519')
+            if not any([ t for t in accepted_types if root_ssh_key.startswith(t) ]):
+                # it doesn't appear to be a key.. is it a path to the key?
+                import os
+                root_ssh_key = os.path.expanduser(root_ssh_key)
+                if os.path.isfile(root_ssh_key):
+                    with open(root_ssh_key) as f:
+                        kwargs['root_ssh_key'] = "".join([ l.strip() for l in f ])
+                else:
+                    raise ValueError('root_ssh_key must either be a path to the key file or a '
+                                    'raw public key of one of these types: {}'.format(accepted_types))
+
         params = {
              'service': service.id,
              'datacenter': datacenter.id,

@@ -74,13 +74,25 @@ class Linode(Base):
         return c
 
     def create_disk(self, size, label=None, filesystem=None, read_only=False, distribution=None, \
-            root_pass=None, root_key=None, stackscript=None, **stackscript_args):
+            root_pass=None, root_ssh_key=None, stackscript=None, **stackscript_args):
 
         gen_pass = None
         if distribution and not root_pass:
             gen_pass  = Linode.generate_root_password()
             root_pass = gen_pass
 
+        if root_ssh_key:
+            accepted_types = ('ssh-dss', 'ssh-rsa', 'ecdsa-sha2-nistp', 'ssh-ed25519')
+            if not any([ t for t in accepted_types if root_ssh_key.startswith(t) ]):
+                # it doesn't appear to be a key.. is it a path to the key?
+                import os
+                root_ssh_key = os.path.expanduser(root_ssh_key)
+                if os.path.isfile(root_ssh_key):
+                    with open(root_ssh_key) as f:
+                        root_ssh_key = "".join([ l.strip() for l in f ])
+                else:
+                    raise ValueError("root_ssh_key must either be a path to the key file or a "
+                                    "raw public key of one of these types: {}".format(accepted_types))
 
         if distribution and not label:
             label = "My {} Disk".format(distribution.label)

@@ -141,3 +141,15 @@ class LinodeLoginClient:
         token = r.json()["access_token"]
         scopes = OAuthScopes.parse(r.json()["scopes"])
         return token, scopes
+
+    def expire_token(self, token):
+        r = requests.post(self._login_uri("/oauth/token/expire"),
+            data={
+                "client_id": self.client_id,
+                "client_secret": self.client_secret,
+                "token": token,
+            })
+
+        if r.status_code != 200:
+            raise ApiError("Failed to expire token!", r)
+        return True

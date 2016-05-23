@@ -26,6 +26,32 @@ class Filter:
         else:
             return Filter({ '+and': [self.dct, other.dct] })
 
+    def order_by(self, field, desc=False):
+        # we can't include two order_bys
+        if '+order_by' in self.dct:
+            raise AssertionError("You may only order by once!")
+
+        if not isinstance(field, FilterableAttribute):
+            raise TypeError("Can only order by filterable attributes!")
+
+        self.dct['+order_by'] = field.name
+        if desc:
+            self.dct['+order'] = 'desc'
+
+        return self
+
+    def limit(self, limit):
+        # we can't limit twice
+        if '+limit' in self.dct:
+            raise AssertionError("You may only limit once!")
+
+        if not type(limit) == int:
+            raise TypeError("Limit must be an int!")
+
+        self.dct['+limit'] = limit
+
+        return self
+
 class FilterableAttribute:
     def __init__(self, name):
         self.name = name

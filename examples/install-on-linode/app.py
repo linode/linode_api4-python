@@ -44,6 +44,8 @@ def auth_callback():
                 .format(config.application_name))
 
     (linode, password) = create_linode(token, session['service'], session['dc'], session['distro'])
+
+    get_login_client().expire_token(token)
     return render_template('success.html',
         password=password,
         linode=linode,
