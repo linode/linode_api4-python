@@ -1,6 +1,7 @@
 from .base import Base, Property
 from .disk import Disk
 from .config import Config
+from .backup import Backup
 
 from random import choice
 
@@ -22,6 +23,7 @@ class Linode(Base):
         'disks': Property(derived_class=Disk),
         'configs': Property(derived_class=Config),
         'services': Property(relationship=True),
+        'backups': Property(derived_class=Backup),
     }
 
     def boot(self, config=None):
@@ -127,3 +129,13 @@ class Linode(Base):
         if gen_pass:
             return d, gen_pass
         return d
+
+    def enable_backups(self):
+        result = self._client.post("{}/backups/enable".format(Linode.api_endpoint), model=self)
+        self._populate(result)
+        return True
+
+    def cancel_backups(self):
+        result = self._client.post("{}/backups/cancel".format(Linode.api_endpoint), model=self)
+        self._populate(result)
+        return True
