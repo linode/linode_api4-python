@@ -14,6 +14,7 @@ def get_mapping(id):
         'kernel': linode.objects.Kernel,
         'dnszone': linode.objects.DnsZone,
         'dnsrecord': linode.objects.DnsZoneRecord,
+        'backup': linode.objects.Backup,
     }
 
     parts = id.split('_')

@@ -23,7 +23,8 @@ class Linode(Base):
         'disks': Property(derived_class=Disk),
         'configs': Property(derived_class=Config),
         'services': Property(relationship=True),
-        'backups': Property(derived_class=Backup),
+        'backups': Property(),
+        'recent_backups': Property(derived_class=Backup),
     }
 
     def boot(self, config=None):

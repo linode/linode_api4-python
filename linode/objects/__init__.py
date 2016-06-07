@@ -11,3 +11,4 @@ from .kernel import Kernel
 from .dns_zone import DnsZone
 from .dns_zone_record import DnsZoneRecord
 from .filtering import and_, or_
+from .backup import Backup
