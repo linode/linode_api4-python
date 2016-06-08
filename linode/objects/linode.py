@@ -140,3 +140,14 @@ class Linode(Base):
         result = self._client.post("{}/backups/cancel".format(Linode.api_endpoint), model=self)
         self._populate(result)
         return True
+
+    def snapshot(self, label=None):
+        result = self._client.post("{}/backups/snapshot".format(Linode.api_endpoint), model=self,
+            data={ "label": label })
+
+        if not 'id' in result:
+            return result
+
+        b = Backup(self._client, result['id'], self.id)
+        b._populate(result)
+        return b
