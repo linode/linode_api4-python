@@ -2,6 +2,7 @@ from .base import Base, Property
 from .dns_zone_record import DnsZoneRecord
 
 class DnsZone(Base):
+    api_name = 'dnszones'
     api_endpoint = "/dnszones/{id}"
     properties = {
         'id': Property(identifier=True),

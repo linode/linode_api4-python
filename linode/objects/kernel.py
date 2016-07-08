@@ -1,6 +1,7 @@
 from .base import Base, Property
 
 class Kernel(Base):
+    api_name = 'kernels'
     api_endpoint="/kernels/{id}"
     properties = {
         "created": Property(is_datetime=True),

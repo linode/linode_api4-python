@@ -9,7 +9,7 @@ import time
 volatile_refresh_timeout = timedelta(seconds=15)
 
 class Property:
-    def __init__(self, mutable=False, identifier=False, volatile=False, relationship=False, \
+    def __init__(self, mutable=False, identifier=False, volatile=False, relationship=None, \
             derived_class=None, is_datetime=False, filterable=False):
         self.mutable = mutable
         self.identifier = identifier
@@ -123,7 +123,8 @@ class Base(object, with_metaclass(FilterableMetaclass)):
                         for d in json[key]:
                             if not 'id' in d:
                                 continue
-                            obj = mappings.make(d['id'], getattr(self,'_client'))
+                            obj = mappings.make(d['id'], getattr(self,'_client'),
+                                    cls=type(self).properties[key].relationship)
                             if obj:
                                 obj._populate(d)
                             objs.append(obj)
@@ -131,7 +132,8 @@ class Base(object, with_metaclass(FilterableMetaclass)):
                     else:
                         if not 'id' in json[key]:
                             continue
-                        obj = mappings.make(json[key]['id'], getattr(self,'_client'))
+                        obj = mappings.make(json[key]['id'], getattr(self,'_client'),
+                                cls=type(self).properties[key].relationship)
                         if obj:
                             obj._populate(json[key])
                         self._set(key, obj)

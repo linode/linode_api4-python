@@ -1,4 +1,5 @@
 from .base import Base, Property
+from .distribution import Distribution
 
 from enum import Enum
 
@@ -19,6 +20,7 @@ class UserDefinedField():
         return "{}({}): {}".format(self.label, self.field_type.name, self.example)
 
 class StackScript(Base):
+    api_name = 'stackscripts'
     api_endpoint = '/stackscripts/{id}'
     properties = {
         "user_defined_fields": Property(),
@@ -30,7 +32,7 @@ class StackScript(Base):
         "created": Property(is_datetime=True),
         "deployments_active": Property(),
         "script": Property(mutable=True),
-        "distributions": Property(relationship=True, mutable=True, filterable=True),
+        "distributions": Property(relationship=Distribution, mutable=True, filterable=True),
         "deployments_total": Property(),
         "description": Property(mutable=True, filterable=True),
         "updated": Property(is_datetime=True),

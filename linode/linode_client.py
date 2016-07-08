@@ -1,9 +1,10 @@
+from urllib.parse import quote
 import requests
 import json
 
 from linode.api import ApiError
 from linode import mappings
-from linode.objects import Base, Distribution, Linode, DnsZone, StackScript
+from linode.objects import *
 from linode.util import PaginatedList
 
 class LinodeClient:
@@ -23,7 +24,7 @@ class LinodeClient:
             raise ValueError("Method is required for API calls!")
 
         if model:
-            endpoint = endpoint.format(**vars(model))
+            endpoint = endpoint.format(**{ k: quote(vars(model)[k], safe='') for k in vars(model) if 'id' in k })
         url = '{}{}'.format(self.base_url, endpoint)
         headers = {
             'Authorization': "token {}".format(self.token),
@@ -54,19 +55,19 @@ class LinodeClient:
 
         return j
 
-    def _get_objects(self, endpoint, prop, model=None, parent_id=None, filters=None):
+    def _get_objects(self, endpoint, cls, model=None, parent_id=None, filters=None):
         json = self.get(endpoint, model=model, filters=filters)
 
-        if not prop in json:
+        if not cls.api_name in json:
             return False
 
         if 'total_pages' in json:
             formatted_endpoint = endpoint
             if model:
                 formatted_endpoint = formatted_endpoint.format(**vars(model))
-            return mappings.make_paginated_list(json, prop, self, parent_id=parent_id, \
-                    page_url=formatted_endpoint[1:])
-        return mappings.make_list(json[prop], self, parent_id=parent_id)
+            return mappings.make_paginated_list(json, cls.api_name, self, parent_id=parent_id, \
+                    page_url=formatted_endpoint[1:], cls=cls)
+        return mappings.make_list(json[cls.api_name], self, parent_id=parent_id, cls=cls)
 
     def get(self, *args, **kwargs):
         return self._api_call(*args, method=requests.get, **kwargs)
@@ -109,28 +110,28 @@ class LinodeClient:
             else:
                 parsed_filters = filters[0].dct
 
-        return self._get_objects("/{}".format(obj_type), obj_type, filters=parsed_filters)
+        return self._get_objects("/{}".format(obj_type.api_name), obj_type, filters=parsed_filters)
 
     def get_distributions(self, *filters):
-        return self._get_and_filter('distributions', *filters)
+        return self._get_and_filter(Distribution, *filters)
 
     def get_services(self, *filters):
-        return self._get_and_filter('services', *filters)
+        return self._get_and_filter(Service, *filters)
 
     def get_datacenters(self, *filters):
-        return self._get_and_filter('datacenters', *filters)
+        return self._get_and_filter(Datacenter, *filters)
 
     def get_linodes(self, *filters):
-        return self._get_and_filter('linodes', *filters)
+        return self._get_and_filter(Linode, *filters)
 
     def get_stackscripts(self, *filters):
-        return self._get_and_filter('stackscripts', *filters)
+        return self._get_and_filter(Stackscript, *filters)
 
     def get_kernels(self, *filters):
-        return self._get_and_filter('kernels', *filters)
+        return self._get_and_filter(Kernel, *filters)
 
     def get_dnszones(self, *filters):
-        return self._get_and_filter('dnszones', *filters)
+        return self._get_and_filter(DnsZone, *filters)
 
     # create things
     def create_linode(self, service, datacenter, source=None, **kwargs):

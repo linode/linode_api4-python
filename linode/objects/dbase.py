@@ -19,4 +19,4 @@ class DerivedBase(Base):
     def _api_get_derived(cls, parent, client):
         base_url = "{}/{}".format(type(parent).api_endpoint, cls.derived_url_path)
          
-        return client._get_objects(base_url, cls.derived_url_path, model=parent, parent_id=parent.id)
+        return client._get_objects(base_url, cls, model=parent, parent_id=parent.id)

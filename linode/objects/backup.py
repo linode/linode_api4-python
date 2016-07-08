@@ -2,6 +2,7 @@ from .dbase import DerivedBase
 from .base import Property
 
 class Backup(DerivedBase):
+    api_name = 'backups'
     api_endpoint = '/linodes/{linode_id}/backups/{id}'
     derived_url_path = 'backups'
     parent_id_name='linode_id'
@@ -12,9 +13,10 @@ class Backup(DerivedBase):
         'duration': Property(),
         'finish_dt': Property(is_datetime=True),
         'message': Property(),
-        'status': Property(),
+        'status': Property(volatile=True),
         'type': Property(),
         'linode_id': Property(identifier=True),
+        'label': Property(),
     }
 
     def restore_to(self, linode):

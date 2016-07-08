@@ -1,6 +1,7 @@
 from .base import Base, Property
 
 class Service(Base):
+    api_name = 'services'
     api_endpoint = "/services/{id}" #TODO - this 404's
     properties = {
         'disk': Property(filterable=True),

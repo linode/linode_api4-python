@@ -2,10 +2,14 @@ from .base import Base, Property
 from .disk import Disk
 from .config import Config
 from .backup import Backup
+from .service import Service
+from .datacenter import Datacenter
+from .distribution import Distribution
 
 from random import choice
 
 class Linode(Base):
+    api_name = 'linodes'
     api_endpoint = '/linodes/{id}'
     properties = {
         'id': Property(identifier=True),
@@ -17,12 +21,12 @@ class Linode(Base):
         'total_transfer': Property(),
         'ip_addresses': Property(),
         'distribution': Property(),
-        'datacenter': Property(relationship=True, filterable=True),
+        'datacenter': Property(relationship=Datacenter, filterable=True),
         'alerts': Property(),
-        'distribution': Property(relationship=True, filterable=True),
+        'distribution': Property(relationship=Distribution, filterable=True),
         'disks': Property(derived_class=Disk),
         'configs': Property(derived_class=Config),
-        'services': Property(relationship=True),
+        'services': Property(relationship=Service),
         'backups': Property(),
         'recent_backups': Property(derived_class=Backup),
     }
@@ -142,7 +146,7 @@ class Linode(Base):
         return True
 
     def snapshot(self, label=None):
-        result = self._client.post("{}/backups/snapshot".format(Linode.api_endpoint), model=self,
+        result = self._client.post("{}/backups".format(Linode.api_endpoint), model=self,
             data={ "label": label })
 
         if not 'id' in result:

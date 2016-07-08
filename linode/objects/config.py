@@ -1,7 +1,9 @@
 from .dbase import DerivedBase
 from .base import Property
+from .kernel import Kernel
 
 class Config(DerivedBase):
+    api_name="configs"
     api_endpoint="/linodes/{linode_id}/configs/{id}"
     derived_url_path="configs"
     parent_id_name="linode_id"
@@ -12,7 +14,7 @@ class Config(DerivedBase):
         "helpers": Property(),#TODO: mutable=True),
         "created": Property(is_datetime=True),
         "root_device": Property(mutable=True),
-        "kernel": Property(relationship=True, mutable=True, filterable=True),
+        "kernel": Property(relationship=Kernel, mutable=True, filterable=True),
         "disks": Property(filterable=True),#TODO: mutable=True),
         "updated": Property(),
         "comments": Property(mutable=True, filterable=True),
