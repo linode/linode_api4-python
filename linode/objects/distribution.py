@@ -9,7 +9,6 @@ class Distribution(Base):
         'minimum_image_size': Property(filterable=True),
         'recommended': Property(filterable=True),
         'vendor': Property(filterable=True),
-        'experimental': Property(filterable=True),
         'created': Property(is_datetime=True),
         'x64': Property(),
     }
