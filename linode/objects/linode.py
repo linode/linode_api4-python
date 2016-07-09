@@ -66,7 +66,7 @@ class Linode(Base):
         params = {
             'kernel': kernel.id,
             'label': label if label else "{}_config_{}".format(self.label, len(self.configs)),
-            'disk_list': disk_list,
+            'disks': disk_list,
         }
         params.update(kwargs)
 
