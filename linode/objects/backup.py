@@ -1,5 +1,5 @@
 from .dbase import DerivedBase
-from .base import Property
+from .base import Property, Base
 
 class Backup(DerivedBase):
     api_name = 'backups'
@@ -22,6 +22,6 @@ class Backup(DerivedBase):
     def restore_to(self, linode):
         result = self._client.post("{}/restore".format(Backup.api_endpoint), model=self,
             data={
-                "linode": linode.id,
+                "linode": linode.id if issubclass(type(linode), Base) else linode,
         })
         return True

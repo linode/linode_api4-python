@@ -1,6 +1,7 @@
 from .dbase import DerivedBase
 from .base import Property
 from .kernel import Kernel
+from .disk import Disk
 
 class Config(DerivedBase):
     api_name="configs"
@@ -38,4 +39,4 @@ class Config(DerivedBase):
             if self.disks.__getattribute__(key):
                 self.disks.__setattr__(key,
                         mapper.make(self.disks.__getattribute__(key).id,
-                        self._client, parent_id=self.linode_id))
+                        self._client, parent_id=self.linode_id, cls=Disk))

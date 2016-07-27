@@ -8,7 +8,7 @@ from linode.objects import *
 from linode.util import PaginatedList
 
 class LinodeClient:
-    def __init__(self, token, base_url="https://api.linode.com/v4"):
+    def __init__(self, token, base_url="https://api.alpha.linode.com/v4"):
         self.base_url = base_url
         self.token = token
 
@@ -135,11 +135,12 @@ class LinodeClient:
 
     # create things
     def create_linode(self, service, datacenter, source=None, **kwargs):
-        if not 'linode' in service.service_type:
+        if isinstance(service, Service) and not 'linode' in service.service_type:
             raise AttributeError("{} is not a linode service!".format(service.label))
 
         ret_pass = None
-        if type(source) is Distribution and not 'root_pass' in kwargs:
+        if source and (type(source) is Distribution or source.startswith('linode/')) \
+                and not 'root_pass' in kwargs:
             ret_pass = Linode.generate_root_password()
             kwargs['root_pass'] = ret_pass
 
@@ -158,9 +159,9 @@ class LinodeClient:
                                     'raw public key of one of these types: {}'.format(accepted_types))
 
         params = {
-             'service': service.id,
-             'datacenter': datacenter.id,
-             'source': source.id if source else None,
+             'service': service.id if issubclass(type(service), Base) else service,
+             'datacenter': datacenter.id if issubclass(type(service), Base) else datacenter,
+             'source': (source.id if issubclass(type(source), Base) else source) if source else None,
          }
         params.update(kwargs)
 
@@ -179,11 +180,13 @@ class LinodeClient:
     def create_stackscript(self, label, script, distros, desc=None, public=False, **kwargs):
         distro_list = None
         if type(distros) is list or type(distros) is PaginatedList:
-            distro_list = [ d.id for d in distros ]
+            distro_list = [ d.id if issubclass(type(d), Base) else d for d in distros ]
         elif type(distros) is Distribution:
             distro_list = [ distros.id ]
+        elif type(distros) is str:
+            distro_list = [ distros ]
         else:
-            raise ValueError('distros must be a list of Distributions of a single Distribution')
+            raise ValueError('distros must be a list of Distributions or a single Distribution')
 
         script_body = script
         if not script.startswith("#!"):

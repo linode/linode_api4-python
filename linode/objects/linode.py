@@ -64,7 +64,7 @@ class Linode(Base):
             disk_list = [ d.id for d in disks ]
 
         params = {
-            'kernel': kernel.id,
+            'kernel': kernel.id if issubclass(type(kernel), Base) else kernel,
             'label': label if label else "{}_config_{}".format(self.label, len(self.configs)),
             'disks': disk_list,
         }
@@ -113,7 +113,7 @@ class Linode(Base):
 
         if distribution:
             params.update({
-                'distribution': distribution.id,
+                'distribution': distribution.id if issubclass(type(distribution), Base) else distribution,
                 'root_pass': root_pass,
             })
 

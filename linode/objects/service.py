@@ -4,7 +4,7 @@ class Service(Base):
     api_name = 'services'
     api_endpoint = "/services/{id}" #TODO - this 404's
     properties = {
-        'disk': Property(filterable=True),
+        'storage': Property(filterable=True),
         'hourly_price': Property(filterable=True),
         'id': Property(identifier=True),
         'label': Property(filterable=True),

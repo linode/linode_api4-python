@@ -6,7 +6,7 @@ class Distribution(Base):
     properties = {
         'id': Property(identifier=True),
         'label': Property(filterable=True),
-        'minimum_image_size': Property(filterable=True),
+        'minimum_storage_size': Property(filterable=True),
         'recommended': Property(filterable=True),
         'vendor': Property(filterable=True),
         'experimental': Property(filterable=True),
