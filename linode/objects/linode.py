@@ -5,6 +5,7 @@ from .backup import Backup
 from .service import Service
 from .datacenter import Datacenter
 from .distribution import Distribution
+from .ipaddress import IPAddress
 
 from random import choice
 
@@ -19,7 +20,7 @@ class Linode(Base):
         'created': Property(is_datetime=True),
         'updated': Property(volatile=True, is_datetime=True),
         'total_transfer': Property(),
-        'ip_addresses': Property(),
+        'ips': Property(),
         'distribution': Property(),
         'datacenter': Property(relationship=Datacenter, filterable=True),
         'alerts': Property(),
@@ -29,6 +30,7 @@ class Linode(Base):
         'services': Property(relationship=Service),
         'backups': Property(),
         'recent_backups': Property(derived_class=Backup),
+        'ips_collection': Property(derived_class=IPAddress),
     }
 
     def boot(self, config=None):
@@ -155,3 +157,14 @@ class Linode(Base):
         b = Backup(self._client, result['id'], self.id)
         b._populate(result)
         return b
+
+    def allocate_ip(self, public=False):
+        result = self._client.post("{}/ips".format(Linode.api_endpoint), model=self,
+                data={ "type": "public" if public else "private" })
+
+        if not 'id' in result:
+            return result
+
+        i = IPAddress(self._client, result['id'], self.id)
+        i._populate(result)
+        return i

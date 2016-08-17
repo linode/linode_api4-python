@@ -19,9 +19,12 @@ class Backup(DerivedBase):
         'label': Property(),
     }
 
-    def restore_to(self, linode):
+    def restore_to(self, linode, **kwargs):
+        d = {
+            "linode": linode.id if issubclass(type(linode), Base) else linode,
+        }
+        d.update(kwargs)
+
         result = self._client.post("{}/restore".format(Backup.api_endpoint), model=self,
-            data={
-                "linode": linode.id if issubclass(type(linode), Base) else linode,
-        })
+            data=d)
         return True
