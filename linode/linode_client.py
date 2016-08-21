@@ -125,7 +125,7 @@ class LinodeClient:
         return self._get_and_filter(Linode, *filters)
 
     def get_stackscripts(self, *filters):
-        return self._get_and_filter(Stackscript, *filters)
+        return self._get_and_filter(StackScript, *filters)
 
     def get_kernels(self, *filters):
         return self._get_and_filter(Kernel, *filters)
