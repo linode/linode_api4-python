@@ -24,7 +24,7 @@ class LinodeClient:
             raise ValueError("Method is required for API calls!")
 
         if model:
-            endpoint = endpoint.format(**{ k: quote(vars(model)[k], safe='') for k in vars(model) if 'id' in k })
+            endpoint = endpoint.format(**{ k: quote(str(vars(model)[k]), safe='') for k in vars(model) if 'id' in k })
         url = '{}{}'.format(self.base_url, endpoint)
         headers = {
             'Authorization': "token {}".format(self.token),
