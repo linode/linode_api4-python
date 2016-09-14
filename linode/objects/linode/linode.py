@@ -1,17 +1,18 @@
-from .base import Base, Property
+from linode.objects import Base, Property
 from .disk import Disk
 from .config import Config
 from .backup import Backup
 from .service import Service
-from .datacenter import Datacenter
+from linode.objects import Datacenter
 from .distribution import Distribution
 from .ipaddress import IPAddress
+from .ip6address import IPv6Address
 
 from random import choice
 
 class Linode(Base):
     api_name = 'linodes'
-    api_endpoint = '/linodes/{id}'
+    api_endpoint = '/linode/instances/{id}'
     properties = {
         'id': Property(identifier=True),
         'label': Property(mutable=True, filterable=True),
@@ -20,8 +21,6 @@ class Linode(Base):
         'created': Property(is_datetime=True),
         'updated': Property(volatile=True, is_datetime=True),
         'total_transfer': Property(),
-        'ips': Property(),
-        'distribution': Property(),
         'datacenter': Property(relationship=Datacenter, filterable=True),
         'alerts': Property(),
         'distribution': Property(relationship=Distribution, filterable=True),
@@ -30,8 +29,37 @@ class Linode(Base):
         'services': Property(relationship=Service),
         'backups': Property(),
         'recent_backups': Property(derived_class=Backup),
-        'ips_collection': Property(derived_class=IPAddress),
+        'ipv4': Property(relationship=IPAddress),
+        'ipv6': Property(relationship=IPv6Address),
     }
+
+    @property
+    def ips(self):
+        """
+        The ips related collection is not normalized like the others, so we have to
+        make an ad-hoc object to return for its response
+        """
+        result = self._client.get("{}/ips".format(Linode.api_endpoint), model=self)
+
+        if not "ipv4" in result:
+            return result
+
+        v4 = []
+        for c in result['ipv4']:
+            i = IPAddress(self._client, c['id'], self.id)
+            i._populate(c)
+            v4.append(i)
+
+        v6 = []
+        for c in result['ipv6']:
+            i = IPv6Address(self._client, c['range'], self.id)
+            i._populate(c)
+            v6.append(i)
+
+        return type('ips_response', (object,), {
+            "ipv4": v4,
+            "ipv6": v6,
+        })()
 
     def boot(self, config=None):
         resp = self._client.post("{}/boot".format(Linode.api_endpoint), model=self, data={'config': config.id} if config else None)
@@ -168,3 +196,40 @@ class Linode(Base):
         i = IPAddress(self._client, result['id'], self.id)
         i._populate(result)
         return i
+
+    def rebuild(self, distribution, root_pass=None, root_ssh_key=None, **kwargs):
+        ret_pass = None
+        if not root_pass:
+            ret_pass = Linode.generate_root_password()
+            root_pass = ret_pass
+
+        if root_ssh_key:
+            accepted_types = ('ssh-dss', 'ssh-rsa', 'ecdsa-sha2-nistp', 'ssh-ed25519')
+            if not any([ t for t in accepted_types if root_ssh_key.startswith(t) ]):
+                # it doesn't appear to be a key.. is it a path to the key?
+                import os
+                root_ssh_key = os.path.expanduser(root_ssh_key)
+                if os.path.isfile(root_ssh_key):
+                    with open(root_ssh_key) as f:
+                        root_ssh_key = "".join([ l.strip() for l in f ])
+                else:
+                    raise ValueError('root_ssh_key must either be a path to the key file or a '
+                                    'raw public key of one of these types: {}'.format(accepted_types))
+
+        params = {
+             'distribution': distribution.id if issubclass(type(distribution), Base) else distribution,
+             'root_pass': root_pass,
+             'root_ssh_key': root_ssh_key,
+         }
+        params.update(kwargs)
+
+        result = self._client.post('{}/rebuild'.format(Linode.api_endpoint), model=self, data=params)
+
+        if not 'disks' in result:
+            return result
+
+        self.invalidate()
+        if not ret_pass:
+            return True
+        else:
+            return ret_pass

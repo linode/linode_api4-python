@@ -1,9 +1,9 @@
-from .dbase import DerivedBase
-from .base import Property
+from linode.objects import DerivedBase
+from linode.objects import Property
 
 class Disk(DerivedBase):
     api_name = 'disks'
-    api_endpoint = '/linodes/{linode_id}/disks/{id}'
+    api_endpoint = '/linode/instances/{linode_id}/disks/{id}'
     derived_url_path = 'disks'
     parent_id_name='linode_id'
 

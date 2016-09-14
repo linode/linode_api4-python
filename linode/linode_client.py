@@ -7,10 +7,134 @@ from linode import mappings
 from linode.objects import *
 from linode.util import PaginatedList
 
+class Group:
+    def __init__(self, client):
+        self.client = client
+
+class LinodeGroup(Group):
+    def get_distributions(self, *filters):
+        return self.client._get_and_filter(Distribution, *filters)
+
+    def get_services(self, *filters):
+        return self.client._get_and_filter(Service, *filters)
+
+    def get_instances(self, *filters):
+        return self.client._get_and_filter(Linode, *filters)
+
+    def get_stackscripts(self, *filters):
+        return self.client._get_and_filter(StackScript, *filters)
+
+    def get_kernels(self, *filters):
+        return self.client._get_and_filter(Kernel, *filters)
+
+    # create things
+    def create_instance(self, service, datacenter, distribution=None, **kwargs):
+        if isinstance(service, Service) and not 'linode' in service.service_type:
+            raise AttributeError("{} is not a linode service!".format(service.label))
+
+        ret_pass = None
+        if distribution and not 'root_pass' in kwargs:
+            ret_pass = Linode.generate_root_password()
+            kwargs['root_pass'] = ret_pass
+
+        if 'root_ssh_key' in kwargs:
+            root_ssh_key = kwargs['root_ssh_key']
+            accepted_types = ('ssh-dss', 'ssh-rsa', 'ecdsa-sha2-nistp', 'ssh-ed25519')
+            if not any([ t for t in accepted_types if root_ssh_key.startswith(t) ]):
+                # it doesn't appear to be a key.. is it a path to the key?
+                import os
+                root_ssh_key = os.path.expanduser(root_ssh_key)
+                if os.path.isfile(root_ssh_key):
+                    with open(root_ssh_key) as f:
+                        kwargs['root_ssh_key'] = "".join([ l.strip() for l in f ])
+                else:
+                    raise ValueError('root_ssh_key must either be a path to the key file or a '
+                                    'raw public key of one of these types: {}'.format(accepted_types))
+
+        params = {
+             'service': service.id if issubclass(type(service), Base) else service,
+             'datacenter': datacenter.id if issubclass(type(service), Base) else datacenter,
+             'distribution': (distribution.id if issubclass(type(distribution), Base) else distribution) if distribution else None,
+         }
+        params.update(kwargs)
+
+        result = self.client.post('/linode/instances', data=params)
+
+        if not 'id' in result:
+            return result
+
+        l = Linode(self.client, result['id'])
+        l._populate(result)
+        if not ret_pass:
+            return l
+        else:
+            return l, ret_pass
+
+    def create_stackscript(self, label, script, distros, desc=None, public=False, **kwargs):
+        distro_list = None
+        if type(distros) is list or type(distros) is PaginatedList:
+            distro_list = [ d.id if issubclass(type(d), Base) else d for d in distros ]
+        elif type(distros) is Distribution:
+            distro_list = [ distros.id ]
+        elif type(distros) is str:
+            distro_list = [ distros ]
+        else:
+            raise ValueError('distros must be a list of Distributions or a single Distribution')
+
+        script_body = script
+        if not script.startswith("#!"):
+            # it doesn't look like a stackscript body, let's see if it's a file
+            import os
+            if os.path.isfile(script):
+                with open(script) as f:
+                    script_body = f.read()
+            else:
+                raise ValueError("script must be the script text or a path to a file")
+
+        params = {
+            "label": label,
+            "distributions": distro_list,
+            "is_public": public,
+            "script": script_body,
+            "description": desc if desc else '',
+        }
+        params.update(kwargs)
+
+        result = self.client.post('/linode/stackscripts', data=params)
+
+        if not 'id' in result:
+            return result
+
+        s = StackScript(self.client, result['id'])
+        s._populate(result)
+        return s
+
+class DnsGroup(Group):
+    def get_zones(self, *filters):
+        return self.client._get_and_filter(DnsZone, *filters)
+
+    def create_zone(self, dnszone, master=True, **kwargs):
+        params = {
+            'dnszone': dnszone,
+            'type': 'master' if master else 'slave',
+        }
+        params.update(kwargs)
+
+        result = self.client.post('/dns/zones', data=params)
+
+        if not 'id' in result:
+            return result
+
+        z = DnsZone(self.client, result['id'])
+        z._populate(result)
+        return z
+
 class LinodeClient:
     def __init__(self, token, base_url="https://api.alpha.linode.com/v4"):
         self.base_url = base_url
         self.token = token
+        self.linode = LinodeGroup(self)
+        self.dns = DnsGroup(self)
 
     def _api_call(self, endpoint, model=None, method=None, data=None, filters=None):
         """
@@ -81,6 +205,10 @@ class LinodeClient:
     def delete(self, *args, **kwargs):
         return self._api_call(*args, method=requests.delete, **kwargs)
 
+    # ungrouped list functions
+    def get_datacenters(self, *filters):
+        return self._get_and_filter(Datacenter, *filters)
+
     # helper functions
     def _filter_list(self, results, **filter_by):
         if not results or not len(results):
@@ -110,124 +238,4 @@ class LinodeClient:
             else:
                 parsed_filters = filters[0].dct
 
-        return self._get_objects("/{}".format(obj_type.api_name), obj_type, filters=parsed_filters)
-
-    def get_distributions(self, *filters):
-        return self._get_and_filter(Distribution, *filters)
-
-    def get_services(self, *filters):
-        return self._get_and_filter(Service, *filters)
-
-    def get_datacenters(self, *filters):
-        return self._get_and_filter(Datacenter, *filters)
-
-    def get_linodes(self, *filters):
-        return self._get_and_filter(Linode, *filters)
-
-    def get_stackscripts(self, *filters):
-        return self._get_and_filter(StackScript, *filters)
-
-    def get_kernels(self, *filters):
-        return self._get_and_filter(Kernel, *filters)
-
-    def get_dnszones(self, *filters):
-        return self._get_and_filter(DnsZone, *filters)
-
-    # create things
-    def create_linode(self, service, datacenter, source=None, **kwargs):
-        if isinstance(service, Service) and not 'linode' in service.service_type:
-            raise AttributeError("{} is not a linode service!".format(service.label))
-
-        ret_pass = None
-        if source and (type(source) is Distribution or source.startswith('linode/')) \
-                and not 'root_pass' in kwargs:
-            ret_pass = Linode.generate_root_password()
-            kwargs['root_pass'] = ret_pass
-
-        if 'root_ssh_key' in kwargs:
-            root_ssh_key = kwargs['root_ssh_key']
-            accepted_types = ('ssh-dss', 'ssh-rsa', 'ecdsa-sha2-nistp', 'ssh-ed25519')
-            if not any([ t for t in accepted_types if root_ssh_key.startswith(t) ]):
-                # it doesn't appear to be a key.. is it a path to the key?
-                import os
-                root_ssh_key = os.path.expanduser(root_ssh_key)
-                if os.path.isfile(root_ssh_key):
-                    with open(root_ssh_key) as f:
-                        kwargs['root_ssh_key'] = "".join([ l.strip() for l in f ])
-                else:
-                    raise ValueError('root_ssh_key must either be a path to the key file or a '
-                                    'raw public key of one of these types: {}'.format(accepted_types))
-
-        params = {
-             'service': service.id if issubclass(type(service), Base) else service,
-             'datacenter': datacenter.id if issubclass(type(service), Base) else datacenter,
-             'source': (source.id if issubclass(type(source), Base) else source) if source else None,
-         }
-        params.update(kwargs)
-
-        result = self.post('/linodes', data=params)
-
-        if not 'id' in result:
-            return result
-
-        l = Linode(self, result['id'])
-        l._populate(result)
-        if not ret_pass:
-            return l
-        else:
-            return l, ret_pass
-
-    def create_stackscript(self, label, script, distros, desc=None, public=False, **kwargs):
-        distro_list = None
-        if type(distros) is list or type(distros) is PaginatedList:
-            distro_list = [ d.id if issubclass(type(d), Base) else d for d in distros ]
-        elif type(distros) is Distribution:
-            distro_list = [ distros.id ]
-        elif type(distros) is str:
-            distro_list = [ distros ]
-        else:
-            raise ValueError('distros must be a list of Distributions or a single Distribution')
-
-        script_body = script
-        if not script.startswith("#!"):
-            # it doesn't look like a stackscript body, let's see if it's a file
-            import os
-            if os.path.isfile(script):
-                with open(script) as f:
-                    script_body = f.read()
-            else:
-                raise ValueError("script must be the script text or a path to a file")
-
-        params = {
-            "label": label,
-            "distributions": distro_list,
-            "is_public": public,
-            "script": script_body,
-            "description": desc if desc else '',
-        }
-        params.update(kwargs)
-
-        result = self.post('/stackscripts', data=params)
-
-        if not 'id' in result:
-            return result
-
-        s = StackScript(self, result['id'])
-        s._populate(result)
-        return s
-
-    def create_dnszone(self, dnszone, master=True, **kwargs):
-        params = {
-            'dnszone': dnszone,
-            'type': 'master' if master else 'slave',
-        }
-        params.update(kwargs)
-
-        result = self.post('/dnszones', data=params)
-
-        if not 'id' in result:
-            return result
-
-        z = DnsZone(self, result['id'])
-        z._populate(result)
-        return z
+        return self._get_objects(obj_type.api_list(), obj_type, filters=parsed_filters)

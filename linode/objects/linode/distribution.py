@@ -1,8 +1,8 @@
-from .base import Base, Property
+from linode.objects import Base, Property
 
 class Distribution(Base):
     api_name = 'distributions'
-    api_endpoint = '/distributions/{id}'
+    api_endpoint = '/linode/distributions/{id}'
     properties = {
         'id': Property(identifier=True),
         'label': Property(filterable=True),

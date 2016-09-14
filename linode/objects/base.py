@@ -157,3 +157,7 @@ class Base(object, with_metaclass(FilterableMetaclass)):
 
     def _set(self, name, value):
         object.__setattr__(self, name, value)
+
+    @classmethod
+    def api_list(cls):
+        return '/'.join(cls.api_endpoint.split('/')[:-1])

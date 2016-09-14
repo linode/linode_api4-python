@@ -1,11 +1,11 @@
-from .dbase import DerivedBase
-from .base import Property
+from linode.objects import DerivedBase
+from linode.objects import Property
 from .kernel import Kernel
 from .disk import Disk
 
 class Config(DerivedBase):
     api_name="configs"
-    api_endpoint="/linodes/{linode_id}/configs/{id}"
+    api_endpoint="/linode/instances/{linode_id}/configs/{id}"
     derived_url_path="configs"
     parent_id_name="linode_id"
 

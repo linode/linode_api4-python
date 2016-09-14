@@ -1,9 +1,9 @@
-from .dbase import DerivedBase
-from .base import Property
+from linode.objects import DerivedBase
+from linode.objects import Property
 
-class IPAddress(DerivedBase):
-    api_name = 'ips'
-    api_endpoint = '/linodes/{linode_id}/ips/{id}'
+class IPv6Address(DerivedBase):
+    api_name = 'ipv6'
+    api_endpoint = '/linode/instances/{linode_id}/ips/{id}'
     derived_url_path = 'ips'
     parent_id_name='linode_id'
 

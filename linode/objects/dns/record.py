@@ -1,9 +1,9 @@
-from .dbase import DerivedBase
-from .base import Property
+from linode.objects import DerivedBase
+from linode.objects import Property
 
 class DnsZoneRecord(DerivedBase):
     api_name = "records"
-    api_endpoint = "/dnszones/{dns_zone_id}/records/{id}"
+    api_endpoint = "/dns/zones/{dns_zone_id}/records/{id}"
     derived_url_path = "records"
     parent_id_name = "dns_zone_id"
 

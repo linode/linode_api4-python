@@ -1,4 +1,4 @@
-from .base import Base, Property
+from linode.objects import Base, Property
 from .distribution import Distribution
 
 from enum import Enum
@@ -21,7 +21,7 @@ class UserDefinedField():
 
 class StackScript(Base):
     api_name = 'stackscripts'
-    api_endpoint = '/stackscripts/{id}'
+    api_endpoint = '/linode/stackscripts/{id}'
     properties = {
         "user_defined_fields": Property(),
         "label": Property(mutable=True, filterable=True),

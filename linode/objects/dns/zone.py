@@ -1,9 +1,9 @@
-from .base import Base, Property
-from .dns_zone_record import DnsZoneRecord
+from linode.objects import Base, Property
+from .record import DnsZoneRecord
 
 class DnsZone(Base):
     api_name = 'dnszones'
-    api_endpoint = "/dnszones/{id}"
+    api_endpoint = "/dns/zones/{id}"
     properties = {
         'id': Property(identifier=True),
         'dnszone': Property(mutable=True, filterable=True),

@@ -1,9 +1,9 @@
-from .dbase import DerivedBase
-from .base import Property, Base
+from linode.objects import DerivedBase
+from linode.objects import Property, Base
 
 class Backup(DerivedBase):
     api_name = 'backups'
-    api_endpoint = '/linodes/{linode_id}/backups/{id}'
+    api_endpoint = '/linode/instances/{linode_id}/backups/{id}'
     derived_url_path = 'backups'
     parent_id_name='linode_id'
 
