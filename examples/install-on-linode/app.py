@@ -14,7 +14,7 @@ def get_login_client():
 @app.route('/')
 def index():
     client = LinodeClient('no-token', base_url=config.api_base_url)
-    services = client.get_services(Service.label.contains("Linode"))
+    services = client.linode.get_services(Service.label.contains("Linode"))
     datacenters = client.get_datacenters()
     stackscript = StackScript(client, config.stackscript_id)
     return render_template('configure.html',  
@@ -55,11 +55,9 @@ def auth_callback():
 def create_linode(token, service_id, datacenter_id, distribution_id):
     client = LinodeClient('{}'.format(token), base_url=config.api_base_url)
     stackscript = StackScript(client, config.stackscript_id)
-    service = Service(client, service_id)
-    datacenter = Datacenter(client, datacenter_id)
-    distro = Distribution(client, distribution_id)
-    (linode, password) = client.create_linode(service, datacenter, group=config.application_name,
-            source=distro, stackscript=stackscript.id)
+    (linode, password) = client.linode.create_instance(service_id, datacenter_id,
+            group=config.application_name,
+            distribution=distribution_id, stackscript=stackscript.id)
     
     if not linode:
         raise RuntimeError("it didn't work")

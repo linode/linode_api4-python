@@ -1,17 +1,39 @@
 """
 These are all your configuration values.  Copy this file to config.py and
-substitue these placeholders for your own.   config.py is excluded from source
+substitute these placeholders for your own.   config.py is excluded from source
 control.
+
+OAuth Client Details
+====================
+Obtain these values from login.alpha.linode.com
+See Authentication (https://developers.linode.com/reference/#authentication)
+for details
 """
-# oauth client details
 client_id = 'my-client-id'
 client_secret = 'my-client-secret'
 
-# application configuration
+"""
+Application Details
+===================
+stackscirpt_id - the stackscript to deploy on Linodes we are creating in
+this example application.  Run ./create_stackscript.py to generate a public
+stackscript and put the ID it returns here.
+
+application_name - displayed to the user of this example application and
+used in the new Linode's label.  Can be any string.
+
+secret_key - this flask application's secret key.  Not very important since
+this is an example application and not for production deployment.
+"""
 stackscript_id = 'my-stackscript-id'
 application_name = 'my-application-name'
 secret_key = 'my-secret-key'
 
-# environment configuration
+"""
+Environment Configuration
+=========================
+These values set the URLs for the LinodeClient and LinodeLoginClient.  For
+most purposes, these should not need to change.
+"""
 api_base_url = 'https://api.alpha.linode.com/v4'
 login_base_url = 'https://login.alpha.linode.com'
