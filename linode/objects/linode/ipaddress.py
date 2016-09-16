@@ -1,5 +1,4 @@
-from linode.objects import DerivedBase
-from linode.objects import Property
+from .. import DerivedBase, Property
 
 class IPAddress(DerivedBase):
     api_name = 'ips'

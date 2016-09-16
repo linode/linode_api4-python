@@ -1,4 +1,4 @@
-from linode.objects import Base, Property
+from .. import Base, Property
 
 class Kernel(Base):
     api_name = 'kernels'

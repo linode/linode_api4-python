@@ -1,5 +1,4 @@
-from linode.objects import DerivedBase
-from linode.objects import Property, Base
+from .. import DerivedBase, Property, Base
 
 class Backup(DerivedBase):
     api_name = 'backups'

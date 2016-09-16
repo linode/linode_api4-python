@@ -1,4 +1,4 @@
-from linode.objects import Base, Property
+from .. import Base, Property
 
 class Distribution(Base):
     api_name = 'distributions'

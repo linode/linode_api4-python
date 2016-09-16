@@ -1,5 +1,4 @@
-from linode.objects import DerivedBase
-from linode.objects import Property
+from .. import DerivedBase, Property
 from .kernel import Kernel
 from .disk import Disk
 

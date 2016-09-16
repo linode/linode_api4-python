@@ -1,4 +1,4 @@
-from linode.objects import Base, Property
+from .. import Base, Property
 from .distribution import Distribution
 
 from enum import Enum

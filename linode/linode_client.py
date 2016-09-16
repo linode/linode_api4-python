@@ -1,4 +1,3 @@
-from urllib.parse import quote
 import requests
 import json
 
@@ -29,9 +28,6 @@ class LinodeGroup(Group):
 
     # create things
     def create_instance(self, service, datacenter, distribution=None, **kwargs):
-        if isinstance(service, Service) and not 'linode' in service.service_type:
-            raise AttributeError("{} is not a linode service!".format(service.label))
-
         ret_pass = None
         if distribution and not 'root_pass' in kwargs:
             ret_pass = Linode.generate_root_password()
@@ -53,7 +49,7 @@ class LinodeGroup(Group):
 
         params = {
              'service': service.id if issubclass(type(service), Base) else service,
-             'datacenter': datacenter.id if issubclass(type(service), Base) else datacenter,
+             'datacenter': datacenter.id if issubclass(type(datacenter), Base) else datacenter,
              'distribution': (distribution.id if issubclass(type(distribution), Base) else distribution) if distribution else None,
          }
         params.update(kwargs)
@@ -148,7 +144,7 @@ class LinodeClient:
             raise ValueError("Method is required for API calls!")
 
         if model:
-            endpoint = endpoint.format(**{ k: quote(str(vars(model)[k]), safe='') for k in vars(model) if 'id' in k })
+            endpoint = endpoint.format(**{ k: str(vars(model)[k]) for k in vars(model) if 'id' in k })
         url = '{}{}'.format(self.base_url, endpoint)
         headers = {
             'Authorization': "token {}".format(self.token),

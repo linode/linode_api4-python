@@ -1,9 +1,9 @@
-from linode.objects import Base, Property
+from .. import Base, Property
 from .disk import Disk
 from .config import Config
 from .backup import Backup
 from .service import Service
-from linode.objects import Datacenter
+from .. import Datacenter
 from .distribution import Distribution
 from .ipaddress import IPAddress
 from .ip6address import IPv6Address

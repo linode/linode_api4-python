@@ -1,4 +1,4 @@
-from linode.objects import Base, Property
+from .. import Base, Property
 
 class Service(Base):
     api_name = 'services'
@@ -12,7 +12,6 @@ class Service(Base):
         'mbits_out': Property(filterable=True),
         'monthly_price': Property(filterable=True),
         'ram': Property(filterable=True),
-        'service_type': Property(filterable=True),
         'transfer': Property(filterable=True),
         'vcpus': Property(filterable=True),
     }

@@ -109,7 +109,7 @@ class OAuthScopes:
 
 class LinodeLoginClient:
     def __init__(self, client_id, client_secret,
-            base_url="https://login.linode.com"):
+            base_url="https://login.alpha.linode.com"):
         self.base_url = base_url
         self.client_id = client_id
         self.client_secret = client_secret
