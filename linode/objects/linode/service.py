@@ -1,8 +1,8 @@
 from .. import Base, Property
 
 class Service(Base):
-    api_name = 'services'
-    api_endpoint = "/linode/services/{id}" #TODO - this 404's
+    api_name = 'types'
+    api_endpoint = "/linode/types/{id}"
     properties = {
         'storage': Property(filterable=True),
         'hourly_price': Property(filterable=True),

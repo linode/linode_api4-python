@@ -17,7 +17,7 @@ class Linode(Base):
         'id': Property(identifier=True),
         'label': Property(mutable=True, filterable=True),
         'group': Property(mutable=True, filterable=True),
-        'state': Property(volatile=True),
+        'status': Property(volatile=True),
         'created': Property(is_datetime=True),
         'updated': Property(volatile=True, is_datetime=True),
         'total_transfer': Property(),
@@ -26,7 +26,7 @@ class Linode(Base):
         'distribution': Property(relationship=Distribution, filterable=True),
         'disks': Property(derived_class=Disk),
         'configs': Property(derived_class=Config),
-        'services': Property(relationship=Service),
+        'type': Property(relationship=Service),
         'backups': Property(),
         'recent_backups': Property(derived_class=Backup),
         'ipv4': Property(relationship=IPAddress),
@@ -46,7 +46,7 @@ class Linode(Base):
 
         v4 = []
         for c in result['ipv4']:
-            i = IPAddress(self._client, c['id'], self.id)
+            i = IPAddress(self._client, c['address'], self.id)
             i._populate(c)
             v4.append(i)
 
@@ -60,6 +60,16 @@ class Linode(Base):
             "ipv4": v4,
             "ipv6": v6,
         })()
+
+    def _populate(self, json):
+        # fixes ipv4 and ipv6 attribute of json to make base._populate work
+        if 'ipv4' in json and 'address' in json['ipv4']:
+            json['ipv4']['id'] = json['ipv4']['address']
+        if 'ipv6' in json and isinstance(json['ipv6'], list):
+            for j in json['ipv6']:
+                j['id'] = j['range']
+
+        Base._populate(self, json)
 
     def boot(self, config=None):
         resp = self._client.post("{}/boot".format(Linode.api_endpoint), model=self, data={'config': config.id} if config else None)
@@ -219,7 +229,6 @@ class Linode(Base):
         params = {
              'distribution': distribution.id if issubclass(type(distribution), Base) else distribution,
              'root_pass': root_pass,
-             'root_ssh_key': root_ssh_key,
          }
         params.update(kwargs)
 

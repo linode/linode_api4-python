@@ -1,38 +1,10 @@
 import linode.objects
 from linode import util
 
-
-def get_mapping(id):
-    id_map = { 
-        'linode': linode.objects.Linode,
-        'disk': linode.objects.Disk,
-        'distro': linode.objects.Distribution,
-        'service': linode.objects.Service,
-        'datacenter': linode.objects.Datacenter,
-        'stackscript': linode.objects.StackScript,
-        'config': linode.objects.Config,
-        'kernel': linode.objects.Kernel,
-        'dnszone': linode.objects.DnsZone,
-        'dnsrecord': linode.objects.DnsZoneRecord,
-        'backup': linode.objects.Backup,
-    }
-
-    parts = id.split('_')
-
-    if not len(parts) == 2:
-        return False
-
-    if parts[0] in id_map:
-        return id_map[parts[0]]
-    return None
-
 def make(id, client, parent_id=None, cls=None):
     """
     Makes an api object based on an id.  The type depends on the mapping.
     """
-    if not cls:
-        cls = get_mapping(id)
-
     if cls:
         if issubclass(cls, linode.objects.DerivedBase):
             return cls(client, id, parent_id)

@@ -14,7 +14,7 @@ class LinodeGroup(Group):
     def get_distributions(self, *filters):
         return self.client._get_and_filter(Distribution, *filters)
 
-    def get_services(self, *filters):
+    def get_types(self, *filters):
         return self.client._get_and_filter(Service, *filters)
 
     def get_instances(self, *filters):
@@ -27,7 +27,7 @@ class LinodeGroup(Group):
         return self.client._get_and_filter(Kernel, *filters)
 
     # create things
-    def create_instance(self, service, datacenter, distribution=None, **kwargs):
+    def create_instance(self, ltype, datacenter, distribution=None, **kwargs):
         ret_pass = None
         if distribution and not 'root_pass' in kwargs:
             ret_pass = Linode.generate_root_password()
@@ -48,7 +48,7 @@ class LinodeGroup(Group):
                                     'raw public key of one of these types: {}'.format(accepted_types))
 
         params = {
-             'service': service.id if issubclass(type(service), Base) else service,
+             'type': ltype.id if issubclass(type(ltype), Base) else ltype,
              'datacenter': datacenter.id if issubclass(type(datacenter), Base) else datacenter,
              'distribution': (distribution.id if issubclass(type(distribution), Base) else distribution) if distribution else None,
          }

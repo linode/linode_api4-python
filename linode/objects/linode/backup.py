@@ -16,6 +16,8 @@ class Backup(DerivedBase):
         'type': Property(),
         'linode_id': Property(identifier=True),
         'label': Property(),
+        'configs': Property(),
+        'disks': Property(),
     }
 
     def restore_to(self, linode, **kwargs):
