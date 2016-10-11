@@ -10,10 +10,10 @@
         </div>
         <div class='row'>
             <div class='form-group'>
-                <label for='service'>Plan</label>
-                <select name='service'i id='service' class='form-control'
+                <label for='type'>Type</label>
+                <select name='type'i id='type' class='form-control'
                     onblur="blurring(this)" onfocus="focusing(this)">
-                    {% for s in services %}
+                    {% for s in types %}
                         <option value="{{s.id}}">{{s.label}}</option>
                     {% endfor %}
                 </select>

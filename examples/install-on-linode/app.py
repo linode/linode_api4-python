@@ -14,11 +14,11 @@ def get_login_client():
 @app.route('/')
 def index():
     client = LinodeClient('no-token', base_url=config.api_base_url)
-    services = client.linode.get_services(Service.label.contains("Linode"))
+    types = client.linode.get_types(Service.label.contains("Linode"))
     datacenters = client.get_datacenters()
     stackscript = StackScript(client, config.stackscript_id)
     return render_template('configure.html',  
-        services=services,
+        types=types,
         datacenters=datacenters,
         application_name=config.application_name,
         stackscript=stackscript
@@ -29,7 +29,7 @@ def start_auth():
     login_client = get_login_client()
     session['dc'] = request.form['datacenter']
     session['distro'] = request.form['distribution']
-    session['service'] = request.form['service']
+    session['type'] = request.form['type']
     return redirect(login_client.generate_login_url(scopes=OAuthScopes.Linodes.all))
 
 @app.route('/auth_callback')
@@ -43,7 +43,7 @@ def auth_callback():
         return render_template('error.html', error='Insufficient scopes granted to deploy {}'\
                 .format(config.application_name))
 
-    (linode, password) = create_linode(token, session['service'], session['dc'], session['distro'])
+    (linode, password) = create_linode(token, session['type'], session['dc'], session['distro'])
 
     get_login_client().expire_token(token)
     return render_template('success.html',
@@ -52,10 +52,10 @@ def auth_callback():
         application_name=config.application_name
     )
 
-def create_linode(token, service_id, datacenter_id, distribution_id):
+def create_linode(token, type_id, datacenter_id, distribution_id):
     client = LinodeClient('{}'.format(token), base_url=config.api_base_url)
     stackscript = StackScript(client, config.stackscript_id)
-    (linode, password) = client.linode.create_instance(service_id, datacenter_id,
+    (linode, password) = client.linode.create_instance(type_id, datacenter_id,
             group=config.application_name,
             distribution=distribution_id, stackscript=stackscript.id)
     
