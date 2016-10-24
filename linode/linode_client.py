@@ -125,12 +125,24 @@ class DnsGroup(Group):
         z._populate(result)
         return z
 
+class AccountGroup(Group):
+    def get_current_user(self):
+        resp = self.client.get('/account/users')
+
+        if not 'username' in resp:
+            return resp
+
+        u = User(self.client, resp['username'])
+        u._populate(resp)
+        return u
+
 class LinodeClient:
     def __init__(self, token, base_url="https://api.alpha.linode.com/v4"):
         self.base_url = base_url
         self.token = token
         self.linode = LinodeGroup(self)
         self.dns = DnsGroup(self)
+        self.account = AccountGroup(self)
 
     def _api_call(self, endpoint, model=None, method=None, data=None, filters=None):
         """
