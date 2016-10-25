@@ -4,6 +4,7 @@ import json
 from linode.api import ApiError
 from linode import mappings
 from linode.objects import *
+from linode.objects.filtering import Filter
 from linode.util import PaginatedList
 
 class Group:
@@ -20,7 +21,15 @@ class LinodeGroup(Group):
     def get_instances(self, *filters):
         return self.client._get_and_filter(Linode, *filters)
 
-    def get_stackscripts(self, *filters):
+    def get_stackscripts(self, *filters, mine_only=False):
+        if mine_only:
+            new_filter = Filter({"mine":True})
+            if filters:
+                filters = [ f for f in filters ]
+                filters[0] = filters[0] & new_filter
+            else:
+                filters = [new_filter]
+
         return self.client._get_and_filter(StackScript, *filters)
 
     def get_kernels(self, *filters):
