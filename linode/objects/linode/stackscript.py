@@ -62,3 +62,8 @@ class StackScript(Base):
         self._set('user_defined_fields', mapped_udfs)
         for d in self.distributions:
             d._set("_populated", False) # these come in as partials
+
+    def _serialize(self):
+        dct = Base._serialize(self)
+        dct['distributions'] = [ d.id for d in self.distributions ]
+        return dct
