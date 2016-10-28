@@ -18,6 +18,7 @@ class DnsZone(Base):
         'refresh_sec': Property(mutable=True),
         'ttl_sec': Property(mutable=True),
         'records': Property(derived_class=DnsZoneRecord),
+        'type': Property(),
     }
 
     def create_record(self, record_type, **kwargs):
