@@ -29,8 +29,9 @@ class Linode(Base):
         'type': Property(relationship=Service),
         'backups': Property(),
         'recent_backups': Property(derived_class=Backup),
-        'ipv4': Property(relationship=IPAddress),
-        'ipv6': Property(relationship=IPv6Address),
+        'ipv4': Property(),
+        'ipv6': Property(),
+        'hypervisor': Property(),
     }
 
     @property

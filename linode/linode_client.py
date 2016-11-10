@@ -145,6 +145,17 @@ class AccountGroup(Group):
         u._populate(resp)
         return u
 
+    def get_events(self, *filters):
+        return self.client._get_and_filter(Event, *filters)
+
+    def mark_last_seen_event(self, event):
+        """
+        Marks event as the last event we have seen.  If event is an int, it is treated
+        as an event_id, otherwise it should be an event object whose id will be used.
+        """
+        last_seen = event if isinstance(event, int) else event.id
+        self.client.post('{}/seen'.format(Event.api_endpoint), model=Event(self.client, last_seen))
+
 class LinodeClient:
     def __init__(self, token, base_url="https://api.alpha.linode.com/v4"):
         self.base_url = base_url
