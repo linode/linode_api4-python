@@ -14,10 +14,12 @@ class Event(Base):
         'percent_complete': Property(volatile=True),
         'created': Property(is_datetime=True),
         'finished': Property(is_datetime=True, volatile=True),
+        'seen': Property(),
         'read': Property(),
         'linode_id': Property(),
         'stackscript_id': Property(),
         'nodebalancer_id': Property(),
+        'event_type': Property(),
     }
 
     @property

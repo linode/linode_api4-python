@@ -163,6 +163,33 @@ class NetworkingGroup(Group):
     def get_ipv6_ranges(self, *filters):
         return self.client._get_and_filter(IPv6Pool, *filters)
 
+    def assign_ips(self, datacenter, *assignments):
+        """
+        This takes a set of IPv4 Assignments and moves the IPs where they were
+        asked to go.  Call this with any number of IPAddress.to(Linode) results
+        """
+        for a in assignments:
+            if not 'address' in a or not 'linode_id' in a:
+                raise ValueError("Invalid assignment: {}".format(a))
+        if isinstance(datacenter, Datacenter):
+            datacenter = datacenter.id
+
+        result = self.client.post('/networking/ip-assign', data={
+            "datacenter": datacenter,
+            "assignments": [ a for a in assignments ],
+        })
+
+        if not 'ips' in result:
+            return result
+
+        ips = []
+        for r in result['ips']:
+            i = IPAddress(self.client, r['address'])
+            i._populate(r)
+            ips.append(i)
+
+        return ips
+
 class LinodeClient:
     def __init__(self, token, base_url="https://api.alpha.linode.com/v4"):
         self.base_url = base_url

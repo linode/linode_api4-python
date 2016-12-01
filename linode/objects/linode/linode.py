@@ -1,3 +1,5 @@
+import string
+
 from .. import Base, Property
 from ..base import MappedObject
 from .disk import Disk
@@ -6,9 +8,9 @@ from .backup import Backup
 from .service import Service
 from .. import Datacenter
 from .distribution import Distribution
-from .ipaddress import IPAddress
-from .ip6address import IPv6Address
-from .ip6pool import IPv6Pool
+from ..networking import IPAddress
+from ..networking import IPv6Address
+from ..networking import IPv6Pool
 
 from random import choice
 
@@ -50,7 +52,7 @@ class Linode(Base):
 
             v4 = []
             for c in result['ipv4']['public'] + result['ipv4']['private']:
-                i = IPAddress(self._client, c['address'], self.id)
+                i = IPAddress(self._client, c['address'])
                 i._populate(c)
                 v4.append(i)
 
@@ -117,14 +119,16 @@ class Linode(Base):
     # create derived objects
     def create_config(self, kernel, label=None, disks=None, **kwargs):
 
-        disk_list = []
+        disk_map = {}
         if disks:
-            disk_list = [ d.id for d in disks ]
+            hypervisor_prefix = 'sd' if self.hypervisor == 'kvm' else 'xvd'
+            for i in range(0,8):
+                disk_map[hypervisor_prefix + string.ascii_lowercase[i]] = disks[i].id if i < len(disks) else None
 
         params = {
             'kernel': kernel.id if issubclass(type(kernel), Base) else kernel,
             'label': label if label else "{}_config_{}".format(self.label, len(self.configs)),
-            'disks': disk_list,
+            'disks': disk_map,
         }
         params.update(kwargs)
 
@@ -221,7 +225,7 @@ class Linode(Base):
         if not 'id' in result:
             return result
 
-        i = IPAddress(self._client, result['id'], self.id)
+        i = IPAddress(self._client, result['id'])
         i._populate(result)
         return i
 
