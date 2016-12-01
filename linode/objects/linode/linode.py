@@ -1,4 +1,5 @@
 from .. import Base, Property
+from ..base import MappedObject
 from .disk import Disk
 from .config import Config
 from .backup import Backup
@@ -7,6 +8,7 @@ from .. import Datacenter
 from .distribution import Distribution
 from .ipaddress import IPAddress
 from .ip6address import IPv6Address
+from .ip6pool import IPv6Pool
 
 from random import choice
 
@@ -40,27 +42,42 @@ class Linode(Base):
         The ips related collection is not normalized like the others, so we have to
         make an ad-hoc object to return for its response
         """
-        result = self._client.get("{}/ips".format(Linode.api_endpoint), model=self)
+        if not hasattr(self, '_ips'):
+            result = self._client.get("{}/ips".format(Linode.api_endpoint), model=self)
 
-        if not "ipv4" in result:
-            return result
+            if not "ipv4" in result:
+                return result
 
-        v4 = []
-        for c in result['ipv4']:
-            i = IPAddress(self._client, c['address'], self.id)
-            i._populate(c)
-            v4.append(i)
+            v4 = []
+            for c in result['ipv4']['public'] + result['ipv4']['private']:
+                i = IPAddress(self._client, c['address'], self.id)
+                i._populate(c)
+                v4.append(i)
 
-        v6 = []
-        for c in result['ipv6']:
-            i = IPv6Address(self._client, c['range'], self.id)
-            i._populate(c)
-            v6.append(i)
+            v6 = []
+            for c in result['ipv6']:
+                i = IPv6Address(self._client, c['address'])
+                i._populate(c)
+                v6.append(i)
 
-        return type('ips_response', (object,), {
-            "ipv4": v4,
-            "ipv6": v6,
-        })()
+            slaac = IPv6Pool(self._client, result['ipv6_ranges']['slaac'])
+
+            pools = []
+            for p in result['ipv6_ranges']['global']:
+                pools.append(IPv6Pool(self._client, p['range']))
+
+            pools.append(IPv6Pool(self._client, result['ipv6_ranges']['slaac']))
+            pools.append(IPv6Pool(self._client, result['ipv6_ranges']['link-local']))
+
+            ips = MappedObject(**{
+                "ipv4": v4,
+                "ipv6": v6,
+                "ipv6_ranges": pools,
+            })
+
+            self._set('_ips', ips)
+
+        return self._ips
 
     def _populate(self, json):
         # fixes ipv4 and ipv6 attribute of json to make base._populate work

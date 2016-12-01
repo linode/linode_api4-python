@@ -16,9 +16,15 @@ def make_list(json_arr, client, parent_id=None, cls=None):
     result = []
 
     for obj in json_arr:
-        if not 'id' in obj:
+        id_val = None
+
+        if 'id' in obj:
+            id_val = obj['id']
+        elif hasattr(cls, 'id_attribute') and getattr(cls, 'id_attribute') in obj:
+            id_val = obj[getattr(cls, 'id_attribute')]
+        else:
             continue
-        o = make(obj['id'], client, parent_id=parent_id, cls=cls)
+        o = make(id_val, client, parent_id=parent_id, cls=cls)
         o._populate(obj)
         result.append(o)
 

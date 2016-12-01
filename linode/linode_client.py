@@ -156,6 +156,13 @@ class AccountGroup(Group):
         last_seen = event if isinstance(event, int) else event.id
         self.client.post('{}/seen'.format(Event.api_endpoint), model=Event(self.client, last_seen))
 
+class NetworkingGroup(Group):
+    def get_ipv4(self, *filters):
+        return self.client._get_and_filter(IPAddress, *filters)
+
+    def get_ipv6_ranges(self, *filters):
+        return self.client._get_and_filter(IPv6Pool, *filters)
+
 class LinodeClient:
     def __init__(self, token, base_url="https://api.alpha.linode.com/v4"):
         self.base_url = base_url
@@ -163,6 +170,7 @@ class LinodeClient:
         self.linode = LinodeGroup(self)
         self.dns = DnsGroup(self)
         self.account = AccountGroup(self)
+        self.networking = NetworkingGroup(self)
 
     def _api_call(self, endpoint, model=None, method=None, data=None, filters=None):
         """
