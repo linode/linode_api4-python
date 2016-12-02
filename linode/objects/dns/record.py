@@ -10,7 +10,7 @@ class DnsZoneRecord(DerivedBase):
     properties = {
         'id': Property(identifier=True),
         'dns_zone_id': Property(identifier=True),
-        'zone_record_type': Property(),
+        'type': Property(),
         'name': Property(mutable=True, filterable=True),
         'target': Property(mutable=True, filterable=True),
         'priority': Property(mutable=True),
