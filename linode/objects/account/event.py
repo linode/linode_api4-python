@@ -8,18 +8,20 @@ class Event(Base):
     api_endpoint = '/account/events/{id}'
     properties = {
         'id': Property(identifier=True),
-        'label': Property(),
-        'label_message': Property(),
-        'status': Property(volatile=True),
         'percent_complete': Property(volatile=True),
-        'created': Property(is_datetime=True),
-        'finished': Property(is_datetime=True, volatile=True),
+        'created': Property(is_datetime=True, filterable=True),
+        'updated': Property(is_datetime=True, filterable=True),
         'seen': Property(),
         'read': Property(),
         'linode_id': Property(),
         'stackscript_id': Property(),
         'nodebalancer_id': Property(),
-        'event_type': Property(),
+        'type': Property(),
+        'user_id': Property(),
+        'username': Property(),
+        'entity': Property(),
+        'time_remaining': Property(),
+        'rate': Property(),
     }
 
     @property

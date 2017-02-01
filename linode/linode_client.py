@@ -21,14 +21,21 @@ class LinodeGroup(Group):
     def get_instances(self, *filters):
         return self.client._get_and_filter(Linode, *filters)
 
-    def get_stackscripts(self, *filters, mine_only=False):
-        if mine_only:
-            new_filter = Filter({"mine":True})
-            if filters:
-                filters = [ f for f in filters ]
-                filters[0] = filters[0] & new_filter
-            else:
-                filters = [new_filter]
+    def get_stackscripts(self, *filters, **kwargs):
+        # python2 can't handle *args and a single keyword argument, so this is a workaround
+        if 'mine_only' in kwargs:
+            if kwargs['mine_only']:
+                new_filter = Filter({"mine":True})
+                if filters:
+                    filters = [ f for f in filters ]
+                    filters[0] = filters[0] & new_filter
+                else:
+                    filters = [new_filter]
+
+            del kwargs['mine_only']
+
+        if kwargs:
+            raise TypeError("get_stackscripts() got unexpected keyword argument '{}'".format(kwargs.popitem()[0]))
 
         return self.client._get_and_filter(StackScript, *filters)
 

@@ -32,7 +32,6 @@ class Linode(Base):
         'configs': Property(derived_class=Config),
         'type': Property(relationship=Service),
         'backups': Property(),
-        'recent_backups': Property(derived_class=Backup),
         'ipv4': Property(),
         'ipv6': Property(),
         'hypervisor': Property(),
@@ -56,30 +55,74 @@ class Linode(Base):
                 i._populate(c)
                 v4.append(i)
 
-            v6 = []
-            for c in result['ipv6']:
+            v6 = result['ipv6']
+            v6['link_local'] = v6['link-local']
+            del v6['link-local']
+
+            addresses=[]
+            for c in result['ipv6']['addresses']:
                 i = IPv6Address(self._client, c['address'])
                 i._populate(c)
-                v6.append(i)
+                addresses.append(i)
 
-            slaac = IPv6Pool(self._client, result['ipv6_ranges']['slaac'])
+            v6['addresses'] = addresses
 
-            pools = []
-            for p in result['ipv6_ranges']['global']:
-                pools.append(IPv6Pool(self._client, p['range']))
+            global_v6 = []
+            for p in result['ipv6']['global']:
+                global_v6.append(IPv6Pool(self._client, p['range']))
 
-            pools.append(IPv6Pool(self._client, result['ipv6_ranges']['slaac']))
-            pools.append(IPv6Pool(self._client, result['ipv6_ranges']['link-local']))
+            v6['global_pools'] = global_v6
+            del v6['global']
 
             ips = MappedObject(**{
                 "ipv4": v4,
                 "ipv6": v6,
-                "ipv6_ranges": pools,
             })
 
             self._set('_ips', ips)
 
         return self._ips
+
+    @property
+    def available_backups(self):
+        """
+        The backups response contains what backups are available to be restored.
+        """
+        if not hasattr(self, '_avail_backups'):
+            result = self._client.get("{}/backups".format(Linode.api_endpoint), model=self)
+
+            if not 'daily' in result:
+                return result
+
+            daily = None
+            if result['daily']:
+                daily = Backup(self._client, result['daily']['id'], self.id)
+                daily._populate(result['daily'])
+
+            weekly = []
+            for w in result['weekly']:
+                cur = Backup(self._client, w['id'], self.id)
+                cur._populate(w)
+                weekly.append(cur)
+
+            cur_snap = None
+            if result['snapshot']['current']:
+                cur_snap = Backup(self._client, result['snapshot']['current']['id'], self.id)
+                cur_snap._populate(result['snapshot'])
+
+            in_prog_snap = None
+            if result['snapshot']['in_progress']:
+                in_prog_snap = Backup(self._client, result['snapshot']['in_progress']['id'], self.id)
+                in_prog_snap._populate(result['snapshot'])
+
+            self._set('_avail_backups', MappedObject(**{
+                "daily": daily,
+                "weekly": weekly,
+                "snapshot": cur_snap,
+                "in_progress_snapshot": in_prog_snap,
+            }))
+
+        return self._avail_backups
 
     def _populate(self, json):
         # fixes ipv4 and ipv6 attribute of json to make base._populate work
@@ -264,3 +307,13 @@ class Linode(Base):
             return True
         else:
             return ret_pass
+
+    def rescue(self, *disks):
+        if disks:
+            disks = { x:y for x,y in zip(('sda','sdb'), disks) }
+        else:
+            disks=None
+
+        result = self._client.post('{}/rescue'.format(Linode.api_endpoint), model=self, data=disks)
+
+        return result
