@@ -1,5 +1,6 @@
 import requests
 import json
+from datetime import datetime
 
 from linode.api import ApiError
 from linode import mappings
@@ -142,16 +143,6 @@ class DnsGroup(Group):
         return z
 
 class AccountGroup(Group):
-    def get_current_user(self):
-        resp = self.client.get('/account/users')
-
-        if not 'username' in resp:
-            return resp
-
-        u = User(self.client, resp['username'])
-        u._populate(resp)
-        return u
-
     def get_events(self, *filters):
         return self.client._get_and_filter(Event, *filters)
 
@@ -162,6 +153,78 @@ class AccountGroup(Group):
         """
         last_seen = event if isinstance(event, int) else event.id
         self.client.post('{}/seen'.format(Event.api_endpoint), model=Event(self.client, last_seen))
+
+    def get_profile(self):
+        """
+        Returns this token's user's profile.  This is not a listing endpoint.
+        """
+        result = self.client.get('/account/profile')
+
+        if not 'username' in result:
+            return result
+
+        p = Profile(self.client, result['username'])
+        p._populate(result)
+        return p
+
+    def get_oauth_clients(self, *filters):
+        """
+        Returns the OAuth Clients associated to this account
+        """
+        return self.client._get_and_filter(OAuthClient, *filters)
+
+    def create_oauth_client(self, name, redirect_uri, **kwargs):
+        """
+        Make a new OAuth Client and return it
+        """
+        params = {
+            "name": name,
+            "redirect_uri": redirect_uri,
+        }
+        params.update(kwargs)
+
+        result = self.client.post('/account/clients', data=params)
+
+        if not 'id' in result:
+            return result
+
+        c = OAuthClient(self.client, result['id'])
+        c._populate(result)
+        return c
+
+    def get_oauth_tokens(self, *filters):
+        """
+        Returns the OAuth Tokens active for this user
+        """
+        return self.client._get_and_filter(OAuthToken, *filters)
+
+    def create_personal_access_token(self, label=None, expiry=None, scopes=None, **kwargs):
+        """
+        Creates and returns a new Personal Access Token
+        """
+        if label:
+            kwargs['label'] = label
+        if expiry:
+            if isinstance(expiry, datetime):
+                expiry = datetime.strftime(expiry, "%Y-%m-%dT%H:%M:%S")
+            kwargs['expiry'] = expiry
+        if scopes:
+            kwargs['scopes'] = scopes
+
+        result = self.client.post('/account/tokens', data=kwargs)
+
+        if not 'id' in result:
+            return result
+
+        t = OAuthToken(self.client, result['id'])
+        t._populate(result)
+        return t
+
+    def get_users(self, *filters):
+        """
+        Returns a list of users on this account
+        """
+        return self.client._get_and_filter(User, *filters)
 
 class NetworkingGroup(Group):
     def get_ipv4(self, *filters):

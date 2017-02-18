@@ -49,34 +49,49 @@ class Linode(Base):
             if not "ipv4" in result:
                 return result
 
-            v4 = []
-            for c in result['ipv4']['public'] + result['ipv4']['private']:
+            v4pub = []
+            for c in result['ipv4']['public']:
                 i = IPAddress(self._client, c['address'])
                 i._populate(c)
-                v4.append(i)
+                v4pub.append(i)
 
-            v6 = result['ipv6']
-            v6['link_local'] = v6['link-local']
-            del v6['link-local']
+            v4pri = []
+            for c in result['ipv4']['private']:
+                i = IPAddress(self._client, c['address'])
+                i._populate(c)
+                v4pri.append(i)
 
-            addresses=[]
+            shared_ips = []
+            for c in result['ipv4']['shared']:
+                i = IPAddress(self._client, c['address'])
+                i._populate(c)
+                shared_ips.append(i)
+
+            v6 = []
             for c in result['ipv6']['addresses']:
                 i = IPv6Address(self._client, c['address'])
                 i._populate(c)
                 addresses.append(i)
 
-            v6['addresses'] = addresses
+            slaac = IPv6Pool(self._client, result['ipv6']['slaac'])
+            link_local = IPv6Pool(self._client, result['ipv6']['link-local'])
 
-            global_v6 = []
+            pools = []
             for p in result['ipv6']['global']:
-                global_v6.append(IPv6Pool(self._client, p['range']))
-
-            v6['global_pools'] = global_v6
-            del v6['global']
+                pools.append(IPv6Pool(self._client, p['range']))
 
             ips = MappedObject(**{
-                "ipv4": v4,
-                "ipv6": v6,
+                "ipv4": {
+                    "public": v4pub,
+                    "private": v4pri,
+                    "shared": shared_ips,  
+                },
+                "ipv6": {
+                    "slaac": slaac,
+                    "link_local": link_local,
+                    "pools": pools,
+                    "addresses": v6,
+                },
             })
 
             self._set('_ips', ips)
@@ -103,23 +118,25 @@ class Linode(Base):
             for w in result['weekly']:
                 cur = Backup(self._client, w['id'], self.id)
                 cur._populate(w)
-                weekly.append(cur)
+                weekly.append(w)
 
-            cur_snap = None
+            snap = None
             if result['snapshot']['current']:
-                cur_snap = Backup(self._client, result['snapshot']['current']['id'], self.id)
-                cur_snap._populate(result['snapshot'])
+                snap = Backup(self._client, result['snapshot']['current']['id'], self.id)
+                snap._populate(result['snapshot']['current'])
 
-            in_prog_snap = None
+            psnap = None
             if result['snapshot']['in_progress']:
-                in_prog_snap = Backup(self._client, result['snapshot']['in_progress']['id'], self.id)
-                in_prog_snap._populate(result['snapshot'])
+                psnap = Backup(self._client, result['snapshot']['in_progress']['id'], self.id)
+                psnap._populate(result['snapshot']['in_progress'])
 
             self._set('_avail_backups', MappedObject(**{
                 "daily": daily,
                 "weekly": weekly,
-                "snapshot": cur_snap,
-                "in_progress_snapshot": in_prog_snap,
+                "snapshot": {
+                    "current": snap,
+                    "in_progress": psnap,
+                }
             }))
 
         return self._avail_backups
@@ -133,6 +150,15 @@ class Linode(Base):
                 j['id'] = j['range']
 
         Base._populate(self, json)
+
+    def invalidate(self):
+        """ Clear out cached properties """
+        if hasattr(self, '_avail_backups'):
+            del self._avail_backups
+        if hasattr(self, '_ips'):
+            del self._ips
+
+        Base.invalidate(self)
 
     def boot(self, config=None):
         resp = self._client.post("{}/boot".format(Linode.api_endpoint), model=self, data={'config': config.id} if config else None)
