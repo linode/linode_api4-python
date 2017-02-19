@@ -16,6 +16,7 @@ class Config(DerivedBase):
         "root_device": Property(mutable=True),
         "kernel": Property(relationship=Kernel, mutable=True, filterable=True),
         "disks": Property(filterable=True),#TODO: mutable=True),
+        "initrd": Property(relationship=Disk),
         "updated": Property(),
         "comments": Property(mutable=True, filterable=True),
         "label": Property(mutable=True, filterable=True),

@@ -23,3 +23,11 @@ class OAuthClient(Base):
 
         self._populate(result)
         return self.secret
+
+    def get_thumbnail(self):
+        # TODO
+        pass
+
+    def set_thumbnail(self, thumb):
+        # TODO
+        pass

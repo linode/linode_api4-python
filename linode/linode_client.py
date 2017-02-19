@@ -167,6 +167,20 @@ class AccountGroup(Group):
         p._populate(result)
         return p
 
+    def get_settings(self):
+        """
+        Resturns the account settings data for this acocunt.  This is not  a
+        listing endpoint.
+        """
+        result = self.client.get('/account/settings')
+
+        if not 'email' in result:
+            return result
+
+        s = AccountSettings(self.client, result['email'])
+        s._populate(result)
+        return s
+
     def get_oauth_clients(self, *filters):
         """
         Returns the OAuth Clients associated to this account
@@ -237,6 +251,10 @@ class NetworkingGroup(Group):
         """
         This takes a set of IPv4 Assignments and moves the IPs where they were
         asked to go.  Call this with any number of IPAddress.to(Linode) results
+
+        For example, swapping ips between linode1 and linode2 might look like this:
+            client.networking.assign_ips('newark', ip1.to(linode2), ip2.to(linode1))
+
         """
         for a in assignments:
             if not 'address' in a or not 'linode_id' in a:

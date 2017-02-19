@@ -84,7 +84,7 @@ class Linode(Base):
                 "ipv4": {
                     "public": v4pub,
                     "private": v4pri,
-                    "shared": shared_ips,  
+                    "shared": shared_ips,
                 },
                 "ipv6": {
                     "slaac": slaac,
@@ -283,6 +283,10 @@ class Linode(Base):
         if not 'id' in result:
             return result
 
+        # so the changes show up the next time they're accessed
+        if hasattr(self, '_avail_backups'):
+            del self._avail_backups
+
         b = Backup(self._client, result['id'], self.id)
         b._populate(result)
         return b
@@ -343,3 +347,33 @@ class Linode(Base):
         result = self._client.post('{}/rescue'.format(Linode.api_endpoint), model=self, data=disks)
 
         return result
+
+    def set_shared_ips(self, *ips):
+        """
+        Takes a list of IP Addresses (either objects or strings) and attempts to
+        set them as the Shared IPs for this Linode
+        """
+        params = []
+        for ip in ips:
+            if isinstance(ip, str):
+                params.append(ip)
+            elif isinstance(ip, IPAddress):
+                params.append(ip.address)
+            else:
+                params.append(str(ip)) # and hope that works
+
+        params = {
+            "ips": params
+        }
+
+        result = self._client.post('{}/ips/sharing'.format(Linode.api_endpoint), model=self,
+                data=params)
+
+        if 'errors' in result:
+            return result
+
+        # so the changes show up next time they're accessed
+        if hasattr(self, '_ips'):
+            del self._ips
+
+        return True

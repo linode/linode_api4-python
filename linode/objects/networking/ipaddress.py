@@ -6,9 +6,13 @@ class IPAddress(Base):
     id_attribute = 'address'
 
     properties = {
-        'linode_id': Property(),
-        'address': Property(),
-        'rdns': Property(mutable=True),
+        "address": Property(identifier=True),
+        "gateway": Property(),
+        "subnet_mask": Property(),
+        "prefix": Property(),
+        "type": Property(),
+        "rdns": Property(mutable=True),
+        "linode_id": Property(),
     }
 
     @property
@@ -19,6 +23,11 @@ class IPAddress(Base):
         return self._linode
 
     def to(self, linode):
+        """
+        This is a helper method for ip-assign, and should not be used outside
+        of that context.  It's used to cleanly build an IP Assign request with
+        pretty python syntax.
+        """
         from ..linode import Linode
         if not isinstance(linode, Linode):
             raise ValueError("IP Address can only be assigned to a Linode!")
