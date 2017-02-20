@@ -1,3 +1,4 @@
+import os
 import requests
 
 from linode.objects import Base, Property
@@ -44,11 +45,32 @@ class OAuthClient(Base):
             return False # TODO - handle this better?
 
         if dump_to:
-            with open(dump_to, 'wb+') as f: # TODO -python2?
+            with open(dump_to, 'wb+') as f:
                 f.write(result.content)
         else:
             return result.content
 
-    def set_thumbnail(self, thumb):
-        # TODO
-        pass
+    def set_thumbnail(self, thumbnail):
+        """
+        Sets the thumbnail for this OAuth Client.  If thumbnail is bytes,
+        uploads it as a png.  Otherwise, assumes thumbnail is a path to the
+        thumbnail and reads it in as bytes before uploading.
+        """
+        headers = {
+            "Authorization": "token {}".format(self._client.token),
+            "Content-type": "image/png",
+        }
+
+        # TODO this check needs to be smarter - python2 doesn't do it right
+        if not isinstance(thumbnail, bytes):
+            with open(thumbnail, 'rb') as f:
+                thumbnail = f.read()
+
+        result = requests.put('{}/{}/thumbnail'.format(self._client.base_url,
+                OAuthClient.api_endpoint.format(id=self.id)),
+                headers=headers, data=thumbnail)
+
+        if not result.status_code  == 200:
+            return result
+
+        return True
