@@ -1,3 +1,4 @@
+from ...errors import UnexpectedResponseError
 from .. import DerivedBase, Property
 
 class Disk(DerivedBase):
@@ -22,7 +23,7 @@ class Disk(DerivedBase):
         result = self._client.post(Disk.api_endpoint, model=self, data={})
 
         if not 'id' in result:
-            return result
+            raise UnexpectedResponseError('Unexpected response duplicating disk!', json=result)
 
         d = Disk(self._client, result['id'], self.linode_id)
         d._populate(result)
@@ -42,9 +43,7 @@ class Disk(DerivedBase):
         result = self._client.post(Disk.api_endpoint, model=self, data=params)
 
         if not 'id' in result:
-            if not root_password:
-                return result, rpass
-            return result
+            raise UnexpectedResponseError('Unexpected response duplicating disk!', json=result)
 
         self._populate(result)
         if not root_password:

@@ -1,6 +1,6 @@
 import requests
 from enum import Enum
-from linode.api import ApiError
+from linode.errors import ApiError
 
 try:
     from urllib.parse import urlparse
