@@ -1,5 +1,6 @@
 import string
 
+from ...errors import UnexpectedResponseError
 from .. import Base, Property
 from ..base import MappedObject
 from .disk import Disk
@@ -47,7 +48,7 @@ class Linode(Base):
             result = self._client.get("{}/ips".format(Linode.api_endpoint), model=self)
 
             if not "ipv4" in result:
-                return result
+                raise UnexpectedResponseError('Unexpected response loading IPs', json=result)
 
             v4pub = []
             for c in result['ipv4']['public']:
@@ -107,7 +108,8 @@ class Linode(Base):
             result = self._client.get("{}/backups".format(Linode.api_endpoint), model=self)
 
             if not 'daily' in result:
-                return result
+                raise UnexpectedResponseErorr('Unexpected response loading available backups!',
+                        json=result)
 
             daily = None
             if result['daily']:
@@ -205,7 +207,7 @@ class Linode(Base):
         self.invalidate()
 
         if not 'id' in result:
-            return result
+            raise UnexpectedResponseError('Unexpected response creating config!', json=result)
 
         c = Config(self._client, result['id'], self.id)
         c._populate(result)
@@ -257,7 +259,7 @@ class Linode(Base):
         self.invalidate()
 
         if not 'id' in result:
-            return result
+            raise UnexpectedResponseError('Unexpected response creating disk!', json=result)
 
         d = Disk(self._client, result['id'], self.id)
         d._populate(result)
@@ -281,7 +283,7 @@ class Linode(Base):
             data={ "label": label })
 
         if not 'id' in result:
-            return result
+            raise UnexpectedResponseError('Unexpected response taking snapshot!', json=result)
 
         # so the changes show up the next time they're accessed
         if hasattr(self, '_avail_backups'):
@@ -296,7 +298,7 @@ class Linode(Base):
                 data={ "type": "public" if public else "private" })
 
         if not 'id' in result:
-            return result
+            raise UnexpectedResponseError('Unexpected response allocating IP!', json=result)
 
         i = IPAddress(self._client, result['id'])
         i._populate(result)
@@ -330,7 +332,7 @@ class Linode(Base):
         result = self._client.post('{}/rebuild'.format(Linode.api_endpoint), model=self, data=params)
 
         if not 'disks' in result:
-            return result
+            raise UnexpectedResponseError('Unexpected response issuing rebuild!', json=result)
 
         self.invalidate()
         if not ret_pass:
@@ -368,9 +370,6 @@ class Linode(Base):
 
         result = self._client.post('{}/ips/sharing'.format(Linode.api_endpoint), model=self,
                 data=params)
-
-        if 'errors' in result:
-            return result
 
         # so the changes show up next time they're accessed
         if hasattr(self, '_ips'):

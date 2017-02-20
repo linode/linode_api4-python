@@ -1,3 +1,4 @@
+from ...errors import UnexpectedResponseError
 from linode.objects import Base, Property
 
 class Profile(Base):
@@ -32,9 +33,6 @@ class Profile(Base):
         """
         result = self._client.post('/account/profile/tfa-enable')
 
-        if 'errors' in result:
-            return result
-
         return result['secret']
 
     def confirm_tfa(self, code):
@@ -45,9 +43,6 @@ class Profile(Base):
             "tfa-code": code
         })
 
-        if 'errors' in result:
-            return result
-
         return True
 
     def disable_tfa(self):
@@ -55,8 +50,5 @@ class Profile(Base):
         Turns off TFA for this user's account.
         """
         result = self._client.post('/account/profile/tfa-disable')
-
-        if 'errors' in result:
-            return result
 
         return True

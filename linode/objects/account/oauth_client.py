@@ -1,6 +1,7 @@
 import os
 import requests
 
+from ...errors import ApiError, UnexpectedResponseError
 from linode.objects import Base, Property
 
 class OAuthClient(Base):
@@ -22,7 +23,7 @@ class OAuthClient(Base):
         result = self._client.post("{}/reset_secret".format(OAuthClient.api_endpoint), model=self)
 
         if not 'id' in result:
-            return result
+            raise UnexpectedResponseError('Unexpected response when resetting secret!', json=result)
 
         self._populate(result)
         return self.secret
@@ -70,7 +71,11 @@ class OAuthClient(Base):
                 OAuthClient.api_endpoint.format(id=self.id)),
                 headers=headers, data=thumbnail)
 
-        if not result.status_code  == 200:
-            return result
+        if not result.status_code == 200:
+            errors = []
+            j = result.json()
+            if 'errors' in j:
+                errors = [ e['reason'] for e in j['errors'] ]
+            raise ApiError('{}: {}'.format(result.status_code, errors), json=j)
 
         return True

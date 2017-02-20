@@ -1,5 +1,5 @@
 from .base import Base
-from .. import api
+from .. import errors
 
 class DerivedBase(Base):
     """

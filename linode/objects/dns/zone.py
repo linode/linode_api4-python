@@ -1,3 +1,4 @@
+from ...errors import UnexpectedResponseError
 from linode.objects import Base, Property
 from .record import DnsZoneRecord
 
@@ -32,7 +33,7 @@ class DnsZone(Base):
         self.invalidate()
 
         if not 'id' in result:
-            return result
+            raise UnexpectedResponseError('Unexpected response creating zone record!', json=result)
 
         zr = DnsZoneRecord(self._client, result['id'], self.id)
         zr._populate(result)

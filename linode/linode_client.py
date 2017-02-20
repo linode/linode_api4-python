@@ -2,7 +2,7 @@ import requests
 import json
 from datetime import datetime
 
-from linode.api import ApiError
+from linode.errors import ApiError, UnexpectedResponseError
 from linode import mappings
 from linode.objects import *
 from linode.objects.filtering import Filter
@@ -74,7 +74,7 @@ class LinodeGroup(Group):
         result = self.client.post('/linode/instances', data=params)
 
         if not 'id' in result:
-            return result
+            raise UnexpectedResponseError('Unexpected response when creating linode!', json=result)
 
         l = Linode(self.client, result['id'])
         l._populate(result)
@@ -116,7 +116,7 @@ class LinodeGroup(Group):
         result = self.client.post('/linode/stackscripts', data=params)
 
         if not 'id' in result:
-            return result
+            raise UnexpectedResponseError('Unexpected response when creating StackScript!', json=result)
 
         s = StackScript(self.client, result['id'])
         s._populate(result)
@@ -136,7 +136,7 @@ class DnsGroup(Group):
         result = self.client.post('/dns/zones', data=params)
 
         if not 'id' in result:
-            return result
+            raise UnexpectedResponseError('Unexpected response when creating DNS Zone!', json=result)
 
         z = DnsZone(self.client, result['id'])
         z._populate(result)
@@ -161,7 +161,7 @@ class AccountGroup(Group):
         result = self.client.get('/account/profile')
 
         if not 'username' in result:
-            return result
+            raise UnexpectedResponseError('Unexpected response when getting profile!', json=result)
 
         p = Profile(self.client, result['username'])
         p._populate(result)
@@ -175,7 +175,8 @@ class AccountGroup(Group):
         result = self.client.get('/account/settings')
 
         if not 'email' in result:
-            return result
+            raise UnexpectedResponseError('Unexpected response when getting account settings!',
+                    json=result)
 
         s = AccountSettings(self.client, result['email'])
         s._populate(result)
@@ -200,7 +201,8 @@ class AccountGroup(Group):
         result = self.client.post('/account/clients', data=params)
 
         if not 'id' in result:
-            return result
+            raise UnexpectedResponseError('Unexpected response when creating OAuth Client!',
+                    json=result)
 
         c = OAuthClient(self.client, result['id'])
         c._populate(result)
@@ -228,7 +230,8 @@ class AccountGroup(Group):
         result = self.client.post('/account/tokens', data=kwargs)
 
         if not 'id' in result:
-            return result
+            raise UnexpectedResponseError('Unexpected response when creating Personal Access '
+                    'Token!', json=result)
 
         t = OAuthToken(self.client, result['id'])
         t._populate(result)
@@ -268,7 +271,8 @@ class NetworkingGroup(Group):
         })
 
         if not 'ips' in result:
-            return result
+            raise UnexpectedResponseError('Unexpected response when assigning IPs!',
+                    json=result)
 
         ips = []
         for r in result['ips']:
@@ -324,7 +328,7 @@ class LinodeClient:
                                 if 'reason' in e.keys() else ''
             except:
                 pass
-            raise ApiError(error_msg, status=r.status_code)
+            raise ApiError(error_msg, status=r.status_code, json=j)
 
         j = r.json()
 
