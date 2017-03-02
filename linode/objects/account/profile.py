@@ -52,3 +52,15 @@ class Profile(Base):
         result = self._client.post('/account/profile/tfa-disable')
 
         return True
+
+    @property
+    def grants(self):
+        """
+        Returns grants for the current user
+        """
+        from linode.objects.account import UserGrants
+        resp = self._client.get(UserGrants.api_endpoint.format(username=self.username))
+
+        grants = UserGrants(self._client, self.username)
+        grants._populate(resp)
+        return grants

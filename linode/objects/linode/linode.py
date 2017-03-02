@@ -376,3 +376,19 @@ class Linode(Base):
             del self._ips
 
         return True
+
+    def kvmify(self):
+        """
+        Converts this linode to KVM from Xen
+        """
+        ret = self._client.post('{}/kvmify'.format(Linode.api_endpoint), model=self)
+
+        return True
+
+    @property
+    def stats(self):
+        """
+        Returns the JSON stats for this Linode
+        """
+        # TODO - this would be nicer if we formatted the stats
+        return self._client.get('{}/stats'.format(Linode.api_endpoint), model=self)

@@ -10,6 +10,9 @@ class ApiError(RuntimeError):
         super(RuntimeError, self).__init__(message)
         self.status = status
         self.json = json
+        self.errors = []
+        if json and 'errors' in json and isinstance(json['errors'], list):
+            self.errors = [ e['reason'] for e in json['errors'] ]
 
 class UnexpectedResponseError(RuntimeError):
     """
