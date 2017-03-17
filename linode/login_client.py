@@ -55,10 +55,36 @@ class OAuthScopes:
                 return "stackscripts:*"
             return "stackscripts:{}".format(self.name)
 
+    class Users(Enum):
+        view = 0
+        create = 1
+        modify = 2
+        delete = 3
+        all = 4
+
+        def __repr__(self):
+            if(self.name == 'all'):
+                return "users:*"
+            return "users:{}".format(self.name)
+
+    class Tokens(Enum):
+        view = 0
+        create = 1
+        modify = 2
+        delete = 3
+        all = 4
+
+        def __repr__(self):
+            if(self.name == 'all'):
+                return "tokens:*"
+            return "tokens:{}".format(self.name)
+
     _scope_families = {
         'linodes': Linodes,
         'dnszones': DnsZones,
         'stackscripts': StackScripts,
+        'users': Users,
+        'tokens': Tokens,
     }
 
     @staticmethod

@@ -1,5 +1,6 @@
-import requests
 import json
+import requests
+import pkg_resources
 from datetime import datetime
 
 from linode.errors import ApiError, UnexpectedResponseError
@@ -7,6 +8,8 @@ from linode import mappings
 from linode.objects import *
 from linode.objects.filtering import Filter
 from linode.util import PaginatedList
+
+package_version = pkg_resources.require("linode-api")[0].version,
 
 class Group:
     def __init__(self, client):
@@ -283,13 +286,22 @@ class NetworkingGroup(Group):
         return ips
 
 class LinodeClient:
-    def __init__(self, token, base_url="https://api.alpha.linode.com/v4"):
+    def __init__(self, token, base_url="https://api.alpha.linode.com/v4", user_agent=None):
         self.base_url = base_url
+        self._add_user_agent = user_agent
         self.token = token
         self.linode = LinodeGroup(self)
         self.dns = DnsGroup(self)
         self.account = AccountGroup(self)
         self.networking = NetworkingGroup(self)
+
+    @property
+    def _user_agent(self):
+        return '{}python-linode-api/{} {}'.format(
+                '{} '.format(self._add_user_agent) if self._add_user_agent else '',
+                package_version,
+                requests.utils.default_user_agent()
+        )
 
     def _api_call(self, endpoint, model=None, method=None, data=None, filters=None):
         """
@@ -308,6 +320,7 @@ class LinodeClient:
         headers = {
             'Authorization': "token {}".format(self.token),
             'Content-Type': 'application/json',
+            'User-Agent': self._user_agent,
         }
 
         if filters:

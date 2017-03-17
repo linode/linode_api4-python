@@ -14,11 +14,19 @@ class User(Base):
     @property
     def grants(self):
         from linode.objects.account import UserGrants
-        resp = self._client.get(UserGrants.api_endpoint.format(username=self.username))
+        if not hasattr(self, '_grants'):
+            resp = self._client.get(UserGrants.api_endpoint.format(username=self.username))
 
-        grants = UserGrants(self._client, self.username)
-        grants._populate(resp)
-        return grants
+            grants = UserGrants(self._client, self.username)
+            grants._populate(resp)
+            self._set('_grants', grants)
+
+        return self._grants
+
+    def invalidate(self):
+        if hasattr(self, '_grants'):
+            del self._grants
+        Base.invalidate(self)
 
     def change_password(self, password):
         """
