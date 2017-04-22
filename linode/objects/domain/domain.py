@@ -1,13 +1,13 @@
 from ...errors import UnexpectedResponseError
 from linode.objects import Base, Property
-from .record import DnsZoneRecord
+from .record import DomainRecord
 
-class DnsZone(Base):
-    api_name = 'dnszones'
-    api_endpoint = "/dns/zones/{id}"
+class Domain(Base):
+    api_name = 'domains'
+    api_endpoint = "/domains/{id}"
     properties = {
         'id': Property(identifier=True),
-        'dnszone': Property(mutable=True, filterable=True),
+        'domain': Property(mutable=True, filterable=True),
         'display_group': Property(mutable=True, filterable=True),
         'description': Property(mutable=True),
         'status': Property(mutable=True),
@@ -18,7 +18,7 @@ class DnsZone(Base):
         'expire_sec': Property(mutable=True),
         'refresh_sec': Property(mutable=True),
         'ttl_sec': Property(mutable=True),
-        'records': Property(derived_class=DnsZoneRecord),
+        'records': Property(derived_class=DomainRecord),
         'type': Property(mutable=True),
     }
 
@@ -29,12 +29,12 @@ class DnsZone(Base):
         }
         params.update(kwargs)
 
-        result = self._client.post("{}/records".format(DnsZone.api_endpoint), model=self, data=params)
+        result = self._client.post("{}/records".format(Domain.api_endpoint), model=self, data=params)
         self.invalidate()
 
         if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response creating zone record!', json=result)
+            raise UnexpectedResponseError('Unexpected response creating domain record!', json=result)
 
-        zr = DnsZoneRecord(self._client, result['id'], self.id)
+        zr = DomainRecord(self._client, result['id'], self.id)
         zr._populate(result)
         return zr

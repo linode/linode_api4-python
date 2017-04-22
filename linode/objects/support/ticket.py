@@ -1,7 +1,7 @@
 import requests
 
 from .. import Base, Property
-from .. import Linode, DnsZone
+from .. import Linode, Domain
 from ...errors import ApiError
 from .reply import TicketReply
 
@@ -29,9 +29,9 @@ class SupportTicket(Base):
         return None
 
     @property
-    def dnszone(self):
-        if self.entity and self.entity.type == 'dnszone':
-            return DnsZone(self._client, self.entity.id)
+    def domain(self):
+        if self.entity and self.entity.type == 'domain':
+            return Domain(self._client, self.entity.id)
         return None
 
     @property

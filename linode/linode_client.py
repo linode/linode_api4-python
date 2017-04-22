@@ -125,26 +125,6 @@ class LinodeGroup(Group):
         s._populate(result)
         return s
 
-class DnsGroup(Group):
-    def get_zones(self, *filters):
-        return self.client._get_and_filter(DnsZone, *filters)
-
-    def create_zone(self, dnszone, master=True, **kwargs):
-        params = {
-            'dnszone': dnszone,
-            'type': 'master' if master else 'slave',
-        }
-        params.update(kwargs)
-
-        result = self.client.post('/dns/zones', data=params)
-
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating DNS Zone!', json=result)
-
-        z = DnsZone(self.client, result['id'])
-        z._populate(result)
-        return z
-
 class AccountGroup(Group):
     def get_events(self, *filters):
         return self.client._get_and_filter(Event, *filters)
@@ -301,8 +281,8 @@ class SupportGroup(Group):
         if regarding:
             if isinstance(regarding, Linode):
                 params['linode_id'] = regarding.id
-            elif isinstance(regarding, DnsZone):
-                params['dnszone_id'] = regarding.id
+            elif isinstance(regarding, Domain):
+                params['domain_id'] = regarding.id
             #elif isinstance(regarding, NodeBalancer):
             #    params['nodebalancer_id'] = regarding.id
 
@@ -323,7 +303,6 @@ class LinodeClient:
         self._add_user_agent = user_agent
         self.token = token
         self.linode = LinodeGroup(self)
-        self.dns = DnsGroup(self)
         self.account = AccountGroup(self)
         self.networking = NetworkingGroup(self)
         self.support = SupportGroup(self)
@@ -409,6 +388,25 @@ class LinodeClient:
     # ungrouped list functions
     def get_regions(self, *filters):
         return self._get_and_filter(Region, *filters)
+
+    def get_domains(self, *filters):
+        return self._get_and_filter(Domain, *filters)
+
+    def create_domain(self, domain, master=True, **kwargs):
+        params = {
+            'domain': domain,
+            'type': 'master' if master else 'slave',
+        }
+        params.update(kwargs)
+
+        result = self.post('/domains', data=params)
+
+        if not 'id' in result:
+            raise UnexpectedResponseError('Unexpected response when creating Domain!', json=result)
+
+        d = Domain(self.client, result['id'])
+        d._populate(result)
+        return d
 
     # helper functions
     def _filter_list(self, results, **filter_by):

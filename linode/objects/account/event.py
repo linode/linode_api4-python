@@ -1,5 +1,5 @@
 from .. import Base, Property
-from .. import Linode, StackScript, DnsZone
+from .. import Linode, StackScript, Domain
 
 from random import choice
 
@@ -13,7 +13,7 @@ class Event(Base):
         'updated': Property(is_datetime=True, filterable=True),
         'seen': Property(),
         'read': Property(),
-        'type': Property(),
+        'action': Property(),
         'user_id': Property(),
         'username': Property(),
         'entity': Property(),
@@ -34,9 +34,9 @@ class Event(Base):
         return None
 
     @property
-    def dnszone(self):
-        if self.entity and self.entity.type == 'dnszone':
-            return DnsZone(self._client, self.entity.id)
+    def domain(self):
+        if self.entity and self.entity.type == 'domain':
+            return Domain(self._client, self.entity.id)
         return None
 
     @property
