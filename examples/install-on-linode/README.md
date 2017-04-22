@@ -44,13 +44,13 @@ application will install the owner's application on the new linode and provide i
 on how to access the newly-created server.
 
 **Unauthenticated Services** - This application accesses several public endpoints of the
-Linode API V4, includes `/kernels`, `/datacenters`, and a single public stackscript
+Linode API V4, includes `/kernels`, `/regions`, and a single public stackscript
 (presumably controlled by the application's author).  The stackscript needs to be public
 so that the authenticated user's account can access it in order to install it on the linode.
 
 **Object Retreival** - This application retrieves objects from the Linode API V4 in two ways:
 both as a list, and as a single requested object.  Lists are retrieved by asking the
-`LinodeClient` for a list of related objects, like `client.get_datacenters()`, while
+`LinodeClient` for a list of related objects, like `client.get_regions()`, while
 individual objects that we already know the ID for and will not change can be accessed by
 creating a new instace of the correct type with the known ID.  For this to work, the
 user whose token is being used must have access to the contstruted object.

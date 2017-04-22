@@ -7,7 +7,7 @@ from .disk import Disk
 from .config import Config
 from .backup import Backup
 from .service import Service
-from .. import Datacenter
+from .. import Region
 from .distribution import Distribution
 from ..networking import IPAddress
 from ..networking import IPv6Address
@@ -26,7 +26,7 @@ class Linode(Base):
         'created': Property(is_datetime=True),
         'updated': Property(volatile=True, is_datetime=True),
         'total_transfer': Property(),
-        'datacenter': Property(relationship=Datacenter, filterable=True),
+        'region': Property(relationship=Region, filterable=True),
         'alerts': Property(),
         'distribution': Property(relationship=Distribution, filterable=True),
         'disks': Property(derived_class=Disk),
@@ -75,7 +75,7 @@ class Linode(Base):
                 addresses.append(i)
 
             slaac = IPv6Pool(self._client, result['ipv6']['slaac'])
-            link_local = IPv6Pool(self._client, result['ipv6']['link-local'])
+            link_local = IPv6Pool(self._client, result['ipv6']['link_local'])
 
             pools = []
             for p in result['ipv6']['global']:

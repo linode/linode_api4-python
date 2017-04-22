@@ -7,5 +7,5 @@ class IPv6Pool(Base):
 
     properties = {
         'range': Property(identifier=True),
-        'datacenter': Property(),
+        'region': Property(),
     }

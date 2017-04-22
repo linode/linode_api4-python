@@ -1,8 +1,8 @@
 from .base import Base, Property
 
-class Datacenter(Base):
-    api_name = 'datacenters'
-    api_endpoint = "/datacenters/{id}"
+class Region(Base):
+    api_name = 'regions'
+    api_endpoint = "/regions/{id}"
     properties = {
         'id': Property(identifier=True),
         'label': Property(filterable=True),

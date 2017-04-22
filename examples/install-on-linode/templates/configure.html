@@ -19,10 +19,10 @@
                 </select>
             </div>
             <div class='form-group'>
-                <label for='datacenter'>Datacenter</label>
-                <select name='datacenter' id='datacenter' class='form-control'
+                <label for='region'>Region</label>
+                <select name='region' id='region' class='form-control'
                     onblur="blurring(this)" onfocus="focusing(this)">
-                    {% for o in datacenters %}
+                    {% for o in regions %}
                         <option value="{{o.id}}">{{o.label}}</option>
                     {% endfor %}
                 </select>

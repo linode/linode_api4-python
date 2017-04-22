@@ -1,7 +1,7 @@
 import re
 from flask import Flask, redirect, request, render_template, session, send_from_directory
 from flask.ext.session import Session
-from linode import LinodeClient, LinodeLoginClient, StackScript, Distribution, Datacenter
+from linode import LinodeClient, LinodeLoginClient, StackScript, Distribution, Region
 from linode import Service, OAuthScopes
 import config
 
@@ -15,11 +15,11 @@ def get_login_client():
 def index():
     client = LinodeClient('no-token', base_url=config.api_base_url)
     types = client.linode.get_types(Service.label.contains("Linode"))
-    datacenters = client.get_datacenters()
+    regions = client.get_regions()
     stackscript = StackScript(client, config.stackscript_id)
     return render_template('configure.html',  
         types=types,
-        datacenters=datacenters,
+        regions=regions,
         application_name=config.application_name,
         stackscript=stackscript
     )
@@ -27,7 +27,7 @@ def index():
 @app.route('/', methods=["POST"])
 def start_auth():
     login_client = get_login_client()
-    session['dc'] = request.form['datacenter']
+    session['dc'] = request.form['region']
     session['distro'] = request.form['distribution']
     session['type'] = request.form['type']
     return redirect(login_client.generate_login_url(scopes=OAuthScopes.Linodes.all))
@@ -52,10 +52,10 @@ def auth_callback():
         application_name=config.application_name
     )
 
-def create_linode(token, type_id, datacenter_id, distribution_id):
+def create_linode(token, type_id, region_id, distribution_id):
     client = LinodeClient('{}'.format(token), base_url=config.api_base_url)
     stackscript = StackScript(client, config.stackscript_id)
-    (linode, password) = client.linode.create_instance(type_id, datacenter_id,
+    (linode, password) = client.linode.create_instance(type_id, region_id,
             group=config.application_name,
             distribution=distribution_id, stackscript=stackscript.id)
     

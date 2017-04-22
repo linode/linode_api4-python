@@ -47,7 +47,7 @@ class LinodeGroup(Group):
         return self.client._get_and_filter(Kernel, *filters)
 
     # create things
-    def create_instance(self, ltype, datacenter, distribution=None, **kwargs):
+    def create_instance(self, ltype, region, distribution=None, **kwargs):
         ret_pass = None
         if distribution and not 'root_pass' in kwargs:
             ret_pass = Linode.generate_root_password()
@@ -69,7 +69,7 @@ class LinodeGroup(Group):
 
         params = {
              'type': ltype.id if issubclass(type(ltype), Base) else ltype,
-             'datacenter': datacenter.id if issubclass(type(datacenter), Base) else datacenter,
+             'region': region.id if issubclass(type(region), Base) else region,
              'distribution': (distribution.id if issubclass(type(distribution), Base) else distribution) if distribution else None,
          }
         params.update(kwargs)
@@ -253,7 +253,7 @@ class NetworkingGroup(Group):
     def get_ipv6_ranges(self, *filters):
         return self.client._get_and_filter(IPv6Pool, *filters)
 
-    def assign_ips(self, datacenter, *assignments):
+    def assign_ips(self, region, *assignments):
         """
         This takes a set of IPv4 Assignments and moves the IPs where they were
         asked to go.  Call this with any number of IPAddress.to(Linode) results
@@ -265,11 +265,11 @@ class NetworkingGroup(Group):
         for a in assignments:
             if not 'address' in a or not 'linode_id' in a:
                 raise ValueError("Invalid assignment: {}".format(a))
-        if isinstance(datacenter, Datacenter):
-            datacenter = datacenter.id
+        if isinstance(region, Region):
+            region = region.id
 
         result = self.client.post('/networking/ip-assign', data={
-            "datacenter": datacenter,
+            "region": region,
             "assignments": [ a for a in assignments ],
         })
 
@@ -407,8 +407,8 @@ class LinodeClient:
         return self._api_call(*args, method=requests.delete, **kwargs)
 
     # ungrouped list functions
-    def get_datacenters(self, *filters):
-        return self._get_and_filter(Datacenter, *filters)
+    def get_regions(self, *filters):
+        return self._get_and_filter(Region, *filters)
 
     # helper functions
     def _filter_list(self, results, **filter_by):
