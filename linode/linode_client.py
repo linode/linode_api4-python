@@ -285,6 +285,38 @@ class NetworkingGroup(Group):
 
         return ips
 
+class SupportGroup(Group):
+    def get_tickets(self, *filters):
+        return self.client._get_and_filter(SupportTicket, *filters)
+
+    def open_ticket(self, summary, description, regarding=None):
+        """
+
+        """
+        params = {
+            "summary": summary,
+            "description": description,
+        }
+
+        if regarding:
+            if isinstance(regarding, Linode):
+                params['linode_id'] = regarding.id
+            elif isinstance(regarding, DnsZone):
+                params['dnszone_id'] = regarding.id
+            #elif isinstance(regarding, NodeBalancer):
+            #    params['nodebalancer_id'] = regarding.id
+
+
+        result = self.client.post('/support/tickets', data=params)
+
+        if not 'id' in result:
+            raise UnexpectedResponseError('Unexpected response when creating ticket!',
+                    json=result)
+
+        t = SupportTicket(self.client, result['id'])
+        t._populate(result)
+        return t
+
 class LinodeClient:
     def __init__(self, token, base_url="https://api.alpha.linode.com/v4", user_agent=None):
         self.base_url = base_url
@@ -294,6 +326,7 @@ class LinodeClient:
         self.dns = DnsGroup(self)
         self.account = AccountGroup(self)
         self.networking = NetworkingGroup(self)
+        self.support = SupportGroup(self)
 
     @property
     def _user_agent(self):

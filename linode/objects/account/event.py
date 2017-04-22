@@ -1,5 +1,5 @@
 from .. import Base, Property
-from .. import Linode, StackScript
+from .. import Linode, StackScript, DnsZone
 
 from random import choice
 
@@ -13,9 +13,6 @@ class Event(Base):
         'updated': Property(is_datetime=True, filterable=True),
         'seen': Property(),
         'read': Property(),
-        'linode_id': Property(),
-        'stackscript_id': Property(),
-        'nodebalancer_id': Property(),
         'type': Property(),
         'user_id': Property(),
         'username': Property(),
@@ -26,18 +23,25 @@ class Event(Base):
 
     @property
     def linode(self):
-        if self.linode_id is not None:
-            return Linode(self._client, self.linode_id)
+        if self.entity and self.entity.type == 'linode':
+            return Linode(self._client, self.entity.id)
         return None
 
     @property
     def stackscript(self):
-        if self.stackscript_id is not None:
-            return Stackscript(self._client, self.stackscript_id)
+        if self.entity and self.entity.type == 'stackscript':
+            return Stackscript(self._client, self.entity.id)
+        return None
+
+    @property
+    def dnszone(self):
+        if self.entity and self.entity.type == 'dnszone':
+            return DnsZone(self._client, self.entity.id)
         return None
 
     @property
     def nodebalancer(self):
+        # TODO
         return None
 
     def mark_read(self):
