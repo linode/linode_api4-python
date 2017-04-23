@@ -1,4 +1,5 @@
 from .. import Base, Property
+from ..region import Region
 
 class IPv6Address(Base):
     api_name = 'ipv6'
@@ -13,4 +14,5 @@ class IPv6Address(Base):
         "prefix": Property(),
         "subnet_mask": Property(),
         "type": Property(),
+        "region": Property(relationship=Region),
     }

@@ -285,6 +285,8 @@ class SupportGroup(Group):
                 params['domain_id'] = regarding.id
             #elif isinstance(regarding, NodeBalancer):
             #    params['nodebalancer_id'] = regarding.id
+            else:
+                raise ValueError('Cannot open ticket regarding type {}!'.format(type(regarding)))
 
 
         result = self.client.post('/support/tickets', data=params)
