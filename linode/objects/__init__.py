@@ -6,4 +6,5 @@ from .linode import *
 from .domain import *
 from .account import *
 from .networking import *
+from .nodebalancer import *
 from .support import *

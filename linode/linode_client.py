@@ -283,8 +283,8 @@ class SupportGroup(Group):
                 params['linode_id'] = regarding.id
             elif isinstance(regarding, Domain):
                 params['domain_id'] = regarding.id
-            #elif isinstance(regarding, NodeBalancer):
-            #    params['nodebalancer_id'] = regarding.id
+            elif isinstance(regarding, NodeBalancer):
+                params['nodebalancer_id'] = regarding.id
             else:
                 raise ValueError('Cannot open ticket regarding type {}!'.format(type(regarding)))
 
@@ -393,6 +393,9 @@ class LinodeClient:
 
     def get_domains(self, *filters):
         return self._get_and_filter(Domain, *filters)
+
+    def get_nodebalancers(self, *filters):
+        return self._get_and_filter(NodeBalancer, *filters)
 
     def create_domain(self, domain, master=True, **kwargs):
         params = {
