@@ -397,6 +397,21 @@ class LinodeClient:
     def get_nodebalancers(self, *filters):
         return self._get_and_filter(NodeBalancer, *filters)
 
+    def create_nodebalancer(self, region, **kwargs):
+        params = {
+            "region": region.id if isinstance(region, Base) else region,
+        }
+        params.update(kwargs)
+
+        result = self.post('/nodebalancers', data=params)
+
+        if not 'id' in result:
+            raise UnexpectedResponseError('Unexpected response when creating Nodebalaner!', json=result)
+
+        n = NodeBalancer(self.client, result['id'])
+        n._populate(result)
+        return n
+
     def create_domain(self, domain, master=True, **kwargs):
         params = {
             'domain': domain,
