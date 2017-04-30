@@ -21,3 +21,19 @@ class NodeBalancer(Base):
         'region': Property(relationship=Region),
         'configs': Property(derived_class=NodeBalancerConfig),
     }
+
+    # create derived objects
+    def create_config(self, label=None, **kwargs):
+        params = kwargs
+        if label:
+            params['label'] = label
+
+        result = self._client.post("{}/configs".format(NodeBalancer.api_endpoint), model=self, data=params)
+        self.invalidate()
+
+        if not 'id' in result:
+            raise UnexpectedResponseError('Unexpected response creating config!', json=result)
+
+        c = NodeBalancerConfig(self._client, result['id'], self.id)
+        c._populate(result)
+        return c
