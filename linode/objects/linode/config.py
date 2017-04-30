@@ -38,5 +38,5 @@ class Config(DerivedBase):
         for key in vars(self.disks):
             if self.disks.__getattribute__(key):
                 self.disks.__setattr__(key,
-                        mapper.make(self.disks.__getattribute__(key).id,
+                        mapper.make(self.disks.__getattribute__(key),
                         self._client, parent_id=self.linode_id, cls=Disk))
