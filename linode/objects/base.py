@@ -132,11 +132,13 @@ class Base(object, with_metaclass(FilterableMetaclass)):
                             objs.append(obj)
                         self._set(key, objs)
                     else:
-                        if not 'id' in json[key]:
-                            continue
-                        obj = mappings.make(json[key]['id'], getattr(self,'_client'),
+                        if isinstance(json[key], dict):
+                            related_id = json[key]['id']
+                        else:
+                            related_id = json[key]
+                        obj = mappings.make(related_id, getattr(self,'_client'),
                                 cls=type(self).properties[key].relationship)
-                        if obj:
+                        if obj and isinstance(json[key], dict):
                             obj._populate(json[key])
                         self._set(key, obj)
                 elif type(json[key]) is dict:
