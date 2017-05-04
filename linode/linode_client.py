@@ -176,7 +176,7 @@ class AccountGroup(Group):
         Make a new OAuth Client and return it
         """
         params = {
-            "name": name,
+            "label": name,
             "redirect_uri": redirect_uri,
         }
         params.update(kwargs)
