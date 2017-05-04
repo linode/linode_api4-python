@@ -408,7 +408,7 @@ class LinodeClient:
         if not 'id' in result:
             raise UnexpectedResponseError('Unexpected response when creating Nodebalaner!', json=result)
 
-        n = NodeBalancer(self.client, result['id'])
+        n = NodeBalancer(self, result['id'])
         n._populate(result)
         return n
 
@@ -424,7 +424,7 @@ class LinodeClient:
         if not 'id' in result:
             raise UnexpectedResponseError('Unexpected response when creating Domain!', json=result)
 
-        d = Domain(self.client, result['id'])
+        d = Domain(self, result['id'])
         d._populate(result)
         return d
 
