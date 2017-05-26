@@ -34,4 +34,4 @@ many of the features of this library.
 
 .. _Linode API v4: https://developers.linode.com
 .. _Install on a Linode: https://github.com/linode/python-api/tree/master/examples/install-on-linode
-.. _Python Reference: https://developers.linode.com/libraries/python-reference/
+.. _Python Reference: https://developers.linode.com/guides/python
