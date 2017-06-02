@@ -26,6 +26,7 @@ class NodeBalancerConfig(DerivedBase):
         "ssl_cert": Property(mutable=True),
         "ssl_key": Property(mutable=True),
         "cipher_suite": Property(mutable=True),
+        "nodes_status": Property(),
     }
 
     @property

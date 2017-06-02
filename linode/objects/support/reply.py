@@ -12,4 +12,5 @@ class TicketReply(DerivedBase):
         'description': Property(),
         'created': Property(),
         'created_by': Property(),
+        'from_linode': Property(),
     }

@@ -8,7 +8,7 @@ class Domain(Base):
     properties = {
         'id': Property(identifier=True),
         'domain': Property(mutable=True, filterable=True),
-        'display_group': Property(mutable=True, filterable=True),
+        'group': Property(mutable=True, filterable=True),
         'description': Property(mutable=True),
         'status': Property(mutable=True),
         'soa_email': Property(mutable=True),

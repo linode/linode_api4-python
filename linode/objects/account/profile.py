@@ -16,6 +16,7 @@ class Profile(Base):
         'lish_auth_method': Property(mutable=True),
         'authorized_keys': Property(mutable=True),
         'two_factor_auth': Property(),
+        'restricted': Property(),
     }
 
     def reset_password(self, password):

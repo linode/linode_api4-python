@@ -1,5 +1,7 @@
 from .. import Base, Property
 from .. import Linode, StackScript, Domain
+from linode.objects.nodebalancer.nodebalancer import NodeBalancer
+from linode.objects.support.ticket import SupportTicket
 
 from random import choice
 
@@ -41,7 +43,14 @@ class Event(Base):
 
     @property
     def nodebalancer(self):
-        # TODO
+        if self.entity and self.entity.type == 'nodebalancer':
+            return NodeBalancer(self._client, self.entity.id)
+        return None
+
+    @property
+    def ticket(self):
+        if self.entity and self.entity.type == 'ticket':
+            return SupportTicket(self._client, self.entity.id)
         return None
 
     def mark_read(self):

@@ -300,7 +300,7 @@ class SupportGroup(Group):
         return t
 
 class LinodeClient:
-    def __init__(self, token, base_url="https://api.alpha.linode.com/v4", user_agent=None):
+    def __init__(self, token, base_url="https://api.linode.com/v4", user_agent=None):
         self.base_url = base_url
         self._add_user_agent = user_agent
         self.token = token
