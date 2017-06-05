@@ -21,6 +21,7 @@ class Event(Base):
         'entity': Property(),
         'time_remaining': Property(),
         'rate': Property(),
+        'status': Property(),
     }
 
     @property
