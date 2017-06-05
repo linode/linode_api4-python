@@ -2,6 +2,7 @@ import requests
 
 from .. import Base, Property
 from .. import Linode, Domain
+from linode.objects.nodebalancer.nodebalancer import NodeBalancer
 from ...errors import ApiError
 from .reply import TicketReply
 
@@ -36,7 +37,8 @@ class SupportTicket(Base):
 
     @property
     def nodebalancer(self):
-        # TODO
+        if self.entity and self.entity.type == 'nodebalancer':
+            return NodeBalancer(self._client, self.entity.id)
         return None
 
     def post_reply(self, description):
