@@ -104,8 +104,14 @@ class Base(object, with_metaclass(FilterableMetaclass)):
         self._populated = False
 
     def _serialize(self):
-       return { a: getattr(self, a) for a in type(self).properties
+        result = { a: getattr(self, a) for a in type(self).properties
             if type(self).properties[a].mutable }
+
+        for k, v in result.items():
+            if isinstance(v, Base):
+                result[k] = v.id
+
+        return result
 
     def _api_get(self):
         json = self._client.get(type(self).api_endpoint, model=self)
