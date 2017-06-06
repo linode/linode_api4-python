@@ -24,7 +24,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='4.0.11a',
+    version='4.1.0b',
 
     description='The official python SDK for Linode API v4',
     long_description=long_description,
@@ -46,7 +46,7 @@ setup(
         #   4 - Beta
         #   5 - Production/Stable
         # This is staying in sync with the api's status
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
 
         # Indicate who your project is intended for
         'Intended Audience :: Developers',
