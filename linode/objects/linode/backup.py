@@ -8,9 +8,9 @@ class Backup(DerivedBase):
 
     properties = {
         'id': Property(identifier=True),
-        'create_dt': Property(is_datetime=True),
+        'created': Property(is_datetime=True),
         'duration': Property(),
-        'finish_dt': Property(is_datetime=True),
+        'finished': Property(is_datetime=True),
         'message': Property(),
         'status': Property(volatile=True),
         'type': Property(),
