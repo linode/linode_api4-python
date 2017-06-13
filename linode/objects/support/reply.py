@@ -10,7 +10,7 @@ class TicketReply(DerivedBase):
         'id': Property(identifier=True),
         'ticket_id': Property(identifier=True),
         'description': Property(),
-        'created': Property(),
+        'created': Property(is_datetime=True),
         'created_by': Property(),
         'from_linode': Property(),
     }

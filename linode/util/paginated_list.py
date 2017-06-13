@@ -10,6 +10,7 @@ class PaginatedList(object):
         self.max_pages = max_pages
         self.lists = [ None for i in range(0, self.max_pages) ]
         self.lists[0] = page
+        self.list_cls = type(page[0]) if page else None # TODO if this is None that's bad
         self.objects_parent_id = parent_id
         self.cur = 0 # for being a generator
 
@@ -39,7 +40,7 @@ class PaginatedList(object):
         if j['total_pages'] != self.max_pages or j['total_results'] != len(self):
             raise RuntimeError('List {} has changed since creation!'.format(self))
 
-        l = mappings.make_list(j[self.key], self.client, parent_id=self.objects_parent_id)
+        l = mappings.make_list(j[self.key], self.client, parent_id=self.objects_parent_id, cls=self.list_cls)
         self.lists[page_number] = l
 
     def __getitem__(self, index):
@@ -87,9 +88,15 @@ class PaginatedList(object):
         if i > j:
             raise NotImplementedError('TODO')
 
-        if i < 0 or j < 0 or i > self.page_size * self.max_pages \
-            or j > self.page_size * self.max_pages:
+        if i < 0 or j < 0:
+            # TODO - this should probably not raise
             raise IndexError('list index out of range')
+
+        if i > self.page_size * self.max_pages:
+            i = self.page_size * self.max_pages - 1
+
+        if j > self.page_size * self.max_pages:
+            j = self.page_size * self.max_pages - 1
 
         i_normalized = i % self.page_size
         j_normalized = j % self.page_size
