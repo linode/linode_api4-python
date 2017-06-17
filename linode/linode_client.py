@@ -226,6 +226,25 @@ class AccountGroup(Group):
         """
         return self.client._get_and_filter(User, *filters)
 
+def create_user(self, email, username, password, restricted=True):
+    """
+    Creates a user
+    """
+    params = {
+        "email": email,
+        "username": username,
+        "password": password,
+        "restricted": restricted
+    }
+    result = self.client.post('/account/users', data=params)
+
+    if not 'email' and 'restricted' and 'username' in result:
+        raise UnexpectedResponseError('Unexpected response when creating user!', json=result)
+
+    u = User(self.client, result['username'])
+    u._populate(result)
+    return u
+
 class NetworkingGroup(Group):
     def get_ipv4(self, *filters):
         return self.client._get_and_filter(IPAddress, *filters)
