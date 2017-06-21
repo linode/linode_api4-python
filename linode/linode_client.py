@@ -283,6 +283,19 @@ class NetworkingGroup(Group):
             ips.append(i)
 
         return ips
+    
+    def allocate_ip(self, linode):
+        result = self.client.post('/networking/ipv4/', data={
+            "linode": linode.id if isinstance(linode, Base) else linode,
+        })
+
+        if not 'address' in result:
+             raise UnexpectedResponseError('Unexpected response when adding IPv4 address!',
+                     json=result)
+
+        ip = IPAddress(self.client, result['address'])
+        ip._populate(result)
+        return ip
 
 class SupportGroup(Group):
     def get_tickets(self, *filters):
