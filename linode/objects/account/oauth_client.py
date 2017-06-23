@@ -10,7 +10,7 @@ class OAuthClient(Base):
 
     properties = {
         "id": Property(identifier=True),
-        "name": Property(mutable=True, filterable=True),
+        "label": Property(mutable=True, filterable=True),
         "secret": Property(),
         "redirect_uri": Property(mutable=True),
         "status": Property(),
