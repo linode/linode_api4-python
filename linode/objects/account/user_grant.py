@@ -4,7 +4,7 @@ normal_grants = ('all','access','delete')
 stackscript_grants = ('all','use','edit','delete')
 linode_grants = ('all','access','delete','resize')
 
-obj_grants = ( ('linode', Linode), ('dnszone', Domain), ('stackscript', StackScript) )#, ('nodebalancer', NodeBalancer) )
+obj_grants = ( ('linode', Linode), ('domain', Domain), ('stackscript', StackScript) )#, ('nodebalancer', NodeBalancer) )
 
 class Grant:
     def __init__(self, client, cls, dct):
