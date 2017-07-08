@@ -10,7 +10,23 @@ volatile_refresh_timeout = timedelta(seconds=15)
 
 class Property:
     def __init__(self, mutable=False, identifier=False, volatile=False, relationship=None, \
-            derived_class=None, is_datetime=False, filterable=False):
+            derived_class=None, is_datetime=False, filterable=False, id_relationship=False):
+        """
+        A Property is an attribute returned from the API, and defines metadata
+        about that value.  These are expected to be used as the values of a
+        class-level dict named 'properties' in subclasses of Base.
+
+        mutable - This Property should be sent in a call to save()
+        identifier - This Property identifies the object in the API
+        volatile - Re-query for this Property if the local value is older than the
+            volatile refresh timeout
+        relationship - The API Object this Property represents
+        derived_class - The sub-collection type this Property represents
+        is_datetime - True if this Property should be parsed as a datetime.datetime
+        filterable - True if the API allows filtering on this property
+        id_relationship - This Property should create a relationship with this key as the ID
+            (This should be used on fields ending with '_id' only)
+        """
         self.mutable = mutable
         self.identifier = identifier
         self.volatile = volatile
@@ -18,8 +34,20 @@ class Property:
         self.derived_class = derived_class
         self.is_datetime = is_datetime
         self.filterable = filterable
+        self.id_relationship = id_relationship
 
 class MappedObject:
+    """
+    Converts a dict into values accessible with the dot notation.
+
+    object = {
+        "this": "that"
+    }
+
+    becomes
+
+    object.this # "that"
+    """
     def __init__(self, **vals):
         self._expand_vals(self.__dict__, **vals)
 
@@ -54,7 +82,12 @@ class Base(object, with_metaclass(FilterableMetaclass)):
             self._set(getattr(type(self), 'id_attribute'), id)
 
     def __getattribute__(self, name):
+        """
+        Handles lazy-loading/refreshing an object from the server, and
+        getting related objects, as defined in this object's 'properties'
+        """
         if name in type(self).properties.keys():
+            # We are accessing a Property
             if type(self).properties[name].identifier:
                 pass # don't load identifiers from the server, we have those
             elif (object.__getattribute__(self, name) is None and not self._populated \
@@ -62,25 +95,44 @@ class Base(object, with_metaclass(FilterableMetaclass)):
                     or (type(self).properties[name].volatile \
                     and object.__getattribute__(self, '_last_updated')
                     + volatile_refresh_timeout < datetime.now()):
+                # needs to be loaded from the server
                 if type(self).properties[name].derived_class:
                     #load derived object(s)
                     self._set(name, type(self).properties[name].derived_class
                             ._api_get_derived(self, getattr(self, '_client')))
                 else:
                     self._api_get()
+        elif "{}_id".format(name) in type(self).properties.keys():
+            # possible id-based relationship
+            related_type = type(self).properties['{}_id'.format(name)].id_relationship
+            if related_type:
+                # it is a relationship
+                relcache_name = '_{}_relcache'.format(name)
+                if not hasattr(self, relcache_name):
+                    self._set(relcache_name, related_type(self._client, getattr(self, '{}_id'.format(name))))
+                return object.__getattribute__(self, relcache_name)
 
         return object.__getattribute__(self, name)
 
     def __repr__(self):
+        """
+        Returns a safe representation of this object without accessing the server
+        """
         return "{}: {}".format(type(self).__name__, self.id)
 
     def __setattr__(self, name, value):
+        """
+        Enforces allowing editing of only Properties defined as mutable
+        """
         if name in type(self).properties.keys() and not type(self).properties[name].mutable:
             raise AttributeError("'{}' is not a mutable field of '{}'"
                 .format(name, type(self).__name__))
         self._set(name, value)
 
     def save(self):
+        """
+        Send this object's mutable values to the server in a PUT request
+        """
         resp = self._client.put(type(self).api_endpoint, model=self,
             data=self._serialize())
 
@@ -89,6 +141,9 @@ class Base(object, with_metaclass(FilterableMetaclass)):
         return True
 
     def delete(self):
+        """
+        Sends a DELETE request for this object
+        """
         resp = self._client.delete(type(self).api_endpoint, model=self)
 
         if 'error' in resp:
@@ -97,6 +152,10 @@ class Base(object, with_metaclass(FilterableMetaclass)):
         return True
 
     def invalidate(self):
+        """
+        Invalidates all non-identifier Properties this object has locally,
+        causing the next access to re-fetch them from the server
+        """
         for key in (k for k in type(self).properties.keys()
             if not type(self).properties[k].identifier):
                 self._set(key, None)
@@ -104,6 +163,10 @@ class Base(object, with_metaclass(FilterableMetaclass)):
         self._populated = False
 
     def _serialize(self):
+        """
+        A helper method to build a dict of all mutable Properties of
+        this object
+        """
         result = { a: getattr(self, a) for a in type(self).properties
             if type(self).properties[a].mutable }
 
@@ -114,17 +177,25 @@ class Base(object, with_metaclass(FilterableMetaclass)):
         return result
 
     def _api_get(self):
+        """
+        A helper method to GET this object from the server
+        """
         json = self._client.get(type(self).api_endpoint, model=self)
         self._populate(json)
 
     def _populate(self, json):
+        """
+        A helper method that, given a JSON object representing this object,
+        assigns values based on the properties dict and the attributes of
+        its Properties.
+        """
         if not json:
             return
 
         for key in json:
             if key in (k for k in type(self).properties.keys()
                     if not type(self).properties[k].identifier):
-                if type(self).properties[key].relationship  \
+                if type(self).properties[key].relationship \
                     and not json[key] is None:
                     if isinstance(json[key], list):
                         objs = []
@@ -166,8 +237,16 @@ class Base(object, with_metaclass(FilterableMetaclass)):
         self._set('_last_updated', datetime.now())
 
     def _set(self, name, value):
+        """
+        A helper method to set values of Properties without invoking
+        the overloaded __setattr__
+        """
         object.__setattr__(self, name, value)
 
     @classmethod
     def api_list(cls):
+        """
+        Returns a URL that will produce a list of JSON objects
+        of this class' type
+        """
         return '/'.join(cls.api_endpoint.split('/')[:-1])
