@@ -6,3 +6,4 @@ from .config import Config
 from .distribution import Distribution
 from .backup import Backup
 from .service import Service
+from .volume import Volume

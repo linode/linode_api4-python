@@ -46,6 +46,9 @@ class LinodeGroup(Group):
     def get_kernels(self, *filters):
         return self.client._get_and_filter(Kernel, *filters)
 
+    def get_volumes(self, *filters):
+        return self.client._get_and_filter(Volume, *filters)
+
     # create things
     def create_instance(self, ltype, region, distribution=None, **kwargs):
         ret_pass = None
