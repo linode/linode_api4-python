@@ -13,7 +13,6 @@ class NodeBalancerConfig(DerivedBase):
     properties = {
         'id': Property(identifier=True),
         'nodebalancer_id': Property(identifier=True),
-        "label": Property(mutable=True),
         "port": Property(mutable=True),
         "protocol": Property(mutable=True),
         "algorithm": Property(mutable=True),

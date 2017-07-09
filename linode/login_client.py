@@ -79,6 +79,90 @@ class OAuthScopes:
                 return "tokens:*"
             return "tokens:{}".format(self.name)
 
+    class IPs(Enum):
+        view = 0
+        create = 1
+        modify = 2
+        delete = 3
+        all = 4
+
+        def __repr__(self):
+            if(self.name == 'all'):
+                return "ips:*"
+            return "ips:{}".format(self.name)
+
+    class Users(Enum):
+        view = 0
+        create = 1
+        modify = 2
+        delete = 3
+        all = 4
+
+        def __repr__(self):
+            if(self.name == 'all'):
+                return "users:*"
+            return "users:{}".format(self.name)
+
+    class Tickets(Enum):
+        view = 0
+        create = 1
+        modify = 2
+        delete = 3
+        all = 4
+
+        def __repr__(self):
+            if(self.name == 'all'):
+                return "tickets:*"
+            return "tickets:{}".format(self.name)
+
+    class Clients(Enum):
+        view = 0
+        create = 1
+        modify = 2
+        delete = 3
+        all = 4
+
+        def __repr__(self):
+            if(self.name == 'all'):
+                return "clients:*"
+            return "clients:{}".format(self.name)
+
+    class Account(Enum):
+        view = 0
+        create = 1
+        modify = 2
+        delete = 3
+        all = 4
+
+        def __repr__(self):
+            if(self.name == 'all'):
+                return "account:*"
+            return "account:{}".format(self.name)
+
+    class Events(Enum):
+        view = 0
+        create = 1
+        modify = 2
+        delete = 3
+        all = 4
+
+        def __repr__(self):
+            if(self.name == 'all'):
+                return "events:*"
+            return "events:{}".format(self.name)
+
+    class Volumes(Enum):
+        view = 0
+        create = 1
+        modify = 2
+        delete = 3
+        all = 4
+
+        def __repr__(self):
+            if(self.name == 'all'):
+                return "volumes:*"
+            return "volumes:{}".format(self.name)
+
     _scope_families = {
         'linodes': Linodes,
         'domains': Domains,

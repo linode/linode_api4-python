@@ -1,10 +1,16 @@
-from linode.objects import Base, DerivedBase, Linode, Domain, StackScript
 
 normal_grants = ('all','access','delete')
 stackscript_grants = ('all','use','edit','delete')
 linode_grants = ('all','access','delete','resize')
 
-obj_grants = ( ('linode', Linode), ('domain', Domain), ('stackscript', StackScript) )#, ('nodebalancer', NodeBalancer) )
+def get_obj_grants():
+    """
+    Returns Grant keys mapped to Object types.
+    """
+    from linode.objects import (Base, DerivedBase, Linode, Domain, StackScript,
+            NodeBalancer, Volume)
+    return ( ('linode', Linode), ('domain', Domain), ('stackscript', StackScript),
+        ('nodebalancer', NodeBalancer), ('volumes', Volume) )
 
 class Grant:
     def __init__(self, client, cls, dct):
@@ -48,7 +54,7 @@ class UserGrants:
         self.global_grants = type('global_grants', (object,), json['global'])
         self.customer = type('customer_grants', (object,), json['customer'])
 
-        for key, cls in obj_grants:
+        for key, cls in get_obj_grants():
             lst = []
             for gdct in json[key]:
                 lst.append(Grant(self._client, cls, gdct))
@@ -60,7 +66,7 @@ class UserGrants:
             'customer': { k: v for k,v in vars(self.customer).items() if not k.startswith('_') },
         }
 
-        for key, _ in obj_grants:
+        for key, _ in get_obj_grants():
             lst = []
             for cg in getattr(self, key):
                 lst.append(cg._serialize())
