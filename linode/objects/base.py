@@ -106,6 +106,9 @@ class Base(object, with_metaclass(FilterableMetaclass)):
             # possible id-based relationship
             related_type = type(self).properties['{}_id'.format(name)].id_relationship
             if related_type:
+                # no id, no related object
+                if not getattr(self, "{}_id".format(name)):
+                    return None
                 # it is a relationship
                 relcache_name = '_{}_relcache'.format(name)
                 if not hasattr(self, relcache_name):
