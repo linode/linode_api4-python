@@ -19,7 +19,7 @@ included in the repository, see instructions below).
 To set up:
  * Install the required packages (see requirements.txt)
  * Copy config.py.example to config.py and populate values
-   * You will need to go to [login.alpha.linode.com](http://login.alpha.linode.com)
+   * You will need to go to [login.linode.com](http://login.linode.com)
         and create a new oauth client to get your client ID and client secret - when
         registering your application, if running this locally, set the redirect uri
         to `localhost:5000/auth_callback`.

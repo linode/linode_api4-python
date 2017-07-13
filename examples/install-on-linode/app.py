@@ -9,11 +9,11 @@ app=Flask(__name__)
 app.config['SECRET_KEY'] = config.secret_key
 
 def get_login_client():
-    return LinodeLoginClient(config.client_id, config.client_secret, base_url=config.login_base_url)
+    return LinodeLoginClient(config.client_id, config.client_secret)
 
 @app.route('/')
 def index():
-    client = LinodeClient('no-token', base_url=config.api_base_url)
+    client = LinodeClient('no-token')
     types = client.linode.get_types(Service.label.contains("Linode"))
     regions = client.get_regions()
     stackscript = StackScript(client, config.stackscript_id)
@@ -30,7 +30,7 @@ def start_auth():
     session['dc'] = request.form['region']
     session['distro'] = request.form['distribution']
     session['type'] = request.form['type']
-    return redirect(login_client.generate_login_url(scopes=OAuthScopes.Linodes.all))
+    return redirect(login_client.generate_login_url(scopes=OAuthScopes.Linodes.create))
 
 @app.route('/auth_callback')
 def auth_callback():
@@ -39,7 +39,7 @@ def auth_callback():
     token, scopes = login_client.finish_oauth(code)
 
     # ensure we have sufficient scopes
-    if not OAuthScopes.Linodes.delete in scopes:
+    if not OAuthScopes.Linodes.create in scopes:
         return render_template('error.html', error='Insufficient scopes granted to deploy {}'\
                 .format(config.application_name))
 
@@ -53,7 +53,7 @@ def auth_callback():
     )
 
 def create_linode(token, type_id, region_id, distribution_id):
-    client = LinodeClient('{}'.format(token), base_url=config.api_base_url)
+    client = LinodeClient('{}'.format(token))
     stackscript = StackScript(client, config.stackscript_id)
     (linode, password) = client.linode.create_instance(type_id, region_id,
             group=config.application_name,

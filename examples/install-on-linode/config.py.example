@@ -5,7 +5,7 @@ control.
 
 OAuth Client Details
 ====================
-Obtain these values from login.alpha.linode.com
+Obtain these values from login.linode.com
 See Authentication (https://developers.linode.com/reference/#authentication)
 for details
 """
@@ -28,12 +28,3 @@ this is an example application and not for production deployment.
 stackscript_id = 'my-stackscript-id'
 application_name = 'my-application-name'
 secret_key = 'my-secret-key'
-
-"""
-Environment Configuration
-=========================
-These values set the URLs for the LinodeClient and LinodeLoginClient.  For
-most purposes, these should not need to change.
-"""
-api_base_url = 'https://api.alpha.linode.com/v4'
-login_base_url = 'https://login.alpha.linode.com'
