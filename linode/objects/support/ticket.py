@@ -1,4 +1,5 @@
 import requests
+import os
 
 from .. import Base, Property
 from .. import Linode, Domain
@@ -57,25 +58,31 @@ class SupportTicket(Base):
         return r
 
     def upload_attachment(self, attachment):
+        filename = None
         content = None
-        with open(attachment) as f:
-            content = f.read()
+        with open(attachment, 'rb') as f:
+            filename, content = os.path.basename(f.name), f.read()
 
         if not content:
             raise ValueError('Nothing to upload!')
 
         headers = {
-            "Authorization": "token {}".format(self._client.token),
-            "Content-type": "multipart/form-data",
+            "Authorization": "token {}".format(self._client.token)
         }
 
         result = requests.post('{}{}/attachments'.format(self._client.base_url,
                 SupportTicket.api_endpoint.format(id=self.id)),
-                headers=headers, files=content)
+                headers=headers, files={'file': (filename, content)})
 
         if not result.status_code == 200:
             errors = []
-            j = result.json()
+
+            # Try/catch here because we may not get back json if we get an error at the webserver level
+            try:
+                j = result.json()
+            except:
+                j = {"errors": [{"reason": "An error has occured."}]}
+
             if 'errors' in j:
                 errors = [ e['reason'] for e in j['errors'] ]
             raise ApiError('{}: {}'.format(result.status_code, errors), json=j)
