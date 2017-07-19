@@ -1,12 +1,12 @@
-from . import objects
 from linode import util
 
 def make(id, client, parent_id=None, cls=None):
     """
     Makes an api object based on an id.  The type depends on the mapping.
     """
+    from linode.objects import DerivedBase
     if cls:
-        if issubclass(cls, objects.DerivedBase):
+        if issubclass(cls, DerivedBase):
             return cls(client, id, parent_id)
         else:
             return cls(client, id)
