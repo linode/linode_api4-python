@@ -346,7 +346,7 @@ class Linode(Base):
         else:
             disks=None
 
-        result = self._client.post('{}/rescue'.format(Linode.api_endpoint), model=self, data=disks)
+        result = self._client.post('{}/rescue'.format(Linode.api_endpoint), model=self, data={ "disks": disks })
 
         return result
 
