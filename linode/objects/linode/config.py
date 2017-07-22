@@ -1,6 +1,7 @@
 from .. import DerivedBase, Property
 from .kernel import Kernel
 from .disk import Disk
+from ... import mappings as mapper
 
 class Config(DerivedBase):
     api_name="configs"
@@ -33,10 +34,8 @@ class Config(DerivedBase):
         """
         DerivedBase._populate(self, json)
 
-        import linode.mappings as mapper
-
         for key in vars(self.disks):
-            if self.disks.__getattribute__(key):
-                self.disks.__setattr__(key,
-                        mapper.make(self.disks.__getattribute__(key),
+            if getattr(self.disks, key):
+                setattr(self.disks, key,
+                        mapper.make(getattr(self.disks, key),
                         self._client, parent_id=self.linode_id, cls=Disk))
