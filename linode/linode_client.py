@@ -86,8 +86,7 @@ class LinodeGroup(Group):
         l._populate(result)
         if not ret_pass:
             return l
-        else:
-            return l, ret_pass
+        return l, ret_pass
 
     def create_stackscript(self, label, script, distros, desc=None, public=False, **kwargs):
         distro_list = None
@@ -293,8 +292,8 @@ class NetworkingGroup(Group):
         })
 
         if not 'address' in result:
-             raise UnexpectedResponseError('Unexpected response when adding IPv4 address!',
-                     json=result)
+            raise UnexpectedResponseError('Unexpected response when adding IPv4 address!',
+                    json=result)
 
         ip = IPAddress(self.client, result['address'])
         ip._populate(result)
@@ -397,18 +396,18 @@ class LinodeClient:
         return j
 
     def _get_objects(self, endpoint, cls, model=None, parent_id=None, filters=None):
-        json = self.get(endpoint, model=model, filters=filters)
+        response_json = self.get(endpoint, model=model, filters=filters)
 
-        if not cls.api_name in json:
+        if not cls.api_name in response_json:
             return False
 
-        if 'total_pages' in json:
+        if 'total_pages' in response_json:
             formatted_endpoint = endpoint
             if model:
                 formatted_endpoint = formatted_endpoint.format(**vars(model))
-            return mappings.make_paginated_list(json, cls.api_name, self, parent_id=parent_id, \
+            return mappings.make_paginated_list(response_json, cls.api_name, self, parent_id=parent_id, \
                     page_url=formatted_endpoint[1:], cls=cls)
-        return mappings.make_list(json[cls.api_name], self, parent_id=parent_id, cls=cls)
+        return mappings.make_list(response_json[cls.api_name], self, parent_id=parent_id, cls=cls)
 
     def get(self, *args, **kwargs):
         return self._api_call(*args, method=requests.get, **kwargs)
@@ -487,7 +486,6 @@ class LinodeClient:
         parsed_filters = None
         if filters:
             if(len(filters) > 1):
-                from linode.objects.filtering import and_
                 parsed_filters = and_(*filters).dct
             else:
                 parsed_filters = filters[0].dct

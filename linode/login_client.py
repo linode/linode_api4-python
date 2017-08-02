@@ -91,18 +91,6 @@ class OAuthScopes:
                 return "ips:*"
             return "ips:{}".format(self.name)
 
-    class Users(Enum):
-        view = 0
-        create = 1
-        modify = 2
-        delete = 3
-        all = 4
-
-        def __repr__(self):
-            if(self.name == 'all'):
-                return "users:*"
-            return "users:{}".format(self.name)
-
     class Tickets(Enum):
         view = 0
         create = 1
