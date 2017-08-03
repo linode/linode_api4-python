@@ -8,3 +8,4 @@ from .account import *
 from .networking import *
 from .nodebalancer import *
 from .support import *
+from .profile import Profile

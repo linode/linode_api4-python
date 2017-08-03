@@ -23,7 +23,7 @@ class Backup(DerivedBase):
 
     def restore_to(self, linode, **kwargs):
         d = {
-            "linode": linode.id if issubclass(type(linode), Base) else linode,
+            "linode_id": linode.id if issubclass(type(linode), Base) else linode,
         }
         d.update(kwargs)
 

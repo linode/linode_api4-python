@@ -49,6 +49,31 @@ class LinodeGroup(Group):
     def get_volumes(self, *filters):
         return self.client._get_and_filter(Volume, *filters)
 
+    def create_volume(self, label, region=None, linode=None, size=20, **kwargs):
+        """
+        Creates a new Block Storage Volume, either in the given region, or attached
+        to the given linode.
+        """
+        if not (region or linode):
+            raise ValueError('region or linode required!')
+
+        params = {
+            "label": label,
+            "size": size,
+            "region": region.id if issubclass(type(region), Base) else region,
+            "linode_id": linode.id if issubclass(type(linode), Base) else linode,
+        }
+        params.update(kwargs)
+
+        result = self.client.post('/linode/volumes', data=params)
+
+        if not 'id' in result:
+            raise UnexpectedResponseErorr('Unexpected response when creating volume!', json=result)
+
+        v = Volume(self.client, result['id'])
+        v._populate(result)
+        return v
+
     # create things
     def create_instance(self, ltype, region, distribution=None, **kwargs):
         ret_pass = None
@@ -138,19 +163,6 @@ class AccountGroup(Group):
         """
         last_seen = event if isinstance(event, int) else event.id
         self.client.post('{}/seen'.format(Event.api_endpoint), model=Event(self.client, last_seen))
-
-    def get_profile(self):
-        """
-        Returns this token's user's profile.  This is not a listing endpoint.
-        """
-        result = self.client.get('/account/profile')
-
-        if not 'username' in result:
-            raise UnexpectedResponseError('Unexpected response when getting profile!', json=result)
-
-        p = Profile(self.client, result['username'])
-        p._populate(result)
-        return p
 
     def get_settings(self):
         """
@@ -288,7 +300,7 @@ class NetworkingGroup(Group):
     
     def allocate_ip(self, linode):
         result = self.client.post('/networking/ipv4/', data={
-            "linode": linode.id if isinstance(linode, Base) else linode,
+            "linode_id": linode.id if isinstance(linode, Base) else linode,
         })
 
         if not 'address' in result:
@@ -319,6 +331,8 @@ class SupportGroup(Group):
                 params['domain_id'] = regarding.id
             elif isinstance(regarding, NodeBalancer):
                 params['nodebalancer_id'] = regarding.id
+            elif isinstance(regarding, Volume):
+                params['volume_id'] = regarding.id
             else:
                 raise ValueError('Cannot open ticket regarding type {}!'.format(type(regarding)))
 
@@ -366,7 +380,7 @@ class LinodeClient:
             endpoint = endpoint.format(**{ k: str(vars(model)[k]) for k in vars(model) if 'id' in k })
         url = '{}{}'.format(self.base_url, endpoint)
         headers = {
-            'Authorization': "token {}".format(self.token),
+            'Authorization': "Bearer {}".format(self.token),
             'Content-Type': 'application/json',
             'User-Agent': self._user_agent,
         }
@@ -424,6 +438,19 @@ class LinodeClient:
     # ungrouped list functions
     def get_regions(self, *filters):
         return self._get_and_filter(Region, *filters)
+
+    def get_profile(self):
+        """
+        Returns this token's user's profile.  This is not a listing endpoint.
+        """
+        result = self.get('/profile')
+
+        if not 'username' in result:
+            raise UnexpectedResponseError('Unexpected response when getting profile!', json=result)
+
+        p = Profile(self, result['username'])
+        p._populate(result)
+        return p
 
     def get_domains(self, *filters):
         return self._get_and_filter(Domain, *filters)

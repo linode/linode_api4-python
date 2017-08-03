@@ -163,7 +163,7 @@ class Linode(Base):
         Base.invalidate(self)
 
     def boot(self, config=None):
-        resp = self._client.post("{}/boot".format(Linode.api_endpoint), model=self, data={'config': config.id} if config else None)
+        resp = self._client.post("{}/boot".format(Linode.api_endpoint), model=self, data={'config_id': config.id} if config else None)
 
         if 'error' in resp:
             return False
@@ -251,7 +251,7 @@ class Linode(Base):
             })
 
         if stackscript:
-            params['stackscript'] = stackscript.id
+            params['stackscript_id'] = stackscript.id
             if stackscript_args:
                 params['stackscript_data'] = stackscript_args
 

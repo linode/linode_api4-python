@@ -1,5 +1,5 @@
 from .. import Base, Property
-from .. import Linode, StackScript, Domain
+from .. import Linode, StackScript, Domain, Volume
 from linode.objects.nodebalancer.nodebalancer import NodeBalancer
 from linode.objects.support.ticket import SupportTicket
 
@@ -52,6 +52,12 @@ class Event(Base):
     def ticket(self):
         if self.entity and self.entity.type == 'ticket':
             return SupportTicket(self._client, self.entity.id)
+        return None
+
+    @property
+    def volume(self):
+        if self.entity and self.entity.type == 'volume':
+            return Volume(self._client, self.entity.id)
         return None
 
     def mark_read(self):
