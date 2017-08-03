@@ -56,8 +56,8 @@ class StackScript(Base):
                 t = UserDefinedFieldType.select_many
                 choices = udf.manyof.split(',')
 
-            mapped_udfs.append(UserDefinedField(udf.name, udf.label, udf.example, t, \
-                    choices=choices))
+            mapped_udfs.append(UserDefinedField(udf.name, udf.label, udf.example if hasattr(udf, 'example') else None, \
+                    t, choices=choices))
 
         self._set('user_defined_fields', mapped_udfs)
         for d in self.distributions:
