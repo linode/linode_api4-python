@@ -1,5 +1,5 @@
 from ..errors import UnexpectedResponseError
-from linode.objects import Base, Property
+from . import Base, Property
 
 class Profile(Base):
     api_name = 'profile'
