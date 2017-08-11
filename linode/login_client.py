@@ -220,6 +220,7 @@ class LinodeLoginClient:
         split = list(urlparse(url))
         params = {
             "client_id": self.client_id,
+            "response_type": "code", # needed for all logins
         }
         if scopes:
             params["scopes"] = OAuthScopes.serialize(scopes)
