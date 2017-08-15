@@ -12,6 +12,7 @@ from .distribution import Distribution
 from ..networking import IPAddress
 from ..networking import IPv6Address
 from ..networking import IPv6Pool
+from ...util import PaginatedList
 
 from random import choice
 
@@ -384,6 +385,43 @@ class Linode(Base):
         ret = self._client.post('{}/kvmify'.format(Linode.api_endpoint), model=self)
 
         return True
+
+    def clone(self, to_linode=None, region=None, service=None, configs=[], disks=[],
+            label=None, group=None, with_backup=None):
+        """ Clones this linode into a new linode or into a new linode in the given region """
+        if to_linode and region:
+            raise ValueError('You may only specify one of "to_linode" and "region"')
+
+        if region and not service:
+            raise ValueError('Specifying a region requires a "service" as well')
+
+        if not isinstance(configs, list) and not isinstance(configs, PaginatedList):
+            configs = [configs]
+        if not isinstance(disks, list) and not isinstance(disks, PaginatedList):
+            disks = [disks]
+
+        cids = [ c.id if issubclass(type(c), Base) else c for c in configs ]
+        dids = [ d.id if issubclass(type(d), Base) else d for d in disks ]
+
+        params = {
+            "linode_id": to_linode.id if issubclass(type(to_linode), Base) else to_linode,
+            "region": region.id if issubclass(type(region), Base) else region,
+            "type": service.id if issubclass(type(service), Base) else service,
+            "configs": cids if cids else None,
+            "disks": dids if dids else None,
+            "label": label,
+            "group": group,
+            "with_backup": with_backup,
+        }
+
+        result = self._client.post('{}/clone'.format(Linode.api_endpoint), model=self, data=params)
+
+        if not 'id' in result:
+            raise UnexpectedResponseError('Unexpected response cloning Linode!', json=result)
+
+        l = Linode(self._client, result['id'])
+        l._populate(result)
+        return l
 
     @property
     def stats(self):
