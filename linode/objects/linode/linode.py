@@ -32,11 +32,14 @@ class Linode(Base):
         'distribution': Property(relationship=Distribution, filterable=True),
         'disks': Property(derived_class=Disk),
         'configs': Property(derived_class=Config),
-        'type': Property(relationship=Service),
+        'type': Property(slug_relationship=Service),
         'backups': Property(),
         'ipv4': Property(),
         'ipv6': Property(),
         'hypervisor': Property(),
+        'storage': Property(),
+        'memory': Property(),
+        'vcpus': Property(),
     }
 
     @property

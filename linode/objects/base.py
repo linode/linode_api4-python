@@ -9,8 +9,9 @@ import time
 volatile_refresh_timeout = timedelta(seconds=15)
 
 class Property:
-    def __init__(self, mutable=False, identifier=False, volatile=False, relationship=None, \
-            derived_class=None, is_datetime=False, filterable=False, id_relationship=False):
+    def __init__(self, mutable=False, identifier=False, volatile=False, relationship=None,
+            derived_class=None, is_datetime=False, filterable=False, id_relationship=False,
+            slug_relationship=False):
         """
         A Property is an attribute returned from the API, and defines metadata
         about that value.  These are expected to be used as the values of a
@@ -26,6 +27,7 @@ class Property:
         filterable - True if the API allows filtering on this property
         id_relationship - This Property should create a relationship with this key as the ID
             (This should be used on fields ending with '_id' only)
+        slug_relationship - This property is a slug related for a given type.
         """
         self.mutable = mutable
         self.identifier = identifier
@@ -35,6 +37,7 @@ class Property:
         self.is_datetime = is_datetime
         self.filterable = filterable
         self.id_relationship = id_relationship
+        self.slug_relationship = slug_relationship
 
 class MappedObject:
     """
@@ -221,6 +224,10 @@ class Base(object, with_metaclass(FilterableMetaclass)):
                         if obj and isinstance(json[key], dict):
                             obj._populate(json[key])
                         self._set(key, obj)
+                elif  type(self).properties[key].slug_relationship \
+                        and not json[key] is None:
+                    # create an object of the expected type with the given slug
+                    self._set(key, type(self).properties[key].slug_relationship(self._client, json[key]))
                 elif type(json[key]) is dict:
                     self._set(key, MappedObject(**json[key]))
                 elif type(json[key]) is list:
