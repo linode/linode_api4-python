@@ -389,8 +389,16 @@ class Linode(Base):
 
         return True
 
+    def mutate(self):
+        """
+        Upgrades this Linode to the latest generation type
+        """
+        ret = self._client.post('{}/mutate'.format(Linode.api_endpoint), model=self)
+
+        return True
+
     def clone(self, to_linode=None, region=None, service=None, configs=[], disks=[],
-            label=None, group=None, with_backup=None):
+            label=None, group=None, with_backups=None):
         """ Clones this linode into a new linode or into a new linode in the given region """
         if to_linode and region:
             raise ValueError('You may only specify one of "to_linode" and "region"')
@@ -414,7 +422,7 @@ class Linode(Base):
             "disks": dids if dids else None,
             "label": label,
             "group": group,
-            "with_backup": with_backup,
+            "with_backups": with_backups,
         }
 
         result = self._client.post('{}/clone'.format(Linode.api_endpoint), model=self, data=params)
@@ -433,3 +441,12 @@ class Linode(Base):
         """
         # TODO - this would be nicer if we formatted the stats
         return self._client.get('{}/stats'.format(Linode.api_endpoint), model=self)
+
+    def stats_for(self, dt):
+        """
+        Returns stats for the month containing the given datetime
+        """
+        # TODO - this would be nicer if we formatted the stats
+        if not isinstance(dt, datetime):
+            raise TypeError('stats_for requires a datetime object!')
+        return self._client.get('{}/stats/'.format(dt.strftime('%Y/%m')))

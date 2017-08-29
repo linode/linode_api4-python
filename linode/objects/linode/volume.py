@@ -40,3 +40,14 @@ class Volume(Base):
         result = self._client.post('{}/detach'.format(Volume.api_endpoint), model=self)
 
         return True
+
+    def resize(self, size):
+        """
+        Resizes this Volume
+        """
+        result = self._client.post('{}/resize'.format(Volume.api_endpoint, model=self,
+            data={ "size": size }))
+
+        self._populate(result.json)
+
+        return True

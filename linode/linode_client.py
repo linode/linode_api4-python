@@ -179,6 +179,12 @@ class AccountGroup(Group):
         s._populate(result)
         return s
 
+    def get_invoices(self):
+        """
+        Returns Invoices issued to this account
+        """
+        return self.client._get_and_filter(Invoice)
+
     def get_oauth_clients(self, *filters):
         """
         Returns the OAuth Clients associated to this account
