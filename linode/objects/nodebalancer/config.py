@@ -57,8 +57,8 @@ class NodeBalancerConfig(DerivedBase):
         if not 'id' in result:
             raise UnexpectedResponseError('Unexpected response creating node!', json=result)
 
-        n = NodeBalancerNode(self._client, result['id'], self.id, self.nodebalancer_id) # this is three levels deep, so we need a special constructor
-        n._populate(result)
+        # this is three levels deep, so we need a special constructor
+        n = NodeBalancerNode(self._client, result['id'], self.id, self.nodebalancer_id, result)
         return n
 
     def enable_ssl(self, cert, key):

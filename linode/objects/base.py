@@ -72,7 +72,7 @@ class Base(object, with_metaclass(FilterableMetaclass)):
     """
     properties = {}
 
-    def __init__(self, client, id):
+    def __init__(self, client, id, json=None):
         self._set('_populated', False)
         self._set('_last_updated', datetime.min)
         self._set('_client', client)
@@ -83,6 +83,8 @@ class Base(object, with_metaclass(FilterableMetaclass)):
         self._set('id', id)
         if hasattr(type(self), 'id_attribute'):
             self._set(getattr(type(self), 'id_attribute'), id)
+
+        self._populate(json)
 
     def __getattribute__(self, name):
         """

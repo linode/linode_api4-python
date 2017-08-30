@@ -1,15 +1,15 @@
 from linode import util
 
-def make(id, client, parent_id=None, cls=None):
+def make(id, client, parent_id=None, cls=None, json=None):
     """
     Makes an api object based on an id.  The type depends on the mapping.
     """
     from linode.objects import DerivedBase
     if cls:
         if issubclass(cls, DerivedBase):
-            return cls(client, id, parent_id)
+            return cls(client, id, parent_id, json)
         else:
-            return cls(client, id)
+            return cls(client, id, json)
     return None
 
 def make_list(json_arr, client, parent_id=None, cls=None):
@@ -24,8 +24,7 @@ def make_list(json_arr, client, parent_id=None, cls=None):
             id_val = obj[getattr(cls, 'id_attribute')]
         else:
             continue
-        o = make(id_val, client, parent_id=parent_id, cls=cls)
-        o._populate(obj)
+        o = make(id_val, client, parent_id=parent_id, cls=cls, json=obj)
         result.append(o)
 
     return result

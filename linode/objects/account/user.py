@@ -17,8 +17,7 @@ class User(Base):
         if not hasattr(self, '_grants'):
             resp = self._client.get(UserGrants.api_endpoint.format(username=self.username))
 
-            grants = UserGrants(self._client, self.username)
-            grants._populate(resp)
+            grants = UserGrants(self._client, self.username, resp)
             self._set('_grants', grants)
 
         return self._grants

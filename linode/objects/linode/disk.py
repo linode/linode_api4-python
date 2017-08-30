@@ -25,8 +25,7 @@ class Disk(DerivedBase):
         if not 'id' in result:
             raise UnexpectedResponseError('Unexpected response duplicating disk!', json=result)
 
-        d = Disk(self._client, result['id'], self.linode_id)
-        d._populate(result)
+        d = Disk(self._client, result['id'], self.linode_id, result)
         return d
 
 

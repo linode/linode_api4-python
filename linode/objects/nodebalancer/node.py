@@ -18,7 +18,7 @@ class NodeBalancerNode(DerivedBase):
         "status": Property(),
     }
 
-    def __init__(self, client, id, parent_id, nodebalancer_id=None):
+    def __init__(self, client, id, parent_id, nodebalancer_id=None, json=None):
         """
         We need a special constructor here because this object's parent
         has a parent itself.
@@ -31,6 +31,6 @@ class NodeBalancerNode(DerivedBase):
             nodebalancer_id = parent_id[1]
             parent_id = parent_id[0]
 
-        DerivedBase.__init__(self, client, id, parent_id)
+        DerivedBase.__init__(self, client, id, parent_id, json=json)
 
         self._set('nodebalancer_id', nodebalancer_id)

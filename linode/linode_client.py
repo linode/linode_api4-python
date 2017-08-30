@@ -70,8 +70,7 @@ class LinodeGroup(Group):
         if not 'id' in result:
             raise UnexpectedResponseErorr('Unexpected response when creating volume!', json=result)
 
-        v = Volume(self.client, result['id'])
-        v._populate(result)
+        v = Volume(self.client, result['id'], result)
         return v
 
     # create things
@@ -107,8 +106,7 @@ class LinodeGroup(Group):
         if not 'id' in result:
             raise UnexpectedResponseError('Unexpected response when creating linode!', json=result)
 
-        l = Linode(self.client, result['id'])
-        l._populate(result)
+        l = Linode(self.client, result['id'], result)
         if not ret_pass:
             return l
         return l, ret_pass
@@ -148,8 +146,7 @@ class LinodeGroup(Group):
         if not 'id' in result:
             raise UnexpectedResponseError('Unexpected response when creating StackScript!', json=result)
 
-        s = StackScript(self.client, result['id'])
-        s._populate(result)
+        s = StackScript(self.client, result['id'], result)
         return s
 
 class AccountGroup(Group):
@@ -175,8 +172,7 @@ class AccountGroup(Group):
             raise UnexpectedResponseError('Unexpected response when getting account settings!',
                     json=result)
 
-        s = AccountSettings(self.client, result['email'])
-        s._populate(result)
+        s = AccountSettings(self.client, result['email'], result)
         return s
 
     def get_invoices(self):
@@ -207,8 +203,7 @@ class AccountGroup(Group):
             raise UnexpectedResponseError('Unexpected response when creating OAuth Client!',
                     json=result)
 
-        c = OAuthClient(self.client, result['id'])
-        c._populate(result)
+        c = OAuthClient(self.client, result['id'], result)
         return c
 
     def get_oauth_tokens(self, *filters):
@@ -236,8 +231,7 @@ class AccountGroup(Group):
             raise UnexpectedResponseError('Unexpected response when creating Personal Access '
                     'Token!', json=result)
 
-        t = OAuthToken(self.client, result['id'])
-        t._populate(result)
+        t = OAuthToken(self.client, result['id'], result)
         return t
 
     def get_users(self, *filters):
@@ -261,8 +255,7 @@ def create_user(self, email, username, password, restricted=True):
     if not 'email' and 'restricted' and 'username' in result:
         raise UnexpectedResponseError('Unexpected response when creating user!', json=result)
 
-    u = User(self.client, result['username'])
-    u._populate(result)
+    u = User(self.client, result['username'], result)
     return u
 
 class NetworkingGroup(Group):
@@ -298,8 +291,7 @@ class NetworkingGroup(Group):
 
         ips = []
         for r in result['ips']:
-            i = IPAddress(self.client, r['address'])
-            i._populate(r)
+            i = IPAddress(self.client, r['address'], result)
             ips.append(i)
 
         return ips
@@ -313,8 +305,7 @@ class NetworkingGroup(Group):
             raise UnexpectedResponseError('Unexpected response when adding IPv4 address!',
                     json=result)
 
-        ip = IPAddress(self.client, result['address'])
-        ip._populate(result)
+        ip = IPAddress(self.client, result['address'], result)
         return ip
 
 class SupportGroup(Group):
@@ -349,8 +340,7 @@ class SupportGroup(Group):
             raise UnexpectedResponseError('Unexpected response when creating ticket!',
                     json=result)
 
-        t = SupportTicket(self.client, result['id'])
-        t._populate(result)
+        t = SupportTicket(self.client, result['id'], result)
         return t
 
 class LinodeClient:
@@ -454,8 +444,7 @@ class LinodeClient:
         if not 'username' in result:
             raise UnexpectedResponseError('Unexpected response when getting profile!', json=result)
 
-        p = Profile(self, result['username'])
-        p._populate(result)
+        p = Profile(self, result['username'], result)
         return p
 
     def get_domains(self, *filters):
@@ -475,8 +464,7 @@ class LinodeClient:
         if not 'id' in result:
             raise UnexpectedResponseError('Unexpected response when creating Nodebalaner!', json=result)
 
-        n = NodeBalancer(self, result['id'])
-        n._populate(result)
+        n = NodeBalancer(self, result['id'], result)
         return n
 
     def create_domain(self, domain, master=True, **kwargs):
@@ -491,8 +479,7 @@ class LinodeClient:
         if not 'id' in result:
             raise UnexpectedResponseError('Unexpected response when creating Domain!', json=result)
 
-        d = Domain(self, result['id'])
-        d._populate(result)
+        d = Domain(self, result['id'], result)
         return d
 
     # helper functions
