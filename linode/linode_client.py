@@ -4,10 +4,9 @@ import pkg_resources
 from datetime import datetime
 
 from linode.errors import ApiError, UnexpectedResponseError
-from linode import mappings
 from linode.objects import *
 from linode.objects.filtering import Filter
-from linode.util import PaginatedList
+from .paginated_list import PaginatedList
 
 package_version = pkg_resources.require("linode-api")[0].version,
 
@@ -415,9 +414,10 @@ class LinodeClient:
             formatted_endpoint = endpoint
             if model:
                 formatted_endpoint = formatted_endpoint.format(**vars(model))
-            return mappings.make_paginated_list(response_json, cls.api_name, self, parent_id=parent_id, \
-                    page_url=formatted_endpoint[1:], cls=cls)
-        return mappings.make_list(response_json[cls.api_name], self, parent_id=parent_id, cls=cls)
+            return PaginatedList.make_paginated_list(response_json, cls.api_name,
+                    self, cls, parent_id=parent_id, page_url=formatted_endpoint[1:])
+        return PaginatedList.make_list(response_json[cls.api_name], self, cls,
+                parent_id=parent_id)
 
     def get(self, *args, **kwargs):
         return self._api_call(*args, method=requests.get, **kwargs)

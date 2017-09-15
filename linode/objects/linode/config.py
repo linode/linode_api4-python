@@ -2,7 +2,6 @@ from .. import DerivedBase, Property
 from ..base import MappedObject
 from .kernel import Kernel
 from .disk import Disk
-from ... import mappings as mapper
 
 class Config(DerivedBase):
     api_name="configs"
@@ -45,9 +44,11 @@ class Config(DerivedBase):
 
             dev = None
             if 'disk_id' in device and device['disk_id']: # this is a disk
-                dev = mapper.make(device['disk_id'], self._client, parent_id=self.linode_id, cls=Disk)
+                dev = Disk.make_instance(device['disk_id'], self._client,
+                        parent_id=self.linode_id)
             else:
-                dev = mapper.make(device['volume_id'], self._client, parent_id=self.linode_id, cls=Volume)
+                dev = Volume.make_instance(device['volume_id'], self._client,
+                        parent_id=self.linode_id)
             devices[device_index] = dev
 
         self._set('devices', MappedObject(**devices))

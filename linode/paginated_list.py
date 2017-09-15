@@ -33,14 +33,13 @@ class PaginatedList(object):
         return "PaginatedList ({} items)".format(self.total_items)
 
     def _load_page(self, page_number):
-        from linode import mappings
-
         j = self.client.get("/{}?page={}".format(self.page_endpoint, page_number+1))
 
         if j['total_pages'] != self.max_pages or j['total_results'] != len(self):
             raise RuntimeError('List {} has changed since creation!'.format(self))
 
-        l = mappings.make_list(j[self.key], self.client, parent_id=self.objects_parent_id, cls=self.list_cls)
+        l = PaginatedList.make_list(j[self.key], self.client, self.list_cls,
+                parent_id=self.objects_parent_id)
         self.lists[page_number] = l
 
     def __getitem__(self, index):
@@ -137,3 +136,52 @@ class PaginatedList(object):
             return self[self.cur-1]
         else:
             raise StopIteration()
+
+    @staticmethod
+    def make_list(json_arr, client, cls, parent_id=None):
+        """
+        Returns a list of Populated objects of the given class type.
+
+        :param json_arr: The array of JSON data to make into a list
+        :param client: The LinodeClient to pass to new objects
+        :param parent_id: The parent id for derived objects
+
+        :returns: A list of models from the JSON
+        """
+        result = []
+
+        for obj in json_arr:
+            id_val = None
+
+            if 'id' in obj:
+                id_val = obj['id']
+            elif hasattr(cls, 'id_attribute') and getattr(cls, 'id_attribute') in obj:
+                id_val = obj[getattr(cls, 'id_attribute')]
+            else:
+                continue
+            o = cls.make_instance(id_val, client, parent_id=parent_id, json=obj)
+            result.append(o)
+
+        return result
+
+    @staticmethod
+    def make_paginated_list(json, key, client, cls, parent_id=None, page_url=None):
+        """
+        Returns a PaginatedList populated with the first page of data provided,
+        and the ability to load more.
+
+        :param json: The JSON list to use as the first page
+        :param key: The key to use for data in future pages
+        :param client: A LinodeClient to use to load additional pages
+        :param parent_id: The parent ID for derived objects
+        :param page_url: The URL to use when loading more pages
+        :param cls: The class to instantiate for objects
+
+        :returns: An instance of PaginatedList that will represent the entire
+            collection whose first page is json
+        """
+        l = PaginatedList.make_list(json[key], client, cls, parent_id=parent_id)
+        p = PaginatedList(client, page_url if page_url else key, page=l,
+             max_pages=json['total_pages'],  total_items=json['total_results'],
+             parent_id=parent_id, key=key)
+        return p

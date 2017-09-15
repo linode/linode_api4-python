@@ -12,7 +12,7 @@ from .distribution import Distribution
 from ..networking import IPAddress
 from ..networking import IPv6Address
 from ..networking import IPv6Pool
-from ...util import PaginatedList
+from ...paginated_list import PaginatedList
 
 from random import choice
 
