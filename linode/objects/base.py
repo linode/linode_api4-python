@@ -1,9 +1,8 @@
-from .. import mappings
-from .filtering import FilterableMetaclass
-
 from future.utils import with_metaclass
 from datetime import datetime, timedelta
 import time
+
+from .filtering import FilterableMetaclass
 
 # The interval to reload volatile properties
 volatile_refresh_timeout = timedelta(seconds=15)
@@ -72,7 +71,7 @@ class Base(object, with_metaclass(FilterableMetaclass)):
     """
     properties = {}
 
-    def __init__(self, client, id):
+    def __init__(self, client, id, json=None):
         self._set('_populated', False)
         self._set('_last_updated', datetime.min)
         self._set('_client', client)
@@ -83,6 +82,8 @@ class Base(object, with_metaclass(FilterableMetaclass)):
         self._set('id', id)
         if hasattr(type(self), 'id_attribute'):
             self._set(getattr(type(self), 'id_attribute'), id)
+
+        self._populate(json)
 
     def __getattribute__(self, name):
         """
@@ -208,8 +209,9 @@ class Base(object, with_metaclass(FilterableMetaclass)):
                         for d in json[key]:
                             if not 'id' in d:
                                 continue
-                            obj = mappings.make(d['id'], getattr(self,'_client'),
-                                    cls=type(self).properties[key].relationship)
+                            new_class = type(self).properties[key].relationship
+                            obj = new_class.make_instance(d['id'],
+                                    getattr(self,'_client'))
                             if obj:
                                 obj._populate(d)
                             objs.append(obj)
@@ -219,8 +221,8 @@ class Base(object, with_metaclass(FilterableMetaclass)):
                             related_id = json[key]['id']
                         else:
                             related_id = json[key]
-                        obj = mappings.make(related_id, getattr(self,'_client'),
-                                cls=type(self).properties[key].relationship)
+                        new_class = type(self).properties[key].relationship
+                        obj = new_class.make(related_id, getattr(self,'_client'))
                         if obj and isinstance(json[key], dict):
                             obj._populate(json[key])
                         self._set(key, obj)
@@ -260,3 +262,41 @@ class Base(object, with_metaclass(FilterableMetaclass)):
         of this class' type
         """
         return '/'.join(cls.api_endpoint.split('/')[:-1])
+
+    @staticmethod
+    def make(id, client, cls, parent_id=None, json=None):
+        """
+        Makes an api object based on an id and class.
+
+        :param id: The id of the object to create
+        :param client: The LinodeClient to give the new object
+        :param cls: The class type to instantiate
+        :param parent_id: The parent id for derived classes
+        :param json: The JSON to use to populate the new class
+
+        :returns: An instance of cls with the given id
+        """
+        from .dbase import DerivedBase
+
+        if issubclass(cls, DerivedBase):
+            return cls(client, id, parent_id, json)
+        else:
+            return cls(client, id, json)
+
+    @classmethod
+    def make_instance(cls, id, client, parent_id=None, json=None):
+        """
+        Makes an instance of the class this is called on and returns it.
+
+        The intended usage is:
+          instance = Linode.make_instance(123, client, json=response)
+
+        :param cls: The class this was called on.
+        :param id: The id of the instance to create
+        :param client: The client to use for this instance
+        :param parent_id: The parent id for derived classes
+        :param json: The JSON to populate the instance with
+
+        :returns: A new instance of this type, populated with json
+        """
+        return Base.make(id, client, cls, parent_id=parent_id, json=json)

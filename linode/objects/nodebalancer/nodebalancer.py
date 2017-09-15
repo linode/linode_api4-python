@@ -34,6 +34,5 @@ class NodeBalancer(Base):
         if not 'id' in result:
             raise UnexpectedResponseError('Unexpected response creating config!', json=result)
 
-        c = NodeBalancerConfig(self._client, result['id'], self.id)
-        c._populate(result)
+        c = NodeBalancerConfig(self._client, result['id'], self.id, result)
         return c

@@ -35,6 +35,5 @@ class Domain(Base):
         if not 'id' in result:
             raise UnexpectedResponseError('Unexpected response creating domain record!', json=result)
 
-        zr = DomainRecord(self._client, result['id'], self.id)
-        zr._populate(result)
+        zr = DomainRecord(self._client, result['id'], self.id, result)
         return zr

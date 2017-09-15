@@ -12,7 +12,7 @@ from .distribution import Distribution
 from ..networking import IPAddress
 from ..networking import IPv6Address
 from ..networking import IPv6Pool
-from ...util import PaginatedList
+from ...paginated_list import PaginatedList
 
 from random import choice
 
@@ -56,26 +56,22 @@ class Linode(Base):
 
             v4pub = []
             for c in result['ipv4']['public']:
-                i = IPAddress(self._client, c['address'])
-                i._populate(c)
+                i = IPAddress(self._client, c['address'], c)
                 v4pub.append(i)
 
             v4pri = []
             for c in result['ipv4']['private']:
-                i = IPAddress(self._client, c['address'])
-                i._populate(c)
+                i = IPAddress(self._client, c['address'], c)
                 v4pri.append(i)
 
             shared_ips = []
             for c in result['ipv4']['shared']:
-                i = IPAddress(self._client, c['address'])
-                i._populate(c)
+                i = IPAddress(self._client, c['address'], c)
                 shared_ips.append(i)
 
             v6 = []
             for c in result['ipv6']['addresses']:
-                i = IPv6Address(self._client, c['address'])
-                i._populate(c)
+                i = IPv6Address(self._client, c['address'], c)
                 addresses.append(i)
 
             slaac = IPv6Pool(self._client, result['ipv6']['slaac'])
@@ -117,24 +113,22 @@ class Linode(Base):
 
             daily = None
             if result['daily']:
-                daily = Backup(self._client, result['daily']['id'], self.id)
-                daily._populate(result['daily'])
+                daily = Backup(self._client, result['daily']['id'], self.id, result['daily'])
 
             weekly = []
             for w in result['weekly']:
-                cur = Backup(self._client, w['id'], self.id)
-                cur._populate(w)
-                weekly.append(w)
+                cur = Backup(self._client, w['id'], self.id, w)
+                weekly.append(cur)
 
             snap = None
             if result['snapshot']['current']:
-                snap = Backup(self._client, result['snapshot']['current']['id'], self.id)
-                snap._populate(result['snapshot']['current'])
+                snap = Backup(self._client, result['snapshot']['current']['id'], self.id,
+                        result['snapshot']['current'])
 
             psnap = None
             if result['snapshot']['in_progress']:
-                psnap = Backup(self._client, result['snapshot']['in_progress']['id'], self.id)
-                psnap._populate(result['snapshot']['in_progress'])
+                psnap = Backup(self._client, result['snapshot']['in_progress']['id'], self.id,
+                        result['snapshot']['in_progress'])
 
             self._set('_avail_backups', MappedObject(**{
                 "daily": daily,
@@ -213,8 +207,7 @@ class Linode(Base):
         if not 'id' in result:
             raise UnexpectedResponseError('Unexpected response creating config!', json=result)
 
-        c = Config(self._client, result['id'], self.id)
-        c._populate(result)
+        c = Config(self._client, result['id'], self.id, result)
         return c
 
     def create_disk(self, size, label=None, filesystem=None, read_only=False, distribution=None, \
@@ -265,8 +258,7 @@ class Linode(Base):
         if not 'id' in result:
             raise UnexpectedResponseError('Unexpected response creating disk!', json=result)
 
-        d = Disk(self._client, result['id'], self.id)
-        d._populate(result)
+        d = Disk(self._client, result['id'], self.id, result)
 
         if gen_pass:
             return d, gen_pass
@@ -293,8 +285,7 @@ class Linode(Base):
         if hasattr(self, '_avail_backups'):
             del self._avail_backups
 
-        b = Backup(self._client, result['id'], self.id)
-        b._populate(result)
+        b = Backup(self._client, result['id'], self.id, result)
         return b
 
     def allocate_ip(self, public=False):
@@ -304,8 +295,7 @@ class Linode(Base):
         if not 'id' in result:
             raise UnexpectedResponseError('Unexpected response allocating IP!', json=result)
 
-        i = IPAddress(self._client, result['id'])
-        i._populate(result)
+        i = IPAddress(self._client, result['id'], result)
         return i
 
     def rebuild(self, distribution, root_pass=None, root_ssh_key=None, **kwargs):
@@ -430,8 +420,7 @@ class Linode(Base):
         if not 'id' in result:
             raise UnexpectedResponseError('Unexpected response cloning Linode!', json=result)
 
-        l = Linode(self._client, result['id'])
-        l._populate(result)
+        l = Linode(self._client, result['id'], result)
         return l
 
     @property

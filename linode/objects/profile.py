@@ -62,6 +62,5 @@ class Profile(Base):
         from linode.objects.account import UserGrants
         resp = self._client.get('/profile/grants') # use special endpoint for restricted users
 
-        grants = UserGrants(self._client, self.username)
-        grants._populate(resp)
+        grants = UserGrants(self._client, self.username, resp)
         return grants

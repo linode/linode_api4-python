@@ -10,8 +10,8 @@ class DerivedBase(Base):
     derived_url_path = '' #override in child classes
     parent_id_name = 'parent_id' #override in child classes
 
-    def __init__(self, client, id, parent_id):
-        Base.__init__(self, client, id)
+    def __init__(self, client, id, parent_id, json=None):
+        Base.__init__(self, client, id, json=json)
 
         self._set(type(self).parent_id_name, parent_id)
 

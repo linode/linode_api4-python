@@ -58,8 +58,7 @@ class SupportTicket(Base):
             raise UnexpectedResponseError('Unexpected response when creating ticket reply!',
                     json=result)
 
-        r = TicketReply(self._client, result['id'], self.id)
-        r._populate(result)
+        r = TicketReply(self._client, result['id'], self.id, result)
         return r
 
     def upload_attachment(self, attachment):
