@@ -1,8 +1,8 @@
-from .filtering import FilterableMetaclass
-
 from future.utils import with_metaclass
 from datetime import datetime, timedelta
 import time
+
+from .filtering import FilterableMetaclass
 
 # The interval to reload volatile properties
 volatile_refresh_timeout = timedelta(seconds=15)
@@ -264,21 +264,39 @@ class Base(object, with_metaclass(FilterableMetaclass)):
         return '/'.join(cls.api_endpoint.split('/')[:-1])
 
     @staticmethod
-    def make(id, client, parent_id=None, cls=None, json=None):
+    def make(id, client, cls, parent_id=None, json=None):
         """
-        Makes an api object based on an id.  The type depends on the mapping.
+        Makes an api object based on an id and class.
+
+        :param id: The id of the object to create
+        :param client: The LinodeClient to give the new object
+        :param cls: The class type to instantiate
+        :param parent_id: The parent id for derived classes
+        :param json: The JSON to use to populate the new class
+
+        :returns: An instance of cls with the given id
         """
-        from linode.objects import DerivedBase
-        if cls:
-            if issubclass(cls, DerivedBase):
-                return cls(client, id, parent_id, json)
-            else:
-                return cls(client, id, json)
-        return None
+        from .dbase import DerivedBase
+
+        if issubclass(cls, DerivedBase):
+            return cls(client, id, parent_id, json)
+        else:
+            return cls(client, id, json)
 
     @classmethod
     def make_instance(cls, id, client, parent_id=None, json=None):
         """
         Makes an instance of the class this is called on and returns it.
+
+        The intended usage is:
+          instance = Linode.make_instance(123, client, json=response)
+
+        :param cls: The class this was called on.
+        :param id: The id of the instance to create
+        :param client: The client to use for this instance
+        :param parent_id: The parent id for derived classes
+        :param json: The JSON to populate the instance with
+
+        :returns: A new instance of this type, populated with json
         """
-        return Base.make(id, client, parent_id=parent_id, cls=cls, json=json)
+        return Base.make(id, client, cls, parent_id=parent_id, json=json)
