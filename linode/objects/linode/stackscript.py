@@ -24,14 +24,14 @@ class StackScript(Base):
     properties = {
         "user_defined_fields": Property(),
         "label": Property(mutable=True, filterable=True),
-        "customer_id": Property(),
         "rev_note": Property(mutable=True),
-        "user_id": Property(),
+        "usernam": Property(filterable=True),
+        "user_gravatar_id": Property(),
         "is_public": Property(mutable=True, filterable=True),
         "created": Property(is_datetime=True),
         "deployments_active": Property(),
         "script": Property(mutable=True),
-        "distributions": Property(relationship=Distribution, mutable=True, filterable=True),
+        "distributions": Property(mutable=True, filterable=True), # TODO make slug_relationship
         "deployments_total": Property(),
         "description": Property(mutable=True, filterable=True),
         "updated": Property(is_datetime=True),

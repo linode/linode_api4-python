@@ -1,4 +1,4 @@
-from .. import DerivedBase, Property, Base
+from .. import DerivedBase, Property, Base, Region
 
 class Backup(DerivedBase):
     api_endpoint = '/linode/instances/{linode_id}/backups/{id}'
@@ -18,6 +18,7 @@ class Backup(DerivedBase):
         'configs': Property(),
         'disks': Property(),
         'availability': Property(),
+        'region': Property(slug_relationship=Region),
     }
 
     def restore_to(self, linode, **kwargs):

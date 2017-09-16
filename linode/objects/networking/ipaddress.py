@@ -13,7 +13,7 @@ class IPAddress(Base):
         "type": Property(),
         "rdns": Property(mutable=True),
         "linode_id": Property(),
-        "region": Property(relationship=Region, filterable=True),
+        "region": Property(slug_relationship=Region, filterable=True),
     }
 
     @property

@@ -16,7 +16,6 @@ class SupportTicket(Base):
         'entity': Property(),
         'opened': Property(is_datetime=True),
         'closed': Property(is_datetime=True),
-        'closed_by': Property(),
         'updated': Property(is_datetime=True),
         'updated_by': Property(),
         'replies': Property(derived_class=TicketReply),

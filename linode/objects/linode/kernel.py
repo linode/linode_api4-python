@@ -11,6 +11,6 @@ class Kernel(Base):
         "label": Property(filterable=True),
         "updates": Property(),
         "version": Property(filterable=True),
-        "x64": Property(filterable=True),
+        "architecture": Property(filterable=True),
         "xen": Property(filterable=True),
     }

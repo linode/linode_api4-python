@@ -4,5 +4,5 @@ class Region(Base):
     api_endpoint = "/regions/{id}"
     properties = {
         'id': Property(identifier=True),
-        'label': Property(filterable=True),
+        'country': Property(filterable=True),
     }

@@ -1,4 +1,4 @@
-from .. import Base, Property
+from .. import Base, Property, Region
 
 class IPv6Pool(Base):
     api_endpoint = '/networking/ipv6/{}'
@@ -6,5 +6,5 @@ class IPv6Pool(Base):
 
     properties = {
         'range': Property(identifier=True),
-        'region': Property(filterable=True),
+        'region': Property(slug_relationship=Region, filterable=True),
     }

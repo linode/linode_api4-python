@@ -13,5 +13,5 @@ class IPv6Address(Base):
         "prefix": Property(),
         "subnet_mask": Property(),
         "type": Property(),
-        "region": Property(relationship=Region),
+        "region": Property(slug_relationship=Region),
     }

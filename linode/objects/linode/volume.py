@@ -13,7 +13,7 @@ class Volume(Base):
         'label': Property(mutable=True, filterable=True),
         'size': Property(filterable=True),
         'status': Property(filterable=True),
-        'region': Property(relationship=Region),
+        'region': Property(slug_relationship=Region),
     }
 
     def attach(self, to_linode, config=None):
