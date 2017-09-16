@@ -2,7 +2,6 @@ from ..errors import UnexpectedResponseError
 from . import Base, Property
 
 class Profile(Base):
-    api_name = 'profile'
     api_endpoint = "/profile"
     id_attribute = 'username'
 

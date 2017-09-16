@@ -1,7 +1,6 @@
 from .. import Base, Property
 
 class Service(Base):
-    api_name = 'types'
     api_endpoint = "/linode/types/{id}"
     properties = {
         'storage': Property(filterable=True),

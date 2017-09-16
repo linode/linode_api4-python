@@ -1,7 +1,6 @@
 from .. import Base, Property
 
 class Distribution(Base):
-    api_name = 'distributions'
     api_endpoint = '/linode/distributions/{id}'
     properties = {
         'id': Property(identifier=True),

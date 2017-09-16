@@ -407,16 +407,16 @@ class LinodeClient:
     def _get_objects(self, endpoint, cls, model=None, parent_id=None, filters=None):
         response_json = self.get(endpoint, model=model, filters=filters)
 
-        if not cls.api_name in response_json:
-            return False
+        if not "data" in response_json:
+            raise UnexpectedResponseError("Problem with response!", json=response_json)
 
-        if 'total_pages' in response_json:
+        if 'pages' in response_json:
             formatted_endpoint = endpoint
             if model:
                 formatted_endpoint = formatted_endpoint.format(**vars(model))
-            return PaginatedList.make_paginated_list(response_json, cls.api_name,
-                    self, cls, parent_id=parent_id, page_url=formatted_endpoint[1:])
-        return PaginatedList.make_list(response_json[cls.api_name], self, cls,
+            return PaginatedList.make_paginated_list(response_json, self, cls,
+                    parent_id=parent_id, page_url=formatted_endpoint[1:])
+        return PaginatedList.make_list(response_json["data"], self, cls,
                 parent_id=parent_id)
 
     def get(self, *args, **kwargs):

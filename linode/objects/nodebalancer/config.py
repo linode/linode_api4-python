@@ -5,7 +5,6 @@ from ..base import MappedObject
 from .node import NodeBalancerNode
 
 class NodeBalancerConfig(DerivedBase):
-    api_name = 'configs'
     api_endpoint = '/nodebalancers/{nodebalancer_id}/configs/{id}'
     derived_url_path = 'configs'
     parent_id_name='nodebalancer_id'

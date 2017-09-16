@@ -2,7 +2,6 @@ from .. import Base, Property
 from ..region import Region
 
 class IPv6Address(Base):
-    api_name = 'ipv6'
     api_endpoint = 'networking/ipv6/{address}'
     id_attribute = 'address'
 

@@ -17,7 +17,6 @@ from ...paginated_list import PaginatedList
 from random import choice
 
 class Linode(Base):
-    api_name = 'linodes'
     api_endpoint = '/linode/instances/{id}'
     properties = {
         'id': Property(identifier=True),

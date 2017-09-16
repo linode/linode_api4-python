@@ -3,7 +3,6 @@ from .. import Base, Property, Region
 from . import Linode
 
 class Volume(Base):
-    api_name = 'volumes'
     api_endpoint = '/linode/volumes/{id}'
 
     properties = {

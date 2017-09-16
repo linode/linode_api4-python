@@ -2,7 +2,6 @@ from linode.objects import DerivedBase
 from linode.objects import Property
 
 class DomainRecord(DerivedBase):
-    api_name = "records"
     api_endpoint = "/domains/{domain_id}/records/{id}"
     derived_url_path = "records"
     parent_id_name = "domain_id"

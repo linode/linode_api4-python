@@ -3,7 +3,6 @@ from linode.objects import Base, Property
 from .record import DomainRecord
 
 class Domain(Base):
-    api_name = 'domains'
     api_endpoint = "/domains/{id}"
     properties = {
         'id': Property(identifier=True),

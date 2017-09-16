@@ -7,7 +7,6 @@ from ...errors import ApiError
 from .reply import TicketReply
 
 class SupportTicket(Base):
-    api_name = 'tickets'
     api_endpoint = '/support/tickets/{id}'
     properties = {
         'id': Property(identifier=True),

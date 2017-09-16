@@ -4,7 +4,6 @@ from .kernel import Kernel
 from .disk import Disk
 
 class Config(DerivedBase):
-    api_name="configs"
     api_endpoint="/linode/instances/{linode_id}/configs/{id}"
     derived_url_path="configs"
     parent_id_name="linode_id"

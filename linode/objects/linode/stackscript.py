@@ -20,7 +20,6 @@ class UserDefinedField():
         return "{}({}): {}".format(self.label, self.field_type.name, self.example)
 
 class StackScript(Base):
-    api_name = 'stackscripts'
     api_endpoint = '/linode/stackscripts/{id}'
     properties = {
         "user_defined_fields": Property(),
