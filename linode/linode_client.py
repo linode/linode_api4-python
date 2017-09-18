@@ -415,7 +415,8 @@ class LinodeClient:
             if model:
                 formatted_endpoint = formatted_endpoint.format(**vars(model))
             return PaginatedList.make_paginated_list(response_json, self, cls,
-                    parent_id=parent_id, page_url=formatted_endpoint[1:])
+                    parent_id=parent_id, page_url=formatted_endpoint[1:],
+                    filters=filters)
         return PaginatedList.make_list(response_json["data"], self, cls,
                 parent_id=parent_id)
 
