@@ -222,7 +222,7 @@ class Base(object, with_metaclass(FilterableMetaclass)):
                         else:
                             related_id = json[key]
                         new_class = type(self).properties[key].relationship
-                        obj = new_class.make(related_id, getattr(self,'_client'))
+                        obj = new_class.make_instance(related_id, getattr(self,'_client'))
                         if obj and isinstance(json[key], dict):
                             obj._populate(json[key])
                         self._set(key, obj)

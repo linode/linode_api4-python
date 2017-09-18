@@ -5,7 +5,6 @@ from ...errors import ApiError, UnexpectedResponseError
 from linode.objects import Base, Property
 
 class OAuthClient(Base):
-    api_name = 'clients'
     api_endpoint = "/account/clients/{id}"
 
     properties = {

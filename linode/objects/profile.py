@@ -1,8 +1,8 @@
 from ..errors import UnexpectedResponseError
 from . import Base, Property
+from .account import WhitelistEntry
 
 class Profile(Base):
-    api_name = 'profile'
     api_endpoint = "/profile"
     id_attribute = 'username'
 
@@ -64,3 +64,26 @@ class Profile(Base):
 
         grants = UserGrants(self._client, self.username, resp)
         return grants
+
+    @property
+    def whitelist(self):
+        """
+        Returns the user's whitelist entries, if whitelist is enabled
+        """
+        return self._client._get_and_filter(WhitelistEntry)
+
+    def add_whitelist_entry(self, address, netmask, note=None):
+        """
+        Adds a new entry to this user's IP whitelist, if enabled
+        """
+        result = self._client.post("{}/whitelist".format(Profile.api_endpoint),
+                data={
+                    "address": address,
+                    "netmask": netmask,
+                    "note": note,
+        })
+
+        if not 'id' in result:
+            raise UnexpectedResponseError("Unexpected response creating whitelist entry!")
+
+        return WhitelistEntry(result['id'], self._client, json=result)

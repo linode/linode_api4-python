@@ -2,7 +2,6 @@ from linode.objects import Base, Property
 from linode.objects.account import OAuthClient
 
 class OAuthToken(Base):
-    api_name = 'tokens'
     api_endpoint = "/account/tokens/{id}"
 
     properties = {

@@ -6,7 +6,6 @@ from linode.objects.support.ticket import SupportTicket
 from random import choice
 
 class Event(Base):
-    api_name = 'events'
     api_endpoint = '/account/events/{id}'
     properties = {
         'id': Property(identifier=True),

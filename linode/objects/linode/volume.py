@@ -3,7 +3,6 @@ from .. import Base, Property, Region
 from . import Linode
 
 class Volume(Base):
-    api_name = 'volumes'
     api_endpoint = '/linode/volumes/{id}'
 
     properties = {
@@ -14,7 +13,7 @@ class Volume(Base):
         'label': Property(mutable=True, filterable=True),
         'size': Property(filterable=True),
         'status': Property(filterable=True),
-        'region': Property(relationship=Region),
+        'region': Property(slug_relationship=Region),
     }
 
     def attach(self, to_linode, config=None):

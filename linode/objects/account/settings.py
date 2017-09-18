@@ -1,7 +1,6 @@
 from linode.objects import Base, Property
 
 class AccountSettings(Base):
-    api_name = 'settings' # should never come up
     api_endpoint = "/account/settings"
     id_attribute = 'email'
 

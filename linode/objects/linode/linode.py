@@ -17,7 +17,6 @@ from ...paginated_list import PaginatedList
 from random import choice
 
 class Linode(Base):
-    api_name = 'linodes'
     api_endpoint = '/linode/instances/{id}'
     properties = {
         'id': Property(identifier=True),
@@ -26,10 +25,10 @@ class Linode(Base):
         'status': Property(volatile=True),
         'created': Property(is_datetime=True),
         'updated': Property(volatile=True, is_datetime=True),
-        'total_transfer': Property(),
-        'region': Property(relationship=Region, filterable=True),
+        'transfer_total': Property(),
+        'region': Property(slug_relationship=Region, filterable=True),
         'alerts': Property(),
-        'distribution': Property(relationship=Distribution, filterable=True),
+        'distribution': Property(slug_relationship=Distribution, filterable=True),
         'disks': Property(derived_class=Disk),
         'configs': Property(derived_class=Config),
         'type': Property(slug_relationship=Service),
@@ -37,7 +36,7 @@ class Linode(Base):
         'ipv4': Property(),
         'ipv6': Property(),
         'hypervisor': Property(),
-        'storage': Property(),
+        'disk': Property(),
         'memory': Property(),
         'vcpus': Property(),
     }
@@ -186,7 +185,7 @@ class Linode(Base):
         return ''.join([choice('abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*_+-=') for _ in range(0, 32) ])
 
     # create derived objects
-    def create_config(self, kernel, label=None, disks=None, **kwargs):
+    def create_config(self, kernel=None, label=None, disks=None, **kwargs):
 
         disk_map = {}
         if disks:

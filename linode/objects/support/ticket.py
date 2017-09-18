@@ -7,7 +7,6 @@ from ...errors import ApiError
 from .reply import TicketReply
 
 class SupportTicket(Base):
-    api_name = 'tickets'
     api_endpoint = '/support/tickets/{id}'
     properties = {
         'id': Property(identifier=True),
@@ -17,7 +16,6 @@ class SupportTicket(Base):
         'entity': Property(),
         'opened': Property(is_datetime=True),
         'closed': Property(is_datetime=True),
-        'closed_by': Property(),
         'updated': Property(is_datetime=True),
         'updated_by': Property(),
         'replies': Property(derived_class=TicketReply),

@@ -6,3 +6,4 @@ from .settings import AccountSettings
 from .user_grant import UserGrants
 from .invoice import Invoice
 from .invoiceitem import InvoiceItem
+from .whitelist_entry import WhitelistEntry

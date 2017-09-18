@@ -6,7 +6,6 @@ from ..region import Region
 from .config import NodeBalancerConfig
 
 class NodeBalancer(Base):
-    api_name = 'nodebalancers'
     api_endpoint = '/nodebalancers/{id}'
     properties = {
         'id': Property(identifier=True),
@@ -18,7 +17,7 @@ class NodeBalancer(Base):
         'updated': Property(is_datetime=True),
         'ipv4': Property(relationship=IPAddress),
         'ipv6': Property(),
-        'region': Property(relationship=Region, filterable=True),
+        'region': Property(slug_relationship=Region, filterable=True),
         'configs': Property(derived_class=NodeBalancerConfig),
     }
 
