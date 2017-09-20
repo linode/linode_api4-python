@@ -6,7 +6,7 @@ from ..base import MappedObject
 from .disk import Disk
 from .config import Config
 from .backup import Backup
-from .service import Service
+from .type import Type
 from .. import Region
 from .distribution import Distribution
 from ..networking import IPAddress
@@ -31,7 +31,7 @@ class Linode(Base):
         'distribution': Property(slug_relationship=Distribution, filterable=True),
         'disks': Property(derived_class=Disk),
         'configs': Property(derived_class=Config),
-        'type': Property(slug_relationship=Service),
+        'type': Property(slug_relationship=Type),
         'backups': Property(),
         'ipv4': Property(),
         'ipv6': Property(),

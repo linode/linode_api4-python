@@ -1,6 +1,6 @@
 from .. import Base, Property
 
-class Service(Base):
+class Type(Base):
     api_endpoint = "/linode/types/{id}"
     properties = {
         'disk': Property(filterable=True),

@@ -19,7 +19,7 @@ class LinodeGroup(Group):
         return self.client._get_and_filter(Distribution, *filters)
 
     def get_types(self, *filters):
-        return self.client._get_and_filter(Service, *filters)
+        return self.client._get_and_filter(Type, *filters)
 
     def get_instances(self, *filters):
         return self.client._get_and_filter(Linode, *filters)

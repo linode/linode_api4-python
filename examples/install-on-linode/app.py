@@ -2,7 +2,7 @@ import re
 from flask import Flask, redirect, request, render_template, session, send_from_directory
 from flask.ext.session import Session
 from linode import LinodeClient, LinodeLoginClient, StackScript, Distribution, Region
-from linode import Service, OAuthScopes
+from linode import Type, OAuthScopes
 import config
 
 app=Flask(__name__)
@@ -14,7 +14,7 @@ def get_login_client():
 @app.route('/')
 def index():
     client = LinodeClient('no-token')
-    types = client.linode.get_types(Service.label.contains("Linode"))
+    types = client.linode.get_types(Type.label.contains("Linode"))
     regions = client.get_regions()
     stackscript = StackScript(client, config.stackscript_id)
     return render_template('configure.html',  
