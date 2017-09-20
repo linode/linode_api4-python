@@ -55,12 +55,14 @@ class StackScript(Base):
                 t = UserDefinedFieldType.select_many
                 choices = udf.manyof.split(',')
 
-            mapped_udfs.append(UserDefinedField(udf.name, udf.label, udf.example if hasattr(udf, 'example') else None, \
+            mapped_udfs.append(UserDefinedField(udf.name,
+                    udf.label if hasattr(udf, 'label') else None,
+                    udf.example if hasattr(udf, 'example') else None,
                     t, choices=choices))
 
         self._set('user_defined_fields', mapped_udfs)
-        for d in self.distributions:
-            d._set("_populated", False) # these come in as partials
+        ndist = [ Distribution(self._client, d) for d in self.distributions ]
+        self._set('distributions', ndist)
 
     def _serialize(self):
         dct = Base._serialize(self)
