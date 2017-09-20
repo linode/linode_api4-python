@@ -5,6 +5,7 @@ from datetime import datetime
 
 from linode.errors import ApiError, UnexpectedResponseError
 from linode.objects import *
+from linode.objects.base import MappedObject
 from linode.objects.filtering import Filter
 from .paginated_list import PaginatedList
 
@@ -238,6 +239,17 @@ class AccountGroup(Group):
         Returns a list of users on this account
         """
         return self.client._get_and_filter(User, *filters)
+
+    def get_transfer(self):
+        """
+        Returns a MappedObject containing the account's transfer pool data
+        """
+        result = self.client.get('/account/transfer')
+
+        if not 'used' in result:
+            raise UnexpectedResponseError('Unexpected response when getting Transfer Pool!')
+
+        return MappedObject(**result)
 
 def create_user(self, email, username, password, restricted=True):
     """
