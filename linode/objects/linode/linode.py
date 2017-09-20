@@ -71,7 +71,7 @@ class Linode(Base):
             v6 = []
             for c in result['ipv6']['addresses']:
                 i = IPv6Address(self._client, c['address'], c)
-                addresses.append(i)
+                v6.append(i)
 
             slaac = IPv6Pool(self._client, result['ipv6']['slaac'])
             link_local = IPv6Pool(self._client, result['ipv6']['link_local'])
