@@ -69,61 +69,35 @@ class PaginatedList(object):
         return self.total_items
 
     def _get_slice(self, s):
-        i = s.start if s.start else 0
-        j = s.stop if s.stop else self.total_items
+        # get range
+        i = s.start if s.start is not None else 0
+        j = s.stop if s.stop is not None else self.total_items
 
-        if not s.step is None and not s.step == 1:
+        # we do not support steps outside of 1 yet
+        if s.step is not None and s.step != 1:
             raise NotImplementedError('TODO')
 
-        if i < 0 and j < 0:
-            i = len(self) + i
-            j = len(self) + j
+        # if i or j are negative, normalize them
+        if i < 0:
+            i = self.total_items + i
 
-        if i < 0 and not s.stop:
-            i = len(self) + i
+        if j < 0:
+            j = self.total_items + j
 
-        if j < 0 and not s.start:
-            j = len(self) + j
-
-        if i > j:
-            raise NotImplementedError('TODO')
-
+        # if i or j are still negative, that's an IndexError
         if i < 0 or j < 0:
-            # TODO - this should probably not raise
             raise IndexError('list index out of range')
 
-        if i > self.page_size * self.max_pages:
-            i = self.page_size * self.max_pages - 1
+        # if we're going nowhere or backward, return nothing
+        if j <= i:
+            return []
 
-        if j > self.page_size * self.max_pages:
-            j = self.page_size * self.max_pages - 1
+        result = []
 
-        i_normalized = i % self.page_size
-        j_normalized = j % self.page_size
-        i_page = math.ceil((i+1)/self.page_size)-1
-        j_page = math.ceil((j+1)/self.page_size)-1
+        for c in range(i, j):
+            result.append(self[c])
 
-        if not self.lists[i_page]:
-            self._load_page(i_page)
-        if not self.lists[j_page]:
-            self._load_page(j_page)
-
-        # if we're entirely in one list, this is easy
-        if i_page == j_page:
-            return self.lists[i_page][i_normalized:j_normalized]
-
-        ret = self.lists[i_page][i_normalized:]
-
-        for page in range(i_page, j_page):
-            if not self.lists[page]:
-                self._load_page(page)
-
-            if page != i_page and page != j_page:
-                ret += self.lists[page]
-
-        ret += self.lists[j_page][:j_normalized]
-
-        return ret
+        return result
 
     def __setitem__(self, index, value):
         raise AttributeError('Assigning to indicies in paginated lists is not supported')

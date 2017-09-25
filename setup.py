@@ -11,8 +11,13 @@ from setuptools import setup, find_packages
 # To use a consistent encoding
 from codecs import open
 from os import path
+from unittest import TestLoader
 
 here = path.abspath(path.dirname(__file__))
+
+def get_test_suite():
+    test_loader = TestLoader()
+    return test_loader.discover('test', pattern='*_test.py')
 
 # Get the long description from the README file
 with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
@@ -79,5 +84,7 @@ setup(
         "future",
         "requests",
         "enum34",
-    ]
+    ],
+
+    test_suite = 'setup.get_test_suite'
 )
