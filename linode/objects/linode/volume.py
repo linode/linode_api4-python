@@ -50,3 +50,19 @@ class Volume(Base):
         self._populate(result.json)
 
         return True
+
+    def clone(self, label):
+        """
+        Clones this volume to a new volume in the same region with the given label
+
+        :param label: The label for the new volume.
+
+        :returns: The new volume object.
+        """
+        result = self._client.post('{}/clone'.format(Volume.api_endpoint),
+                model=self, data={'label': label})
+
+        if not 'id' in result:
+            raise UnexpectedResponseError('Unexpected response cloning volume!')
+
+        return Volume(self._client, result['id'], result)

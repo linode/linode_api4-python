@@ -5,7 +5,7 @@ from ...errors import ApiError, UnexpectedResponseError
 from linode.objects import Base, Property
 
 class OAuthClient(Base):
-    api_endpoint = "/account/clients/{id}"
+    api_endpoint = "/account/oauth-clients/{id}"
 
     properties = {
         "id": Property(identifier=True),
@@ -13,6 +13,7 @@ class OAuthClient(Base):
         "secret": Property(),
         "redirect_uri": Property(mutable=True),
         "status": Property(),
+        "public": Property(),
     }
 
     def reset_secret(self):

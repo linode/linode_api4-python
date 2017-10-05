@@ -20,7 +20,6 @@ class Config(DerivedBase):
         "updated": Property(),
         "comments": Property(mutable=True, filterable=True),
         "label": Property(mutable=True, filterable=True),
-        "root_device_ro": Property(mutable=True, filterable=True),
         "run_level": Property(mutable=True, filterable=True),
         "virt_mode": Property(mutable=True, filterable=True),
         "memory_limit": Property(mutable=True, filterable=True),

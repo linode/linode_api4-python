@@ -1,16 +1,15 @@
 from linode.objects import Base, Property
 from linode.objects.account import OAuthClient
 
-class OAuthToken(Base):
-    api_endpoint = "/account/tokens/{id}"
+class AuthorizedApp(Base):
+    api_endpoint = "/profile/apps/{id}"
 
     properties = {
         "id": Property(identifier=True),
-        "client": Property(relationship=OAuthClient),
-        "type": Property(),
         "scopes": Property(),
-        "label": Property(mutable=True),
+        "label": Property(),
         "created": Property(is_datetime=True),
-        "token": Property(),
         "expiry": Property(is_datetime=True),
+        "thumbnail_url": Property(),
+        "website": Property(),
     }

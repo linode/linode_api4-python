@@ -8,6 +8,7 @@ from linode.objects import *
 from linode.objects.base import MappedObject
 from linode.objects.filtering import Filter
 from .paginated_list import PaginatedList
+from .common import load_and_validate_keys
 
 package_version = pkg_resources.require("linode-api")[0].version,
 
@@ -74,30 +75,39 @@ class LinodeGroup(Group):
         return v
 
     # create things
-    def create_instance(self, ltype, region, distribution=None, **kwargs):
+    def create_instance(self, ltype, region, distribution=None,
+            authorized_keys=None, **kwargs):
+        """
+        Creates a new Linode.  This takes a number of parameters in **kwargs
+        that are not listed explictly, but will be passed through to the api as
+        provided.  For complete details, see the API documentation at
+        developers.linode.com
+
+        :param ltype: The Linode Type we are creating
+        :param region: The Region in which we are creating the Linode
+        :param distribution: The distribution to deploy to this Linode
+        :param authorized_keys: The ssh public keys to install on the linode's
+                                /root/.ssh/authorized_keys file
+        :param **kwargs: Any other fields to pass to the api
+
+        :returns: A new Linode object
+        :raises ApiError: If contacting the API fails
+        :raises UnexpectedResponseError: If the API resposne is somehow malformed.
+                                         This usually indicates that you are using
+                                         an outdated library.
+        """
         ret_pass = None
         if distribution and not 'root_pass' in kwargs:
             ret_pass = Linode.generate_root_password()
             kwargs['root_pass'] = ret_pass
 
-        if 'root_ssh_key' in kwargs:
-            root_ssh_key = kwargs['root_ssh_key']
-            accepted_types = ('ssh-dss', 'ssh-rsa', 'ecdsa-sha2-nistp', 'ssh-ed25519')
-            if not any([ t for t in accepted_types if root_ssh_key.startswith(t) ]):
-                # it doesn't appear to be a key.. is it a path to the key?
-                import os
-                root_ssh_key = os.path.expanduser(root_ssh_key)
-                if os.path.isfile(root_ssh_key):
-                    with open(root_ssh_key) as f:
-                        kwargs['root_ssh_key'] = "".join([ l.strip() for l in f ])
-                else:
-                    raise ValueError('root_ssh_key must either be a path to the key file or a '
-                                    'raw public key of one of these types: {}'.format(accepted_types))
+        authorized_keys = load_and_validate_keys(authorized_keys)
 
         params = {
              'type': ltype.id if issubclass(type(ltype), Base) else ltype,
              'region': region.id if issubclass(type(region), Base) else region,
              'distribution': (distribution.id if issubclass(type(distribution), Base) else distribution) if distribution else None,
+             'authorized_keys': authorized_keys,
          }
         params.update(kwargs)
 
@@ -149,6 +159,46 @@ class LinodeGroup(Group):
         s = StackScript(self.client, result['id'], result)
         return s
 
+
+class ProfileGroup(Group):
+    """
+    Collections related to your user.
+    """
+    def get_tokens(self, *filters):
+        """
+        Returns the Person Access Tokens active for this user
+        """
+        return self.client._get_and_filter(Token, *filters)
+
+    def create_personal_access_token(self, label=None, expiry=None, scopes=None, **kwargs):
+        """
+        Creates and returns a new Personal Access Token
+        """
+        if label:
+            kwargs['label'] = label
+        if expiry:
+            if isinstance(expiry, datetime):
+                expiry = datetime.strftime(expiry, "%Y-%m-%dT%H:%M:%S")
+            kwargs['expiry'] = expiry
+        if scopes:
+            kwargs['scopes'] = scopes
+
+        result = self.client.post('/account/tokens', data=kwargs)
+
+        if not 'id' in result:
+            raise UnexpectedResponseError('Unexpected response when creating Personal Access '
+                    'Token!', json=result)
+
+        t = OAuthToken(self.client, result['id'], result)
+        return t
+
+    def get_apps(self, *filters):
+        """
+        Returns the Authorized Applications for this user
+        """
+        return self.client._get_and_filter(AuthorizedApp, *filters)
+
+
 class AccountGroup(Group):
     def get_events(self, *filters):
         return self.client._get_and_filter(Event, *filters)
@@ -181,6 +231,12 @@ class AccountGroup(Group):
         """
         return self.client._get_and_filter(Invoice)
 
+    def get_payments(self):
+        """
+        Returns a list of Payments made to this account
+        """
+        return self.client._get_and_filter(Payment)
+
     def get_oauth_clients(self, *filters):
         """
         Returns the OAuth Clients associated to this account
@@ -205,34 +261,6 @@ class AccountGroup(Group):
 
         c = OAuthClient(self.client, result['id'], result)
         return c
-
-    def get_oauth_tokens(self, *filters):
-        """
-        Returns the OAuth Tokens active for this user
-        """
-        return self.client._get_and_filter(OAuthToken, *filters)
-
-    def create_personal_access_token(self, label=None, expiry=None, scopes=None, **kwargs):
-        """
-        Creates and returns a new Personal Access Token
-        """
-        if label:
-            kwargs['label'] = label
-        if expiry:
-            if isinstance(expiry, datetime):
-                expiry = datetime.strftime(expiry, "%Y-%m-%dT%H:%M:%S")
-            kwargs['expiry'] = expiry
-        if scopes:
-            kwargs['scopes'] = scopes
-
-        result = self.client.post('/account/tokens', data=kwargs)
-
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating Personal Access '
-                    'Token!', json=result)
-
-        t = OAuthToken(self.client, result['id'], result)
-        return t
 
     def get_users(self, *filters):
         """
@@ -360,6 +388,7 @@ class LinodeClient:
         self._add_user_agent = user_agent
         self.token = token
         self.linode = LinodeGroup(self)
+        self.profile = ProfileGroup(self)
         self.account = AccountGroup(self)
         self.networking = NetworkingGroup(self)
         self.support = SupportGroup(self)

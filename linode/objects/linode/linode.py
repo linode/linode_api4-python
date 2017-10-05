@@ -13,6 +13,7 @@ from ..networking import IPAddress
 from ..networking import IPv6Address
 from ..networking import IPv6Pool
 from ...paginated_list import PaginatedList
+from ...common import load_and_validate_keys
 
 from random import choice
 
@@ -25,7 +26,6 @@ class Linode(Base):
         'status': Property(volatile=True),
         'created': Property(is_datetime=True),
         'updated': Property(volatile=True, is_datetime=True),
-        'transfer_total': Property(),
         'region': Property(slug_relationship=Region, filterable=True),
         'alerts': Property(),
         'distribution': Property(slug_relationship=Distribution, filterable=True),
@@ -36,9 +36,7 @@ class Linode(Base):
         'ipv4': Property(),
         'ipv6': Property(),
         'hypervisor': Property(),
-        'disk': Property(),
-        'memory': Property(),
-        'vcpus': Property(),
+        'specs': Property(),
     }
 
     @property
@@ -210,25 +208,14 @@ class Linode(Base):
         return c
 
     def create_disk(self, size, label=None, filesystem=None, read_only=False, distribution=None, \
-            root_pass=None, root_ssh_key=None, stackscript=None, **stackscript_args):
+            root_pass=None, authorized_keys=None, stackscript=None, **stackscript_args):
 
         gen_pass = None
         if distribution and not root_pass:
             gen_pass  = Linode.generate_root_password()
             root_pass = gen_pass
 
-        if root_ssh_key:
-            accepted_types = ('ssh-dss', 'ssh-rsa', 'ecdsa-sha2-nistp', 'ssh-ed25519')
-            if not any([ t for t in accepted_types if root_ssh_key.startswith(t) ]):
-                # it doesn't appear to be a key.. is it a path to the key?
-                import os
-                root_ssh_key = os.path.expanduser(root_ssh_key)
-                if os.path.isfile(root_ssh_key):
-                    with open(root_ssh_key) as f:
-                        root_ssh_key = "".join([ l.strip() for l in f ])
-                else:
-                    raise ValueError("root_ssh_key must either be a path to the key file or a "
-                                    "raw public key of one of these types: {}".format(accepted_types))
+        authorized_keys = load_and_validate_keys(authorized_keys)
 
         if distribution and not label:
             label = "My {} Disk".format(distribution.label)
@@ -238,6 +225,7 @@ class Linode(Base):
             'label': label if label else "{}_disk_{}".format(self.label, len(self.disks)),
             'read_only': read_only,
             'filesystem': filesystem if filesystem else 'raw',
+            'authorized_keys': authorized_keys,
         }
 
         if distribution:
@@ -297,28 +285,18 @@ class Linode(Base):
         i = IPAddress(self._client, result['id'], result)
         return i
 
-    def rebuild(self, distribution, root_pass=None, root_ssh_key=None, **kwargs):
+    def rebuild(self, distribution, root_pass=None, authorized_keys=None, **kwargs):
         ret_pass = None
         if not root_pass:
             ret_pass = Linode.generate_root_password()
             root_pass = ret_pass
 
-        if root_ssh_key:
-            accepted_types = ('ssh-dss', 'ssh-rsa', 'ecdsa-sha2-nistp', 'ssh-ed25519')
-            if not any([ t for t in accepted_types if root_ssh_key.startswith(t) ]):
-                # it doesn't appear to be a key.. is it a path to the key?
-                import os
-                root_ssh_key = os.path.expanduser(root_ssh_key)
-                if os.path.isfile(root_ssh_key):
-                    with open(root_ssh_key) as f:
-                        root_ssh_key = "".join([ l.strip() for l in f ])
-                else:
-                    raise ValueError('root_ssh_key must either be a path to the key file or a '
-                                    'raw public key of one of these types: {}'.format(accepted_types))
+        authorized_keys = load_and_validate_keys(authorized_keys)
 
         params = {
              'distribution': distribution.id if issubclass(type(distribution), Base) else distribution,
              'root_pass': root_pass,
+             'authorized_keys': authorized_keys,
          }
         params.update(kwargs)
 
@@ -335,11 +313,12 @@ class Linode(Base):
 
     def rescue(self, *disks):
         if disks:
-            disks = { x:y for x,y in zip(('sda','sdb'), disks) }
+            disks = { x: { 'disk_id': y } for x,y in zip(('sda','sdb'), disks) }
         else:
             disks=None
 
-        result = self._client.post('{}/rescue'.format(Linode.api_endpoint), model=self, data={ "disks": disks })
+        result = self._client.post('{}/rescue'.format(Linode.api_endpoint), model=self,
+                data={ "devices": disks })
 
         return result
 
