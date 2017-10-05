@@ -5,5 +5,5 @@ from .stackscript import StackScript
 from .config import Config
 from .distribution import Distribution
 from .backup import Backup
-from .type import Type
+from .linode_type import Type
 from .volume import Volume
