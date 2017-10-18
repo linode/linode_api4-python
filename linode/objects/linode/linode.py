@@ -189,7 +189,7 @@ class Linode(Base):
         if disks:
             hypervisor_prefix = 'sd' if self.hypervisor == 'kvm' else 'xvd'
             for i in range(0,8):
-                disk_map[hypervisor_prefix + string.ascii_lowercase[i]] = disks[i].id if i < len(disks) else None
+                disk_map[hypervisor_prefix + string.ascii_lowercase[i]] = disks[i].id if ((i < len(disks)) and disks[i]) else None
 
         params = {
             'kernel': kernel.id if issubclass(type(kernel), Base) else kernel,
