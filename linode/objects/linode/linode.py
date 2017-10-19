@@ -279,10 +279,10 @@ class Linode(Base):
         result = self._client.post("{}/ips".format(Linode.api_endpoint), model=self,
                 data={ "type": "public" if public else "private" })
 
-        if not 'id' in result:
+        if not 'address' in result:
             raise UnexpectedResponseError('Unexpected response allocating IP!', json=result)
 
-        i = IPAddress(self._client, result['id'], result)
+        i = IPAddress(self._client, result['address'], result)
         return i
 
     def rebuild(self, distribution, root_pass=None, authorized_keys=None, **kwargs):

@@ -253,7 +253,7 @@ class AccountGroup(Group):
         }
         params.update(kwargs)
 
-        result = self.client.post('/account/clients', data=params)
+        result = self.client.post('/account/oauth-clients', data=params)
 
         if not 'id' in result:
             raise UnexpectedResponseError('Unexpected response when creating OAuth Client!',
