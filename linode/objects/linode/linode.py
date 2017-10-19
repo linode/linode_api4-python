@@ -183,21 +183,40 @@ class Linode(Base):
         return ''.join([choice('abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*_+-=') for _ in range(0, 32) ])
 
     # create derived objects
-    def create_config(self, kernel=None, label=None, disks=None, volumes=None, **kwargs):
+    def create_config(self, kernel=None, label=None, disks=[], volumes=[], **kwargs):
+        """
+        Creates a Linode Config with the given attributes.
+
+        :param kernel: The kernel to boot with.
+        :param label: The config label
+        :param disks: The list of disks, starting at sda, to map to this config.
+        :param volumes: The volumes, starting after the last disk, to map to this config
+        :param **kwargs: Any other arguments accepted by the api.
+
+        :returns: A new Linode Config
+        """
+        from .volume import Volume
+
         hypervisor_prefix = 'sd' if self.hypervisor == 'kvm' else 'xvd'
         device_names = [hypervisor_prefix + string.ascii_lowercase[i] for i in range(0, 8)]
         device_map = {device_names[i] : None for i in range(0, len(device_names))}
 
-        if disks:
-            for i in range(0, len(disks)):
-                if disks[i]:
-                    device_map[device_names[i]] = {'disk_id': disks[i].id}
+        disks = [ c if isinstance(c, Disk) else Disk(self._client, c, self.id) for c in disks ]
+        volumes = [ c if isinstance(c, Volume) else Volume(self._client, c) for c in volumes ]
 
-        if volumes:
-            for i in range(0, len(volumes)):
-                if volumes[i]:
-                    device_map[device_names[i]] = {'volume_id': volumes[i].id}
+        devices = disks + volumes
 
+        if not devices:
+            raise ValueError("Must include at least one disk or volume!")
+
+        for i, c in enumerate(devices):
+            if isinstance(c, Disk):
+                device_map[device_names[i]] = {'disk_id': c.id }
+            else:
+                device_map[device_names[i]] = {'volume_id': c.id }
+
+        print(device_map)
+        raise TypeError('oops')
         params = {
             'kernel': kernel.id if issubclass(type(kernel), Base) else kernel,
             'label': label if label else "{}_config_{}".format(self.label, len(self.configs)),
