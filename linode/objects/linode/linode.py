@@ -183,18 +183,25 @@ class Linode(Base):
         return ''.join([choice('abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*_+-=') for _ in range(0, 32) ])
 
     # create derived objects
-    def create_config(self, kernel=None, label=None, disks=None, **kwargs):
+    def create_config(self, kernel=None, label=None, disks=None, volumes=None, **kwargs):
+        hypervisor_prefix = 'sd' if self.hypervisor == 'kvm' else 'xvd'
+        device_names = [hypervisor_prefix + string.ascii_lowercase[i] for i in range(0, 8)]
+        device_map = {device_names[i] : None for i in range(0, len(device_names))}
 
-        disk_map = {}
         if disks:
-            hypervisor_prefix = 'sd' if self.hypervisor == 'kvm' else 'xvd'
-            for i in range(0,8):
-                disk_map[hypervisor_prefix + string.ascii_lowercase[i]] = disks[i].id if i < len(disks) else None
+            for i in range(0, len(disks)):
+                if disks[i]:
+                    device_map[device_names[i]] = {'disk_id': disks[i].id}
+
+        if volumes:
+            for i in range(0, len(volumes)):
+                if volumes[i]:
+                    device_map[device_names[i]] = {'volume_id': volumes[i].id}
 
         params = {
             'kernel': kernel.id if issubclass(type(kernel), Base) else kernel,
             'label': label if label else "{}_config_{}".format(self.label, len(self.configs)),
-            'disks': disk_map,
+            'devices': device_map,
         }
         params.update(kwargs)
 
