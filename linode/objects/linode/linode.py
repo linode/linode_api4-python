@@ -215,7 +215,6 @@ class Linode(Base):
             else:
                 device_map[device_names[i]] = {'volume_id': c.id }
 
-        print(device_map)
         raise TypeError('oops')
         params = {
             'kernel': kernel.id if issubclass(type(kernel), Base) else kernel,

@@ -71,7 +71,7 @@ class Base(object, with_metaclass(FilterableMetaclass)):
     """
     properties = {}
 
-    def __init__(self, client, id, json=None):
+    def __init__(self, client, id, json={}):
         self._set('_populated', False)
         self._set('_last_updated', datetime.min)
         self._set('_client', client)
