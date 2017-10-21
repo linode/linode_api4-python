@@ -7,6 +7,7 @@ https://github.com/pypa/sampleproject/blob/master/setup.py
 """
 
 # Always prefer setuptools over distutils
+import sys
 from setuptools import setup, find_packages
 # To use a consistent encoding
 from codecs import open
@@ -81,6 +82,9 @@ setup(
 
     # What do we need for this to run
     install_requires=[
+        "future",
+        "requests",
+    ] if sys.version_info >= (3, 4) else [
         "future",
         "requests",
         "enum34",
