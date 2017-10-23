@@ -215,7 +215,6 @@ class Linode(Base):
             else:
                 device_map[device_names[i]] = {'volume_id': c.id }
 
-        raise TypeError('oops')
         params = {
             'kernel': kernel.id if issubclass(type(kernel), Base) else kernel,
             'label': label if label else "{}_config_{}".format(self.label, len(self.configs)),
