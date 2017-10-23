@@ -201,6 +201,11 @@ class Linode(Base):
         device_names = [hypervisor_prefix + string.ascii_lowercase[i] for i in range(0, 8)]
         device_map = {device_names[i] : None for i in range(0, len(device_names))}
 
+        if not isinstance(disks, list):
+            disks = [disks]
+        if not isinstance(volumes, list):
+            volumes = [volumes]
+
         disks = [ c if isinstance(c, Disk) else Disk(self._client, c, self.id) for c in disks ]
         volumes = [ c if isinstance(c, Volume) else Volume(self._client, c) for c in volumes ]
 
