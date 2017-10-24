@@ -139,12 +139,13 @@ class Linode(Base):
         return self._avail_backups
 
     def _populate(self, json):
-        # fixes ipv4 and ipv6 attribute of json to make base._populate work
-        if 'ipv4' in json and 'address' in json['ipv4']:
-            json['ipv4']['id'] = json['ipv4']['address']
-        if 'ipv6' in json and isinstance(json['ipv6'], list):
-            for j in json['ipv6']:
-                j['id'] = j['range']
+        if json is not None:
+            # fixes ipv4 and ipv6 attribute of json to make base._populate work
+            if 'ipv4' in json and 'address' in json['ipv4']:
+                json['ipv4']['id'] = json['ipv4']['address']
+            if 'ipv6' in json and isinstance(json['ipv6'], list):
+                for j in json['ipv6']:
+                    j['id'] = j['range']
 
         Base._populate(self, json)
 

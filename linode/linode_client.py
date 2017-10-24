@@ -401,6 +401,17 @@ class LinodeClient:
                 requests.utils.default_user_agent()
         )
 
+    def load(self, target_type, target_id, target_parent_id=None):
+        """
+        Constructs and immediately loads the object, circumventing the lazy-loading
+        scheme by immediately making an api request.  Does not load related
+        objects.  Raises an ApiError if the object cannot be loaded.
+        """
+        result = target_type.make_instance(target_id, self, parent_id=target_parent_id)
+        result._api_get()
+
+        return result
+
     def _api_call(self, endpoint, model=None, method=None, data=None, filters=None):
         """
         Makes a call to the linode api.  Data should only be given if the method is
