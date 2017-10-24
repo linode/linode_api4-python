@@ -183,14 +183,19 @@ class Linode(Base):
         return ''.join([choice('abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*_+-=') for _ in range(0, 32) ])
 
     # create derived objects
-    def create_config(self, kernel=None, label=None, disks=[], volumes=[], **kwargs):
+    def create_config(self, kernel=None, label=None, devices=[], disks=[],
+            volumes=[], **kwargs):
         """
         Creates a Linode Config with the given attributes.
 
         :param kernel: The kernel to boot with.
         :param label: The config label
         :param disks: The list of disks, starting at sda, to map to this config.
-        :param volumes: The volumes, starting after the last disk, to map to this config
+        :param volumes: The volumes, starting after the last disk, to map to this
+            config
+        :param devices: A list of devices to assign to this config, in device
+            index order.  Values must be of type Disk or Volume.  If this is
+            given, you may not include disks or volumes.
         :param **kwargs: Any other arguments accepted by the api.
 
         :returns: A new Linode Config
@@ -201,15 +206,20 @@ class Linode(Base):
         device_names = [hypervisor_prefix + string.ascii_lowercase[i] for i in range(0, 8)]
         device_map = {device_names[i] : None for i in range(0, len(device_names))}
 
-        if not isinstance(disks, list):
-            disks = [disks]
-        if not isinstance(volumes, list):
-            volumes = [volumes]
+        if devices and (disks or volumes):
+            raise ValueError('You may not call create_config with devices and '
+                    'either of "disks" or "volumes"!')
 
-        disks = [ c if isinstance(c, Disk) else Disk(self._client, c, self.id) for c in disks ]
-        volumes = [ c if isinstance(c, Volume) else Volume(self._client, c) for c in volumes ]
+        if not devices:
+            if not isinstance(disks, list):
+                disks = [disks]
+            if not isinstance(volumes, list):
+                volumes = [volumes]
 
-        devices = disks + volumes
+            disks = [ c if isinstance(c, Disk) else Disk(self._client, c, self.id) for c in disks ]
+            volumes = [ c if isinstance(c, Volume) else Volume(self._client, c) for c in volumes ]
+
+            devices = disks + volumes
 
         if not devices:
             raise ValueError("Must include at least one disk or volume!")
