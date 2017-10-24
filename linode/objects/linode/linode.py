@@ -225,7 +225,7 @@ class Linode(Base):
                 elif isinstance(d, Disk):
                     devices.append(d)
                 else:
-                    Disk(self._client, int(d), self.id)
+                    devices.append(Disk(self._client, int(d), self.id))
 
             for v in volumes:
                 if v is None:
@@ -233,7 +233,7 @@ class Linode(Base):
                 elif isinstance(v, Volume):
                     devices.append(v)
                 else:
-                    Volume(self._client, int(v))
+                    devices.append(Volume(self._client, int(v)))
 
         if not devices:
             raise ValueError('Must include at least one disk or volume!')
