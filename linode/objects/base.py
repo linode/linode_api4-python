@@ -226,11 +226,10 @@ class Base(object, with_metaclass(FilterableMetaclass)):
                         if obj and isinstance(json[key], dict):
                             obj._populate(json[key])
                         self._set(key, obj)
-                elif type(self).properties[key].slug_relationship \
+                elif  type(self).properties[key].slug_relationship \
                         and not json[key] is None:
                     # create an object of the expected type with the given slug
-                    d = json[key]
-                    self._set(key, type(self).properties[key].slug_relationship(self._client, d['id'], d))
+                    self._set(key, type(self).properties[key].slug_relationship(self._client, json[key]))
                 elif type(json[key]) is dict:
                     self._set(key, MappedObject(**json[key]))
                 elif type(json[key]) is list:

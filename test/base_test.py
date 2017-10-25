@@ -10,7 +10,7 @@ class Bar(Base):
     api_endpoint = "/bar/{id}"
     properties = {
         'id': Property(identifier=True),
-        'value': 'abc'
+        'value': Property()
     }
 
 
@@ -42,7 +42,7 @@ class BaseClassTestCase(TestCase):
             'filterable': 'value',
             'id': 1,
             'something': 'else',
-            'bar': self.bar_dict
+            'bar': 2
         }
         self.foo = Foo(mock.Mock(), 1, self.foo_dict)
 
@@ -56,10 +56,9 @@ class BaseClassTestCase(TestCase):
         self.assertEqual(self.foo.filterable, 'value')
         self.assertEqual(self.foo.something, 'else')
         self.assertIsInstance(self.foo.bar, Bar)
-        
+
         # Assert properties of slug related field
         self.assertEqual(self.foo.bar.id, 2)
-        self.assertEqual(self.foo.bar.value, 'abc')
 
     def test_foo_properties(self):
         """
