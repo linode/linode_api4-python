@@ -69,7 +69,7 @@ class LinodeGroup(Group):
         result = self.client.post('/linode/volumes', data=params)
 
         if not 'id' in result:
-            raise UnexpectedResponseErorr('Unexpected response when creating volume!', json=result)
+            raise UnexpectedResponseError('Unexpected response when creating volume!', json=result)
 
         v = Volume(self.client, result['id'], result)
         return v
