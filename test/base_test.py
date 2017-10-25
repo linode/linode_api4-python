@@ -1,6 +1,12 @@
-from unittest import TestCase, mock
+import sys
+from unittest import TestCase
 
 from linode.objects.base import Base, Property
+
+if sys.version_info >= (3, 4):
+    from unittest import mock
+else:
+    import mock
 
 
 class Bar(Base):

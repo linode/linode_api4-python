@@ -88,6 +88,7 @@ setup(
         "future",
         "requests",
         "enum34",
+        "mock"
     ],
 
     test_suite = 'setup.get_test_suite'
