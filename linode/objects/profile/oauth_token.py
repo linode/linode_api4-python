@@ -1,6 +1,6 @@
 from linode.objects import Base, Property
 
-class Token(Base):
+class OAuthToken(Base):
     api_endpoint = "/profile/tokens/{id}"
 
     properties = {

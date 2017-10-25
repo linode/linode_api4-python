@@ -168,7 +168,7 @@ class ProfileGroup(Group):
         """
         Returns the Person Access Tokens active for this user
         """
-        return self.client._get_and_filter(Token, *filters)
+        return self.client._get_and_filter(OAuthToken, *filters)
 
     def create_personal_access_token(self, label=None, expiry=None, scopes=None, **kwargs):
         """
