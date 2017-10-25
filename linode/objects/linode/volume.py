@@ -27,7 +27,7 @@ class Volume(Base):
         })
 
         if not 'id' in result:
-            raise UnexpectedResponseErorr('Unexpected response when attaching volume!', json=result)
+            raise UnexpectedResponseError('Unexpected response when attaching volume!', json=result)
 
         self._populate(result)
         return True

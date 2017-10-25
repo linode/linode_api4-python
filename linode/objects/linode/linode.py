@@ -105,8 +105,7 @@ class Linode(Base):
             result = self._client.get("{}/backups".format(Linode.api_endpoint), model=self)
 
             if not 'daily' in result:
-                raise UnexpectedResponseErorr('Unexpected response loading available backups!',
-                        json=result)
+                raise UnexpectedResponseError('Unexpected response loading available backups!', json=result)
 
             daily = None
             if result['daily']:
