@@ -195,7 +195,7 @@ class Linode(Base):
         :param volumes: The volumes, starting after the last disk, to map to this
             config
         :param devices: A list of devices to assign to this config, in device
-            index order.  Values must be of type Disk or Volume.  If this is
+            index order.  Values must be of type Disk or Volume. If this is
             given, you may not include disks or volumes.
         :param **kwargs: Any other arguments accepted by the api.
 
@@ -205,11 +205,11 @@ class Linode(Base):
 
         hypervisor_prefix = 'sd' if self.hypervisor == 'kvm' else 'xvd'
         device_names = [hypervisor_prefix + string.ascii_lowercase[i] for i in range(0, 8)]
-        device_map = {device_names[i] : None for i in range(0, len(device_names))}
+        device_map = {device_names[i]: None for i in range(0, len(device_names))}
 
         if devices and (disks or volumes):
-            raise ValueError('You may not call create_config with devices and '
-                    'either of "disks" or "volumes"!')
+            raise ValueError('You may not call create_config with "devices" and '
+                    'either of "disks" or "volumes" specified!')
 
         if not devices:
             if not isinstance(disks, list):
@@ -217,19 +217,36 @@ class Linode(Base):
             if not isinstance(volumes, list):
                 volumes = [volumes]
 
-            disks = [ c if isinstance(c, Disk) else Disk(self._client, c, self.id) for c in disks ]
-            volumes = [ c if isinstance(c, Volume) else Volume(self._client, c) for c in volumes ]
+            devices = []
 
-            devices = disks + volumes
+            for d in disks:
+                if d is None:
+                    devices.append(None)
+                elif isinstance(d, Disk):
+                    devices.append(d)
+                else:
+                    devices.append(Disk(self._client, int(d), self.id))
+
+            for v in volumes:
+                if v is None:
+                    devices.append(None)
+                elif isinstance(v, Volume):
+                    devices.append(v)
+                else:
+                    devices.append(Volume(self._client, int(v)))
 
         if not devices:
-            raise ValueError("Must include at least one disk or volume!")
+            raise ValueError('Must include at least one disk or volume!')
 
-        for i, c in enumerate(devices):
-            if isinstance(c, Disk):
-                device_map[device_names[i]] = {'disk_id': c.id }
+        for i, d in enumerate(devices):
+            if d is None:
+                pass
+            elif isinstance(d, Disk):
+                device_map[device_names[i]] = {'disk_id': d.id }
+            elif isinstance(d, Volume):
+                device_map[device_names[i]] = {'volume_id': d.id }
             else:
-                device_map[device_names[i]] = {'volume_id': c.id }
+                raise TypeError('Disk or Volume expected!')
 
         params = {
             'kernel': kernel.id if issubclass(type(kernel), Base) else kernel,
