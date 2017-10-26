@@ -168,7 +168,7 @@ class ProfileGroup(Group):
         """
         Returns the Person Access Tokens active for this user
         """
-        return self.client._get_and_filter(OAuthToken, *filters)
+        return self.client._get_and_filter(PersonalAccessToken, *filters)
 
     def create_personal_access_token(self, label=None, expiry=None, scopes=None, **kwargs):
         """
@@ -189,8 +189,8 @@ class ProfileGroup(Group):
             raise UnexpectedResponseError('Unexpected response when creating Personal Access '
                     'Token!', json=result)
 
-        t = OAuthToken(self.client, result['id'], result)
-        return t
+        token = PersonalAccessToken(self.client, result['id'], result)
+        return token
 
     def get_apps(self, *filters):
         """
