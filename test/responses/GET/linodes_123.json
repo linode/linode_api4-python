@@ -1,0 +1,33 @@
+{
+  "group": "test",
+  "ipv4": [
+    "123.45.67.89"
+  ],
+  "type": "g4-standard-2",
+  "label": "test1",
+  "specs": {
+    "disk": 49152,
+    "transfer": 3000,
+    "memory": 2048,
+    "vcpus": 2
+  },
+  "region": "us-east-1a",
+  "ipv6": "1234:abcd::1234:abcd:89ef:67cd/64",
+  "status": "offline",
+  "updated": "2017-01-01T00:01:01",
+  "distribution": "linode/ubuntu17.04",
+  "id": 123,
+  "alerts": {
+    "cpu": 90,
+    "network_in": 5,
+    "network_out": 5,
+    "io": 5000,
+    "transfer_quota": 80
+  },
+  "created": "2017-01-01T00:01:01",
+  "hypervisor": "kvm",
+  "backups": {
+    "enabled": false,
+    "schedule": null
+  }
+}
