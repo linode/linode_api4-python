@@ -2,7 +2,6 @@ from future.utils import with_metaclass
 from datetime import datetime, timedelta
 import time
 
-from .dbase import DerivedBase
 from .filtering import FilterableMetaclass
 
 # The interval to reload volatile properties
@@ -278,7 +277,8 @@ class Base(object, with_metaclass(FilterableMetaclass)):
         :returns: An instance of cls with the given id
         """
 
-        if issubclass(cls, DerivedBase):
+        if parent_id is not None:
+            # If parent_id is supplied, pass it in. This is a DerivedBase.
             return cls(client, id, parent_id, json)
         else:
             return cls(client, id, json)
