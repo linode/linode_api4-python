@@ -1,4 +1,5 @@
 import json
+import os
 import requests
 import pkg_resources
 from datetime import datetime
@@ -135,7 +136,6 @@ class LinodeGroup(Group):
         script_body = script
         if not script.startswith("#!"):
             # it doesn't look like a stackscript body, let's see if it's a file
-            import os
             if os.path.isfile(script):
                 with open(script) as f:
                     script_body = f.read()

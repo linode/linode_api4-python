@@ -1,4 +1,5 @@
 import string
+from datetime import datetime
 
 from ...errors import UnexpectedResponseError
 from .. import Base, Property
@@ -7,6 +8,7 @@ from .disk import Disk
 from .config import Config
 from .backup import Backup
 from .linode_type import Type
+from .volume import Volume
 from .. import Region
 from .distribution import Distribution
 from ..networking import IPAddress
@@ -200,7 +202,6 @@ class Linode(Base):
 
         :returns: A new Linode Config
         """
-        from .volume import Volume
 
         hypervisor_prefix = 'sd' if self.hypervisor == 'kvm' else 'xvd'
         device_names = [hypervisor_prefix + string.ascii_lowercase[i] for i in range(0, 8)]

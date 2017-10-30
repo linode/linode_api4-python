@@ -1,4 +1,5 @@
 from .. import Base, Property
+from ..linode import Linode
 from ..region import Region
 
 class IPAddress(Base):
@@ -18,7 +19,6 @@ class IPAddress(Base):
 
     @property
     def linode(self):
-        from ..linode import Linode
         if not hasattr(self, '_linode'):
             self._set('_linode', Linode(self._client, self.linode_id))
         return self._linode
@@ -29,7 +29,6 @@ class IPAddress(Base):
         of that context.  It's used to cleanly build an IP Assign request with
         pretty python syntax.
         """
-        from ..linode import Linode
         if not isinstance(linode, Linode):
             raise ValueError("IP Address can only be assigned to a Linode!")
         return { "address": self.address, "linode_id": linode.id }

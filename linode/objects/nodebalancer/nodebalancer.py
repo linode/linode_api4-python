@@ -1,7 +1,7 @@
 from .. import Base, Property
-from ..base import MappedObject
 from ..networking.ipaddress import IPAddress
 from ..region import Region
+from linode.errors import UnexpectedResponseError
 
 from .config import NodeBalancerConfig
 

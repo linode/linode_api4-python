@@ -1,4 +1,5 @@
 from linode.objects import Base, Property
+from linode.objects.account import UserGrants
 
 class User(Base):
     api_endpoint = "/account/users/{id}"
@@ -12,7 +13,6 @@ class User(Base):
 
     @property
     def grants(self):
-        from linode.objects.account import UserGrants
         if not hasattr(self, '_grants'):
             resp = self._client.get(UserGrants.api_endpoint.format(username=self.username))
 

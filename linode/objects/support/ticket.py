@@ -3,7 +3,7 @@ import requests
 from .. import Base, Property
 from .. import Linode, Domain, Volume
 from linode.objects.nodebalancer.nodebalancer import NodeBalancer
-from ...errors import ApiError
+from ...errors import ApiError, UnexpectedResponseError
 from .reply import TicketReply
 
 class SupportTicket(Base):
