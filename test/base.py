@@ -1,6 +1,6 @@
 import json
 from unittest import TestCase
-from unittest.mock import patch
+from mock import patch
 import requests
 import json
 import sys
@@ -74,18 +74,18 @@ class MethodMock:
         """
         Begins the method mocking
         """
-        self.mock = patch(
+        self.patch = patch(
             'linode.linode_client.requests.'+self.method,
             return_value=MockResponse(200, self.return_dct)
         )
-        self.mock.start()
+        self.mock = self.patch.start()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
         """
         Removed the mocked method
         """
-        self.mock.stop()
+        self.patch.stop()
 
     @property
     def call_args(self):
@@ -96,11 +96,23 @@ class MethodMock:
         return self.mock.call_args
 
     @property
+    def call_url(self):
+        """
+        A shortcut to accessing the URL called on the underlying mock.  We
+        chop off the first character because our testing base_url has a leading
+        / we don't want to see.
+        """
+        return self.mock.call_args[0][0][1:]
+
+    @property
     def call_data(self):
         """
-        A shortcut to getting the data param this was called with
+        A shortcut to getting the data param this was called with.  Removes all
+        keys whose values are None
         """
-        return self.mock.call_args[1]['data']
+        data = json.loads(self.mock.call_args[1]['data'])
+
+        return { k: v for k, v in data.items() if v is not None }
 
     @property
     def call_headers(self):

@@ -22,13 +22,15 @@ class LinodeGroupTest(ClientBaseCase):
         """
         Tests that a Linode can be created successfully
         """
-        with self.mock_post('linodes/123') as m:
-            l = self.client.linode.create_instance('us-east-1a', 'g5-standard-1')
+        with self.mock_post('linode/instances/123') as m:
+            l = self.client.linode.create_instance('g5-standard-1', 'us-east-1a')
 
             self.assertIsNotNone(l)
             self.assertEqual(l.id, 123)
-            #
-            #self.assertEqual(m.call_data, {
-            #    "region": "us-east-1a",
-            #    "type": "g5-standard-1"
-            #})
+
+            self.assertEqual(m.call_url, '/linode/instances')
+
+            self.assertEqual(m.call_data, {
+                "region": "us-east-1a",
+                "type": "g5-standard-1"
+            })
