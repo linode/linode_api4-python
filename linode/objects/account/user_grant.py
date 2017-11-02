@@ -1,16 +1,24 @@
+from linode.objects.base import Base
+from linode.objects.dbase import DerivedBase
+from linode.objects.domain import Domain
+from linode.objects.linode import Linode, StackScript, Volume
+from linode.objects.nodebalancer import NodeBalancer
 
-normal_grants = ('all','access','delete')
-stackscript_grants = ('all','use','edit','delete')
-linode_grants = ('all','access','delete','resize')
+normal_grants = ('all', 'access', 'delete')
+stackscript_grants = ('all', 'use', 'edit', 'delete')
+linode_grants = ('all', 'access', 'delete', 'resize')
+
 
 def get_obj_grants():
     """
     Returns Grant keys mapped to Object types.
     """
-    from linode.objects import (Base, DerivedBase, Linode, Domain, StackScript,
-            NodeBalancer, Volume)
-    return ( ('linode', Linode), ('domain', Domain), ('stackscript', StackScript),
-        ('nodebalancer', NodeBalancer), ('volumes', Volume) )
+    return (('linode', Linode),
+            ('domain', Domain),
+            ('stackscript', StackScript),
+            ('nodebalancer', NodeBalancer),
+            ('volumes', Volume))
+
 
 class Grant:
     def __init__(self, client, cls, dct):
@@ -38,9 +46,10 @@ class Grant:
         """
         Returns this grant in a PUT-able form
         """
-        ret = { g: getattr(self, g) for g in self.grants }
+        ret = {g: getattr(self, g) for g in self.grants}
         ret['id'] = self.id
         return ret
+
 
 class UserGrants:
     api_endpoint = "/account/users/{username}/grants"
@@ -62,8 +71,8 @@ class UserGrants:
 
     def save(self):
         req = {
-            'global': { k: v for k,v in vars(self.global_grants).items() if not k.startswith('_') },
-            'customer': { k: v for k,v in vars(self.customer).items() if not k.startswith('_') },
+            'global': {k: v for k, v in vars(self.global_grants).items() if not k.startswith('_')},
+            'customer': {k: v for k, v in vars(self.customer).items() if not k.startswith('_')},
         }
 
         for key, _ in get_obj_grants():
