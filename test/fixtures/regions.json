@@ -1,0 +1,43 @@
+{
+  "results": 9,
+  "data": [
+    {
+      "country": "us",
+      "id": "us-south-1a"
+    },
+    {
+      "country": "us",
+      "id": "us-west-1a"
+    },
+    {
+      "country": "us",
+      "id": "us-southeast-1a"
+    },
+    {
+      "country": "us",
+      "id": "us-east-1a"
+    },
+    {
+      "country": "uk",
+      "id": "eu-west-1a"
+    },
+    {
+      "country": "sg",
+      "id": "ap-south-1a"
+    },
+    {
+      "country": "de",
+      "id": "eu-central-1a"
+    },
+    {
+      "country": "jp",
+      "id": "ap-northeast-1b"
+    },
+    {
+      "country": "jp",
+      "id": "ap-northeast-1a"
+    }
+  ],
+  "page": 1,
+  "pages": 1
+}

@@ -90,5 +90,9 @@ setup(
         "enum34",
     ],
 
+    tests_require=[
+        "mock",
+    ],
+
     test_suite = 'setup.get_test_suite'
 )

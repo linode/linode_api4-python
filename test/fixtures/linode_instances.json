@@ -1,0 +1,79 @@
+{
+  "page": 1,
+  "pages": 1,
+  "results": 2,
+  "data": [
+    {
+      "group": "test",
+      "hypervisor": "kvm",
+      "id": 123,
+      "status": "running",
+      "type": "g5-standard-1",
+      "alerts": {
+        "network_in": 5,
+        "network_out": 5,
+        "cpu": 90,
+        "transfer_quota": 80,
+        "io": 5000
+      },
+      "label": "linode123",
+      "backups": {
+        "enabled": true,
+        "schedule": {
+          "window": "W02",
+          "day": "Scheduling"
+        }
+      },
+      "specs": {
+        "memory": 2048,
+        "disk": 30720,
+        "vcpus": 1,
+        "transfer": 2000
+      },
+      "ipv6": "1234:abcd::1234:abcd:89ef:67cd/64",
+      "created": "2017-01-01T00:00:00",
+      "region": "us-east-1a",
+      "ipv4": [
+        "123.45.67.89"
+      ],
+      "updated": "2017-01-01T00:00:00",
+      "distribution": "linode/ubuntu16.10"
+    },
+    {
+      "group": "test",
+      "hypervisor": "kvm",
+      "id": 456,
+      "status": "running",
+      "type": "g5-standard-1",
+      "alerts": {
+        "network_in": 5,
+        "network_out": 5,
+        "cpu": 90,
+        "transfer_quota": 80,
+        "io": 5000
+      },
+      "label": "linode456",
+      "backups": {
+        "enabled": true,
+        "schedule": {
+          "window": "W12",
+          "day": "Scheduling"
+        }
+      },
+      "specs": {
+        "memory": 2048,
+        "disk": 30720,
+        "vcpus": 1,
+        "transfer": 2000
+      },
+      "ipv6": "1234:abcd::1234:abcd:89ef:67cd/64",
+      "created": "2017-01-01T00:00:00",
+      "region": "us-east-1a",
+      "ipv4": [
+        "123.45.67.89"
+      ],
+      "updated": "2017-01-01T00:00:00",
+      "distribution": "linode/debian8"
+    }
+  ]
+}
