@@ -34,3 +34,11 @@ class LinodeGroupTest(ClientBaseCase):
                 "region": "us-east-1a",
                 "type": "g5-standard-1"
             })
+
+            r = l.region
+
+            # assert that lazy-loaded relationships work
+            self.assertIsNotNone(r)
+            self.assertEqual(r._populated, False)
+            self.assertEqual(r.country, 'us')
+            self.assertEqual(r._populated, True)

@@ -6,6 +6,9 @@ import json
 import sys
 
 from linode import LinodeClient
+from .fixtures import TestFixtures
+
+FIXTURES = TestFixtures()
 
 class MockResponse:
     def __init__(self, status_code, json):
@@ -29,14 +32,7 @@ def load_json(url):
     while formatted_url.startswith('/'):
         formatted_url = formatted_url[1:]
 
-    formatted_url = formatted_url.replace('/', '_')
-
-    file_path = sys.path[0] + '/responses/GET/' + formatted_url + '.json'
-
-    with open(file_path) as f:
-        response = f.read()
-
-    return json.loads(response)
+    return FIXTURES.get_fixture(formatted_url)
 
 
 def mock_get(url, headers=None, data=None):
