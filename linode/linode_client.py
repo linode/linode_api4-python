@@ -209,14 +209,14 @@ class LongviewGroup(Group):
 
     def create_client(self, label=None):
         """
-        Creates a new LongviewClient, optinoally with a given label.
+        Creates a new LongviewClient, optionally with a given label.
 
         :param label: The label for the new client.  If None, a default label based
             on the new client's ID will be used.
 
         :returns: A new LongviewClient
 
-        :raises ApIError: If a non-200 status code is returned
+        :raises ApiError: If a non-200 status code is returned
         :raises UnexpectedResponseError: If the returned data from the api does
             not look as expected.
         """
