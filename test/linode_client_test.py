@@ -1,4 +1,9 @@
+from datetime import datetime
+
 from test.base import ClientBaseCase
+
+from linode.objects import LongviewClient
+from linode.objects.base import MappedObject
 
 class LinodeClientGeneralTest(ClientBaseCase):
     """
@@ -42,3 +47,69 @@ class LinodeGroupTest(ClientBaseCase):
             self.assertEqual(r._populated, False)
             self.assertEqual(r.country, 'us')
             self.assertEqual(r._populated, True)
+
+class LongviewGroupTest(ClientBaseCase):
+    """
+    Tests methods of the LongviewGroup
+    """
+    def test_get_clients(self):
+        """
+        Tests that a list of LongviewClients can be retrieved
+        """
+        r = self.client.longview.get_clients()
+
+        self.assertEqual(len(r), 2)
+        self.assertEqual(r[0].label, "test_client_1")
+        self.assertEqual(r[0].id, 1234)
+        self.assertEqual(r[1].label, "longview5678")
+        self.assertEqual(r[1].id, 5678)
+
+    def test_get_single_client(self):
+        """
+        Tests that a client is loaded correctly by ID
+        """
+        client = LongviewClient(self.client, 1234)
+        self.assertEqual(client._populated, False)
+
+        self.assertEqual(client.label, 'test_client_1')
+        self.assertEqual(client._populated, True)
+
+        self.assertIsInstance(client.created, datetime)
+        self.assertIsInstance(client.updated, datetime)
+
+        self.assertIsInstance(client.apps, MappedObject)
+        self.assertFalse(client.apps.nginx)
+        self.assertFalse(client.apps.mysql)
+        self.assertFalse(client.apps.apache)
+
+        self.assertEqual(client.install_code, '12345678-ABCD-EF01-23456789ABCDEF12')
+        self.assertEqual(client.api_key, '12345678-ABCD-EF01-23456789ABCDEF12')
+
+    def test_create_client(self):
+        """
+        Tests that creating a client calls the api correctly
+        """
+        with self.mock_post('longview/clients/5678') as m:
+            client = self.client.longview.create_client()
+
+            self.assertIsNotNone(client)
+            self.assertEqual(client.id, 5678)
+            self.assertEqual(client.label, 'longview5678')
+
+            self.assertEqual(m.call_url, '/longview/clients')
+            self.assertEqual(m.call_data, {})
+
+
+    def test_create_client_with_label(self):
+        """
+        Tests that creating a client with a label calls the api correctly
+        """
+        with self.mock_post('longview/clients/1234') as m:
+            client = self.client.longview.create_client(label='test_client_1')
+
+            self.assertIsNotNone(client)
+            self.assertEqual(client.id, 1234)
+            self.assertEqual(client.label, 'test_client_1')
+
+            self.assertEqual(m.call_url, '/longview/clients')
+            self.assertEqual(m.call_data, {"label": "test_client_1"})

@@ -199,6 +199,39 @@ class ProfileGroup(Group):
         return self.client._get_and_filter(AuthorizedApp, *filters)
 
 
+class LongviewGroup(Group):
+    def get_clients(self, *filters):
+        """
+        Requests and returns a paginated list of LongviewClients on your
+        account.
+        """
+        return self.client._get_and_filter(LongviewClient, *filters)
+
+    def create_client(self, label=None):
+        """
+        Creates a new LongviewClient, optinoally with a given label.
+
+        :param label: The label for the new client.  If None, a default label based
+            on the new client's ID will be used.
+
+        :returns: A new LongviewClient
+
+        :raises ApIError: If a non-200 status code is returned
+        :raises UnexpectedResponseError: If the returned data from the api does
+            not look as expected.
+        """
+        result = self.client.post('/longview/clients', data={
+            "label": label
+        })
+
+        if not 'id' in result:
+            raise UnexpectedResponseError('Unexpected response when creating Longivew '
+                'Client!', json=result)
+
+        c = LongviewClient(self.client, result['id'], result)
+        return c
+
+
 class AccountGroup(Group):
     def get_events(self, *filters):
         return self.client._get_and_filter(Event, *filters)
@@ -392,6 +425,7 @@ class LinodeClient:
         self.account = AccountGroup(self)
         self.networking = NetworkingGroup(self)
         self.support = SupportGroup(self)
+        self.longview = LongviewGroup(self)
 
     @property
     def _user_agent(self):

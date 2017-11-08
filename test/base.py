@@ -136,6 +136,31 @@ class ClientBaseCase(TestCase):
 
         :param return_dct: The JSON that should be returned from this POST
 
-        :returns
+        :returns: A MethodMock object who will capture the parameters of the
+            mocked requests
         """
         return MethodMock('post', return_dct)
+
+    def mock_put(self, return_dct):
+        """
+        Returns a MethodMock mocking a PUT.  This should be used in a with
+        statement.
+
+        :param return_dct: The JSON that should be returned from this PUT
+
+        :returns: A MethodMock object who will capture the parameters of the
+            mocked requests
+        """
+        return MethodMock('put', return_dct)
+
+    def mock_delete(self):
+        """
+        Returns a MethodMock mocking a DELETE.  This should be used in a with
+        statement.
+
+        :param return_dct: The JSON that should be returned from this DELETE
+
+        :returns: A MethodMock object who will capture the parameters of the
+            mocked requests
+        """
+        return MethodMock('delete', {})
