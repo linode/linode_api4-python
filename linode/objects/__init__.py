@@ -9,3 +9,4 @@ from .networking import *
 from .nodebalancer import *
 from .support import *
 from .profile import *
+from .longview import *

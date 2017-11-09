@@ -1,0 +1,33 @@
+{
+  "data": [
+    {
+      "created": "2014-12-01T00:01:01",
+      "updated": "2016-06-02T00:01:01",
+      "id": 1234,
+      "label": "test_client_1",
+      "install_code": "12345678-ABCD-EF01-23456789ABCDEF12",
+      "apps": {
+        "nginx": false,
+        "mysql": false,
+        "apache": false
+      },
+      "api_key": "12345678-ABCD-EF01-23456789ABCDEF12"
+    },
+    {
+      "created": "2017-01-01T06:00:00",
+      "updated": "2017-01-01T06:00:00",
+      "id": 5678,
+      "label": "longview5678",
+      "install_code": "12345678-ABCD-EF01-23456789ABCDEF12",
+      "apps": {
+        "nginx": true,
+        "mysql": true,
+        "apache": true
+      },
+      "api_key": "12345678-ABCD-EF01-23456789ABCDEF12"
+    }
+  ],
+  "results": 2,
+  "pages": 1,
+  "page": 1
+}
