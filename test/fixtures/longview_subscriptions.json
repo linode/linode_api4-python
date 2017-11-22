@@ -1,0 +1,43 @@
+{
+  "page": 1,
+  "results": 4,
+  "data": [
+    {
+      "id": "longview-10",
+      "label": "Longview Pro 10 pack",
+      "clients_included": 10,
+      "price": {
+        "hourly": 0.06,
+        "monthly": 40
+      }
+    },
+    {
+      "id": "longview-100",
+      "label": "Longview Pro 100 pack",
+      "clients_included": 100,
+      "price": {
+        "hourly": 0.3,
+        "monthly": 200
+      }
+    },
+    {
+      "id": "longview-3",
+      "label": "Longview Pro 3 pack",
+      "clients_included": 3,
+      "price": {
+        "hourly": 0.03,
+        "monthly": 20
+      }
+    },
+    {
+      "id": "longview-40",
+      "label": "Longview Pro 40 pack",
+      "clients_included": 40,
+      "price": {
+        "hourly": 0.15,
+        "monthly": 100
+      }
+    }
+  ],
+  "pages": 1
+}

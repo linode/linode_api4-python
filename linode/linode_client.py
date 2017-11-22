@@ -231,6 +231,12 @@ class LongviewGroup(Group):
         c = LongviewClient(self.client, result['id'], result)
         return c
 
+    def get_subscriptions(self, *filters):
+        """
+        Requests and returns a paginated list of LongviewSubscriptions available
+        """
+        return self.client._get_and_filter(LongviewSubscription, *filters)
+
 
 class AccountGroup(Group):
     def get_events(self, *filters):
@@ -367,7 +373,7 @@ class NetworkingGroup(Group):
             ips.append(i)
 
         return ips
-    
+
     def allocate_ip(self, linode):
         result = self.client.post('/networking/ipv4/', data={
             "linode_id": linode.id if isinstance(linode, Base) else linode,

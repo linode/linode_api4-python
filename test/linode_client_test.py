@@ -91,3 +91,22 @@ class LongviewGroupTest(ClientBaseCase):
 
             self.assertEqual(m.call_url, '/longview/clients')
             self.assertEqual(m.call_data, {"label": "test_client_1"})
+
+    def test_get_subscriptions(self):
+        """
+        Tests that Longview subscriptions can be retrieved
+        """
+        r = self.client.longview.get_subscriptions()
+
+        self.assertEqual(len(r), 4)
+
+        expected_results = (
+            ("longview-10", "Longview Pro 10 pack"),
+            ("longview-100", "Longview Pro 100 pack"),
+            ("longview-3", "Longview Pro 3 pack"),
+            ("longview-40", "Longview Pro 40 pack"),
+        )
+
+        for result, (expected_id, expected_label) in zip(r, expected_results):
+            self.assertEqual(result.id, expected_id)
+            self.assertEqual(result.label, expected_label)
