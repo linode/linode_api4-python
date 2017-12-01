@@ -1,5 +1,6 @@
 from linode.objects import Base, Property
 
+
 class PersonalAccessToken(Base):
     api_endpoint = "/profile/tokens/{id}"
 
