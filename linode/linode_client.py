@@ -483,26 +483,26 @@ class LinodeClient:
 
         body = json.dumps(data)
 
-        r = method(url, headers=headers, data=body)
+        response = method(url, headers=headers, data=body)
 
-        warning = r.headers.get('Warning', None)
+        warning = response.headers.get('Warning', None)
         if warning:
-            logger.warning('Recieved warning from server: {}'.format(warning))
+            logger.warning('Received warning from server: {}'.format(warning))
 
-        if 399 < r.status_code < 600:
+        if 399 < response.status_code < 600:
             j = None
-            error_msg = '{}: '.format(r.status_code)
+            error_msg = '{}: '.format(response.status_code)
             try:
-                j = r.json()
+                j = response.json()
                 if 'errors' in j.keys():
                     for e in j['errors']:
                         error_msg += '{}; '.format(e['reason']) \
                                 if 'reason' in e.keys() else ''
             except:
                 pass
-            raise ApiError(error_msg, status=r.status_code, json=j)
+            raise ApiError(error_msg, status=response.status_code, json=j)
 
-        j = r.json()
+        j = response.json()
 
         return j
 
