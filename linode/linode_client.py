@@ -1,6 +1,8 @@
+import logging
 import json
 import requests
 import pkg_resources
+
 from datetime import datetime
 
 from linode.errors import ApiError, UnexpectedResponseError
@@ -10,11 +12,15 @@ from linode.objects.filtering import Filter
 from .paginated_list import PaginatedList
 from .common import load_and_validate_keys
 
-package_version = pkg_resources.require("linode-api")[0].version,
+package_version = pkg_resources.require("linode-api")[0].version
+
+logger = logging.getLogger(__name__)
+
 
 class Group:
     def __init__(self, client):
         self.client = client
+
 
 class LinodeGroup(Group):
     def get_distributions(self, *filters):
@@ -478,6 +484,10 @@ class LinodeClient:
         body = json.dumps(data)
 
         r = method(url, headers=headers, data=body)
+
+        warning = r.headers.get('Warning', None)
+        if warning:
+            logger.warning('Recieved warning from server: {}'.format(warning))
 
         if 399 < r.status_code < 600:
             j = None
