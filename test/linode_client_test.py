@@ -1,7 +1,5 @@
 from test.base import ClientBaseCase
 
-from linode.objects import LongviewClient
-
 
 class LinodeClientGeneralTest(ClientBaseCase):
     """

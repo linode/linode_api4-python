@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from test.base import ClientBaseCase
 from linode.objects.base import MappedObject
 
