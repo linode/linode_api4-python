@@ -1,7 +1,8 @@
 from .. import DerivedBase, Property
 from ..base import MappedObject
-from .kernel import Kernel
 from .disk import Disk
+from .kernel import Kernel
+from .volume import Volume
 
 class Config(DerivedBase):
     api_endpoint="/linode/instances/{linode_id}/configs/{id}"
@@ -29,7 +30,6 @@ class Config(DerivedBase):
         """
         Map devices more nicely while populating.
         """
-        from .volume import Volume
 
         DerivedBase._populate(self, json)
 

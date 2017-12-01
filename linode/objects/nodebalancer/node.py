@@ -1,5 +1,4 @@
 from .. import DerivedBase, Property
-from ..base import MappedObject
 
 class NodeBalancerNode(DerivedBase):
     api_endpoint = '/nodebalancers/{nodebalancer_id}/configs/{config_id}/nodes/{id}'

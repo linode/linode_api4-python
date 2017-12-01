@@ -1,5 +1,4 @@
 from linode.objects import Base, Property
-from linode.objects.account import OAuthClient
 
 class AuthorizedApp(Base):
     api_endpoint = "/profile/apps/{id}"
