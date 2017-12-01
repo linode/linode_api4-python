@@ -1,9 +1,6 @@
-import json
 from unittest import TestCase
 from mock import patch
-import requests
 import json
-import sys
 
 from linode import LinodeClient
 from .fixtures import TestFixtures
@@ -11,9 +8,11 @@ from .fixtures import TestFixtures
 FIXTURES = TestFixtures()
 
 class MockResponse:
-    def __init__(self, status_code, json):
+    def __init__(self, status_code, json, headers={}):
         self.status_code = status_code
         self._json = json
+        # Headers is a dict, do not want to use a getter here
+        self.headers = headers
 
     def json(self):
         return self._json
