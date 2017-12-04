@@ -1,8 +1,9 @@
 import os
 
-from .. import DerivedBase, Property
-from ..base import MappedObject
 from .node import NodeBalancerNode
+from .. import DerivedBase, Property
+from ...errors import UnexpectedResponseError
+
 
 class NodeBalancerConfig(DerivedBase):
     api_endpoint = '/nodebalancers/{nodebalancer_id}/configs/{id}'

@@ -3,7 +3,6 @@ from .. import Linode, StackScript, Domain, Volume
 from linode.objects.nodebalancer.nodebalancer import NodeBalancer
 from linode.objects.support.ticket import SupportTicket
 
-from random import choice
 
 class Event(Base):
     api_endpoint = '/account/events/{id}'
@@ -32,7 +31,7 @@ class Event(Base):
     @property
     def stackscript(self):
         if self.entity and self.entity.type == 'stackscript':
-            return Stackscript(self._client, self.entity.id)
+            return StackScript(self._client, self.entity.id)
         return None
 
     @property

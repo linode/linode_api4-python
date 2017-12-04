@@ -1,5 +1,4 @@
 from .base import Base
-from .. import errors
 
 class DerivedBase(Base):
     """

@@ -1,6 +1,7 @@
-from ...errors import UnexpectedResponseError
-from .. import Base, Property
 from .whitelist_entry import WhitelistEntry
+from .. import Base, Property
+from ...errors import UnexpectedResponseError
+
 
 class Profile(Base):
     api_endpoint = "/profile"

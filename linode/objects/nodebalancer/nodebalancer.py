@@ -1,9 +1,9 @@
+from .config import NodeBalancerConfig
 from .. import Base, Property
-from ..base import MappedObject
 from ..networking.ipaddress import IPAddress
 from ..region import Region
+from ...errors import UnexpectedResponseError
 
-from .config import NodeBalancerConfig
 
 class NodeBalancer(Base):
     api_endpoint = '/nodebalancers/{id}'

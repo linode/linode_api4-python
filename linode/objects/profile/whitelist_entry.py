@@ -1,4 +1,3 @@
-from ...errors import UnexpectedResponseError
 from .. import Base, Property
 
 class WhitelistEntry(Base):
