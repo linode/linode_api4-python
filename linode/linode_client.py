@@ -50,33 +50,6 @@ class LinodeGroup(Group):
     def get_kernels(self, *filters):
         return self.client._get_and_filter(Kernel, *filters)
 
-    def get_volumes(self, *filters):
-        return self.client._get_and_filter(Volume, *filters)
-
-    def create_volume(self, label, region=None, linode=None, size=20, **kwargs):
-        """
-        Creates a new Block Storage Volume, either in the given region, or attached
-        to the given linode.
-        """
-        if not (region or linode):
-            raise ValueError('region or linode required!')
-
-        params = {
-            "label": label,
-            "size": size,
-            "region": region.id if issubclass(type(region), Base) else region,
-            "linode_id": linode.id if issubclass(type(linode), Base) else linode,
-        }
-        params.update(kwargs)
-
-        result = self.client.post('/linode/volumes', data=params)
-
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating volume!', json=result)
-
-        v = Volume(self.client, result['id'], result)
-        return v
-
     # create things
     def create_instance(self, ltype, region, image=None,
             authorized_keys=None, **kwargs):
@@ -584,6 +557,33 @@ class LinodeClient:
 
         d = Domain(self, result['id'], result)
         return d
+
+    def get_volumes(self, *filters):
+        return self._get_and_filter(Volume, *filters)
+
+    def create_volume(self, label, region=None, linode=None, size=20, **kwargs):
+        """
+        Creates a new Block Storage Volume, either in the given region, or attached
+        to the given linode.
+        """
+        if not (region or linode):
+            raise ValueError('region or linode required!')
+
+        params = {
+            "label": label,
+            "size": size,
+            "region": region.id if issubclass(type(region), Base) else region,
+            "linode_id": linode.id if issubclass(type(linode), Base) else linode,
+        }
+        params.update(kwargs)
+
+        result = self.post('/volumes', data=params)
+
+        if not 'id' in result:
+            raise UnexpectedResponseError('Unexpected response when creating volume!', json=result)
+
+        v = Volume(self, result['id'], result)
+        return v
 
     # helper functions
     def _filter_list(self, results, **filter_by):
