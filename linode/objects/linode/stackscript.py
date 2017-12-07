@@ -1,5 +1,5 @@
 from .. import Base, Property
-from .distribution import Distribution
+from linode.objects import Image
 
 from enum import Enum
 
@@ -31,7 +31,7 @@ class StackScript(Base):
         "created": Property(is_datetime=True),
         "deployments_active": Property(),
         "script": Property(mutable=True),
-        "distributions": Property(mutable=True, filterable=True), # TODO make slug_relationship
+        "images": Property(mutable=True, filterable=True), # TODO make slug_relationship
         "deployments_total": Property(),
         "description": Property(mutable=True, filterable=True),
         "updated": Property(is_datetime=True),
@@ -61,10 +61,10 @@ class StackScript(Base):
                     t, choices=choices))
 
         self._set('user_defined_fields', mapped_udfs)
-        ndist = [ Distribution(self._client, d) for d in self.distributions ]
-        self._set('distributions', ndist)
+        ndist = [ Image(self._client, d) for d in self.images ]
+        self._set('images', ndist)
 
     def _serialize(self):
         dct = Base._serialize(self)
-        dct['distributions'] = [ d.id for d in self.distributions ]
+        dct['images'] = [ d.id for d in self.images ]
         return dct
