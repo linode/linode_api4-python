@@ -1,4 +1,4 @@
-from linode.objects import Base, Property
+from .base import Base, Property
 
 class Image(Base):
     """

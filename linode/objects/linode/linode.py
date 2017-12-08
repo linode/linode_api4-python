@@ -7,8 +7,7 @@ from .disk import Disk
 from .config import Config
 from .backup import Backup
 from .linode_type import Type
-from .. import Region
-from linode.objects import Image
+from .. import Image, Region
 from ..networking import IPAddress
 from ..networking import IPv6Address
 from ..networking import IPv6Pool

@@ -1,5 +1,4 @@
-from .. import Base, Property
-from linode.objects import Image
+from .. import Base, Image, Property
 
 from enum import Enum
 
