@@ -1,6 +1,8 @@
+import logging
 import json
 import requests
 import pkg_resources
+
 from datetime import datetime
 
 from linode.errors import ApiError, UnexpectedResponseError
@@ -10,11 +12,15 @@ from linode.objects.filtering import Filter
 from .paginated_list import PaginatedList
 from .common import load_and_validate_keys
 
-package_version = pkg_resources.require("linode-api")[0].version,
+package_version = pkg_resources.require("linode-api")[0].version
+
+logger = logging.getLogger(__name__)
+
 
 class Group:
     def __init__(self, client):
         self.client = client
+
 
 class LinodeGroup(Group):
     def get_types(self, *filters):
@@ -474,22 +480,26 @@ class LinodeClient:
 
         body = json.dumps(data)
 
-        r = method(url, headers=headers, data=body)
+        response = method(url, headers=headers, data=body)
 
-        if 399 < r.status_code < 600:
+        warning = response.headers.get('Warning', None)
+        if warning:
+            logger.warning('Received warning from server: {}'.format(warning))
+
+        if 399 < response.status_code < 600:
             j = None
-            error_msg = '{}: '.format(r.status_code)
+            error_msg = '{}: '.format(response.status_code)
             try:
-                j = r.json()
+                j = response.json()
                 if 'errors' in j.keys():
                     for e in j['errors']:
                         error_msg += '{}; '.format(e['reason']) \
                                 if 'reason' in e.keys() else ''
             except:
                 pass
-            raise ApiError(error_msg, status=r.status_code, json=j)
+            raise ApiError(error_msg, status=response.status_code, json=j)
 
-        j = r.json()
+        j = response.json()
 
         return j
 
