@@ -1,9 +1,14 @@
 from linode.objects.base import Base
 from linode.objects.dbase import DerivedBase
 from linode.objects.domain import Domain
-from linode.objects.linode import Linode, StackScript, Volume
+from linode.objects.linode import Linode, StackScript
 from linode.objects.nodebalancer import NodeBalancer
 from linode.objects.longview import LongviewClient
+from linode.objects.volume import Volume
+
+normal_grants = ('all', 'access', 'delete')
+stackscript_grants = ('all', 'use', 'edit', 'delete')
+linode_grants = ('all', 'access', 'delete', 'resize')
 
 
 def get_obj_grants():

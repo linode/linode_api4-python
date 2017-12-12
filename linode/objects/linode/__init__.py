@@ -5,4 +5,3 @@ from .stackscript import StackScript
 from .config import Config
 from .backup import Backup
 from .linode_type import Type
-from .volume import Volume

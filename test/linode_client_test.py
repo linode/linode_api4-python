@@ -22,6 +22,15 @@ class LinodeClientGeneralTest(ClientBaseCase):
             self.assertTrue(image._populated)
             self.assertIsNotNone(image.id)
 
+    def test_get_volumes(self):
+        v = self.client.get_volumes()
+
+        self.assertEqual(len(v), 2)
+        self.assertEqual(v[0].label, 'block1')
+        self.assertEqual(v[0].region.id, 'us-east-1a')
+        self.assertEqual(v[1].label, 'block2')
+        self.assertEqual(v[1].size, 100)
+
 
 class LinodeGroupTest(ClientBaseCase):
     """
