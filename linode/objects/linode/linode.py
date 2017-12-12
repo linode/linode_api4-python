@@ -7,8 +7,7 @@ from .disk import Disk
 from .config import Config
 from .backup import Backup
 from .linode_type import Type
-from .. import Region
-from .distribution import Distribution
+from .. import Image, Region
 from ..networking import IPAddress
 from ..networking import IPv6Address
 from ..networking import IPv6Pool
@@ -28,7 +27,7 @@ class Linode(Base):
         'updated': Property(volatile=True, is_datetime=True),
         'region': Property(slug_relationship=Region, filterable=True),
         'alerts': Property(),
-        'distribution': Property(slug_relationship=Distribution, filterable=True),
+        'image': Property(slug_relationship=Image, filterable=True),
         'disks': Property(derived_class=Disk),
         'configs': Property(derived_class=Config),
         'type': Property(slug_relationship=Type),
@@ -263,18 +262,18 @@ class Linode(Base):
         c = Config(self._client, result['id'], self.id, result)
         return c
 
-    def create_disk(self, size, label=None, filesystem=None, read_only=False, distribution=None, \
+    def create_disk(self, size, label=None, filesystem=None, read_only=False, image=None,
             root_pass=None, authorized_keys=None, stackscript=None, **stackscript_args):
 
         gen_pass = None
-        if distribution and not root_pass:
+        if image and not root_pass:
             gen_pass  = Linode.generate_root_password()
             root_pass = gen_pass
 
         authorized_keys = load_and_validate_keys(authorized_keys)
 
-        if distribution and not label:
-            label = "My {} Disk".format(distribution.label)
+        if image and not label:
+            label = "My {} Disk".format(image.label)
 
         params = {
             'size': size,
@@ -284,9 +283,9 @@ class Linode(Base):
             'authorized_keys': authorized_keys,
         }
 
-        if distribution:
+        if image:
             params.update({
-                'distribution': distribution.id if issubclass(type(distribution), Base) else distribution,
+                'image': image.id if issubclass(type(image), Base) else image,
                 'root_pass': root_pass,
             })
 
@@ -341,7 +340,7 @@ class Linode(Base):
         i = IPAddress(self._client, result['address'], result)
         return i
 
-    def rebuild(self, distribution, root_pass=None, authorized_keys=None, **kwargs):
+    def rebuild(self, image, root_pass=None, authorized_keys=None, **kwargs):
         ret_pass = None
         if not root_pass:
             ret_pass = Linode.generate_root_password()
@@ -350,7 +349,7 @@ class Linode(Base):
         authorized_keys = load_and_validate_keys(authorized_keys)
 
         params = {
-             'distribution': distribution.id if issubclass(type(distribution), Base) else distribution,
+             'image': image.id if issubclass(type(image), Base) else image,
              'root_pass': root_pass,
              'authorized_keys': authorized_keys,
          }

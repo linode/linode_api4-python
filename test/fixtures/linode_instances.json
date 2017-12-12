@@ -37,7 +37,7 @@
         "123.45.67.89"
       ],
       "updated": "2017-01-01T00:00:00",
-      "distribution": "linode/ubuntu16.10"
+      "image": "linode/ubuntu17.04"
     },
     {
       "group": "test",
@@ -73,7 +73,7 @@
         "123.45.67.89"
       ],
       "updated": "2017-01-01T00:00:00",
-      "distribution": "linode/debian8"
+      "image": "linode/debian9"
     }
   ]
 }

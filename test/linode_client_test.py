@@ -14,6 +14,14 @@ class LinodeClientGeneralTest(ClientBaseCase):
             self.assertIsNotNone(region.id)
             self.assertIsNotNone(region.country)
 
+    def test_get_images(self):
+        r = self.client.get_images()
+
+        self.assertEqual(len(r), 4)
+        for image in r:
+            self.assertTrue(image._populated)
+            self.assertIsNotNone(image.id)
+
 
 class LinodeGroupTest(ClientBaseCase):
     """
@@ -36,13 +44,26 @@ class LinodeGroupTest(ClientBaseCase):
                 "type": "g5-standard-1"
             })
 
-            r = l.region
+    def test_create_linode_with_image(self):
+        """
+        Tests that a Linode can be created with an image, and a password generated
+        """
+        with self.mock_post('linode/instances/123') as m:
+            l, pw = self.client.linode.create_instance(
+                'g5-standard-1', 'us-east-1a', image='linode/debian9')
 
-            # assert that lazy-loaded relationships work
-            self.assertIsNotNone(r)
-            self.assertEqual(r._populated, False)
-            self.assertEqual(r.country, 'us')
-            self.assertEqual(r._populated, True)
+            self.assertIsNotNone(l)
+            self.assertEqual(l.id, 123)
+
+            self.assertEqual(m.call_url, '/linode/instances')
+
+            self.assertEqual(m.call_data, {
+                "region": "us-east-1a",
+                "type": "g5-standard-1",
+                "image": "linode/debian9",
+                "root_pass": pw,
+            })
+
 
 class LongviewGroupTest(ClientBaseCase):
     """

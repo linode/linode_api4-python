@@ -17,9 +17,6 @@ class Group:
         self.client = client
 
 class LinodeGroup(Group):
-    def get_distributions(self, *filters):
-        return self.client._get_and_filter(Distribution, *filters)
-
     def get_types(self, *filters):
         return self.client._get_and_filter(Type, *filters)
 
@@ -75,7 +72,7 @@ class LinodeGroup(Group):
         return v
 
     # create things
-    def create_instance(self, ltype, region, distribution=None,
+    def create_instance(self, ltype, region, image=None,
             authorized_keys=None, **kwargs):
         """
         Creates a new Linode.  This takes a number of parameters in **kwargs
@@ -85,7 +82,7 @@ class LinodeGroup(Group):
 
         :param ltype: The Linode Type we are creating
         :param region: The Region in which we are creating the Linode
-        :param distribution: The distribution to deploy to this Linode
+        :param image: The image to deploy to this Linode
         :param authorized_keys: The ssh public keys to install on the linode's
                                 /root/.ssh/authorized_keys file
         :param **kwargs: Any other fields to pass to the api
@@ -97,7 +94,7 @@ class LinodeGroup(Group):
                                          an outdated library.
         """
         ret_pass = None
-        if distribution and not 'root_pass' in kwargs:
+        if image and not 'root_pass' in kwargs:
             ret_pass = Linode.generate_root_password()
             kwargs['root_pass'] = ret_pass
 
@@ -106,7 +103,7 @@ class LinodeGroup(Group):
         params = {
              'type': ltype.id if issubclass(type(ltype), Base) else ltype,
              'region': region.id if issubclass(type(region), Base) else region,
-             'distribution': (distribution.id if issubclass(type(distribution), Base) else distribution) if distribution else None,
+             'image': (image.id if issubclass(type(image), Base) else image) if image else None,
              'authorized_keys': authorized_keys,
          }
         params.update(kwargs)
@@ -121,16 +118,16 @@ class LinodeGroup(Group):
             return l
         return l, ret_pass
 
-    def create_stackscript(self, label, script, distros, desc=None, public=False, **kwargs):
-        distro_list = None
-        if type(distros) is list or type(distros) is PaginatedList:
-            distro_list = [ d.id if issubclass(type(d), Base) else d for d in distros ]
-        elif type(distros) is Distribution:
-            distro_list = [ distros.id ]
-        elif type(distros) is str:
-            distro_list = [ distros ]
+    def create_stackscript(self, label, script, images, desc=None, public=False, **kwargs):
+        image_list = None
+        if type(images) is list or type(images) is PaginatedList:
+            images_list = [d.id if issubclass(type(d), Base) else d for d in images ]
+        elif type(images) is Image:
+            image_list = [images.id]
+        elif type(images) is str:
+            images_list = [images]
         else:
-            raise ValueError('distros must be a list of Distributions or a single Distribution')
+            raise ValueError('images must be a list of Images or a single Image')
 
         script_body = script
         if not script.startswith("#!"):
@@ -144,7 +141,7 @@ class LinodeGroup(Group):
 
         params = {
             "label": label,
-            "distributions": distro_list,
+            "image": image_list,
             "is_public": public,
             "script": script_body,
             "description": desc if desc else '',
@@ -539,6 +536,9 @@ class LinodeClient:
 
         p = Profile(self, result['username'], result)
         return p
+
+    def get_images(self, *filters):
+        return self._get_and_filter(Image, *filters)
 
     def get_domains(self, *filters):
         return self._get_and_filter(Domain, *filters)
