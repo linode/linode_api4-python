@@ -29,7 +29,7 @@ class Config(DerivedBase):
         """
         Map devices more nicely while populating.
         """
-        from .volume import Volume
+        from ..volume import Volume
 
         DerivedBase._populate(self, json)
 
