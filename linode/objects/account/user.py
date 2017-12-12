@@ -12,6 +12,14 @@ class User(Base):
 
     @property
     def grants(self):
+        """
+        Retrieves the grants for this user.  If the user is unrestricted, this
+        will result in an ApiError.  This is smart, and will only fetch from the
+        api once unless the object is invalidated.
+
+        :returns: The grants for this user.
+        :rtype: linode.objects.account.UserGrants
+        """
         from linode.objects.account import UserGrants
         if not hasattr(self, '_grants'):
             resp = self._client.get(UserGrants.api_endpoint.format(username=self.username))
