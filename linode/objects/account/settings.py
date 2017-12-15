@@ -1,5 +1,6 @@
 from linode.objects import Base, Property
 
+
 class AccountSettings(Base):
     api_endpoint = "/account/settings"
     id_attribute = 'email'
@@ -19,4 +20,5 @@ class AccountSettings(Base):
         "email": Property(mutable=True),
         "zip": Property(mutable=True),
         "address_2": Property(mutable=True),
+        "vat_number": Property(mutable=True),
     }
