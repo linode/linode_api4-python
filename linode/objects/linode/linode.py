@@ -199,7 +199,7 @@ class Linode(Base):
 
         :returns: A new Linode Config
         """
-        from .volume import Volume
+        from ..volume import Volume
 
         hypervisor_prefix = 'sd' if self.hypervisor == 'kvm' else 'xvd'
         device_names = [hypervisor_prefix + string.ascii_lowercase[i] for i in range(0, 8)]
