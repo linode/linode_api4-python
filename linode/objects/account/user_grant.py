@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 from linode.objects.base import Base
 from linode.objects.dbase import DerivedBase
 from linode.objects.domain import Domain

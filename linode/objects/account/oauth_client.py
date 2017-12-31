@@ -1,7 +1,9 @@
+from __future__ import absolute_import
+
 import requests
 from linode.objects import Base, Property
 
-from ...errors import ApiError, UnexpectedResponseError
+from linode.errors import ApiError, UnexpectedResponseError
 
 
 class OAuthClient(Base):
