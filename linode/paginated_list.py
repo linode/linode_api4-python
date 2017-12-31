@@ -1,5 +1,6 @@
 import math
 
+
 class PaginatedList(object):
     def __init__(self, client, page_endpoint, page=[], max_pages=1,
             total_items=None, parent_id=None, filters=None):

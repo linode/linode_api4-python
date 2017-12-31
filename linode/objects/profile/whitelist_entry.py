@@ -1,5 +1,6 @@
 from .. import Base, Property
 
+
 class WhitelistEntry(Base):
     api_endpoint = "/profile/whitelist/{id}"
 
@@ -9,4 +10,3 @@ class WhitelistEntry(Base):
         'netmask': Property(),
         'note': Property(),
     }
-

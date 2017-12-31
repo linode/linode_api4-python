@@ -1,5 +1,6 @@
 import os
 
+
 def load_and_validate_keys(authorized_keys):
     """
     Loads authorized_keys as taken by create_linode, create_disk or rebuild, and

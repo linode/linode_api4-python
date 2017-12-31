@@ -1,6 +1,7 @@
+from enum import Enum
+
 from .. import Base, Image, Property
 
-from enum import Enum
 
 class UserDefinedFieldType(Enum):
     text = 1

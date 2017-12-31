@@ -1,5 +1,6 @@
 from .. import Base, Property
 
+
 class Type(Base):
     api_endpoint = "/linode/types/{id}"
     properties = {

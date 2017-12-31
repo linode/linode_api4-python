@@ -1,8 +1,8 @@
-from .config import NodeBalancerConfig
 from .. import Base, Property
+from ...errors import UnexpectedResponseError
 from ..networking.ipaddress import IPAddress
 from ..region import Region
-from ...errors import UnexpectedResponseError
+from .config import NodeBalancerConfig
 
 
 class NodeBalancer(Base):

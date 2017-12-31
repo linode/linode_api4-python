@@ -1,5 +1,6 @@
 from linode.objects import Base, Property
 
+
 class User(Base):
     api_endpoint = "/account/users/{id}"
     id_attribute = 'username'

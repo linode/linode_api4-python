@@ -1,5 +1,6 @@
 from linode.objects import Base, Property
 
+
 class LongviewClient(Base):
 
     api_endpoint = '/longview/clients/{id}'

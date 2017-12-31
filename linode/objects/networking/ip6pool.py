@@ -1,5 +1,6 @@
 from .. import Base, Property, Region
 
+
 class IPv6Pool(Base):
     api_endpoint = '/networking/ipv6/{}'
     id_attribute = 'range'

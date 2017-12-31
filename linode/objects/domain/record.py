@@ -1,5 +1,5 @@
-from linode.objects import DerivedBase
-from linode.objects import Property
+from linode.objects import DerivedBase, Property
+
 
 class DomainRecord(DerivedBase):
     api_endpoint = "/domains/{domain_id}/records/{id}"

@@ -1,5 +1,6 @@
 from .. import DerivedBase, Property
 
+
 class InvoiceItem(DerivedBase):
     api_endpoint = '/account/invoices/{invoice_id}/items'
     derived_url_path = 'items'

@@ -1,6 +1,8 @@
-from ...errors import UnexpectedResponseError
 from linode.objects import Base, Property
+
+from ...errors import UnexpectedResponseError
 from .record import DomainRecord
+
 
 class Domain(Base):
     api_endpoint = "/domains/{id}"

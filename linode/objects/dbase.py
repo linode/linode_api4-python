@@ -1,5 +1,6 @@
 from .base import Base
 
+
 class DerivedBase(Base):
     """
     The DerivedBase class holds information about an object who belongs to another object

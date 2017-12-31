@@ -1,6 +1,6 @@
-from .whitelist_entry import WhitelistEntry
 from .. import Base, Property
 from ...errors import UnexpectedResponseError
+from .whitelist_entry import WhitelistEntry
 
 
 class Profile(Base):

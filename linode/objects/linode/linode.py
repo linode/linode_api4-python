@@ -1,20 +1,17 @@
 import string
-
-from ...errors import UnexpectedResponseError
-from .. import Base, Property
-from ..base import MappedObject
-from .disk import Disk
-from .config import Config
-from .backup import Backup
-from .linode_type import Type
-from .. import Image, Region
-from ..networking import IPAddress
-from ..networking import IPv6Address
-from ..networking import IPv6Pool
-from ...paginated_list import PaginatedList
-from ...common import load_and_validate_keys
-
 from random import choice
+
+from .. import Base, Image, Property, Region
+from ...common import load_and_validate_keys
+from ...errors import UnexpectedResponseError
+from ...paginated_list import PaginatedList
+from ..base import MappedObject
+from ..networking import IPAddress, IPv6Address, IPv6Pool
+from .backup import Backup
+from .config import Config
+from .disk import Disk
+from .linode_type import Type
+
 
 class Linode(Base):
     api_endpoint = '/linode/instances/{id}'

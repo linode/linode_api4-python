@@ -1,10 +1,10 @@
 import requests
-
-from .. import Base, Property
-from .. import Linode, Domain, Volume
 from linode.objects.nodebalancer.nodebalancer import NodeBalancer
+
+from .. import Base, Domain, Linode, Property, Volume
 from ...errors import ApiError
 from .reply import TicketReply
+
 
 class SupportTicket(Base):
     api_endpoint = '/support/tickets/{id}'

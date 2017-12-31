@@ -1,6 +1,7 @@
 from .. import Base, Property
 from ..region import Region
 
+
 class IPAddress(Base):
     api_endpoint = '/networking/ipv4/{address}'
     id_attribute = 'address'

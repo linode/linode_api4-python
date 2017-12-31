@@ -1,5 +1,6 @@
 from .. import Base, Property
 
+
 class Kernel(Base):
     api_endpoint="/linode/kernels/{id}"
     properties = {

@@ -1,5 +1,6 @@
 from builtins import super
 
+
 class ApiError(RuntimeError):
     """
     An API Error is any error returned from the API.  These

@@ -1,5 +1,6 @@
 from .base import Base, Property
 
+
 class Image(Base):
     """
     An Image is something a Linode or Disk can be deployed from.

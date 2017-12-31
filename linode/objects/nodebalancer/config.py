@@ -1,8 +1,8 @@
 import os
 
-from .node import NodeBalancerNode
 from .. import DerivedBase, Property
 from ...errors import UnexpectedResponseError
+from .node import NodeBalancerNode
 
 
 class NodeBalancerConfig(DerivedBase):

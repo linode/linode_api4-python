@@ -1,16 +1,16 @@
-import logging
 import json
-import requests
-import pkg_resources
-
+import logging
 from datetime import datetime
 
+import pkg_resources
+import requests
 from linode.errors import ApiError, UnexpectedResponseError
 from linode.objects import *
 from linode.objects.base import MappedObject
 from linode.objects.filtering import Filter
-from .paginated_list import PaginatedList
+
 from .common import load_and_validate_keys
+from .paginated_list import PaginatedList
 
 package_version = pkg_resources.require("linode-api")[0].version
 

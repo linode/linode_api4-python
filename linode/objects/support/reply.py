@@ -1,5 +1,6 @@
 from .. import DerivedBase, Property
 
+
 class TicketReply(DerivedBase):
     api_endpoint = '/support/tickets/{ticket_id}/replies'
     derived_url_path = 'replies'
