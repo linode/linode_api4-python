@@ -1,5 +1,7 @@
-from .. import Base, Property
-from ...errors import UnexpectedResponseError
+from __future__ import absolute_import
+
+from linode.objects import Base, Property
+from linode.errors import UnexpectedResponseError
 from .whitelist_entry import WhitelistEntry
 
 

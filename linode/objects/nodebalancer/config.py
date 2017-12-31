@@ -1,7 +1,9 @@
+from __future__ import absolute_import
+
 import os
 
-from .. import DerivedBase, Property
-from ...errors import UnexpectedResponseError
+from linode.objects import DerivedBase, Property
+from linode.errors import UnexpectedResponseError
 from .node import NodeBalancerNode
 
 
