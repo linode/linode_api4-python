@@ -1,12 +1,15 @@
+from __future__ import absolute_import
+
 import string
 from random import choice
 
-from .. import Base, Image, Property, Region
-from ...common import load_and_validate_keys
-from ...errors import UnexpectedResponseError
-from ...paginated_list import PaginatedList
-from ..base import MappedObject
-from ..networking import IPAddress, IPv6Address, IPv6Pool
+from linode.objects import Base, Property
+from linode.objects import Image, Region
+from linode.common import load_and_validate_keys
+from linode.errors import UnexpectedResponseError
+from linode.paginated_list import PaginatedList
+from linode.objects.base import MappedObject
+from linode.objects.networking import IPAddress, IPv6Address, IPv6Pool
 from .backup import Backup
 from .config import Config
 from .disk import Disk

@@ -1,5 +1,6 @@
-from .. import DerivedBase, Property
-from ..base import MappedObject
+from __future__ import absolute_import
+
+from linode.objects import DerivedBase, Property, MappedObject
 from .disk import Disk
 from .kernel import Kernel
 

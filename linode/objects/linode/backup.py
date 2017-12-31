@@ -1,4 +1,6 @@
-from .. import Base, DerivedBase, Property, Region
+from __future__ import absolute_import
+
+from linode.objects import Base, DerivedBase, Property, Region
 
 
 class Backup(DerivedBase):

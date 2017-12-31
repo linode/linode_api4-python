@@ -1,5 +1,7 @@
-from .. import DerivedBase, Property
-from ...errors import UnexpectedResponseError
+from __future__ import absolute_import
+
+from linode.objects import DerivedBase, Property
+from linode.errors import UnexpectedResponseError
 
 
 class Disk(DerivedBase):
