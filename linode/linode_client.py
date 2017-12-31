@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import json
 import logging
 from datetime import datetime
@@ -6,7 +8,6 @@ import pkg_resources
 import requests
 from linode.errors import ApiError, UnexpectedResponseError
 from linode.objects import *
-from linode.objects.base import MappedObject
 from linode.objects.filtering import Filter
 
 from .common import load_and_validate_keys
