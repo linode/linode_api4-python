@@ -1,4 +1,6 @@
-from .base import Base, Property
+from __future__ import absolute_import
+
+from linode.objects import Base, Property
 
 
 class Region(Base):
