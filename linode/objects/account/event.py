@@ -1,9 +1,8 @@
 from __future__ import absolute_import
 
+from linode.objects import Base, Domain, Linode, Property, StackScript, Volume
 from linode.objects.nodebalancer.nodebalancer import NodeBalancer
 from linode.objects.support.ticket import SupportTicket
-
-from linode.objects import Base, Domain, Linode, Property, StackScript, Volume
 
 
 class Event(Base):

@@ -3,13 +3,13 @@ from __future__ import absolute_import
 import string
 from random import choice
 
-from linode.objects import Base, Property
-from linode.objects import Image, Region
 from linode.common import load_and_validate_keys
 from linode.errors import UnexpectedResponseError
-from linode.paginated_list import PaginatedList
+from linode.objects import Base, Image, Property, Region
 from linode.objects.base import MappedObject
 from linode.objects.networking import IPAddress, IPv6Address, IPv6Pool
+from linode.paginated_list import PaginatedList
+
 from .backup import Backup
 from .config import Config
 from .disk import Disk

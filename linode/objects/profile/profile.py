@@ -1,7 +1,8 @@
 from __future__ import absolute_import
 
-from linode.objects import Base, Property
 from linode.errors import UnexpectedResponseError
+from linode.objects import Base, Property
+
 from .whitelist_entry import WhitelistEntry
 
 

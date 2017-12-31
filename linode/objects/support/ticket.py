@@ -1,10 +1,10 @@
 from __future__ import absolute_import
 
 import requests
+from linode.errors import ApiError
+from linode.objects import Base, Domain, Linode, Property, Volume
 from linode.objects.nodebalancer.nodebalancer import NodeBalancer
 
-from linode.objects import Base, Domain, Linode, Property, Volume
-from linode.errors import ApiError
 from .reply import TicketReply
 
 

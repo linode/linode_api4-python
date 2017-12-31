@@ -1,8 +1,8 @@
 from __future__ import absolute_import
 
+from linode.errors import UnexpectedResponseError
 from linode.objects import Base, Property
 
-from linode.errors import UnexpectedResponseError
 from .record import DomainRecord
 
 
