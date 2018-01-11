@@ -1,7 +1,4 @@
-from datetime import datetime
-
 from test.base import ClientBaseCase
-from linode.objects.base import MappedObject
 
 from linode.objects import Image
 
@@ -25,5 +22,6 @@ class ImageTest(ClientBaseCase):
         self.assertEqual(image.deprecated, False)
         self.assertEqual(image.status, "available")
         self.assertEqual(image.type, "manual")
-        self.assertEqual(image.creator, "linode")
-        self.assertEqual(image.filesystem, "ext4")
+        self.assertEqual(image.created_by, "linode")
+        self.assertEqual(image.size, 1100)
+

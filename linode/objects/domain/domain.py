@@ -19,6 +19,7 @@ class Domain(Base):
         'ttl_sec': Property(mutable=True),
         'records': Property(derived_class=DomainRecord),
         'type': Property(mutable=True),
+        'zonefile': Property()
     }
 
     def create_record(self, record_type, **kwargs):
