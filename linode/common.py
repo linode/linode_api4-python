@@ -1,4 +1,7 @@
+from __future__ import absolute_import
+
 import os
+
 
 def load_and_validate_keys(authorized_keys):
     """

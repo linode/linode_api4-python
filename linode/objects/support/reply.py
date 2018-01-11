@@ -1,4 +1,7 @@
-from .. import DerivedBase, Property
+from __future__ import absolute_import
+
+from linode.objects import DerivedBase, Property
+
 
 class TicketReply(DerivedBase):
     api_endpoint = '/support/tickets/{ticket_id}/replies'

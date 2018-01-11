@@ -1,6 +1,9 @@
-from .. import Base, Image, Property
+from __future__ import absolute_import
 
 from enum import Enum
+
+from linode.objects import Base, Image, Property
+
 
 class UserDefinedFieldType(Enum):
     text = 1

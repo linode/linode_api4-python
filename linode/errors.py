@@ -1,4 +1,7 @@
+from __future__ import absolute_import
+
 from builtins import super
+
 
 class ApiError(RuntimeError):
     """

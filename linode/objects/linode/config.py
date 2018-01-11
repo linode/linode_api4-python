@@ -1,7 +1,10 @@
-from .. import DerivedBase, Property
-from ..base import MappedObject
-from .kernel import Kernel
+from __future__ import absolute_import
+
+from linode.objects import DerivedBase, MappedObject, Property
+
 from .disk import Disk
+from .kernel import Kernel
+
 
 class Config(DerivedBase):
     api_endpoint="/linode/instances/{linode_id}/configs/{id}"

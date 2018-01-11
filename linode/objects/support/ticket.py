@@ -1,10 +1,12 @@
-import requests
+from __future__ import absolute_import
 
-from .. import Base, Property
-from .. import Linode, Domain, Volume
+import requests
+from linode.errors import ApiError
+from linode.objects import Base, Domain, Linode, Property, Volume
 from linode.objects.nodebalancer.nodebalancer import NodeBalancer
-from ...errors import ApiError
+
 from .reply import TicketReply
+
 
 class SupportTicket(Base):
     api_endpoint = '/support/tickets/{id}'

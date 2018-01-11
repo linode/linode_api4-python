@@ -1,5 +1,8 @@
-from ...errors import UnexpectedResponseError
-from .. import DerivedBase, Property
+from __future__ import absolute_import
+
+from linode.errors import UnexpectedResponseError
+from linode.objects import DerivedBase, Property
+
 
 class Disk(DerivedBase):
     api_endpoint = '/linode/instances/{linode_id}/disks/{id}'

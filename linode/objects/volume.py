@@ -1,6 +1,8 @@
-from ..errors import UnexpectedResponseError
-from . import Base, Property, Region
-from .linode import Linode
+from __future__ import absolute_import
+
+from linode.errors import UnexpectedResponseError
+from linode.objects import Base, Linode, Property, Region
+
 
 class Volume(Base):
     api_endpoint = '/volumes/{id}'

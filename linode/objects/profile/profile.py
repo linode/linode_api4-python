@@ -1,6 +1,9 @@
+from __future__ import absolute_import
+
+from linode.errors import UnexpectedResponseError
+from linode.objects import Base, Property
+
 from .whitelist_entry import WhitelistEntry
-from .. import Base, Property
-from ...errors import UnexpectedResponseError
 
 
 class Profile(Base):

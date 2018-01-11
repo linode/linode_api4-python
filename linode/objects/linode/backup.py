@@ -1,4 +1,7 @@
-from .. import DerivedBase, Property, Base, Region
+from __future__ import absolute_import
+
+from linode.objects import Base, DerivedBase, Property, Region
+
 
 class Backup(DerivedBase):
     api_endpoint = '/linode/instances/{linode_id}/backups/{id}'

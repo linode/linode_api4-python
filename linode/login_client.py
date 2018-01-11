@@ -1,5 +1,8 @@
-import requests
+from __future__ import absolute_import
+
 from enum import Enum
+
+import requests
 from linode.errors import ApiError
 
 try:

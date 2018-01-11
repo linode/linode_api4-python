@@ -1,5 +1,6 @@
-from .. import Base, Property
-from .. import Linode, StackScript, Domain, Volume
+from __future__ import absolute_import
+
+from linode.objects import Base, Domain, Linode, Property, StackScript, Volume
 from linode.objects.nodebalancer.nodebalancer import NodeBalancer
 from linode.objects.support.ticket import SupportTicket
 

@@ -1,5 +1,7 @@
-from .. import Base, Property
-from ..region import Region
+from __future__ import absolute_import
+
+from linode.objects import Base, Property, Region
+
 
 class IPv6Address(Base):
     api_endpoint = 'networking/ipv6/{address}'

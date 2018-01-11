@@ -1,4 +1,7 @@
+from __future__ import absolute_import
+
 from linode.objects import Base, Property
+
 
 class LongviewClient(Base):
 

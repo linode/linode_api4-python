@@ -1,8 +1,10 @@
+from __future__ import absolute_import
+
+from linode.errors import UnexpectedResponseError
+from linode.objects import Base, Property, Region
+from linode.objects.networking import IPAddress
+
 from .config import NodeBalancerConfig
-from .. import Base, Property
-from ..networking.ipaddress import IPAddress
-from ..region import Region
-from ...errors import UnexpectedResponseError
 
 
 class NodeBalancer(Base):

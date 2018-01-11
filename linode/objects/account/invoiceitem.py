@@ -1,4 +1,7 @@
-from .. import DerivedBase, Property
+from __future__ import absolute_import
+
+from linode.objects import DerivedBase, Property
+
 
 class InvoiceItem(DerivedBase):
     api_endpoint = '/account/invoices/{invoice_id}/items'

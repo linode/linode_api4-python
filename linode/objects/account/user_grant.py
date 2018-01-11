@@ -1,9 +1,11 @@
+from __future__ import absolute_import
+
 from linode.objects.base import Base
 from linode.objects.dbase import DerivedBase
 from linode.objects.domain import Domain
 from linode.objects.linode import Linode, StackScript
-from linode.objects.nodebalancer import NodeBalancer
 from linode.objects.longview import LongviewClient
+from linode.objects.nodebalancer import NodeBalancer
 from linode.objects.volume import Volume
 
 normal_grants = ('all', 'access', 'delete')

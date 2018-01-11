@@ -1,6 +1,7 @@
-from future.utils import with_metaclass
-from datetime import datetime, timedelta
 import time
+from datetime import datetime, timedelta
+
+from future.utils import with_metaclass
 
 from .filtering import FilterableMetaclass
 

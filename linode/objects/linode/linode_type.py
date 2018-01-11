@@ -1,4 +1,7 @@
-from .. import Base, Property
+from __future__ import absolute_import
+
+from linode.objects import Base, Property
+
 
 class Type(Base):
     api_endpoint = "/linode/types/{id}"

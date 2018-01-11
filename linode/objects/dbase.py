@@ -1,4 +1,7 @@
-from .base import Base
+from __future__ import absolute_import
+
+from linode.objects import Base
+
 
 class DerivedBase(Base):
     """
