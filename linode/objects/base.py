@@ -168,7 +168,7 @@ class Base(object, with_metaclass(FilterableMetaclass)):
             if not type(self).properties[k].identifier):
                 self._set(key, None)
 
-        self._populated = False
+        self._set('_populated', False)
 
     def _serialize(self):
         """
