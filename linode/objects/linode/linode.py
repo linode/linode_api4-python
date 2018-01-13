@@ -396,7 +396,7 @@ class Linode(Base):
             "ips": params
         }
 
-        result = self._client.post('{}/ips/sharing'.format(Linode.api_endpoint), model=self,
+        self._client.post('{}/ips/sharing'.format(Linode.api_endpoint), model=self,
                 data=params)
 
         # so the changes show up next time they're accessed
@@ -409,7 +409,7 @@ class Linode(Base):
         """
         Converts this linode to KVM from Xen
         """
-        ret = self._client.post('{}/kvmify'.format(Linode.api_endpoint), model=self)
+        self._client.post('{}/kvmify'.format(Linode.api_endpoint), model=self)
 
         return True
 
@@ -417,7 +417,7 @@ class Linode(Base):
         """
         Upgrades this Linode to the latest generation type
         """
-        ret = self._client.post('{}/mutate'.format(Linode.api_endpoint), model=self)
+        self._client.post('{}/mutate'.format(Linode.api_endpoint), model=self)
 
         return True
 

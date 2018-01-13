@@ -101,11 +101,11 @@ class LinodeGroup(Group):
     def create_stackscript(self, label, script, images, desc=None, public=False, **kwargs):
         image_list = None
         if type(images) is list or type(images) is PaginatedList:
-            images_list = [d.id if issubclass(type(d), Base) else d for d in images ]
+            image_list = [d.id if issubclass(type(d), Base) else d for d in images ]
         elif type(images) is Image:
             image_list = [images.id]
         elif type(images) is str:
-            images_list = [images]
+            image_list = [images]
         else:
             raise ValueError('images must be a list of Images or a single Image')
 

@@ -41,7 +41,7 @@ class User(Base):
         """
         Sets this user's password
         """
-        result = self._client.post('{}/password'.format(User.api_endpoint),
+        self._client.post('{}/password'.format(User.api_endpoint),
                 model=self, data={ "password": password })
 
         return True
