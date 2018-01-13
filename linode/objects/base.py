@@ -234,8 +234,10 @@ class Base(object, with_metaclass(FilterableMetaclass)):
                 elif type(json[key]) is dict:
                     self._set(key, MappedObject(**json[key]))
                 elif type(json[key]) is list:
+                    # we're going to use MappedObject's behavior with lists to
+                    # expand these, then grab the resulting value to set
                     mapping = MappedObject(_list=json[key])
-                    self._set(key, mapping._list)
+                    self._set(key, mapping._list) # pylint: disable=no-member
                 elif type(self).properties[key].is_datetime:
                     try:
                         t = time.strptime(json[key], "%Y-%m-%dT%H:%M:%S")

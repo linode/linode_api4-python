@@ -105,8 +105,8 @@ class PaginatedList(object):
     def __setitem__(self, index, value):
         raise AttributeError('Assigning to indicies in paginated lists is not supported')
 
-    def __delitem__(self, index, value):
-        raise AttributeError('Assigning to indicies in paginated lists is not supported')
+    def __delitem__(self, index):
+        raise AttributeError('Deleting from paginated lists is not supported')
 
     def __next__(self):
         if self.cur < len(self):
