@@ -164,9 +164,9 @@ class Base(object, with_metaclass(FilterableMetaclass)):
         Invalidates all non-identifier Properties this object has locally,
         causing the next access to re-fetch them from the server
         """
-        for key in (k for k in type(self).properties.keys()
-            if not type(self).properties[k].identifier):
-                self._set(key, None)
+        for key in [k for k in type(self).properties.keys()
+                if not type(self).properties[k].identifier]:
+            self._set(key, None)
 
         self._set('_populated', False)
 
