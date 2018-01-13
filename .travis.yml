@@ -9,3 +9,4 @@ install:
     - python setup.py install
 script:
     - python setup.py test
+    - pylint linode
