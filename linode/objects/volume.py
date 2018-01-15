@@ -38,7 +38,7 @@ class Volume(Base):
         """
         Detaches this Volume if it is attached
         """
-        result = self._client.post('{}/detach'.format(Volume.api_endpoint), model=self)
+        self._client.post('{}/detach'.format(Volume.api_endpoint), model=self)
 
         return True
 

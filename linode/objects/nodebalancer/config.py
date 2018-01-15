@@ -76,14 +76,14 @@ class NodeBalancerConfig(DerivedBase):
             # if it doesn't look like a cert, maybe it's a path?
             if os.path.isfile(os.path.expanduser(cert)):
                 with open(os.path.expanduser(cert)) as f:
-                        params['ssl_cert'] = f.read()
+                    params['ssl_cert'] = f.read()
 
         params['ssl_key'] = key
         if not 'PRIVATE KEY' in key:
             # if it doesn't look like a key, maybe it's a path?
             if os.path.isfile(os.path.expanduser(key)):
                 with open(os.path.expanduser(key)) as f:
-                        params['ssl_key'] = f.read()
+                    params['ssl_key'] = f.read()
 
         self._client.post('{}/ssl'.format(NodeBalancerConfig.api_endpoint), model=self, data=params)
 

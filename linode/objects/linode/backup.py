@@ -30,6 +30,6 @@ class Backup(DerivedBase):
         }
         d.update(kwargs)
 
-        result = self._client.post("{}/restore".format(Backup.api_endpoint), model=self,
+        self._client.post("{}/restore".format(Backup.api_endpoint), model=self,
             data=d)
         return True

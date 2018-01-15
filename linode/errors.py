@@ -10,7 +10,7 @@ class ApiError(RuntimeError):
     often, this will be caused by invalid input to the API.
     """
     def __init__(self, message, status=400, json=None):
-        super().__init__(message)
+        super(ApiError, self).__init__(message)
         self.status = status
         self.json = json
         self.errors = []
@@ -26,6 +26,6 @@ class UnexpectedResponseError(RuntimeError):
     library, and should be fixed with changes to this codebase.
     """
     def __init__(self, message, status=200, json=None):
-        super().__init__(message)
+        super(UnexpectedResponseError, self).__init__(message)
         self.status = status
         self.json = json

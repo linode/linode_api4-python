@@ -114,8 +114,9 @@ class FilterableMetaclass(type):
     def __init__(cls, name, bases, dct):
         if hasattr(cls, 'properties'):
             for key in cls.properties.keys():
+                # TODO - either add NonFilterableAttribute or remove commented code
                 #if cls.properties[key].filterable:
-                    setattr(cls, key, FilterableAttribute(key))
+                    setattr(cls, key, FilterableAttribute(key)) # pylint: disable=bad-indentation
                 #else:
                 #    setattr(cls, key, NonFilterableAttribute(cls.__name__, key))
 

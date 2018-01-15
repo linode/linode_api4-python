@@ -11,7 +11,7 @@ class PaginatedList(object):
         self.query_filters = filters
         self.page_size = len(page)
         self.max_pages = max_pages
-        self.lists = [ None for i in range(0, self.max_pages) ]
+        self.lists = [ None for _ in range(0, self.max_pages) ]
         self.lists[0] = page
         self.list_cls = type(page[0]) if page else None # TODO if this is None that's bad
         self.objects_parent_id = parent_id
@@ -105,8 +105,8 @@ class PaginatedList(object):
     def __setitem__(self, index, value):
         raise AttributeError('Assigning to indicies in paginated lists is not supported')
 
-    def __delitem__(self, index, value):
-        raise AttributeError('Assigning to indicies in paginated lists is not supported')
+    def __delitem__(self, index):
+        raise AttributeError('Deleting from paginated lists is not supported')
 
     def __next__(self):
         if self.cur < len(self):
