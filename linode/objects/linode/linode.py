@@ -104,17 +104,13 @@ class Linode(Base):
         if not hasattr(self, '_avail_backups'):
             result = self._client.get("{}/backups".format(Linode.api_endpoint), model=self)
 
-            if not 'daily' in result:
+            if not 'automatic' in result:
                 raise UnexpectedResponseError('Unexpected response loading available backups!', json=result)
 
-            daily = None
-            if result['daily']:
-                daily = Backup(self._client, result['daily']['id'], self.id, result['daily'])
-
-            weekly = []
-            for w in result['weekly']:
-                cur = Backup(self._client, w['id'], self.id, w)
-                weekly.append(cur)
+            automatic = []
+            for a in result['automatic']:
+                cur = Backup(self._client, a['id'], self.id, a)
+                automatic.append(cur)
 
             snap = None
             if result['snapshot']['current']:
@@ -127,8 +123,7 @@ class Linode(Base):
                         result['snapshot']['in_progress'])
 
             self._set('_avail_backups', MappedObject(**{
-                "daily": daily,
-                "weekly": weekly,
+                "automatic": automatic,
                 "snapshot": {
                     "current": snap,
                     "in_progress": psnap,

@@ -12,6 +12,7 @@ class Backup(DerivedBase):
         'id': Property(identifier=True),
         'created': Property(is_datetime=True),
         'duration': Property(),
+        'updated': Property(is_datetime=True),
         'finished': Property(is_datetime=True),
         'message': Property(),
         'status': Property(volatile=True),
@@ -20,7 +21,6 @@ class Backup(DerivedBase):
         'label': Property(),
         'configs': Property(),
         'disks': Property(),
-        'availability': Property(),
         'region': Property(slug_relationship=Region),
     }
 

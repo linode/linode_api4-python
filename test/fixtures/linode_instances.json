@@ -54,10 +54,10 @@
       },
       "label": "linode456",
       "backups": {
-        "enabled": true,
+        "enabled": false,
         "schedule": {
-          "window": "W12",
-          "day": "Scheduling"
+          "window": null,
+          "day": null
         }
       },
       "specs": {
