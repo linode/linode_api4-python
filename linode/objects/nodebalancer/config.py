@@ -29,6 +29,8 @@ class NodeBalancerConfig(DerivedBase):
         "check_passive": Property(mutable=True),
         "ssl_cert": Property(mutable=True),
         "ssl_key": Property(mutable=True),
+        "ssl_commonname": Property(),
+        "ssl_fingerprint": Property(),
         "cipher_suite": Property(mutable=True),
         "nodes_status": Property(),
     }
@@ -64,27 +66,27 @@ class NodeBalancerConfig(DerivedBase):
         n = NodeBalancerNode(self._client, result['id'], self.id, self.nodebalancer_id, result)
         return n
 
-    def enable_ssl(self, cert, key):
+    def load_ssl_data(self, cert_file, key_file):
         """
-        Enables SSL on a NodeBalancer Config (port), served using the given cert and unpassphrased
-        key
+        A convenience method that loads a cert and a key from files and sets them
+        on this object.  This can make enabling ssl easier (instead of you needing
+        to load the files yourself).
+
+        This does *not* change protocol/port for you, or save anything.  Once this
+        is called, you must still call `save()` on this object for the changes to
+        take effect.
+
+        :param cert_file: A path to the file containing the public certificate
+        :type cert_file: str
+        :param key_file: A path to the file containing the unpassphrased private key
+        :type key_file: str
         """
-        params = {}
+        # we're disabling warnings here because these attributes are defined dynamically
+        # through linode.objects.Base, and pylint isn't privy
+        if os.path.isfile(os.path.expanduser(cert_file)):
+            with open(os.path.expanduser(cert_file)) as f:
+                self.ssl_cert = f.read() # pylint: disable=attribute-defined-outside-init
 
-        params['ssl_cert'] = cert
-        if not 'BEGIN CERTIFICATE' in cert:
-            # if it doesn't look like a cert, maybe it's a path?
-            if os.path.isfile(os.path.expanduser(cert)):
-                with open(os.path.expanduser(cert)) as f:
-                    params['ssl_cert'] = f.read()
-
-        params['ssl_key'] = key
-        if not 'PRIVATE KEY' in key:
-            # if it doesn't look like a key, maybe it's a path?
-            if os.path.isfile(os.path.expanduser(key)):
-                with open(os.path.expanduser(key)) as f:
-                    params['ssl_key'] = f.read()
-
-        self._client.post('{}/ssl'.format(NodeBalancerConfig.api_endpoint), model=self, data=params)
-
-        return True
+        if os.path.isfile(os.path.expanduser(key_file)):
+            with open(os.path.expanduser(key_file)) as f:
+                self.ssl_key = f.read() # pylint: disable=attribute-defined-outside-init

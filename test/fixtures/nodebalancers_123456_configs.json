@@ -1,0 +1,31 @@
+{
+  "data": [
+    {
+      "check": "connection",
+      "check_attempts": 2,
+      "stickiness": "table",
+      "check_interval": 5,
+      "check_body": "",
+      "id": 65432,
+      "check_passive": true,
+      "algorithm": "roundrobin",
+      "check_timeout": 3,
+      "check_path": "/",
+      "ssl_cert": null,
+      "ssl_commonname": "",
+      "port": 80,
+      "nodebalancer_id": 123456,
+      "cipher_suite": "recommended",
+      "ssl_key": null,
+      "nodes_status": {
+        "up": 0,
+        "down": 0
+      },
+      "protocol": "http",
+      "ssl_fingerprint": ""
+    }
+  ],
+  "results": 1,
+  "page": 1,
+  "pages": 1
+}
