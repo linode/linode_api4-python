@@ -1,0 +1,83 @@
+{
+  "automatic": [
+    {
+      "region": "us-east-1a",
+      "finished": "2018-01-09T00:01:01",
+      "updated": "2018-01-09T00:01:01",
+      "disks": [
+        {
+          "size": 1024,
+          "label": "Debian 8.1 Disk",
+          "filesystem": "ext4"
+        },
+        {
+          "size": 0,
+          "label": "256MB Swap Image",
+          "filesystem": "swap"
+        }
+      ],
+      "label": null,
+      "configs": [
+        "My Debian 8.1 Profile"
+      ],
+      "id": 12345,
+      "status": "successful",
+      "created": "2018-01-09T00:01:01",
+      "type": "auto"
+    },
+    {
+      "region": "us-east-1a",
+      "finished": "2018-01-01T00:01:01",
+      "updated": "2018-01-01T00:01:01",
+      "disks": [
+        {
+          "size": 1024,
+          "label": "Debian 8.1 Disk",
+          "filesystem": "ext4"
+        },
+        {
+          "size": 0,
+          "label": "256MB Swap Image",
+          "filesystem": "swap"
+        }
+      ],
+      "label": null,
+      "configs": [
+        "My Debian 8.1 Profile"
+      ],
+      "id": 12456,
+      "status": "successful",
+      "created": "2018-01-01T00:01:01",
+      "type": "auto"
+    },
+    {
+      "region": "us-east-1a",
+      "finished": "2018-01-07T00:01:01",
+      "updated": "2018-01-07T00:01:01",
+      "disks": [
+        {
+          "size": 1024,
+          "label": "Debian 8.1 Disk",
+          "filesystem": "ext4"
+        },
+        {
+          "size": 0,
+          "label": "256MB Swap Image",
+          "filesystem": "swap"
+        }
+      ],
+      "label": null,
+      "configs": [
+        "My Debian 8.1 Profile"
+      ],
+      "id": 12567,
+      "status": "successful",
+      "created": "2018-01-07T00:01:01",
+      "type": "auto"
+    }
+  ],
+  "snapshot": {
+    "in_progress": null,
+    "current": null
+  }
+}
