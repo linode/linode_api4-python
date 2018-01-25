@@ -524,6 +524,28 @@ class LinodeClient:
     def get_images(self, *filters):
         return self._get_and_filter(Image, *filters)
 
+    def create_image(self, disk, label=None, description=None):
+        """
+        Creates a new Image from a disk you own.
+        """
+        params = {
+            "disk_id": disk.id if issubclass(type(disk), Base) else disk,
+        }
+
+        if label is not None:
+            params["label"] = label
+
+        if description is not None:
+            params["description"] = description
+
+        result = self.post('/images', data=params)
+
+        if not 'id' in result:
+            raise UnexpectedResponseError('Unexpected response when creating an '
+                                          'Image from disk {}'.format(disk))
+
+        return Image(self, result['id'], result)
+
     def get_domains(self, *filters):
         return self._get_and_filter(Domain, *filters)
 
