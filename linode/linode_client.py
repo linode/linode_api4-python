@@ -234,11 +234,11 @@ class AccountGroup(Group):
         """
         result = self.client.get('/account/settings')
 
-        if not 'email' in result:
+        if not 'managed' in result:
             raise UnexpectedResponseError('Unexpected response when getting account settings!',
                     json=result)
 
-        s = AccountSettings(self.client, result['email'], result)
+        s = AccountSettings(self.client, result['managed'], result)
         return s
 
     def get_invoices(self):
@@ -520,6 +520,17 @@ class LinodeClient:
 
         p = Profile(self, result['username'], result)
         return p
+
+    def get_account(self):
+        """
+        Returns account billing information
+        """
+        result = self.get('/account')
+
+        if not 'email' in result:
+            raise UnexpectedResponseError('Unexpected response when getting account!', json=result)
+
+        return Account(self, result['email'], result)
 
     def get_images(self, *filters):
         return self._get_and_filter(Image, *filters)

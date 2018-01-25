@@ -1,26 +1,15 @@
 from __future__ import absolute_import
 
 from linode.objects import Base, Property
+from linode.objects.longview import LongviewSubscription
 
 
 class AccountSettings(Base):
     api_endpoint = "/account/settings"
-    id_attribute = 'email'
+    id_attribute = 'managed' # this isn't actually used
 
     properties = {
-        "company": Property(mutable=True),
-        "country": Property(mutable=True),
-        "balance": Property(),
-        "address_1": Property(mutable=True),
         "network_helper": Property(mutable=True),
-        "last_name": Property(mutable=True),
-        "city": Property(mutable=True),
-        "state": Property(mutable=True),
-        "first_name": Property(mutable=True),
-        "phone": Property(mutable=True),
         "managed": Property(),
-        "email": Property(mutable=True),
-        "zip": Property(mutable=True),
-        "address_2": Property(mutable=True),
-        "vat_number": Property(mutable=True),
+        "longview_subscription": Property(slug_relationship=LongviewSubscription)
     }
