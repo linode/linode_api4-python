@@ -6,3 +6,4 @@ from .user_grant import UserGrants
 from .invoice import Invoice
 from .invoiceitem import InvoiceItem
 from .payment import Payment
+from .account import Account

@@ -1,0 +1,15 @@
+{
+  "state": "PA",
+  "city": "Philadelphia",
+  "phone": "123-456-7890",
+  "vat_number": "",
+  "balance": 0,
+  "company": "Linode",
+  "address_2": "",
+  "email": "support@linode.com",
+  "address_1": "3rd & Arch St",
+  "zip": "19106",
+  "first_name": "Test",
+  "last_name": "Guy",
+  "country": "US"
+}

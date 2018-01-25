@@ -1,10 +1,30 @@
 from test.base import ClientBaseCase
 
+from linode import LongviewSubscription
+
 
 class LinodeClientGeneralTest(ClientBaseCase):
     """
     Tests methods of the LinodeClient class that do not live inside of a group.
     """
+    def test_get_account(self):
+        a = self.client.get_account()
+        self.assertEqual(a._populated, True)
+
+        self.assertEqual(a.first_name, 'Test')
+        self.assertEqual(a.last_name, 'Guy')
+        self.assertEqual(a.email, 'support@linode.com')
+        self.assertEqual(a.phone, '123-456-7890')
+        self.assertEqual(a.company, 'Linode')
+        self.assertEqual(a.address_1, '3rd & Arch St')
+        self.assertEqual(a.address_2, '')
+        self.assertEqual(a.city, 'Philadelphia')
+        self.assertEqual(a.state, 'PA')
+        self.assertEqual(a.country, 'US')
+        self.assertEqual(a.zip, '19106')
+        self.assertEqual(a.vat_number, '')
+        self.assertEqual(a.balance, 0)
+
     def test_get_regions(self):
         r = self.client.get_regions()
 
@@ -48,6 +68,23 @@ class LinodeClientGeneralTest(ClientBaseCase):
         self.assertEqual(v[0].region.id, 'us-east-1a')
         self.assertEqual(v[1].label, 'block2')
         self.assertEqual(v[1].size, 100)
+
+
+class AccountGroupTest(ClientBaseCase):
+    """
+    Tests methods of the AccountGroup
+    """
+    def test_get_settings(self):
+        """
+        Tests that account settings can be retrieved.
+        """
+        s = self.client.account.get_settings()
+        self.assertEqual(s._populated, True)
+
+        self.assertEqual(s.network_helper, False)
+        self.assertEqual(s.managed, False)
+        self.assertEqual(type(s.longview_subscription), LongviewSubscription)
+        self.assertEqual(s.longview_subscription.id, 'longview-100')
 
 
 class LinodeGroupTest(ClientBaseCase):
