@@ -22,6 +22,24 @@ class LinodeClientGeneralTest(ClientBaseCase):
             self.assertTrue(image._populated)
             self.assertIsNotNone(image.id)
 
+    def test_create_image(self):
+        """
+        Tests that an Image can be created successfully
+        """
+        with self.mock_post('images/private/123') as m:
+            i = self.client.create_image(654, 'Test-Image', 'This is a test')
+
+            self.assertIsNotNone(i)
+            self.assertEqual(i.id, 'private/123')
+
+            self.assertEqual(m.call_url, '/images')
+
+            self.assertEqual(m.call_data, {
+                "disk_id": 654,
+                "label": "Test-Image",
+                "description": "This is a test",
+            })
+
     def test_get_volumes(self):
         v = self.client.get_volumes()
 
