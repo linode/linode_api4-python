@@ -452,9 +452,12 @@ class LinodeClient:
         if filters:
             headers['X-Filter'] = json.dumps(filters)
 
-        body = json.dumps(data)
+        if data:
+            body = json.dumps(data)
 
-        response = method(url, headers=headers, data=body)
+            response = method(url, headers=headers, data=body)
+        else:
+            response = method(url, headers=headers)
 
         warning = response.headers.get('Warning', None)
         if warning:
