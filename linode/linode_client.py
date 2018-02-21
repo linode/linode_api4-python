@@ -314,10 +314,13 @@ def create_user(self, email, username, password, restricted=True):
     return u
 
 class NetworkingGroup(Group):
-    def get_ipv4(self, *filters):
+    def get_ips(self, *filters):
         return self.client._get_and_filter(IPAddress, *filters)
 
     def get_ipv6_ranges(self, *filters):
+        return self.client._get_and_filter(IPv6Range, *filters)
+
+    def get_ipv6_pools(self, *filters):
         return self.client._get_and_filter(IPv6Pool, *filters)
 
     def assign_ips(self, region, *assignments):
@@ -473,7 +476,10 @@ class LinodeClient:
                 pass
             raise ApiError(error_msg, status=response.status_code, json=j)
 
-        j = response.json()
+        if response.status_code != 204:
+            j = response.json()
+        else:
+            j = None # handle no response body
 
         return j
 

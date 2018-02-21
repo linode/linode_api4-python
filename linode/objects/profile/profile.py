@@ -66,7 +66,11 @@ class Profile(Base):
         from linode.objects.account import UserGrants
         resp = self._client.get('/profile/grants') # use special endpoint for restricted users
 
-        grants = UserGrants(self._client, self.username, resp)
+        grants = None
+        if resp is not None:
+            # if resp is None, we're unrestricted and do not have grants
+            grants = UserGrants(self._client, self.username, resp)
+
         return grants
 
     @property

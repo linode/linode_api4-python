@@ -20,5 +20,5 @@ class Account(Base):
         "email": Property(mutable=True),
         "zip": Property(mutable=True),
         "address_2": Property(mutable=True),
-        "vat_number": Property(mutable=True),
+        "tax_id": Property(mutable=True),
     }
