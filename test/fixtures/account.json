@@ -2,7 +2,7 @@
   "state": "PA",
   "city": "Philadelphia",
   "phone": "123-456-7890",
-  "vat_number": "",
+  "tax_id": "",
   "balance": 0,
   "company": "Linode",
   "address_2": "",

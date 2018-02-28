@@ -8,7 +8,7 @@ from linode.common import load_and_validate_keys
 from linode.errors import UnexpectedResponseError
 from linode.objects import Base, Image, Property, Region
 from linode.objects.base import MappedObject
-from linode.objects.networking import IPAddress, IPv6Address, IPv6Pool
+from linode.objects.networking import IPAddress, IPv6Pool
 from linode.paginated_list import PaginatedList
 
 from .backup import Backup
@@ -68,11 +68,13 @@ class Linode(Base):
 
             v6 = []
             for c in result['ipv6']['addresses']:
-                i = IPv6Address(self._client, c['address'], c)
+                i = IPAddress(self._client, c['address'], c)
                 v6.append(i)
 
-            slaac = IPv6Pool(self._client, result['ipv6']['slaac'])
-            link_local = IPv6Pool(self._client, result['ipv6']['link_local'])
+            slaac = IPAddress(self._client, result['ipv6']['slaac']['address'],
+                              result['ipv6']['slaac'])
+            link_local = IPAddress(self._client, result['ipv6']['link_local']['address'],
+                                   result['ipv6']['link_local'])
 
             pools = []
             for p in result['ipv6']['global']:

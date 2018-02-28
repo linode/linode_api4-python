@@ -3,8 +3,8 @@ from __future__ import absolute_import
 from linode.objects import Base, Property, Region
 
 
-class IPv6Pool(Base):
-    api_endpoint = '/networking/ipv6/pools/{}'
+class IPv6Range(Base):
+    api_endpoint = '/networking/ipv6/ranges/{}'
     id_attribute = 'range'
 
     properties = {

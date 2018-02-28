@@ -22,7 +22,7 @@ class LinodeClientGeneralTest(ClientBaseCase):
         self.assertEqual(a.state, 'PA')
         self.assertEqual(a.country, 'US')
         self.assertEqual(a.zip, '19106')
-        self.assertEqual(a.vat_number, '')
+        self.assertEqual(a.tax_id, '')
         self.assertEqual(a.balance, 0)
 
     def test_get_regions(self):
