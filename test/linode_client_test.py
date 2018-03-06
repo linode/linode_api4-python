@@ -7,6 +7,16 @@ class LinodeClientGeneralTest(ClientBaseCase):
     """
     Tests methods of the LinodeClient class that do not live inside of a group.
     """
+    def test_get_no_empty_body(self):
+        """
+        Tests that a valid JSON body is passed for a GET call
+        """
+        with self.mock_get('linode/instances') as m:
+            self.client.get_regions()
+
+            self.assertEqual(m.call_data_raw, None)
+
+
     def test_get_account(self):
         a = self.client.get_account()
         self.assertEqual(a._populated, True)

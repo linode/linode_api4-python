@@ -455,7 +455,9 @@ class LinodeClient:
         if filters:
             headers['X-Filter'] = json.dumps(filters)
 
-        body = json.dumps(data)
+        body = None
+        if data is not None:
+            body = json.dumps(data)
 
         response = method(url, headers=headers, data=body)
 

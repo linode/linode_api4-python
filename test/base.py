@@ -84,11 +84,18 @@ class MethodMock:
 
     @property
     def call_args(self):
-        # TODO - these don't work :(
         """
         A shortcut to accessing the underlying mock object's call args
         """
         return self.mock.call_args
+
+    @property
+    def call_data_raw(self):
+        """
+        A shortcut to access the raw call data, not parsed as JSON
+        """
+        return self.mock.call_args[1]['data']
+
 
     @property
     def call_url(self):
@@ -127,6 +134,19 @@ class ClientBaseCase(TestCase):
 
     def tearDown(self):
         self.get_patch.stop()
+
+
+    def mock_get(self, return_dct):
+        """
+        Returns a MethodMock mocking a GET.  This should be used in a with
+        statement.
+
+        :param return_dct: The JSON that should be returned from this GET
+
+        :returns: A MethodMock object who will capture the parameters of the
+            mocked requests
+        """
+        return MethodMock('get', return_dct)
 
     def mock_post(self, return_dct):
         """
