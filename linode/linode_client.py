@@ -61,10 +61,16 @@ class LinodeGroup(Group):
         developers.linode.com
 
         :param ltype: The Linode Type we are creating
+        :type ltype: str or LinodeType
         :param region: The Region in which we are creating the Linode
+        :type region: str or Region
         :param image: The image to deploy to this Linode
+        :type image: str or Image
         :param authorized_keys: The ssh public keys to install on the linode's
-                                /root/.ssh/authorized_keys file
+                                /root/.ssh/authorized_keys file.  Each entry may
+                                be a single key, or a path to a file containing
+                                the key.
+        :type authorized_keys: list or str
         :param **kwargs: Any other fields to pass to the api
 
         :returns: A new Linode object
@@ -402,12 +408,35 @@ class SupportGroup(Group):
         return t
 
 class LinodeClient:
+    """
+    The main interface to the Linode API.
+
+    :param token: The authentication token to use for communication with the
+                  API.  Can be either a Personal Access Token or an OAuth Token.
+    :type token: str
+    :param base_url: The base URL for API requests.  Generally, you shouldn't
+                     change this.
+    :type base_url: str
+    :param user_agent: What to append to the User Agent of all requests made
+                       by this client.  Setting this allows Linode's internal
+                       monitoring applications to track the usage of your
+                       application.  Setting this is not necessary, but some
+                       applications may desire this behavior.
+    :type user_agent: str
+    """
     def __init__(self, token, base_url="https://api.linode.com/v4", user_agent=None):
         self.base_url = base_url
         self._add_user_agent = user_agent
         self.token = token
+
+        #: Access methods related to Linodes - see :py:class:`LinodeGroup` for
+        #: more information
         self.linode = LinodeGroup(self)
+
+        #: Access methods related to your user
         self.profile = ProfileGroup(self)
+
+        #: Access methods related to your account
         self.account = AccountGroup(self)
         self.networking = NetworkingGroup(self)
         self.support = SupportGroup(self)
