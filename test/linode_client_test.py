@@ -52,6 +52,29 @@ class LinodeClientGeneralTest(ClientBaseCase):
             self.assertTrue(image._populated)
             self.assertIsNotNone(image.id)
 
+    def test_get_domains(self):
+        """
+        Tests that domains can be retrieved and are marshalled properly
+        """
+        r = self.client.get_domains()
+
+        self.assertEqual(len(r), 1)
+        domain = r.first()
+
+        self.assertEqual(domain.domain, 'example.org')
+        self.assertEqual(domain.type, 'master')
+        self.assertEqual(domain.id, 12345)
+        self.assertEqual(domain.axfr_ips, [])
+        self.assertEqual(domain.retry_sec, 0)
+        self.assertEqual(domain.ttl_sec, 300)
+        self.assertEqual(domain.status, 'active')
+        self.assertEqual(domain.master_ips, [],)
+        self.assertEqual(domain.description, "",)
+        self.assertEqual(domain.group, "",)
+        self.assertEqual(domain.expire_sec, 0,)
+        self.assertEqual(domain.soa_email, "test@example.org",)
+        self.assertEqual(domain.refresh_sec, 0)
+
     def test_create_image(self):
         """
         Tests that an Image can be created successfully

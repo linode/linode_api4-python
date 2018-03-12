@@ -1,0 +1,22 @@
+{
+  "page": 1,
+  "pages": 1,
+  "results": 1,
+  "data": [
+      {
+       "domain": "example.org",
+       "type": "master",
+       "id": 12345,
+       "axfr_ips": [],
+       "retry_sec": 0,
+       "ttl_sec": 300,
+       "status": "active",
+       "master_ips": [],
+       "description": "",
+       "group": "",
+       "expire_sec": 0,
+       "soa_email": "test@example.org",
+       "refresh_sec": 0
+     }
+  ]
+}
