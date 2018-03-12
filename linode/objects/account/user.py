@@ -36,12 +36,3 @@ class User(Base):
         if hasattr(self, '_grants'):
             del self._grants
         Base.invalidate(self)
-
-    def change_password(self, password):
-        """
-        Sets this user's password
-        """
-        self._client.post('{}/password'.format(User.api_endpoint),
-                model=self, data={ "password": password })
-
-        return True
