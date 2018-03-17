@@ -12,6 +12,7 @@ linode-api
 
    getting_started
    core_concepts
+   oauth
    linode_client
 
 
