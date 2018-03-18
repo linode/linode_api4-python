@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -* coding: utf-8 -*-
 #
 # Configuration file for the Sphinx documentation builder.
 #
@@ -44,6 +44,7 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
+    'sphinxcontrib.fulltoc',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
