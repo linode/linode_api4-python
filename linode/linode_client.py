@@ -408,38 +408,49 @@ class SupportGroup(Group):
         return t
 
 class LinodeClient:
-    """
-    The main interface to the Linode API.
-
-    :param token: The authentication token to use for communication with the
-                  API.  Can be either a Personal Access Token or an OAuth Token.
-    :type token: str
-    :param base_url: The base URL for API requests.  Generally, you shouldn't
-                     change this.
-    :type base_url: str
-    :param user_agent: What to append to the User Agent of all requests made
-                       by this client.  Setting this allows Linode's internal
-                       monitoring applications to track the usage of your
-                       application.  Setting this is not necessary, but some
-                       applications may desire this behavior.
-    :type user_agent: str
-    """
     def __init__(self, token, base_url="https://api.linode.com/v4", user_agent=None):
+        """
+        The main interface to the Linode API.
+
+        :param token: The authentication token to use for communication with the
+                      API.  Can be either a Personal Access Token or an OAuth Token.
+        :type token: str
+        :param base_url: The base URL for API requests.  Generally, you shouldn't
+                         change this.
+        :type base_url: str
+        :param user_agent: What to append to the User Agent of all requests made
+                           by this client.  Setting this allows Linode's internal
+                           monitoring applications to track the usage of your
+                           application.  Setting this is not necessary, but some
+                           applications may desire this behavior.
+        :type user_agent: str
+        """
         self.base_url = base_url
         self._add_user_agent = user_agent
         self.token = token
 
-        #: Access methods related to Linodes - see :py:class:`LinodeGroup` for
+        #: Access methods related to Linodes - see :any:`LinodeGroup` for
         #: more information
         self.linode = LinodeGroup(self)
 
-        #: Access methods related to your user
+        #: Access methods related to your user - see :any:`ProfileGroup` for
+        #: more information
         self.profile = ProfileGroup(self)
 
-        #: Access methods related to your account
+        #: Access methods related to your account - see :any:`AccountGroup` for
+        #: more information
         self.account = AccountGroup(self)
+
+        #: Access methods related to networking on your account - see
+        #: :any:`NetworkingGroup` for more information
         self.networking = NetworkingGroup(self)
+
+        #: Access methods related to support - see :any:`SupportGroup` for more
+        #: information
         self.support = SupportGroup(self)
+
+        #: Access information related to the Longview service - see
+        #: :any:`LongviewGroup` for more inforamtion
         self.longview = LongviewGroup(self)
 
     @property
@@ -452,9 +463,31 @@ class LinodeClient:
 
     def load(self, target_type, target_id, target_parent_id=None):
         """
-        Constructs and immediately loads the object, circumventing the lazy-loading
-        scheme by immediately making an api request.  Does not load related
-        objects.  Raises an ApiError if the object cannot be loaded.
+        Constructs and immediately loads the object, circumventing the
+        lazy-loading scheme by immediately making an api request.  Does not
+        load related objects.
+
+        For example, if you wanted to load a :any:`Linode` object with ID 123,
+        you could do this::
+
+           loaded_linode = client.load(Linode, 123)
+
+        If you instead wanted to load a :any:`NodeBalancerConfig`, you could
+        do so like this::
+
+           loaded_nodebalancer_config = client.load(NodeBalancerConfig, 456, 432)
+
+        :param target_type: The type of object to create.
+        :type target_type: type
+        :param target_id: The ID of the object to create.
+        :type target_id: int or str
+        :param target_parent_id: The parent ID of the object to create, if
+                                 applicable.
+        :type target_parent_id: int, str, or None
+
+        :returns: The resulting object, fully loaded.
+        :rtype: target_type
+        :raise ApiError: if the requested object could not be loaded.
         """
         result = target_type.make_instance(target_id, self, parent_id=target_parent_id)
         result._api_get()
@@ -544,11 +577,23 @@ class LinodeClient:
 
     # ungrouped list functions
     def get_regions(self, *filters):
+        """
+        Returns the available regions for Linode services.
+
+        :param *filters: Any number of filters to apply to the query.
+
+        :returns: A list of available regions.
+        :rtype: PaginatedList[Region]
+        """
         return self._get_and_filter(Region, *filters)
 
     def get_profile(self):
         """
-        Returns this token's user's profile.  This is not a listing endpoint.
+        Retrieve the acting user's Profile, containing information about the
+        current user such as their email address, username, and uid.
+
+        :returns: The acting user's profile.
+        :rtype: Profile
         """
         result = self.get('/profile')
 
@@ -560,7 +605,11 @@ class LinodeClient:
 
     def get_account(self):
         """
-        Returns account billing information
+        Retrieves information about the acting user's account, such as billing
+        information.
+
+        :returns: Returns the acting user's account information.
+        :rtype: Account
         """
         result = self.get('/account')
 
@@ -570,11 +619,35 @@ class LinodeClient:
         return Account(self, result['email'], result)
 
     def get_images(self, *filters):
+        """
+        Retrieves a list of available Images, including public and private
+        images available to the acting user.  You can filter this query to
+        retrieve only Images relevant to a specific query, like so::
+
+           debian_images = client.get_images(
+               Image.vendor == "debain")
+
+        :param *filters: Any number of filters to apply to the query.
+
+        :returns: A list of available images.
+        :rtype: PaginatedList[Image]
+        """
         return self._get_and_filter(Image, *filters)
 
     def create_image(self, disk, label=None, description=None):
         """
         Creates a new Image from a disk you own.
+
+        :param disk: The disk to imagize.
+        :type disk: Disk or int
+        :param label: The label for the resulting image (defaults to the disk's
+                      label.
+        :type label: str
+        :param description: The description for the new image.
+        :type description: str
+
+        :returns: The new image.
+        :rtype: Image
         """
         params = {
             "disk_id": disk.id if issubclass(type(disk), Base) else disk,
@@ -595,12 +668,37 @@ class LinodeClient:
         return Image(self, result['id'], result)
 
     def get_domains(self, *filters):
+        """
+        Retrieves all of the domains the acting user has access to.
+
+        :param *filters: Any number of filters to apply to this query.
+        
+        :returns: A list of Domains the acting user can access.
+        :rtype: PaginatedList[Domain]
+        """
         return self._get_and_filter(Domain, *filters)
 
     def get_nodebalancers(self, *filters):
+        """
+        Retrieves all of the NodeBalancers the acting user has access to.
+
+        :param *filters: Any number of filters to apply to this query.
+
+        :returns: A list of NodeBalancers the acting user can access.
+        :rtype: PaginatedList[NodeBalancers]
+        """
         return self._get_and_filter(NodeBalancer, *filters)
 
     def create_nodebalancer(self, region, **kwargs):
+        """
+        Creates a new NodeBalancer in the given region.
+
+        :param region: The region in which to create the NodeBalancer.
+        :type region: Region or str
+
+        :returns: The resulting NodeBalancer
+        :rtype: NodeBalancer
+        """
         params = {
             "region": region.id if isinstance(region, Base) else region,
         }
@@ -615,6 +713,19 @@ class LinodeClient:
         return n
 
     def create_domain(self, domain, master=True, **kwargs):
+        """
+        Registers a new Domain on the acting user's account.  Make sure to point
+        your registrar to Linode's nameservers so that Linode's DNS manager will
+        correctly serve your domain.
+
+        :param domain: The domain to register to Linode's DNS manager.
+        :type domain: str
+        :param master: Whether this is a master (defaults to true)
+        :type master: bool
+
+        :returns: The new Domain object.
+        :rtype: Domain
+        """
         params = {
             'domain': domain,
             'type': 'master' if master else 'slave',
@@ -630,12 +741,34 @@ class LinodeClient:
         return d
 
     def get_volumes(self, *filters):
+        """
+        Retrieves the Block Storage Volumes your user has access to.
+
+        :param *filters: Any number of filters to apply to this query.
+        
+        :returns: A list of Volumes the acting user can access.
+        :rtype: PaginatedList[Volume]
+        """
         return self._get_and_filter(Volume, *filters)
 
     def create_volume(self, label, region=None, linode=None, size=20, **kwargs):
         """
-        Creates a new Block Storage Volume, either in the given region, or attached
-        to the given linode.
+        Creates a new Block Storage Volume, either in the given region, or
+        attached to the given linode.
+
+        :param label: The label for the new volume.
+        :type label: str
+        :param region: The region to create this volume in.  Not required if
+                       `linode` is provided.
+        :type region: Region or str
+        :param linode: The Linode to attach this volume to.  If not given, the
+                       new volume will not be attached to anything.
+        :type linode: Linode or int
+        :param size: The size, in GB, of the new volume.  Defaults to 20.
+        :type size: int
+
+        :returns: The new Volume.
+        :rtype: Volume
         """
         if not (region or linode):
             raise ValueError('region or linode required!')

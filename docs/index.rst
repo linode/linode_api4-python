@@ -10,10 +10,10 @@ linode-api
    :maxdepth: 2
    :caption: Contents:
 
-   getting_started
-   core_concepts
-   oauth
-   linode_client
+   guides/getting_started
+   guides/core_concepts
+   guides/oauth
+   linode/linode_client
 
 
 Indices and tables
@@ -23,3 +23,12 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+
+Testing
+-------
+
+Testing sphinx extension.  When done, this should include the Linode's label,
+group, id, and other attributes defined in the class' properties dict
+
+.. autoclass:: linode.objects.linode.Linode
+   :members:
