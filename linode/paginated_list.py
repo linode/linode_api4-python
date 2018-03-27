@@ -4,6 +4,33 @@ import math
 
 
 class PaginatedList(object):
+    """
+    The PaginatedList encapsulates the API V4's pagination in an easy to
+    consume way.  A PaginatedList may be treated like a normal `list` in all
+    ways, and can be iterated over, indexed, and sliced.
+
+    PaginatedLists should  never be constructed manually, and instead should
+    be created by requesting a collection of resources from the :any:`LinodeClient`.
+    For example::
+
+       linodes = client.linode.get_instances() # returns a PaginatedList of Linodes
+
+    Once you have a PaginatedList of resources, it doesn't matter how many
+    resources the API will return - you can iterate over all of them without
+    worrying about pagination.::
+
+       # iterate over all linodes.  If there are two ore more pages,
+       # they will be loaded as required.
+       for linode in linodes:
+           print(linode.label)
+
+    You may access the number of items in a collection by calling `len` on the
+    PaginatedList::
+
+       num_linodes = len(linodes)
+
+    This will _not_ emit another API request.
+    """
     def __init__(self, client, page_endpoint, page=[], max_pages=1,
             total_items=None, parent_id=None, filters=None):
         self.client = client
@@ -22,12 +49,35 @@ class PaginatedList(object):
             self.total_items = len(page)
 
     def first(self):
+        """
+        A convenience method for getting only the first item in this list.
+        Exactly equivalent to getting index 0.
+
+        :returns: The first item in this list.
+        """
         return self[0]
 
     def last(self):
+        """
+        A convenience method for getting only the last item in this list.
+        Exactly equivalent to getting index -1.
+
+        :returns: The first item in this list.
+        """
         return self[-1]
 
     def only(self):
+        """
+        Returns the first item in this list, and asserts that it is the only
+        item.  This is useful when querying a collection for a resource and
+        expecting to get only one back.  For instance::
+
+           # raises if it finds more than one Linode
+           production_box = client.linode.get_instances(Linode.group == "prod").only()
+
+        :returns: The first and only item in this list.
+        :raises ValueError: If more than one item is in this list.
+        """
         if len(self) == 1:
             return self[0]
         raise ValueError("List {} has more than one element!".format(self))
@@ -118,7 +168,8 @@ class PaginatedList(object):
     @staticmethod
     def make_list(json_arr, client, cls, parent_id=None):
         """
-        Returns a list of Populated objects of the given class type.
+        Returns a list of Populated objects of the given class type.  This
+        should not be called outside of the :any:`LinodeClient` class.
 
         :param json_arr: The array of JSON data to make into a list
         :param client: The LinodeClient to pass to new objects
@@ -147,7 +198,8 @@ class PaginatedList(object):
             filters=None):
         """
         Returns a PaginatedList populated with the first page of data provided,
-        and the ability to load more.
+        and the ability to load more.  This should not be called outside of
+        the :any:`LinodeClient` class.
 
         :param json: The JSON list to use as the first page
         :param client: A LinodeClient to use to load additional pages

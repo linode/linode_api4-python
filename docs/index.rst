@@ -1,10 +1,32 @@
-.. linode-api documentation master file, created by
-   sphinx-quickstart on Sat Mar 10 11:37:03 2018.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 linode-api
 ==========
+
+This is the official documentation for the official Python bindings of the Linode
+API V4.  For official API documentation, see `developers.linode.com`_.
+
+This library can be used to interact with all part of the Linode API, and is
+compatible with Python 2 and 3.
+
+.. _developers.linode.com: https://developers.linode.com
+
+Installation
+------------
+
+To install through pypi::
+
+   pip install linode-api
+
+To install from source::
+
+  git clone https://github.com/linode/python-linode-api
+  cd python-linode-api
+  python setup.py install
+
+For more information, see our :doc:`Getting Started<guides/getting_started>`
+guide.
+
+Table of Contents
+-----------------
 
 .. toctree::
    :maxdepth: 2
@@ -14,21 +36,5 @@ linode-api
    guides/core_concepts
    guides/oauth
    linode/linode_client
-
-
-Indices and tables
-------------------
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
-
-Testing
--------
-
-Testing sphinx extension.  When done, this should include the Linode's label,
-group, id, and other attributes defined in the class' properties dict
-
-.. autoclass:: linode.objects.linode.Linode
-   :members:
+   linode/login_client
+   linode/paginated_list

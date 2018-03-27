@@ -32,8 +32,8 @@ LinodeClient class::
 The LinodeClient itself holds top-level collections of the API, while anything
 that exists under a group in the API belongs to a member of the client.
 
-LinodeClient
-------------
+LinodeClient class
+------------------
 
 .. autoclass:: LinodeClient
    :members:
