@@ -23,14 +23,6 @@ class Profile(Base):
         'restricted': Property(),
     }
 
-    def reset_password(self, password):
-        """
-        Resets the password of the token's user.
-        """
-        result = self._client.post('/profile/password', data={ "password": password })
-
-        return result
-
     def enable_tfa(self):
         """
         Enables TFA for the token's user.  This requies a follow-up request
