@@ -59,11 +59,11 @@ class NodeBalancerConfig(DerivedBase):
         result = self._client.post("{}/nodes".format(NodeBalancerConfig.api_endpoint), model=self, data=params)
         self.invalidate()
 
-        if not 'id' in result:
+        if not 'id' in result.get('data')[0]:
             raise UnexpectedResponseError('Unexpected response creating node!', json=result)
 
         # this is three levels deep, so we need a special constructor
-        n = NodeBalancerNode(self._client, result['id'], self.id, self.nodebalancer_id, result)
+        n = NodeBalancerNode(self._client, result.get('data')[0]['id'], self.id, self.nodebalancer_id, result)
         return n
 
     def load_ssl_data(self, cert_file, key_file):

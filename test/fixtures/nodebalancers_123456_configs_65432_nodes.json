@@ -1,0 +1,17 @@
+{
+  "data": [
+    {
+      "id": 54321,
+      "address": "192.168.210.120",
+      "label": "node54321",
+      "status": "UP",
+      "weight": 50,
+      "mode": "accept",
+      "config_id": 54321,
+      "nodebalancer_id": 123456
+    }
+  ],
+  "pages": 1,
+  "page": 1,
+  "results": 1
+}
