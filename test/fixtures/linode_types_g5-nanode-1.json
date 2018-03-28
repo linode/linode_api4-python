@@ -1,0 +1,22 @@
+{
+  "disk": 20480,
+  "memory": 1024,
+  "transfer": 1000,
+  "addons": {
+    "backups": {
+      "price": {
+        "hourly": 0.003,
+        "monthly": 2
+      }
+    }
+  },
+  "class": "nanode",
+  "network_out": 1000,
+  "vcpus": 1,
+  "id": "g5-nanode-1",
+  "label": "Linode 1024",
+  "price": {
+    "hourly": 0.0075,
+    "monthly": 5
+  }
+}
