@@ -3,7 +3,7 @@ from datetime import datetime
 from test.base import ClientBaseCase
 from linode.objects.base import MappedObject
 
-from linode.objects import Image, Linode
+from linode.objects import Config, Image, Linode
 
 
 class LinodeTest(ClientBaseCase):
@@ -90,20 +90,6 @@ class LinodeTest(ClientBaseCase):
         self.assertEqual(backups.snapshot.current, None)
         self.assertEqual(backups.snapshot.in_progress, None)
 
-    def test_create_linode(self):
-        """
-        Tests that a Linode can be created
-        """
-        with self.mock_post('linode/instances/123') as m:
-            linode = Linode(self.client, 123)
-
-            self.assertIsNotNone(linode)
-            self.assertEqual(linode.id, 123)
-            self.assertEqual(linode.label, "linode123")
-            self.assertEqual(linode.group, "test")
-            self.assertTrue(isinstance(linode.image, Image))
-            self.assertEqual(linode.image.label, "Ubuntu 17.04")
-
     def test_update_linode(self):
         """
         Tests that a Linode can be updated
@@ -162,6 +148,18 @@ class LinodeTest(ClientBaseCase):
 
         with self.mock_post(result) as m:
             linode.boot()
+            self.assertEqual(m.call_url, '/linode/instances/123/boot')
+
+    def test_boot_with_config(self):
+        """
+        Tests that you can submit a correct boot with a config api request
+        """
+        linode = Linode(self.client, 123)
+        config = linode.configs[0]
+        result = {}
+
+        with self.mock_post(result) as m:
+            linode.boot(config=config)
             self.assertEqual(m.call_url, '/linode/instances/123/boot')
 
     def test_mutate(self):
