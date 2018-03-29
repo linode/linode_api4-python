@@ -235,13 +235,13 @@ class LinodeGroup(Group):
 
         authorized_keys = load_and_validate_keys(authorized_keys)
 
-        if "stackscript" in kwags:
+        if "stackscript" in kwargs:
             # translate stackscripts
             kwargs["stackscript_id"] = (kwargs["stackscript"].id if issubclass(kwargs["stackscript"])
                                         else kwargs["stackscript"])
             del kwargs["stackscript"]
 
-        if "backup" in kwags:
+        if "backup" in kwargs:
             # translate backups
             kwargs["backup_id"] = (kwargs["backup"].id if issubclass(kwargs["backup"])
                                    else kwargs["backup"])
