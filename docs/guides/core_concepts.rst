@@ -66,7 +66,7 @@ Filters may be combined using boolean operators similar to SQLAlchemy::
 Filters are generally only applicable for the type of model you are querying,
 but can be combined to your heart's content.  For numeric fields, the standard
 numeric comparisons are accepted, and work as you'd expect.  See
-:any:`linode.objects.filtering` for full details.
+:doc:`Filtering Collections<../linode/objects/filtering>` for full details.
 
 Models
 ------

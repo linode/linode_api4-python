@@ -1,6 +1,12 @@
 linode-api
 ==========
 
+.. note::
+   These docs are currently in development, and are therefore incomplete.
+   For full documentation of the API, see the `Official API Documentation`_.
+
+   .. _Official API Documentation: https://developers.linode.com
+
 This is the official documentation for the official Python bindings of the Linode
 API V4.  For official API documentation, see `developers.linode.com`_.
 
@@ -38,3 +44,4 @@ Table of Contents
    linode/linode_client
    linode/login_client
    linode/paginated_list
+   linode/objects/filtering

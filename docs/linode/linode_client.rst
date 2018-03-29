@@ -7,8 +7,8 @@ The LinodeClient is responsible for managing your connection to the API by
 housing your token.  A LinodeClient is required for all connections to the API,
 and a reference to one is required by every model.  A LinodeClient is created
 with a token, either and OAuth Token from the OAuth Exchange (see
-:doc:`oauth` for more information) or a Personal Access Token.  See our
-:doc:`getting_started` guide for more information::
+:doc:`oauth<../guides/oauth>` for more information) or a Personal Access Token.  See our
+:doc:`getting_started<../guides/getting_started>` guide for more information::
 
    from linode import LinodeClient
 

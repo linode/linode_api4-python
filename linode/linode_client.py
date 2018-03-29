@@ -24,13 +24,62 @@ class Group:
 
 
 class LinodeGroup(Group):
+    """
+    Encapsulates Linode-related methods of the :any:`LinodeClient`.  This should
+    not be instantiated on its own, but should instead of used through an instance
+    of :any:`LinodeClient`::
+
+       client = LinodeClient(token)
+       linodes = client.linode.get_instances() # use the LinodeGroup
+
+    This group contains all features beneath the `/linode` group in the API v4.
+    """
     def get_types(self, *filters):
+        """
+        Returns a list of Linode types.  These may be used to create or resize
+        Linodes, or simply referenced.  This may be filtered to query for
+        specific kinds of types, for example::
+
+           standard_types = client.linode.get_types(Type.class == "standard")
+
+        :param filters: Any number of filters to apply to the query.
+
+        :returns: A list of types that match the query.
+        :rtype: PaginatedList of Type
+        """
         return self.client._get_and_filter(Type, *filters)
 
     def get_instances(self, *filters):
+        """
+        Returns a list of Linodes on your account.  You may filter this query
+        to return only Linodes that match specific criteria::
+
+           prod_linodes = client.linode.get_instances(Linode.group == "prod")
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of Linodes that matched the query.
+        :rtype: PaginatedList of Linode
+        """
         return self.client._get_and_filter(Linode, *filters)
 
     def get_stackscripts(self, *filters, **kwargs):
+        """
+        Returns a list of :any:`StackScripts<StackScript>`, both public and
+        private.  You may filter this query to return only
+        :any:`StackScripts<StackScript>` that match certain criteria.  You may
+        also request only your own private :any:`StackScripts<StackScript>` like
+        so::
+
+           my_stackscripts = client.linode.get_stackscripts(mine_only=True)
+
+        :param filters: Any number of filters to apply to this query.
+        :param mine_only: If True, returns only private StackScripts
+        :type mine_only: bool
+
+        :returns: A list of StackScripts matching the query.
+        :rtype: PaginatedList of StackScript
+        """
         # python2 can't handle *args and a single keyword argument, so this is a workaround
         if 'mine_only' in kwargs:
             if kwargs['mine_only']:
@@ -49,31 +98,131 @@ class LinodeGroup(Group):
         return self.client._get_and_filter(StackScript, *filters)
 
     def get_kernels(self, *filters):
+        """
+        Returns a list of available :any:`Kernels<Kernel>`.  Kernels are used
+        when creating or updating :any:`LinodeConfigs,LinodeConfig>`.
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of available kernels that match the query.
+        :rtype: PaginatedList of Kernel
+        """
         return self.client._get_and_filter(Kernel, *filters)
 
     # create things
     def create_instance(self, ltype, region, image=None,
             authorized_keys=None, **kwargs):
         """
-        Creates a new Linode.  This takes a number of parameters in **kwargs
-        that are not listed explictly, but will be passed through to the api as
-        provided.  For complete details, see the API documentation at
-        developers.linode.com
+        Creates a new Linode. This function has several modes of operation:
+
+        **Create a Linode from an Image**
+
+        To create a Linode form an :any:`Image`, call `create_instance` with
+        a :any:`Type`, a :any:`Region`, and an :any:`Image`.  All three of
+        these field may be provided as either the ID or the appropriate object.
+        In this mode, a root password will be generated and returned with the
+        new Linode object.  For example::
+
+           new_linode, password = client.linode.create_instance(
+               "g5-standard-1",
+               "us-east",
+               image="linode/debian9")
+
+           ltype = client.linode.get_types().first()
+           region = client.get_regions().first()
+           image = client.get_images().first()
+
+           another_linode, password = client.linode.create_instance(
+               ltype,
+               region,
+               image=image)
+
+        **Create a Linode from StackScript**
+
+        When creating a Linode from a :any:`StackScript`, an :any:`Image` must
+        be provided that the StackScript supports.  You must also provide any
+        required StackScript data.  For example, if deploying `StackScript
+        10079`_ (which deploys a new Linode with a user created from keys on
+        `github`_::
+
+           stackscript = StackScript(client, 10079)
+
+           new_linode, password = client.linode.create_instance(
+              "g5-standard-2",
+              "us-east",
+              image="linode/debian9",
+              stackscript=stackscript,
+              stackscript_data={"gh_username": "example"})
+
+        In the above example, "gh_username" is the name of a User Defined Field
+        in the chosen StackScript.  For more information on StackScripts, see
+        the `StackScript guide`_
+
+        .. _`StackScript 10079`: https://www.linode.com/stackscripts/view/10079
+        .. _`github`: https://github.com
+        .. _`StackScript guide`: https://www.linode.com/docs/platform/stackscripts/
+
+        **Create a Linode from a Backup**
+
+        To create a new Linode by restoring a :any:`Backup` to it, provide a
+        :any:`Type`, a :any:`Region`, and the :any:`Backup` to restore.  You
+        may provide either IDs or objects for all of these fields::
+
+           existing_linode = Linode(client, 123)
+           snapshot = existing_linode.available_backups.snapshot.current
+
+           new_linode = client.linode.create_instance(
+               "g5-standard-1",
+               "us-east",
+               backup=snapshot)
+
+        **Create an empty Linode**
+
+        If you want to create an empty Linode that you will configure manually,
+        simply call `create_instance` with a :any:`Type` and a :any:`Region`::
+
+           empty_linode = client.linode.create_instance("g5-standard-2", "us-east")
+
+        When created this way, the Linode will not be booted and cannot boot
+        successfully until disks and configs are created, or it is otherwise
+        configured.
 
         :param ltype: The Linode Type we are creating
         :type ltype: str or LinodeType
         :param region: The Region in which we are creating the Linode
         :type region: str or Region
-        :param image: The image to deploy to this Linode
+        :param image: The image to deploy to this Linode.  If this is provided
+                      and no root_pass is given, a password will be generated
+                      and returns along with the new Linode.
         :type image: str or Image
+        :param stackscript: The StackScript to deploy to the new Linode.  If
+                            given, image is required and must be compatible
+                            with the chosen StackScript.
+        :type stackscript: int or StackScript
+        :param stackscript_data: Values for the User Defined Fields defined in
+                                 the chosen StackScript.  Does nothing if
+                                 stackscript is not provided.
+        :type stackscript_data: dict
+        :param backup: The Backup to restore to the new Linode.  May not be
+                       provided if image is given.
+        :type backup: int of Backup
         :param authorized_keys: The ssh public keys to install on the linode's
                                 /root/.ssh/authorized_keys file.  Each entry may
                                 be a single key, or a path to a file containing
                                 the key.
         :type authorized_keys: list or str
-        :param **kwargs: Any other fields to pass to the api
+        :param label: The display label for the new Linode
+        :type label: str
+        :param group: The display group for the new Linode
+        :type group: str
+        :param booted: Whether the new Linode should be booted.  This will
+                       default to True if the Linode is deployed from an Image
+                       or Backup.
+        :type booted: bool
 
-        :returns: A new Linode object
+        :returns: A new Linode object, or a tuple containing the new Linode and
+                  the generated password.
+        :rtype: Linode or tuple(Linode, str)
         :raises ApiError: If contacting the API fails
         :raises UnexpectedResponseError: If the API resposne is somehow malformed.
                                          This usually indicates that you are using
@@ -85,6 +234,18 @@ class LinodeGroup(Group):
             kwargs['root_pass'] = ret_pass
 
         authorized_keys = load_and_validate_keys(authorized_keys)
+
+        if "stackscript" in kwags:
+            # translate stackscripts
+            kwargs["stackscript_id"] = (kwargs["stackscript"].id if issubclass(kwargs["stackscript"])
+                                        else kwargs["stackscript"])
+            del kwargs["stackscript"]
+
+        if "backup" in kwags:
+            # translate backups
+            kwargs["backup_id"] = (kwargs["backup"].id if issubclass(kwargs["backup"])
+                                   else kwargs["backup"])
+            del kwargs["backup"]
 
         params = {
              'type': ltype.id if issubclass(type(ltype), Base) else ltype,
@@ -105,6 +266,29 @@ class LinodeGroup(Group):
         return l, ret_pass
 
     def create_stackscript(self, label, script, images, desc=None, public=False, **kwargs):
+        """
+        Creates a new :any:`StackScript` on your account.
+
+        :param label: The label for this StackScript.
+        :type label: str
+        :param script: The script to run when a :any:`Linode` is deployed with
+                       this StackScript.  Must begin with a shebang (#!).
+        :type script: str
+        :param images: A list of :any:`Images<Image>` that this StackScript
+                       supports.  We will not allow Linodes to be deployed from
+                       this StackScript unless it is deployed from one of these
+                       Images.
+        :type images: list of Image
+        :param desc: A description for this StackScript.
+        :type desc: str
+        :param public: Whether this StackScript is public.  Defaults to False.
+                       Once a StackScript is made public, it may not be set
+                       back to private.
+        :type public: bool
+
+        :returns: The new StackScript
+        :rtype: StackScript
+        """
         image_list = None
         if type(images) is list or type(images) is PaginatedList:
             image_list = [d.id if issubclass(type(d), Base) else d for d in images ]
@@ -331,12 +515,30 @@ class NetworkingGroup(Group):
 
     def assign_ips(self, region, *assignments):
         """
-        This takes a set of IPv4 Assignments and moves the IPs where they were
-        asked to go.  Call this with any number of IPAddress.to(Linode) results
+        Redistributes :any:`IP Addressees<IPAddress>` within a single region.
+        This function takes a :any:`Region` and a list of assignments to make,
+        then requests that the assignments take place.  If any :any:`Linode`
+        ends up without a public IP, or with more than one private IP, the
+        entire batch of assignments will fail.
 
-        For example, swapping ips between linode1 and linode2 might look like this:
-            client.networking.assign_ips('newark', ip1.to(linode2), ip2.to(linode1))
+        Example usage::
 
+           linode1 = Linode(client, 123)
+           linode2 = Linode(client, 456)
+
+           # swap IPs between linodes 1 and 2
+           client.networking.assign_ips(linode1.region,
+                                        linode1.ips.ipv4.public[0].to(linode2),
+                                        linode2.ips.ipv4.public[0].to(linode1))
+
+        :param region: The region in which the assignments should take place.
+                       All Linodes and IPAddresses involved in the assignment
+                       must be within this region.
+        :type region: str or Region
+        :param assignments: Any number of assignments to make.  See
+                            :any:`IPAddress.to` for details on how to construct
+                            assignments.
+        :type assignments: dct
         """
         for a in assignments:
             if not 'address' in a or not 'linode_id' in a:
@@ -344,23 +546,22 @@ class NetworkingGroup(Group):
         if isinstance(region, Region):
             region = region.id
 
-        result = self.client.post('/networking/ip-assign', data={
+        self.client.post('/networking/ip-assign', data={
             "region": region,
             "assignments": [ a for a in assignments ],
         })
 
-        if not 'ips' in result:
-            raise UnexpectedResponseError('Unexpected response when assigning IPs!',
-                    json=result)
-
-        ips = []
-        for r in result['ips']:
-            i = IPAddress(self.client, r['address'], result)
-            ips.append(i)
-
-        return ips
-
     def allocate_ip(self, linode):
+        """
+        Allocates an IP to a Linode you own.  Additional IPs must be requested
+        by opening a support ticket first.
+
+        :param linode: The Linode to allocate the new IP for.
+        :type linode: Linode or int
+
+        :returns: The new IPAddress
+        :rtype: IPAddress
+        """
         result = self.client.post('/networking/ipv4/', data={
             "linode_id": linode.id if isinstance(linode, Base) else linode,
         })
@@ -580,10 +781,10 @@ class LinodeClient:
         """
         Returns the available regions for Linode services.
 
-        :param *filters: Any number of filters to apply to the query.
+        :param filters: Any number of filters to apply to the query.
 
         :returns: A list of available regions.
-        :rtype: PaginatedList[Region]
+        :rtype: PaginatedList of Region
         """
         return self._get_and_filter(Region, *filters)
 
@@ -627,10 +828,10 @@ class LinodeClient:
            debian_images = client.get_images(
                Image.vendor == "debain")
 
-        :param *filters: Any number of filters to apply to the query.
+        :param filters: Any number of filters to apply to the query.
 
         :returns: A list of available images.
-        :rtype: PaginatedList[Image]
+        :rtype: PaginatedList of Image
         """
         return self._get_and_filter(Image, *filters)
 
@@ -671,10 +872,10 @@ class LinodeClient:
         """
         Retrieves all of the domains the acting user has access to.
 
-        :param *filters: Any number of filters to apply to this query.
-        
+        :param filters: Any number of filters to apply to this query.
+
         :returns: A list of Domains the acting user can access.
-        :rtype: PaginatedList[Domain]
+        :rtype: PaginatedList of Domain
         """
         return self._get_and_filter(Domain, *filters)
 
@@ -682,10 +883,10 @@ class LinodeClient:
         """
         Retrieves all of the NodeBalancers the acting user has access to.
 
-        :param *filters: Any number of filters to apply to this query.
+        :param filters: Any number of filters to apply to this query.
 
         :returns: A list of NodeBalancers the acting user can access.
-        :rtype: PaginatedList[NodeBalancers]
+        :rtype: PaginatedList of NodeBalancers
         """
         return self._get_and_filter(NodeBalancer, *filters)
 
@@ -744,10 +945,10 @@ class LinodeClient:
         """
         Retrieves the Block Storage Volumes your user has access to.
 
-        :param *filters: Any number of filters to apply to this query.
-        
+        :param filters: Any number of filters to apply to this query.
+
         :returns: A list of Volumes the acting user can access.
-        :rtype: PaginatedList[Volume]
+        :rtype: PaginatedList of Volume
         """
         return self._get_and_filter(Volume, *filters)
 
