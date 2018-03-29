@@ -1,5 +1,5 @@
-OAuth Intgration
-================
+OAuth Integration
+=================
 
 Overview
 --------
@@ -39,7 +39,7 @@ The OAuth 2 workflow has three actors:
 
 The OAuth 2 exchange works as follows:
 
-#. The end user visits the client application's website and attempt to login
+#. The end user visits the client application's website and attempts to login
    using OAuth.
 #. The client application redirects the end user to the authentication server
    with the client application's client ID and requested OAuth scopes in the
@@ -84,10 +84,10 @@ scopes like this::
 Performing an OAuth Login
 -------------------------
 
-The :any:`LinodeLoginClient<linode.LinodeLoginClient>` class managed all
+The :any:`LinodeLoginClient<linode.LinodeLoginClient>` class manages all
 aspects of the OAuth exchange in this library.  To create a
 :any:`LinodeLoginClient<linode.LinodeLoginClient>`, you must use your client ID
-and client secret (generated on registering a client application with Linode -
+and client secret (generated upon registering a client application with Linode -
 see above).::
 
    login_client = LinodeLoginClient(my_client_id, my_client_secret)

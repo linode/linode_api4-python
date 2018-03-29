@@ -27,7 +27,8 @@ behaves similarly to a python list.  For example::
 
    last_linode = linodes[-1] # loads only the last page, if it hasn't been loaded yet
                              # this _will_ emit an API call if there were two or
-                             # more pages of results
+                             # more pages of results.  If there was only one page,
+                             # this does not emit an additional call
 
    for current_linode in linodes: # iterate over all results, loading pages as necessary
        print(current_linode.label)
@@ -36,8 +37,7 @@ If you're not concerned about performance, using a
 :any:`PaginatedList` as a normal list should be fine.  If
 your application is sensitive to performance concerns, be aware that iterating
 over a :any:`PaginatedList` can cause the thread to wait as a synchronous
-request for additional data is made
-mid-iteration.
+request for additional data is made mid-iteration.
 
 Filtering
 ---------
@@ -46,7 +46,7 @@ Collections of objects in the API can be filtered to make their results more
 useful.  For example, you can ask the API for all Linodes you own belonging to
 a certain group, instead of having to do this filtering yourself on the full
 list.  This library implements filtering with a SQLAlchemy-like syntax, where
-every model's attributes may be used in comparisons to generate filters.  For
+a model's attributes may be used in comparisons to generate filters.  For
 example::
 
    prod_linodes = client.linode.get_instances(Linode.group == "production")
@@ -102,9 +102,9 @@ unpopulated.  As soon as an unpopulated attribute is accessed, an API call is
 emitted to retrieve that value (and the rest of the attributes in the model) from
 the API.  For example::
 
-   my_linode.id # this was set on creation - no API call emitted
+   my_linode.id # no API call emitted - this was set on creation 
    my_linode.label # API call emitted - entire object is loaded from response
-   my_linode.group # no API call is emitted - this was loaded above
+   my_linode.group # no API call emitted - this was loaded above
 
 .. note::
 
@@ -131,7 +131,7 @@ current.::
    While it is often safe to loop on a **volatile** attribute, be aware that there is
    no guarantee that their value will ever change - be sure that any such loops
    have another exit condition to prevent your application from hanging if something
-   you didn't expect happen.s
+   you didn't expect happens.
 
 Updating and Deleting Models
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -148,7 +148,7 @@ models can also be deleted in a similar fashion.::
 
 .. note::
 
-   Saving a model *may* fail if the values you are attemting to save are invalid.
+   Saving a model *may* fail if the values you are attempting to save are invalid.
    If the values you are attemting to save are coming from an untrusted source,
    be sure to handle a potential :any:`ApiError` raised by the API returning
    an unsuccessful response code.
@@ -162,7 +162,7 @@ any other attribute on the model, and will emit an API call to retrieve the
 related models if necessary.::
 
    len(my_linode.disks) # emits an API call to retrieve related disks
-   my_linode.disks[0] # no call is emitted - this is already loaded
+   my_linode.disks[0] # no API call emitted - this is already loaded
 
-   my_linode.region.id # no API call is emitted - IDs are already populated
-   my_linode.region.country # API call is emitted to retrieve region object
+   my_linode.region.id # no API call emitted - IDs are already populated
+   my_linode.region.country # API call emitted - retrieves region object

@@ -4,7 +4,7 @@ Getting Started
 Installation
 ------------
 
-The linode-api package can be installed from pypi as shown:
+The linode-api package can be installed from pypi as shown below:
 
 .. code-block:: shell
 
@@ -56,17 +56,13 @@ Listing your Linodes
 --------------------
 
 Using the token you generated above, create a :py:class:`LinodeClient` object
-that will be used for all interactions with the API.
-
-.. code-block:: python
+that will be used for all interactions with the API.::
 
    from linode import LinodeClient
    client = LinodeClient(token)
 
-This object will manage all requests you make through the API.  Now that it's
-set up, you can use it to retrieve and print a list of your Linodes:
-
-.. code-block:: python
+This object will manage all requests you make through the API.  Once it's
+set up, you can use it to retrieve and print a list of your Linodes::
 
    my_linodes = client.linode.get_instances()
 
@@ -74,25 +70,24 @@ set up, you can use it to retrieve and print a list of your Linodes:
        print(current_linode.label)
 
 When retrieving collections of objects from the API, a list-like object is
-returned, and may be iterated over or indexed as a normal list.G
+returned, and may be iterated over or indexed as a normal list.
 
 Creating a Linode
 -----------------
 
-In order to create a Linode, we need a few pieces of information: what
-:py:class:Region to create the Linode in, what :py:class:Type of Linode to
-create, and what :py:class:Image to deploy to the new Linode.  We can query
-for these values similarly to how we listed our Linodes above:
+In order to create a Linode, we need a few pieces of information:
 
-.. code-block:: python
+ * what :py:class:Region to create the Linode in
+ * what :py:class:Type of Linode to create
+ * what :py:class:Image to deploy to the new Linode.
+
+We can query for these values similarly to how we listed our Linodes above::
 
    available_regions = client.get_regions()
 
 We could also use values that we know in advance to avoid the need to query the
-API - for example, we may know that we want a `g5-standard-4` Linode running the
-`linode/debian9` Image.  Both objects and IDs are accepted when creating a Linode.
-
-.. code-block:: python
+API.  For example, we may know that we want a `g5-standard-4` Linode running the
+`linode/debian9` Image.  Both objects and IDs are accepted when creating a Linode.::
 
    chosen_region = available_regions[0]
 
