@@ -1,0 +1,43 @@
+{
+  "data": [
+    {
+      "root_device": "/dev/sda",
+      "comments": "",
+      "helpers": {
+        "updatedb_disabled": true,
+        "modules_dep": true,
+        "devtmpfs_automount": true,
+        "distro": true,
+        "network": false
+      },
+      "label": "My Ubuntu 17.04 LTS Profile",
+      "created": "2014-10-07T20:04:00",
+      "memory_limit": 0,
+      "id": 456789,
+      "run_level": "default",
+      "initrd": null,
+      "virt_mode": "paravirt",
+      "kernel": "linode/latest-64bit",
+      "updated": "2014-10-07T20:04:00",
+      "devices": {
+        "sda": {
+          "disk_id": 12345,
+          "volume_id": null
+        },
+        "sdc": null,
+        "sde": null,
+        "sdh": null,
+        "sdg": null,
+        "sdb": {
+          "disk_id": 12346,
+          "volume_id": null
+        },
+        "sdf": null,
+        "sdd": null
+      }
+    }
+  ],
+  "pages": 1,
+  "page": 1,
+  "results": 1
+}

@@ -3,7 +3,7 @@ from datetime import datetime
 from test.base import ClientBaseCase
 from linode.objects.base import MappedObject
 
-from linode.objects import Image, Linode
+from linode.objects import Config, Image, Linode
 
 
 class LinodeTest(ClientBaseCase):
@@ -89,3 +89,87 @@ class LinodeTest(ClientBaseCase):
         # assert that snapshots came back as expected
         self.assertEqual(backups.snapshot.current, None)
         self.assertEqual(backups.snapshot.in_progress, None)
+
+    def test_update_linode(self):
+        """
+        Tests that a Linode can be updated
+        """
+        with self.mock_put('linode/instances/123') as m:
+            linode = Linode(self.client, 123)
+
+            linode.label = "NewLinodeLabel"
+            linode.group = "new_group"
+            linode.save()
+
+            self.assertEqual(m.call_url, '/linode/instances/123')
+            self.assertEqual(m.call_data, {
+                "label": "NewLinodeLabel",
+                "group": "new_group"
+            })
+
+    def test_delete_linode(self):
+        """
+        Tests that deleting a Linode creates the correct api request
+        """
+        with self.mock_delete() as m:
+            linode = Linode(self.client, 123)
+            linode.delete()
+
+            self.assertEqual(m.call_url, '/linode/instances/123')
+
+    def test_reboot(self):
+        """
+        Tests that you can submit a correct reboot api request
+        """
+        linode = Linode(self.client, 123)
+        result = {}
+
+        with self.mock_post(result) as m:
+            linode.reboot()
+            self.assertEqual(m.call_url, '/linode/instances/123/reboot')
+
+    def test_shutdown(self):
+        """
+        Tests that you can submit a correct shutdown api request
+        """
+        linode = Linode(self.client, 123)
+        result = {}
+
+        with self.mock_post(result) as m:
+            linode.shutdown()
+            self.assertEqual(m.call_url, '/linode/instances/123/shutdown')
+
+    def test_boot(self):
+        """
+        Tests that you can submit a correct boot api request
+        """
+        linode = Linode(self.client, 123)
+        result = {}
+
+        with self.mock_post(result) as m:
+            linode.boot()
+            self.assertEqual(m.call_url, '/linode/instances/123/boot')
+
+    def test_boot_with_config(self):
+        """
+        Tests that you can submit a correct boot with a config api request
+        """
+        linode = Linode(self.client, 123)
+        config = linode.configs[0]
+        result = {}
+
+        with self.mock_post(result) as m:
+            linode.boot(config=config)
+            self.assertEqual(m.call_url, '/linode/instances/123/boot')
+
+    def test_mutate(self):
+        """
+        Tests that you can submit a correct mutate api request
+        """
+        linode = Linode(self.client, 123)
+        result = {}
+
+        with self.mock_post(result) as m:
+            linode.mutate()
+            self.assertEqual(m.call_url, '/linode/instances/123/mutate')
+
