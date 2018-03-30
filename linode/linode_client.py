@@ -37,8 +37,8 @@ class LinodeGroup(Group):
     def get_types(self, *filters):
         """
         Returns a list of Linode types.  These may be used to create or resize
-        Linodes, or simply referenced.  This may be filtered to query for
-        specific kinds of types, for example::
+        Linodes, or simply referenced on their own.  Types can be filtered to
+        return specific types, for example::
 
            standard_types = client.linode.get_types(Type.class == "standard")
 
@@ -68,8 +68,7 @@ class LinodeGroup(Group):
         Returns a list of :any:`StackScripts<StackScript>`, both public and
         private.  You may filter this query to return only
         :any:`StackScripts<StackScript>` that match certain criteria.  You may
-        also request only your own private :any:`StackScripts<StackScript>` like
-        so::
+        also request only your own private :any:`StackScripts<StackScript>`::
 
            my_stackscripts = client.linode.get_stackscripts(mine_only=True)
 
@@ -117,9 +116,9 @@ class LinodeGroup(Group):
 
         **Create a Linode from an Image**
 
-        To create a Linode form an :any:`Image`, call `create_instance` with
+        To create a Linode from an :any:`Image`, call `create_instance` with
         a :any:`Type`, a :any:`Region`, and an :any:`Image`.  All three of
-        these field may be provided as either the ID or the appropriate object.
+        these fields may be provided as either the ID or the appropriate object.
         In this mode, a root password will be generated and returned with the
         new Linode object.  For example::
 
@@ -141,9 +140,9 @@ class LinodeGroup(Group):
 
         When creating a Linode from a :any:`StackScript`, an :any:`Image` must
         be provided that the StackScript supports.  You must also provide any
-        required StackScript data.  For example, if deploying `StackScript
-        10079`_ (which deploys a new Linode with a user created from keys on
-        `github`_::
+        required StackScript data for the script's User Defined Fields..  For
+        example, if deploying `StackScript 10079`_ (which deploys a new Linode
+        with a user created from keys on `github`_::
 
            stackscript = StackScript(client, 10079)
 
@@ -156,7 +155,7 @@ class LinodeGroup(Group):
 
         In the above example, "gh_username" is the name of a User Defined Field
         in the chosen StackScript.  For more information on StackScripts, see
-        the `StackScript guide`_
+        the `StackScript guide`_.
 
         .. _`StackScript 10079`: https://www.linode.com/stackscripts/view/10079
         .. _`github`: https://github.com
@@ -196,7 +195,7 @@ class LinodeGroup(Group):
                       and returns along with the new Linode.
         :type image: str or Image
         :param stackscript: The StackScript to deploy to the new Linode.  If
-                            given, image is required and must be compatible
+                            provided, image is required and must be compatible
                             with the chosen StackScript.
         :type stackscript: int or StackScript
         :param stackscript_data: Values for the User Defined Fields defined in
@@ -206,7 +205,7 @@ class LinodeGroup(Group):
         :param backup: The Backup to restore to the new Linode.  May not be
                        provided if image is given.
         :type backup: int of Backup
-        :param authorized_keys: The ssh public keys to install on the linode's
+        :param authorized_keys: The ssh public keys to install in the linode's
                                 /root/.ssh/authorized_keys file.  Each entry may
                                 be a single key, or a path to a file containing
                                 the key.
@@ -275,9 +274,8 @@ class LinodeGroup(Group):
                        this StackScript.  Must begin with a shebang (#!).
         :type script: str
         :param images: A list of :any:`Images<Image>` that this StackScript
-                       supports.  We will not allow Linodes to be deployed from
-                       this StackScript unless it is deployed from one of these
-                       Images.
+                       supports.  Linodes will not be deployed from this
+                       StackScript unless deployed from one of these Images.
         :type images: list of Image
         :param desc: A description for this StackScript.
         :type desc: str
@@ -518,8 +516,8 @@ class NetworkingGroup(Group):
         Redistributes :any:`IP Addressees<IPAddress>` within a single region.
         This function takes a :any:`Region` and a list of assignments to make,
         then requests that the assignments take place.  If any :any:`Linode`
-        ends up without a public IP, or with more than one private IP, the
-        entire batch of assignments will fail.
+        ends up without a public IP, or with more than one private IP, all of
+        the assignments will fail.
 
         Example usage::
 
@@ -673,8 +671,8 @@ class LinodeClient:
 
            loaded_linode = client.load(Linode, 123)
 
-        If you instead wanted to load a :any:`NodeBalancerConfig`, you could
-        do so like this::
+        Similarly, if you instead wanted to load a :any:`NodeBalancerConfig`,
+        you could do so like this::
 
            loaded_nodebalancer_config = client.load(NodeBalancerConfig, 456, 432)
 
@@ -779,7 +777,7 @@ class LinodeClient:
     # ungrouped list functions
     def get_regions(self, *filters):
         """
-        Returns the available regions for Linode services.
+        Returns the available regions for Linode products.
 
         :param filters: Any number of filters to apply to the query.
 
@@ -823,7 +821,7 @@ class LinodeClient:
         """
         Retrieves a list of available Images, including public and private
         images available to the acting user.  You can filter this query to
-        retrieve only Images relevant to a specific query, like so::
+        retrieve only Images relevant to a specific query, for example::
 
            debian_images = client.get_images(
                Image.vendor == "debain")
@@ -897,7 +895,7 @@ class LinodeClient:
         :param region: The region in which to create the NodeBalancer.
         :type region: Region or str
 
-        :returns: The resulting NodeBalancer
+        :returns: The new NodeBalancer
         :rtype: NodeBalancer
         """
         params = {
@@ -954,7 +952,7 @@ class LinodeClient:
 
     def create_volume(self, label, region=None, linode=None, size=20, **kwargs):
         """
-        Creates a new Block Storage Volume, either in the given region, or
+        Creates a new Block Storage Volume, either in the given region or
         attached to the given linode.
 
         :param label: The label for the new volume.

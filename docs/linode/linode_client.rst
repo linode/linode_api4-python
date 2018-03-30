@@ -3,12 +3,13 @@ Linode Client
 
 .. module:: linode
 
-The LinodeClient is responsible for managing your connection to the API by
-housing your token.  A LinodeClient is required for all connections to the API,
-and a reference to one is required by every model.  A LinodeClient is created
-with a token, either and OAuth Token from the OAuth Exchange (see
-:doc:`oauth<../guides/oauth>` for more information) or a Personal Access Token.  See our
-:doc:`getting_started<../guides/getting_started>` guide for more information::
+The LinodeClient is responsible for managing your connection to the API using
+your token.  A LinodeClient is required for all connections to the API, and a
+reference to one is required by every model.  A LinodeClient is created with a
+token, either an OAuth Token from the OAuth Exchange (see
+:doc:`oauth<../guides/oauth>` for more information) or a Personal Access Token.
+See our :doc:`getting_started<../guides/getting_started>` guide for more
+information::
 
    from linode import LinodeClient
 
@@ -19,7 +20,7 @@ with a token, either and OAuth Token from the OAuth Exchange (see
 Grouping
 --------
 
-The LinodeClient class if divided into groups following the API's overall
+The LinodeClient class is divided into groups following the API's overall
 design - some methods and functions are accessible only through members of the
 LinodeClient class::
 
@@ -55,7 +56,7 @@ LinodeGroup
 ^^^^^^^^^^^
 
 Includes methods for managing and creating Linodes, as well as accessing and
-working with associated services.
+working with associated features.
 
 .. autoclass:: linode.linode_client.LinodeGroup
    :members:
@@ -95,7 +96,7 @@ Includes methods for interacting with our Longview service.
 SupportGroup
 ^^^^^^^^^^^^
 
-Includes methods for viewing and opening tickets without support department.
+Includes methods for viewing and opening tickets with our support department.
 
 .. autoclass:: linode.linode_client.SupportGroup
    :members:

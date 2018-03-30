@@ -31,7 +31,7 @@ this::
        print(linode.label)
 
 The first page of a collection is always loaded when the collection is
-requested, and subsequent pages are loaded as they are required.  When slicing
+returned, and subsequent pages are loaded as they are required.  When slicing
 a paginated list, only the pages required for the slice are loaded.
 
 PaginatedList class

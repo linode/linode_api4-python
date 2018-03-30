@@ -52,7 +52,7 @@ def or_(a, b):
     :param b: The second filter to consider.
     :type b: Filter
 
-    :returns: A filter that matches either a ord b
+    :returns: A filter that matches either a or b
     :rtype: Filter
     """
     if not isinstance(a, Filter) or not isinstance(b, Filter):
@@ -78,7 +78,7 @@ def and_(a, b):
 
 def order_by(field, desc=False):
     """
-    Allows order of results.  You may only ever order a collection's results
+    Allows ordering of results.  You may only ever order a collection's results
     once in a given request.  For example::
 
        # sort results by Linode group

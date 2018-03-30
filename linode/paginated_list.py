@@ -5,11 +5,11 @@ import math
 
 class PaginatedList(object):
     """
-    The PaginatedList encapsulates the API V4's pagination in an easy to
-    consume way.  A PaginatedList may be treated like a normal `list` in all
+    The PaginatedList encapsulates the API V4's pagination in an easily
+    consumable way.  A PaginatedList may be treated like a normal `list` in all
     ways, and can be iterated over, indexed, and sliced.
 
-    PaginatedLists should  never be constructed manually, and instead should
+    PaginatedLists should never be constructed manually, and instead should
     be created by requesting a collection of resources from the :any:`LinodeClient`.
     For example::
 
@@ -17,9 +17,9 @@ class PaginatedList(object):
 
     Once you have a PaginatedList of resources, it doesn't matter how many
     resources the API will return - you can iterate over all of them without
-    worrying about pagination.::
+    having to worry about pagination.::
 
-       # iterate over all linodes.  If there are two ore more pages,
+       # iterate over all linodes.  If there are two or more pages,
        # they will be loaded as required.
        for linode in linodes:
            print(linode.label)
@@ -198,8 +198,8 @@ class PaginatedList(object):
             filters=None):
         """
         Returns a PaginatedList populated with the first page of data provided,
-        and the ability to load more.  This should not be called outside of
-        the :any:`LinodeClient` class.
+        and the ability to load additional pages.  This should not be called
+        outside of the :any:`LinodeClient` class.
 
         :param json: The JSON list to use as the first page
         :param client: A LinodeClient to use to load additional pages

@@ -30,8 +30,8 @@ class OAuthScopes:
     method of the :any:`LinodeLoginClient`.
 
     All contained enumerations of OAuth Scopes have two levels, "read_only" and
-    "read_write."  Read only access grants you the ability to get resources and
-    of that type, but not to change, create, or delete them.  Read write access
+    "read_write".  "read_only" access grants you the ability to get resources and
+    of that type, but not to change, create, or delete them.  "read_write" access
     allows to full access to resources of the requested type.  In the above
     example, you are requesting access to view, modify, create, and delete
     Linodes, and to view Domains.
@@ -42,7 +42,7 @@ class OAuthScopes:
 
     class Linodes(Enum):
         """
-        Access to Linodes.
+        Access to Linodes
         """
         view = 0
         create = 1
@@ -336,7 +336,7 @@ class LinodeLoginClient:
 
            @app.route("/oauth-redirect")
            def oauth_redirect():
-               exchange_code = request.args.getE("code")
+               exchange_code = request.args.get("code")
                login_client = LinodeLoginClient(client_id, client_secret)
 
                token, scopes = login_client.finish_oauth(exchange_code)
@@ -348,7 +348,7 @@ class LinodeLoginClient:
 
         .. _Flask: http://flask.pocoo.org
 
-        :param code: The OAuth Exchange Code returned form the authentication
+        :param code: The OAuth Exchange Code returned from the authentication
                      server in the query string.
         :type code: str
 

@@ -7,11 +7,11 @@ linode-api
 
    .. _Official API Documentation: https://developers.linode.com
 
-This is the official documentation for the official Python bindings of the Linode
-API V4.  For official API documentation, see `developers.linode.com`_.
+This is the documentation for the official Python bindings of the Linode
+API V4.  For API documentation, see `developers.linode.com`_.
 
-This library can be used to interact with all part of the Linode API, and is
-compatible with Python 2 and 3.
+This library can be used to interact with all features of the Linode API, and
+is compatible with Python 2 and 3.
 
 .. _developers.linode.com: https://developers.linode.com
 
