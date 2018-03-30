@@ -321,7 +321,7 @@ class Linode(Base):
 
         .. _Backups Page: https://www.linode.com/backups
         """
-        result = self._client.post("{}/backups/enable".format(Linode.api_endpoint), model=self)
+        self._client.post("{}/backups/enable".format(Linode.api_endpoint), model=self)
         self.invalidate()
         return True
 
@@ -331,7 +331,7 @@ class Linode(Base):
         including any snapshots that have been taken.  This cannot be undone,
         but Backups can be re-enabled at a later date.
         """
-        result = self._client.post("{}/backups/cancel".format(Linode.api_endpoint), model=self)
+        self._client.post("{}/backups/cancel".format(Linode.api_endpoint), model=self)
         self.invalidate()
         return True
 

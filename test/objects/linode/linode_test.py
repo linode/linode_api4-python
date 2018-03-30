@@ -29,13 +29,7 @@ class LinodeTest(ClientBaseCase):
         """
         linode = Linode(self.client, 123)
 
-        # barebones result of a rebuild
-        result = {
-            "config": [],
-            "disks": []
-        }
-
-        with self.mock_post(result) as m:
+        with self.mock_post('/linode/instances/123') as m:
             pw = linode.rebuild('linode/debian9')
 
             self.assertIsNotNone(pw)
