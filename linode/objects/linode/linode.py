@@ -1,8 +1,10 @@
 from __future__ import absolute_import
 
-from datetime import datetime
 import string
-from random import choice
+import sys
+from datetime import datetime
+from os import urandom
+from random import choice, randint
 
 from linode.common import load_and_validate_keys
 from linode.errors import UnexpectedResponseError
@@ -15,6 +17,8 @@ from .backup import Backup
 from .config import Config
 from .disk import Disk
 from .linode_type import Type
+
+PASSWORD_CHARS = string.ascii_letters + string.digits + string.punctuation
 
 
 class Linode(Base):
@@ -177,7 +181,17 @@ class Linode(Base):
 
     @staticmethod
     def generate_root_password():
-        return ''.join([choice('abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*_+-=') for _ in range(0, 32) ])
+        def _func(value):
+            if sys.version_info[0] < 3:
+                value = int(value.encode('hex'), 16)
+            return value
+
+        password = ''.join([
+            PASSWORD_CHARS[_func(c) % len(PASSWORD_CHARS)]
+            for c in urandom(randint(50, 128))
+        ])
+
+        return password
 
     # create derived objects
     def create_config(self, kernel=None, label=None, devices=[], disks=[],
