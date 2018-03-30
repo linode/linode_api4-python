@@ -25,9 +25,9 @@ class Group:
 
 class LinodeGroup(Group):
     """
-    Encapsulates Linode-related methods of the :any:`LinodeClient`.  This should
-    not be instantiated on its own, but should instead of used through an instance
-    of :any:`LinodeClient`::
+    Encapsulates Linode-related methods of the :any:`LinodeClient`.  This
+    should not be instantiated on its own, but should instead be used through
+    an instance of :any:`LinodeClient`::
 
        client = LinodeClient(token)
        linodes = client.linode.get_instances() # use the LinodeGroup
@@ -138,8 +138,8 @@ class LinodeGroup(Group):
 
         **Create a Linode from StackScript**
 
-        When creating a Linode from a :any:`StackScript`, an :any:`Image` must
-        be provided that the StackScript supports.  You must also provide any
+        When creating a Linode from a :any:`StackScript`, an :any:`Image` that
+        the StackScript support must be provided..  You must also provide any
         required StackScript data for the script's User Defined Fields..  For
         example, if deploying `StackScript 10079`_ (which deploys a new Linode
         with a user created from keys on `github`_::
@@ -192,18 +192,18 @@ class LinodeGroup(Group):
         :type region: str or Region
         :param image: The image to deploy to this Linode.  If this is provided
                       and no root_pass is given, a password will be generated
-                      and returns along with the new Linode.
+                      and returned along with the new Linode.
         :type image: str or Image
         :param stackscript: The StackScript to deploy to the new Linode.  If
-                            provided, image is required and must be compatible
+                            provided, "image" is required and must be compatible
                             with the chosen StackScript.
         :type stackscript: int or StackScript
         :param stackscript_data: Values for the User Defined Fields defined in
                                  the chosen StackScript.  Does nothing if
-                                 stackscript is not provided.
+                                 StackScript is not provided.
         :type stackscript_data: dict
         :param backup: The Backup to restore to the new Linode.  May not be
-                       provided if image is given.
+                       provided if "image" is given.
         :type backup: int of Backup
         :param authorized_keys: The ssh public keys to install in the linode's
                                 /root/.ssh/authorized_keys file.  Each entry may
@@ -529,7 +529,7 @@ class NetworkingGroup(Group):
                                         linode1.ips.ipv4.public[0].to(linode2),
                                         linode2.ips.ipv4.public[0].to(linode1))
 
-        :param region: The region in which the assignments should take place.
+        :param region: The Region in which the assignments should take place.
                        All Linodes and IPAddresses involved in the assignment
                        must be within this region.
         :type region: str or Region
@@ -663,7 +663,7 @@ class LinodeClient:
     def load(self, target_type, target_id, target_parent_id=None):
         """
         Constructs and immediately loads the object, circumventing the
-        lazy-loading scheme by immediately making an api request.  Does not
+        lazy-loading scheme by immediately making an API request.  Does not
         load related objects.
 
         For example, if you wanted to load a :any:`Linode` object with ID 123,
@@ -820,7 +820,7 @@ class LinodeClient:
     def get_images(self, *filters):
         """
         Retrieves a list of available Images, including public and private
-        images available to the acting user.  You can filter this query to
+        Images available to the acting user.  You can filter this query to
         retrieve only Images relevant to a specific query, for example::
 
            debian_images = client.get_images(
@@ -828,7 +828,7 @@ class LinodeClient:
 
         :param filters: Any number of filters to apply to the query.
 
-        :returns: A list of available images.
+        :returns: A list of available Images.
         :rtype: PaginatedList of Image
         """
         return self._get_and_filter(Image, *filters)
@@ -839,13 +839,13 @@ class LinodeClient:
 
         :param disk: The disk to imagize.
         :type disk: Disk or int
-        :param label: The label for the resulting image (defaults to the disk's
+        :param label: The label for the resulting Image (defaults to the disk's
                       label.
         :type label: str
-        :param description: The description for the new image.
+        :param description: The description for the new Image.
         :type description: str
 
-        :returns: The new image.
+        :returns: The new Image.
         :rtype: Image
         """
         params = {
@@ -868,7 +868,7 @@ class LinodeClient:
 
     def get_domains(self, *filters):
         """
-        Retrieves all of the domains the acting user has access to.
+        Retrieves all of the Domains the acting user has access to.
 
         :param filters: Any number of filters to apply to this query.
 
@@ -892,7 +892,7 @@ class LinodeClient:
         """
         Creates a new NodeBalancer in the given region.
 
-        :param region: The region in which to create the NodeBalancer.
+        :param region: The Region in which to create the NodeBalancer.
         :type region: Region or str
 
         :returns: The new NodeBalancer
@@ -952,18 +952,18 @@ class LinodeClient:
 
     def create_volume(self, label, region=None, linode=None, size=20, **kwargs):
         """
-        Creates a new Block Storage Volume, either in the given region or
-        attached to the given linode.
+        Creates a new Block Storage Volume, either in the given Region or
+        attached to the given Linode.
 
-        :param label: The label for the new volume.
+        :param label: The label for the new Volume.
         :type label: str
-        :param region: The region to create this volume in.  Not required if
+        :param region: The Region to create this Volume in.  Not required if
                        `linode` is provided.
         :type region: Region or str
-        :param linode: The Linode to attach this volume to.  If not given, the
-                       new volume will not be attached to anything.
+        :param linode: The Linode to attach this Volume to.  If not given, the
+                       new Volume will not be attached to anything.
         :type linode: Linode or int
-        :param size: The size, in GB, of the new volume.  Defaults to 20.
+        :param size: The size, in GB, of the new Volume.  Defaults to 20.
         :type size: int
 
         :returns: The new Volume.

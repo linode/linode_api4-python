@@ -43,9 +43,9 @@ Filtering
 ---------
 
 Collections of objects in the API can be filtered to make their results more
-useful.  For example, you can ask the API for all Linodes you own belonging to
-a certain group, instead of having to do this filtering yourself on the full
-list.  This library implements filtering with a SQLAlchemy-like syntax, where
+useful.  For example, instead of having to do this filtering yourself on the
+full list, you can ask the API for all Linodes you own belonging to a certain
+group.  This library implements filtering with a SQLAlchemy-like syntax, where
 a model's attributes may be used in comparisons to generate filters.  For
 example::
 
@@ -157,7 +157,7 @@ Relationships
 ^^^^^^^^^^^^^
 
 Many models are related to other models (for example a Linode has disks, configs,
-volumes, backups, a region, and more).  Related attributes are accessed like
+volumes, backups, a region, etc).  Related attributes are accessed like
 any other attribute on the model, and will emit an API call to retrieve the
 related models if necessary.::
 

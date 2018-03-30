@@ -381,7 +381,7 @@ class LinodeLoginClient:
         :returns: If the expiration attempt succeeded.
         :rtype: bool
 
-        :raises ApiError: If the expiration attempt fails.
+        :raises ApiError: If the expiration attempt failed.
         """
         r = requests.post(self._login_uri("/oauth/token/expire"),
             data={

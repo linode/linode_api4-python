@@ -82,7 +82,7 @@ Documentation
 -------------
 
 This library is documented with Sphinx_.  Docs live in the ``docs`` directory.
-The easiest way to build the docs are with ``sphinx-autobuild`` run in that
+The easiest way to build the docs is to run ``sphinx-autobuild`` in that
 folder.
 
 Classes and functions inside the library should be annotated with sphinx-compliant

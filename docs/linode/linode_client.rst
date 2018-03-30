@@ -44,7 +44,7 @@ LinodeClient class
 Groups
 ------
 
-These groups are accessed off of the :any:`LinodeClient` class by name, for
+These groups are accessed off of the :any:`LinodeClient` class by name.  For
 example::
 
    client.linode.get_instances()
