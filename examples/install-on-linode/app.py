@@ -1,7 +1,7 @@
 import re
 from flask import Flask, redirect, request, render_template, session, send_from_directory
 from flask.ext.session import Session
-from linode import LinodeClient, LinodeLoginClient, StackScript, Distribution, Region
+from linode import LinodeClient, LinodeLoginClient, StackScript, Image, Region
 from linode import Type, OAuthScopes
 import config
 
@@ -57,12 +57,10 @@ def create_linode(token, type_id, region_id, distribution_id):
     stackscript = StackScript(client, config.stackscript_id)
     (linode, password) = client.linode.create_instance(type_id, region_id,
             group=config.application_name,
-            distribution=distribution_id, stackscript=stackscript.id)
+            image=distribution_id, stackscript=stackscript.id)
     
     if not linode:
         raise RuntimeError("it didn't work")
-
-    linode.boot()
     return linode, password
 
 if __name__ == '__main__':

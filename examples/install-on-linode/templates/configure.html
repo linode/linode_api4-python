@@ -23,16 +23,16 @@
                 <select name='region' id='region' class='form-control'
                     onblur="blurring(this)" onfocus="focusing(this)">
                     {% for o in regions %}
-                        <option value="{{o.id}}">{{o.label}}</option>
+                        <option value="{{o.id}}">{{o.id}}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class='form-group'>
-                <label for='distribution'>Distribution</label>
+                <label for='distribution'>Images</label>
                 <select name='distribution' id='distribution' class='form-control'
                     onblur="blurring(this)" onfocus="focusing(this)">
-                    {% for d in stackscript.distributions %}
-                        <option value="{{d.id}}">{{d.label}}</option>
+                    {% for d in stackscript.images %}
+                        <option value="{{d.id.id}}">{{d.id.id}}</option>
                     {% endfor %}
                 </select>
             </div>
