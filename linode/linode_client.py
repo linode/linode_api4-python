@@ -483,15 +483,36 @@ class AccountGroup(Group):
 
         return MappedObject(**result)
 
-def create_user(self, email, username, password, restricted=True):
+def create_user(self, email, username, restricted=True):
     """
-    Creates a user
+    Creates a new user on your account.  If you create an unrestricted user,
+    they will immediately be able to access everything on your account.  If
+    you create a restricted user, you must grant them access to parts of your
+    account that you want to allow them to manage (see :any:`User.grants` for
+    details).
+
+    The new user will receive an email inviting them to set up their password.
+    This must be completed before they can log in.
+
+    :param email: The new user's email address.  This is used to finish setting
+                  up their user account.
+    :type email: str
+    :param username: The new user's unique username.  They will use this username
+                     to log in.
+    :type username: str
+    :param restricted: If True, the new user must be granted access to parts of
+                       the account before they can do anything.  If False, the
+                       new user will immediately be able to manage the entire
+                       account.  Defaults to True.
+    :type restricted: True
+
+    :returns The new User.
+    :rtype: User
     """
     params = {
         "email": email,
         "username": username,
-        "password": password,
-        "restricted": restricted
+        "restricted": restricted,
     }
     result = self.client.post('/account/users', data=params)
 
@@ -544,7 +565,7 @@ class NetworkingGroup(Group):
         if isinstance(region, Region):
             region = region.id
 
-        self.client.post('/networking/ip-assign', data={
+        self.client.post('/networking/ipv4/assign', data={
             "region": region,
             "assignments": [ a for a in assignments ],
         })
@@ -562,6 +583,8 @@ class NetworkingGroup(Group):
         """
         result = self.client.post('/networking/ipv4/', data={
             "linode_id": linode.id if isinstance(linode, Base) else linode,
+            "type": "ipv4",
+            "public": public,
         })
 
         if not 'address' in result:
@@ -570,6 +593,40 @@ class NetworkingGroup(Group):
 
         ip = IPAddress(self.client, result['address'], result)
         return ip
+
+    def set_shared_ips(self, linode, *ips):
+        """
+        Shares the given list of :any:`IPAddresses<IPAddress>` with the provided
+        :any:`Linode`.  This will enable the provided Linode to bring up the
+        shared IP Addresses even though it does not own them.
+
+        :param linode: The Linode to share the IPAddresses with.  This Linode
+                       will be able to bring up the given addresses.
+        :type: linode: int or Linode
+        :param ips: Any number of IPAddresses to share to the Linode.
+        :type ips: str or IPAddress
+        """
+        if not isinstance(linode, Linode):
+            # make this an object
+            linode = Linode(self.client, linode)
+
+        params = []
+        for ip in ips:
+            if isinstance(ip, str):
+                params.append(ip)
+            elif isinstance(ip, IPAddress):
+                params.append(ip.address)
+            else:
+                params.append(str(ip)) # and hope that works
+
+        params = {
+            "ips": params
+        }
+
+        self.client.post('{}/networking/ipv4/share'.format(Linode.api_endpoint),
+                         model=linode, data=params)
+
+        linode.invalidate() # clear the Linode's shared IPs
 
 class SupportGroup(Group):
     def get_tickets(self, *filters):

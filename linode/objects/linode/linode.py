@@ -24,7 +24,7 @@ PASSWORD_CHARS = string.ascii_letters + string.digits + string.punctuation
 class Linode(Base):
     api_endpoint = '/linode/instances/{id}'
     properties = {
-        'id': Property(identifier=True),
+        'id': Property(identifier=True, filterable=True),
         'label': Property(mutable=True, filterable=True),
         'group': Property(mutable=True, filterable=True),
         'status': Property(volatile=True),
@@ -70,11 +70,6 @@ class Linode(Base):
                 i = IPAddress(self._client, c['address'], c)
                 shared_ips.append(i)
 
-            v6 = []
-            for c in result['ipv6']['addresses']:
-                i = IPAddress(self._client, c['address'], c)
-                v6.append(i)
-
             slaac = IPAddress(self._client, result['ipv6']['slaac']['address'],
                               result['ipv6']['slaac'])
             link_local = IPAddress(self._client, result['ipv6']['link_local']['address'],
@@ -94,7 +89,6 @@ class Linode(Base):
                     "slaac": slaac,
                     "link_local": link_local,
                     "pools": pools,
-                    "addresses": v6,
                 },
             })
 
@@ -319,13 +313,26 @@ class Linode(Base):
         return d
 
     def enable_backups(self):
+        """
+        Enable Backups for this Linode.  When enabled, we will automatically
+        backup your Linode's data so that it can be restored at a later date.
+        For more information on Linode's Backups service and pricing, see our
+        `Backups Page`_
+
+        .. _Backups Page: https://www.linode.com/backups
+        """
         result = self._client.post("{}/backups/enable".format(Linode.api_endpoint), model=self)
-        self._populate(result)
+        self.invalidate()
         return True
 
     def cancel_backups(self):
+        """
+        Cancels Backups for this Linode.  All existing Backups will be lost,
+        including any snapshots that have been taken.  This cannot be undone,
+        but Backups can be re-enabled at a later date.
+        """
         result = self._client.post("{}/backups/cancel".format(Linode.api_endpoint), model=self)
-        self._populate(result)
+        self.invalidate()
         return True
 
     def snapshot(self, label=None):
@@ -343,16 +350,55 @@ class Linode(Base):
         return b
 
     def allocate_ip(self, public=False):
-        result = self._client.post("{}/ips".format(Linode.api_endpoint), model=self,
-                data={ "type": "public" if public else "private" })
+        """
+        Allocates a new :any:`IPAddress` for this Linode.  Additional public
+        IPs require justification, and you may need to open a :any:`SupportTicket`
+        before you can add one.  You may only have, at most, one private IP per
+        Linode.
+
+        :param public: If the new IP should be public or private.  Defaults to
+                       private.
+        :type public: bool
+
+        :returns: The new IPAddress
+        :rtype: IPAddress
+        """
+        result = self._client.post(
+            "{}/ips".format(Linode.api_endpoint),
+            model=self,
+            data={
+                "type": "ipv4",
+                "public": public,
+            })
 
         if not 'address' in result:
-            raise UnexpectedResponseError('Unexpected response allocating IP!', json=result)
+            raise UnexpectedResponseError('Unexpected response allocating IP!',
+                                          json=result)
 
         i = IPAddress(self._client, result['address'], result)
         return i
 
     def rebuild(self, image, root_pass=None, authorized_keys=None, **kwargs):
+        """
+        Rebuilding a Linode deletes all existing Disks and Configs and deploys
+        a new :any:`Image` to it.  This can be used to reset an existing
+        Linode or to install an Image on an empty Linode.
+
+        :param image: The Image to deploy to this Linode
+        :type image: str or Image
+        :param root_pass: The root password for the newly rebuilt Linode.  If
+                          omitted, a password will be generated and returned.
+        :type root_pass: str
+        :param authorized_keys: The ssh public keys to install in the linode's
+                                /root/.ssh/authorized_keys file.  Each entry may
+                                be a single key, or a path to a file containing
+                                the key.
+        :type authorized_keys: list or str
+
+        :returns: The newly generated password, if one was not provided
+                  (otherwise True)
+        :rtype: str or bool
+        """
         ret_pass = None
         if not root_pass:
             ret_pass = Linode.generate_root_password()
@@ -369,10 +415,12 @@ class Linode(Base):
 
         result = self._client.post('{}/rebuild'.format(Linode.api_endpoint), model=self, data=params)
 
-        if not 'disks' in result:
+        if not 'id' in result:
             raise UnexpectedResponseError('Unexpected response issuing rebuild!', json=result)
 
-        self.invalidate()
+        # update ourself with the newly-returned information
+        self._populate(result)
+
         if not ret_pass:
             return True
         else:
@@ -388,33 +436,6 @@ class Linode(Base):
                 data={ "devices": disks })
 
         return result
-
-    def set_shared_ips(self, *ips):
-        """
-        Takes a list of IP Addresses (either objects or strings) and attempts to
-        set them as the Shared IPs for this Linode
-        """
-        params = []
-        for ip in ips:
-            if isinstance(ip, str):
-                params.append(ip)
-            elif isinstance(ip, IPAddress):
-                params.append(ip.address)
-            else:
-                params.append(str(ip)) # and hope that works
-
-        params = {
-            "ips": params
-        }
-
-        self._client.post('{}/ips/sharing'.format(Linode.api_endpoint), model=self,
-                data=params)
-
-        # so the changes show up next time they're accessed
-        if hasattr(self, '_ips'):
-            del self._ips
-
-        return True
 
     def kvmify(self):
         """
