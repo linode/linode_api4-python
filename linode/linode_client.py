@@ -190,7 +190,7 @@ class LinodeGroup(Group):
         :type ltype: str or LinodeType
         :param region: The Region in which we are creating the Linode
         :type region: str or Region
-        :param image: The image to deploy to this Linode.  If this is provided
+        :param image: The Image to deploy to this Linode.  If this is provided
                       and no root_pass is given, a password will be generated
                       and returned along with the new Linode.
         :type image: str or Image
@@ -777,11 +777,11 @@ class LinodeClient:
     # ungrouped list functions
     def get_regions(self, *filters):
         """
-        Returns the available regions for Linode products.
+        Returns the available Regions for Linode products.
 
         :param filters: Any number of filters to apply to the query.
 
-        :returns: A list of available regions.
+        :returns: A list of available Regions.
         :rtype: PaginatedList of Region
         """
         return self._get_and_filter(Region, *filters)
@@ -837,7 +837,7 @@ class LinodeClient:
         """
         Creates a new Image from a disk you own.
 
-        :param disk: The disk to imagize.
+        :param disk: The Disk to imagize.
         :type disk: Disk or int
         :param label: The label for the resulting Image (defaults to the disk's
                       label.
@@ -890,7 +890,7 @@ class LinodeClient:
 
     def create_nodebalancer(self, region, **kwargs):
         """
-        Creates a new NodeBalancer in the given region.
+        Creates a new NodeBalancer in the given Region.
 
         :param region: The Region in which to create the NodeBalancer.
         :type region: Region or str
