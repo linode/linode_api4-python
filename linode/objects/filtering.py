@@ -1,12 +1,125 @@
+"""
+.. module:: linode
+
+Collections returned by the :any:`LinodeClient` can be filtered using a
+SQLAlchemy-like syntax.  When calling any "get" method of the :any:`LinodeClient`
+class of one of its groups, any number of filters may be passed in as boolean
+comparisons between attributes of the model returned by the collection.
+
+For example, calling :any:`get_instances` returns a list of :any:`Linode`
+objects, so we can use properties of :any:`Linode` to filter the results::
+
+   # returns all Linodes in the "prod" group
+   client.linode.get_instances(Linode.group == "prod")
+
+You can use any boolean comparisons when filtering collections::
+
+   # returns all Linodes _not_ in us-east-1a
+   client.linode.get_instances(Linode.region != "us-east-1a")
+
+You can combine filters to be even more specific - by default all filters are
+considered::
+
+   # returns all Linodes in the "prod" group that are in us-east-1a
+   client.linode.get_instances(Linode.group == "prod",
+                               Linode.region == "us-east-1a")
+
+If you need to combine the results of two filters, you can use :any:`or_` to define
+this relationship::
+
+   # returns all Linodes in either the "prod" or "staging" groups
+   client.linode.get_instances(or_(Linode.group == "prod",
+                                   Linode.group == "staging"))
+
+:any:`and_` is also available in case you need to do deeply-nested comparisons::
+
+   # returns all Linodes in the group "staging" and any Linodes in the "prod"
+   # group that are located in "us-east-1a"
+   client.linode.get_instances(or_(Linode.group == "staging",
+                                   and_(Linode.group == "prod",
+                                        Linode.region == "us-east-1a"))
+
+"""
+
+
 def or_(a, b):
+    """
+    Combines two :any:`Filters<Filter>` with an "or" operation, matching
+    any results that match any of the given filters.
+
+    :param a: The first filter to consider.
+    :type a: Filter
+    :param b: The second filter to consider.
+    :type b: Filter
+
+    :returns: A filter that matches either a or b
+    :rtype: Filter
+    """
     if not isinstance(a, Filter) or not isinstance(b, Filter):
         raise TypeError
     return a.__or__(b)
 
+
 def and_(a, b):
+    """
+    Combines two :any:`Filters<Filter>` with an "and" operation, matching
+    any results that match both of the given filters.
+
+    :param a: The first filter to consider.
+    :type a: Filter
+    :param b: The second filter to consider.
+    :type b: Filter
+
+    :returns: A filter that matches both a and b
+    :rtype: Filter
+    """
     return a.__and__(b)
 
+
+def order_by(field, desc=False):
+    """
+    Allows ordering of results.  You may only ever order a collection's results
+    once in a given request.  For example::
+
+       # sort results by Linode group
+       client.linode.get_instances(order_by(Linode.group))
+
+    :param field: The field to order results by.  Must be a filterable attribute
+                  of the model.
+    :type field: FilterableAttribute
+    :param desc: If True, return results in descending order.  Defaults to False
+    :type desc: bool
+
+    :returns: A filter that will order results as requested.
+    :rtype: Filter
+    """
+    return Filter({}).order_by(field, desc)
+
+
+def limit(amount):
+    """
+    Allows limiting of results in a collection.  You may only ever apply a limit
+    once per request.  For example::
+
+        # returns my first 5 Linodes
+        client.linode.get_instances(limit(5))
+
+    :param amount: The number of results to return.
+    :type amount: int
+
+    :returns: A filter that will limit the number of results returned.
+    :rtype: Filter
+    """
+    return Filter({}).limit(amount)
+
+
 class Filter:
+    """
+    A Filter represents a comparison to send to the API.  These should not be
+    constructed normally, but instead should be returned from comparisons
+    between class attributes of filterable classes (see above).  Filters can
+    be combined with :any:`and_` and :any:`or_`.
+    """
     def __init__(self, dct):
         self.dct = dct
 
@@ -80,11 +193,6 @@ class FilterableAttribute:
         return Filter({ self.name: { "+lte": other } })
 
 class NonFilterableAttribute:
-    """This class is used to provide better error messages should a user attempt
-    to filter an object on an attribute that is defined in properties, but is
-    not filterable (otherwise they'd see "{} has no attribute {}" which is less
-    obvious
-    """
     def __init__(self, clsname, atrname):
         self.clsname = clsname
         self.atrname = atrname

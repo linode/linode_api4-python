@@ -19,10 +19,31 @@ class AllWrapper():
         return '*'
 
 class OAuthScopes:
+    """
+    Represents the OAuth Scopes available to an application.  In general, an
+    application should request no more scopes than it requires.  This class
+    should be treated like a Enum, and used as follows::
 
+       required_scopes = [OAuthScopes.Linodes.all, OAuthScopes.Domains.read_only]
+
+    Lists of OAuth Scopes are accepted when calling the :any:`generate_login_url`
+    method of the :any:`LinodeLoginClient`.
+
+    All contained enumerations of OAuth Scopes have two levels, "read_only" and
+    "read_write".  "read_only" access grants you the ability to get resources and
+    of that type, but not to change, create, or delete them.  "read_write" access
+    allows to full access to resources of the requested type.  In the above
+    example, you are requesting access to view, modify, create, and delete
+    Linodes, and to view Domains.
+    """
+
+    #: If necessary, an application may request all scopes by using OAuthScopes.all
     all = AllWrapper()
 
     class Linodes(Enum):
+        """
+        Access to Linodes
+        """
         view = 0
         create = 1
         modify = 2
@@ -35,6 +56,9 @@ class OAuthScopes:
             return "linodes:{}".format(self.name)
 
     class Domains(Enum):
+        """
+        Access to Domains
+        """
         view = 0
         create = 1
         modify = 2
@@ -47,6 +71,9 @@ class OAuthScopes:
             return "domains:{}".format(self.name)
 
     class StackScripts(Enum):
+        """
+        Access to private StackScripts
+        """
         view = 0
         create = 1
         modify = 2
@@ -70,6 +97,21 @@ class OAuthScopes:
                 return "users:*"
             return "users:{}".format(self.name)
 
+    class NodeBalancers(Enum):
+        """
+        Access to NodeBalancers
+        """
+        view = 0
+        create = 1
+        modify = 2
+        delete = 3
+        all = 4
+
+        def __repr__(self):
+            if(self.name == 'all'):
+                return "nodebalancers:*"
+            return "nodebalancers:{}".format(self.name)
+
     class Tokens(Enum):
         view = 0
         create = 1
@@ -83,6 +125,9 @@ class OAuthScopes:
             return "tokens:{}".format(self.name)
 
     class IPs(Enum):
+        """
+        Access to IPs and networking managements
+        """
         view = 0
         create = 1
         modify = 2
@@ -95,6 +140,9 @@ class OAuthScopes:
             return "ips:{}".format(self.name)
 
     class Tickets(Enum):
+        """
+        Access to view, open, and respond to Support Tickets
+        """
         view = 0
         create = 1
         modify = 2
@@ -119,6 +167,10 @@ class OAuthScopes:
             return "clients:{}".format(self.name)
 
     class Account(Enum):
+        """
+        Access to the user's account, including billing information, tokens
+        management, user management, etc.
+        """
         view = 0
         create = 1
         modify = 2
@@ -131,6 +183,9 @@ class OAuthScopes:
             return "account:{}".format(self.name)
 
     class Events(Enum):
+        """
+        Access to a user's Events
+        """
         view = 0
         create = 1
         modify = 2
@@ -143,6 +198,9 @@ class OAuthScopes:
             return "events:{}".format(self.name)
 
     class Volumes(Enum):
+        """
+        Access to Block Storage Volumes
+        """
         view = 0
         create = 1
         modify = 2
@@ -210,7 +268,21 @@ class OAuthScopes:
 
 class LinodeLoginClient:
     def __init__(self, client_id, client_secret,
-            base_url="https://login.linode.com"):
+                 base_url="https://login.linode.com"):
+        """
+        Create a new LinodeLoginClient.  These clients do not make any requests
+        on creation, and can safely be created and thrown away as needed.
+
+        For complete usage information, see the :doc:`OAuth guide<../guides/oauth>`.
+
+        :param client_id: The OAuth Client ID for this client.
+        :type client_id: str
+        :param client_secret: The OAuth Client Secret for this client.
+        :type client_secret: str
+        :param base_url: The URL for Linode's OAuth server.  This should not be
+                         changed.
+        :type base_url: str
+        """
         self.base_url = base_url
         self.client_id = client_id
         self.client_secret = client_secret
@@ -219,6 +291,28 @@ class LinodeLoginClient:
         return "{}{}".format(self.base_url, path)
 
     def generate_login_url(self, scopes=None, redirect_uri=None):
+        """
+        Generates a url to send users so that they may authenticate to this
+        application.  This url is suitable for redirecting a user to.  For
+        example, in `Flask`_, a login route might be implemented like this::
+
+           @app.route("/login")
+           def begin_oauth_login():
+               login_client = LinodeLoginClient(client_id, client_secret)
+               return redirect(login_client.generate_login_url())
+
+        .. _Flask:: http://flask.pocoo.org
+
+        :param scopes: The OAuth scopes to request for this login.
+        :type scopes: list
+        :param redirect_uri: The requested redirect uri.  The login service
+                             enforces that this is under the registered redirect
+                             path.
+        :type redirect_uri: str
+
+        :returns: The uri to send users to for this login attempt.
+        :rtype: str
+        """
         url = self.base_url + "/oauth/authorize"
         split = list(urlparse(url))
         params = {
@@ -233,6 +327,36 @@ class LinodeLoginClient:
         return urlunparse(split)
 
     def finish_oauth(self, code):
+        """
+        Given an OAuth Exchange Code, completes the OAuth exchange with the
+        authentication server.  This should be called once the user has already
+        been directed to the login_uri, and has been sent back after successfully
+        authenticating.  For example, in `Flask`_, this might be implemented as
+        a route like this::
+
+           @app.route("/oauth-redirect")
+           def oauth_redirect():
+               exchange_code = request.args.get("code")
+               login_client = LinodeLoginClient(client_id, client_secret)
+
+               token, scopes = login_client.finish_oauth(exchange_code)
+
+               # store the user's OAuth token in their session for later use
+               # and mark that they are logged in.
+
+               return redirect("/")
+
+        .. _Flask: http://flask.pocoo.org
+
+        :param code: The OAuth Exchange Code returned from the authentication
+                     server in the query string.
+        :type code: str
+
+        :returns: The new OAuth token, and a list of scopes the token has.
+        :rtype: tuple(str, list)
+
+        :raise ApiError: If the OAuth exchange fails.
+        """
         r = requests.post(self._login_uri("/oauth/token"), data={
                 "code": code,
                 "client_id": self.client_id,
@@ -245,6 +369,20 @@ class LinodeLoginClient:
         return token, scopes
 
     def expire_token(self, token):
+        """
+        Given a token, makes a request to the authentication server to expire
+        it immediately.  This is considered a responsible way to log out a
+        user.  If you simply remove the session your application has for the
+        user without expiring their token, the user is not _really_ logged out.
+
+        :param token: The OAuth token you wish to expire
+        :type token: str
+
+        :returns: If the expiration attempt succeeded.
+        :rtype: bool
+
+        :raises ApiError: If the expiration attempt failed.
+        """
         r = requests.post(self._login_uri("/oauth/token/expire"),
             data={
                 "client_id": self.client_id,
