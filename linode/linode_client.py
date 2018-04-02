@@ -570,13 +570,15 @@ class NetworkingGroup(Group):
             "assignments": [ a for a in assignments ],
         })
 
-    def allocate_ip(self, linode):
+    def allocate_ip(self, linode, public=True):
         """
         Allocates an IP to a Linode you own.  Additional IPs must be requested
         by opening a support ticket first.
 
         :param linode: The Linode to allocate the new IP for.
         :type linode: Linode or int
+        :param public: If True, allocate a public IP address.  Defaults to True.
+        :type public: bool
 
         :returns: The new IPAddress
         :rtype: IPAddress
