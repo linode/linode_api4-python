@@ -1,9 +1,12 @@
 python-linode-api
 =================
 
-The official python library for the `Linode API v4`_ in python.
+The official python library for the `Linode API`_ in python.
 
-.. _Linode API v4: https://developers.linode.com/v4/introduction
+.. warning::
+   This library is currently in beta.
+
+.. _Linode API: https://developers.linode.com/v4/introduction
 
 .. image:: https://travis-ci.org/linode/python-linode-api.svg?branch=master
     :target: https://travis-ci.org/linode/python-linode-api
