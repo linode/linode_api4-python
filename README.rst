@@ -32,10 +32,11 @@ installing packages for both version of the API on the same machine.
 Usage
 -----
 
-Check out the `Getting started with Linode Python`_ guide to start using the official Python library. Read our `Python Reference`_ for extensive documentation on this library.
+Check out the `Getting Started guide`_ to start using this library, or read
+`the docs`_ for extensive documentation.
 
-.. _Getting started with Linode Python: https://developers.linode.com/v4/guides/python/getting-started
-.. _Python Reference: https://developers.linode.com/v4/libraries/python
+.. _Getting Started guide: http://python-linode-api.readthedocs.io/en/latest/guides/getting_started.html
+.. _the docs: http://python-linode-api.readthedocs.io/en/latest/index.html
 
 Examples
 --------
