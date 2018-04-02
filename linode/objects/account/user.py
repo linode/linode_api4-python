@@ -8,7 +8,7 @@ class User(Base):
     id_attribute = 'username'
 
     properties = {
-        'email': Property(mutable=True),
+        'email': Property(),
         'username': Property(identifier=True, mutable=True),
         'restricted': Property(mutable=True),
     }

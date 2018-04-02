@@ -8,7 +8,7 @@ from linode.objects.support.ticket import SupportTicket
 class Event(Base):
     api_endpoint = '/account/events/{id}'
     properties = {
-        'id': Property(identifier=True),
+        'id': Property(identifier=True, filterable=True),
         'percent_complete': Property(volatile=True),
         'created': Property(is_datetime=True, filterable=True),
         'updated': Property(is_datetime=True, filterable=True),

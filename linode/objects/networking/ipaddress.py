@@ -13,6 +13,7 @@ class IPAddress(Base):
         "subnet_mask": Property(),
         "prefix": Property(),
         "type": Property(),
+        "public": Property(),
         "rdns": Property(mutable=True),
         "linode_id": Property(),
         "region": Property(slug_relationship=Region, filterable=True),
