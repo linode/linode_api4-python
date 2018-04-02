@@ -3,7 +3,7 @@ python-linode-api
 
 The official python library for the `Linode API`_ in python.
 
- **This library is currently in beta.**
+**This library is currently in beta.**
 
 .. _Linode API: https://developers.linode.com/v4/introduction
 
