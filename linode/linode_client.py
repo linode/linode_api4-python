@@ -236,13 +236,13 @@ class LinodeGroup(Group):
 
         if "stackscript" in kwargs:
             # translate stackscripts
-            kwargs["stackscript_id"] = (kwargs["stackscript"].id if issubclass(kwargs["stackscript"])
+            kwargs["stackscript_id"] = (kwargs["stackscript"].id if issubclass(type(kwargs["stackscript"]), Base)
                                         else kwargs["stackscript"])
             del kwargs["stackscript"]
 
         if "backup" in kwargs:
             # translate backups
-            kwargs["backup_id"] = (kwargs["backup"].id if issubclass(kwargs["backup"])
+            kwargs["backup_id"] = (kwargs["backup"].id if issubclass(type(kwargs["backup"]), Base)
                                    else kwargs["backup"])
             del kwargs["backup"]
 
