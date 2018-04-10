@@ -14,7 +14,7 @@ class Disk(DerivedBase):
         'created': Property(is_datetime=True),
         'label': Property(mutable=True, filterable=True),
         'size': Property(filterable=True),
-        'status': Property(filterable=True),
+        'status': Property(filterable=True, volatile=True),
         'filesystem': Property(),
         'updated': Property(is_datetime=True),
         'linode_id': Property(identifier=True),
