@@ -708,7 +708,7 @@ class LinodeClient:
         self.support = SupportGroup(self)
 
         #: Access information related to the Longview service - see
-        #: :any:`LongviewGroup` for more inforamtion
+        #: :any:`LongviewGroup` for more information
         self.longview = LongviewGroup(self)
 
     @property
