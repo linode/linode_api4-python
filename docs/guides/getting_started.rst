@@ -91,8 +91,8 @@ API.  For example, we may know that we want a `g5-standard-4` Linode running the
 
    chosen_region = available_regions[0]
 
-   new_linode, password = client.linode.create_instance(chosen_region,
-                                                        'g5-standard-4',
+   new_linode, password = client.linode.create_instance('g5-standard-4',
+                                                        chosen_region,
                                                         image='linode/debian9')
 
 :py:func:`create_instance` returns the newly-created Linode object and the
