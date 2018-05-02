@@ -428,7 +428,7 @@ class Linode(Base):
 
     def rescue(self, *disks):
         if disks:
-            disks = { x: { 'disk_id': y } for x,y in zip(('sda','sdb'), disks) }
+            disks = { x: { 'disk_id': y } for x,y in zip(('sda','sdb','sdc','sdd','sde','sdf','sdg'), disks) }
         else:
             disks=None
 
