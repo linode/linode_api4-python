@@ -24,7 +24,7 @@ To install through pypi::
 
 To install from source::
 
-  git clone https://github.com/linode/python-linode-api
+  git clone https://github.com/linode/linode-api-python
   cd python-linode-api
   python setup.py install
 

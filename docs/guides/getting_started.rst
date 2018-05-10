@@ -12,12 +12,12 @@ The linode-api package can be installed from pypi as shown below:
 
 If you prefer, you can clone the package from github_ and install it from source:
 
-.. _github: https://github.com/Linode/python-linode-api
+.. _github: https://github.com/Linode/linode-api-python
 
 .. code-block:: shell
 
-   git clone git@github.com:Linode/python-linode-api
-   cd python-linode-api
+   git clone git@github.com:Linode/linode-api-python
+   cd linode-api-python
    python setup.py install
 
 .. note::

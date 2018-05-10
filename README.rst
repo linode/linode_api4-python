@@ -7,8 +7,8 @@ The official python library for the `Linode API`_ in python.
 
 .. _Linode API: https://developers.linode.com/v4/introduction
 
-.. image:: https://travis-ci.org/linode/python-linode-api.svg?branch=master
-    :target: https://travis-ci.org/linode/python-linode-api
+.. image:: https://travis-ci.org/linode/linode-api-python.svg?branch=master
+    :target: https://travis-ci.org/linode/linode-api-python
 
 .. image:: https://badge.fury.io/py/linode-api.svg
     :target: https://badge.fury.io/py/linode-api
@@ -46,7 +46,7 @@ Examples
 See the `Install on a Linode`_ example project for a simple use case demonstrating
 many of the features of this library.
 
-.. _Install on a Linode: https://github.com/linode/python-api/tree/master/examples/install-on-linode
+.. _Install on a Linode: https://github.com/linode/linode-api-python/tree/master/examples/install-on-linode
 
 Contributing
 ============
@@ -99,4 +99,4 @@ documentation for this library is out of date or unclear, please
 `open an issue`_ to make us aware of the problem.
 
 .. _Sphinx: http://www.sphinx-doc.org/en/master/index.html
-.. _open an issue: https://github.com/linode/python-linode-api/issues/new
+.. _open an issue: https://github.com/linode/linode-api-python/issues/new
