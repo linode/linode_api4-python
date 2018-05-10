@@ -56,7 +56,7 @@ The OAuth 2 exchange works as follows:
 A working example of completing an OAuth exchange using this library is
 available in the example project `Install on Linode`_
 
-.. _Install on Linode: https://github.com/linode/python-linode-api/tree/master/examples/install-on-linode
+.. _Install on Linode: https://github.com/linode/linode-api-python/tree/master/examples/install-on-linode
 
 OAuth Scopes
 ------------

@@ -10,7 +10,7 @@ and for a more comprehensive overview of OAuth, read our :doc:`OAuth
 guide<../guides/oauth>`.
 
 .. _login.linode.com: https://login.linode.com
-.. _Install on Linode: https://github.com/linode/python-linode-api/tree/master/examples/install-on-linode
+.. _Install on Linode: https://github.com/linode/linode-api-python/tree/master/examples/install-on-linode
 
 LinodeLoginClient class
 -----------------------
