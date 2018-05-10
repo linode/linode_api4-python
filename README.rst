@@ -7,8 +7,8 @@ The official python library for the `Linode API`_ in python.
 
 .. _Linode API: https://developers.linode.com/v4/introduction
 
-.. image:: https://travis-ci.org/linode/python-linode-api.svg?branch=master
-    :target: https://travis-ci.org/linode/python-linode-api
+.. image:: https://travis-ci.org/linode/linode-api-python.svg?branch=master
+    :target: https://travis-ci.org/linode/linode-api-python
 
 .. image:: https://badge.fury.io/py/linode-api.svg
     :target: https://badge.fury.io/py/linode-api
