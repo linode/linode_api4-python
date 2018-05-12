@@ -309,7 +309,7 @@ class LinodeGroup(Group):
 
         params = {
             "label": label,
-            "image": image_list,
+            "images": image_list,
             "is_public": public,
             "script": script_body,
             "description": desc if desc else '',
