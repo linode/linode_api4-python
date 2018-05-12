@@ -12,6 +12,7 @@ class Profile(Base):
 
     properties = {
         'username': Property(identifier=True),
+        'uid': Property(),
         'email': Property(mutable=True),
         'timezone': Property(mutable=True),
         'email_notifications': Property(mutable=True),
