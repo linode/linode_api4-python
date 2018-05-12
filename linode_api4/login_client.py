@@ -368,7 +368,7 @@ class LinodeLoginClient:
             })
 
         if r.status_code != 200:
-            raise ApiError("OAuth token exchange failed", r)
+            raise ApiError("OAuth token exchange failed", status=r.status_code, json=r.json())
 
         token = r.json()["access_token"]
         scopes = OAuthScopes.parse(r.json()["scopes"])
