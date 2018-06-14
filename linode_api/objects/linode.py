@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+from enum import Enum
 import string
 import sys
 from datetime import datetime
@@ -8,17 +9,171 @@ from random import choice, randint
 
 from linode_api.common import load_and_validate_keys
 from linode_api.errors import UnexpectedResponseError
-from linode_api.objects import Base, Image, Property, Region
+from linode_api.objects import Base, DerivedBase, Image, Property, Region
 from linode_api.objects.base import MappedObject
 from linode_api.objects.networking import IPAddress, IPv6Pool
 from linode_api.paginated_list import PaginatedList
 
-from .backup import Backup
-from .config import Config
-from .disk import Disk
-from .linode_type import Type
 
 PASSWORD_CHARS = string.ascii_letters + string.digits + string.punctuation
+
+
+class Backup(DerivedBase):
+    api_endpoint = '/linode/instances/{linode_id}/backups/{id}'
+    derived_url_path = 'backups'
+    parent_id_name='linode_id'
+
+    properties = {
+        'id': Property(identifier=True),
+        'created': Property(is_datetime=True),
+        'duration': Property(),
+        'updated': Property(is_datetime=True),
+        'finished': Property(is_datetime=True),
+        'message': Property(),
+        'status': Property(volatile=True),
+        'type': Property(),
+        'linode_id': Property(identifier=True),
+        'label': Property(),
+        'configs': Property(),
+        'disks': Property(),
+        'region': Property(slug_relationship=Region),
+    }
+
+    def restore_to(self, linode, **kwargs):
+        d = {
+            "linode_id": linode.id if issubclass(type(linode), Base) else linode,
+        }
+        d.update(kwargs)
+
+        self._client.post("{}/restore".format(Backup.api_endpoint), model=self,
+            data=d)
+        return True
+
+
+class Disk(DerivedBase):
+    api_endpoint = '/linode/instances/{linode_id}/disks/{id}'
+    derived_url_path = 'disks'
+    parent_id_name='linode_id'
+
+    properties = {
+        'id': Property(identifier=True),
+        'created': Property(is_datetime=True),
+        'label': Property(mutable=True, filterable=True),
+        'size': Property(filterable=True),
+        'status': Property(filterable=True, volatile=True),
+        'filesystem': Property(),
+        'updated': Property(is_datetime=True),
+        'linode_id': Property(identifier=True),
+    }
+
+
+    def duplicate(self):
+        result = self._client.post(Disk.api_endpoint, model=self, data={})
+
+        if not 'id' in result:
+            raise UnexpectedResponseError('Unexpected response duplicating disk!', json=result)
+
+        d = Disk(self._client, result['id'], self.linode_id, result)
+        return d
+
+
+    def reset_root_password(self, root_password=None):
+        rpass = root_password
+        if not rpass:
+            rpass = Linode.generate_root_password()
+
+        params = {
+            'password': rpass,
+        }
+
+        result = self._client.post(Disk.api_endpoint, model=self, data=params)
+
+        if not 'id' in result:
+            raise UnexpectedResponseError('Unexpected response duplicating disk!', json=result)
+
+        self._populate(result)
+        if not root_password:
+            return True, rpass
+        return True
+
+
+class Kernel(Base):
+    api_endpoint="/linode/kernels/{id}"
+    properties = {
+        "created": Property(is_datetime=True),
+        "deprecated": Property(filterable=True),
+        "description": Property(),
+        "id": Property(identifier=True),
+        "kvm": Property(filterable=True),
+        "label": Property(filterable=True),
+        "updates": Property(),
+        "version": Property(filterable=True),
+        "architecture": Property(filterable=True),
+        "xen": Property(filterable=True),
+    }
+
+
+class Type(Base):
+    api_endpoint = "/linode/types/{id}"
+    properties = {
+        'disk': Property(filterable=True),
+        'id': Property(identifier=True),
+        'label': Property(filterable=True),
+        'network_out': Property(filterable=True),
+        'price': Property(),
+        'addons': Property(),
+        'memory': Property(filterable=True),
+        'transfer': Property(filterable=True),
+        'vcpus': Property(filterable=True),
+    }
+
+
+class Config(DerivedBase):
+    api_endpoint="/linode/instances/{linode_id}/configs/{id}"
+    derived_url_path="configs"
+    parent_id_name="linode_id"
+
+    properties = {
+        "id": Property(identifier=True),
+        "linode_id": Property(identifier=True),
+        "helpers": Property(),#TODO: mutable=True),
+        "created": Property(is_datetime=True),
+        "root_device": Property(mutable=True),
+        "kernel": Property(relationship=Kernel, mutable=True, filterable=True),
+        "devices": Property(filterable=True),#TODO: mutable=True),
+        "initrd": Property(relationship=Disk),
+        "updated": Property(),
+        "comments": Property(mutable=True, filterable=True),
+        "label": Property(mutable=True, filterable=True),
+        "run_level": Property(mutable=True, filterable=True),
+        "virt_mode": Property(mutable=True, filterable=True),
+        "memory_limit": Property(mutable=True, filterable=True),
+    }
+
+    def _populate(self, json):
+        """
+        Map devices more nicely while populating.
+        """
+        from .volume import Volume
+
+        DerivedBase._populate(self, json)
+
+        devices = {}
+        for device_index, device in json['devices'].items():
+            if not device:
+                devices[device_index] = None
+                continue
+
+            dev = None
+            if 'disk_id' in device and device['disk_id']: # this is a disk
+                dev = Disk.make_instance(device['disk_id'], self._client,
+                        parent_id=self.linode_id)
+            else:
+                dev = Volume.make_instance(device['volume_id'], self._client,
+                        parent_id=self.linode_id)
+            devices[device_index] = dev
+
+        self._set('devices', MappedObject(**devices))
 
 
 class Linode(Base):
@@ -205,7 +360,7 @@ class Linode(Base):
 
         :returns: A new Linode Config
         """
-        from ..volume import Volume
+        from .volume import Volume
 
         hypervisor_prefix = 'sd' if self.hypervisor == 'kvm' else 'xvd'
         device_names = [hypervisor_prefix + string.ascii_lowercase[i] for i in range(0, 8)]
@@ -349,7 +504,7 @@ class Linode(Base):
         b = Backup(self._client, result['id'], self.id, result)
         return b
 
-    def allocate_ip(self, public=False):
+    def ip_allocate(self, public=False):
         """
         Allocates a new :any:`IPAddress` for this Linode.  Additional public
         IPs require justification, and you may need to open a :any:`SupportTicket`
@@ -505,3 +660,70 @@ class Linode(Base):
         if not isinstance(dt, datetime):
             raise TypeError('stats_for requires a datetime object!')
         return self._client.get('{}/stats/'.format(dt.strftime('%Y/%m')))
+
+
+class UserDefinedFieldType(Enum):
+    text = 1
+    select_one = 2
+    select_many = 3
+
+class UserDefinedField():
+    def __init__(self, name, label, example, field_type, choices=None):
+        self.name = name
+        self.label = label
+        self.example = example
+        self.field_type = field_type
+        self.choices = choices
+
+    def __repr__(self):
+        return "{}({}): {}".format(self.label, self.field_type.name, self.example)
+
+class StackScript(Base):
+    api_endpoint = '/linode/stackscripts/{id}'
+    properties = {
+        "user_defined_fields": Property(),
+        "label": Property(mutable=True, filterable=True),
+        "rev_note": Property(mutable=True),
+        "usernam": Property(filterable=True),
+        "user_gravatar_id": Property(),
+        "is_public": Property(mutable=True, filterable=True),
+        "created": Property(is_datetime=True),
+        "deployments_active": Property(),
+        "script": Property(mutable=True),
+        "images": Property(mutable=True, filterable=True), # TODO make slug_relationship
+        "deployments_total": Property(),
+        "description": Property(mutable=True, filterable=True),
+        "updated": Property(is_datetime=True),
+    }
+
+    def _populate(self, json):
+        """
+        Override the populate method to map user_defined_fields to
+        fancy values
+        """
+        Base._populate(self, json)
+
+        mapped_udfs = []
+        for udf in self.user_defined_fields:
+            t = UserDefinedFieldType.text
+            choices = None
+            if hasattr(udf, 'oneof'):
+                t = UserDefinedFieldType.select_one
+                choices = udf.oneof.split(',')
+            elif hasattr(udf, 'manyof'):
+                t = UserDefinedFieldType.select_many
+                choices = udf.manyof.split(',')
+
+            mapped_udfs.append(UserDefinedField(udf.name,
+                    udf.label if hasattr(udf, 'label') else None,
+                    udf.example if hasattr(udf, 'example') else None,
+                    t, choices=choices))
+
+        self._set('user_defined_fields', mapped_udfs)
+        ndist = [ Image(self._client, d) for d in self.images ]
+        self._set('images', ndist)
+
+    def _serialize(self):
+        dct = Base._serialize(self)
+        dct['images'] = [ d.id for d in self.images ]
+        return dct
