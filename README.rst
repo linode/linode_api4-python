@@ -1,6 +1,8 @@
 python-linode-api
 =================
 
+.. highlight:: python
+
 The official python library for the `Linode API`_ in python.
 
 **This library is currently in beta.**
@@ -54,11 +56,15 @@ Contributing
 Tests
 -----
 
-Tests live in the ``tests`` directory.  To run tests, use setup.py:
+Tests live in the ``tests`` directory.  When invoking tests, make sure you are
+in the root directory of this project.  To run the full suite across all
+supported python versions, use tox_:
 
 .. code-block:: shell
 
-   python setup.py test
+   tox
+
+Running tox also runs pylint and coverage reports.
 
 The test suite uses fixtures stored as JSON in ``test/fixtures``.  These files
 contain sanitized JSON responses from the API - the file name is the URL called
@@ -73,13 +79,13 @@ this client (and by extension related models).
 When testing against requests other than GET requests, ``self.mock_post`` (and
 equivalent methods for other HTTP verbs) can be used in a ``with`` block to
 mock out the intended request type - include the URL whose response should be
-used returned from the fixtures.  For example:
-
-.. code-block:: python
+used returned from the fixtures.  For example::
 
    with self.mock_post('/linode/instances/123'):
      linode = self.client.linode.instance_create('g6-standard-2', 'us-east')
      self.assertEqual(linode.id, 123) # passes
+
+.. _tox: http://tox.readthedocs.io
 
 Documentation
 -------------
