@@ -340,7 +340,7 @@ class ProfileGroup(Group):
         :returns: The acting user's profile.
         :rtype: Profile
         """
-        result = self.get('/profile')
+        result = self.client.get('/profile')
 
         if not 'username' in result:
             raise UnexpectedResponseError('Unexpected response when getting profile!', json=result)
