@@ -2,7 +2,7 @@ import os
 import sys
 import json
 
-FIXTURES_DIR = sys.path[0] + '/fixtures'
+FIXTURES_DIR = sys.path[0] + '/test/fixtures'
 
 class TestFixtures:
     def __init__(self):
