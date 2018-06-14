@@ -55,7 +55,7 @@ Filters may be combined using boolean operators similar to SQLAlchemy::
 
    # and_ and or_ can be imported from the linode package to combine filters
    from linode import or_
-   prod_or_staging = client.linode.instances(or_(Linode.group == "production"
+   prod_or_staging = client.linode.instances(or_(Linode.group == "production",
                                                      Linode.group == "staging"))
 
    # and_ isn't strictly necessary, as it's the default when passing multiple

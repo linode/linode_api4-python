@@ -123,7 +123,7 @@ class LinodeGroup(Group):
         new Linode object.  For example::
 
            new_linode, password = client.linode.instance_create(
-               "g5-standard-1",
+               "g6-standard-1",
                "us-east",
                image="linode/debian9")
 
@@ -147,7 +147,7 @@ class LinodeGroup(Group):
            stackscript = StackScript(client, 10079)
 
            new_linode, password = client.linode.instance_create(
-              "g5-standard-2",
+              "g6-standard-2",
               "us-east",
               image="linode/debian9",
               stackscript=stackscript,
@@ -171,7 +171,7 @@ class LinodeGroup(Group):
            snapshot = existing_linode.available_backups.snapshot.current
 
            new_linode = client.linode.instance_create(
-               "g5-standard-1",
+               "g6-standard-1",
                "us-east",
                backup=snapshot)
 
@@ -180,7 +180,7 @@ class LinodeGroup(Group):
         If you want to create an empty Linode that you will configure manually,
         simply call `instance_create` with a :any:`Type` and a :any:`Region`::
 
-           empty_linode = client.linode.instance_create("g5-standard-2", "us-east")
+           empty_linode = client.linode.instance_create("g6-standard-2", "us-east")
 
         When created this way, the Linode will not be booted and cannot boot
         successfully until disks and configs are created, or it is otherwise

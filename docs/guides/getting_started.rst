@@ -86,13 +86,13 @@ We can query for these values similarly to how we listed our Linodes above::
    available_regions = client.regions()
 
 We could also use values that we know in advance to avoid the need to query the
-API.  For example, we may know that we want a `g5-standard-4` Linode running the
+API.  For example, we may know that we want a `g6-standard-4` Linode running the
 `linode/debian9` Image.  Both objects and IDs are accepted when creating a Linode.::
 
    chosen_region = available_regions[0]
 
    new_linode, password = client.linode.instance_create(chosen_region,
-                                                        'g5-standard-4',
+                                                        'g6-standard-4',
                                                         image='linode/debian9')
 
 :py:func:`instance_create` returns the newly-created Linode object and the
