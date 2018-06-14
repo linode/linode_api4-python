@@ -2,7 +2,7 @@ from unittest import TestCase
 from mock import patch
 import json
 
-from linode import LinodeClient
+from linode_api import LinodeClient
 from .fixtures import TestFixtures
 
 FIXTURES = TestFixtures()
@@ -70,7 +70,7 @@ class MethodMock:
         Begins the method mocking
         """
         self.patch = patch(
-            'linode.linode_client.requests.'+self.method,
+            'linode_api.linode_client.requests.'+self.method,
             return_value=MockResponse(200, self.return_dct)
         )
         self.mock = self.patch.start()
@@ -128,7 +128,7 @@ class ClientBaseCase(TestCase):
     def setUp(self):
         self.client = LinodeClient('testing', base_url='/')
 
-        self.get_patch = patch('linode.linode_client.requests.get',
+        self.get_patch = patch('linode_api.linode_client.requests.get',
                 side_effect=mock_get)
         self.get_patch.start()
 

@@ -1,6 +1,6 @@
 from test.base import ClientBaseCase
 
-from linode import LongviewSubscription
+from linode_api import LongviewSubscription
 
 
 class LinodeClientGeneralTest(ClientBaseCase):

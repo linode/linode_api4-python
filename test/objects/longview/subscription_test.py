@@ -1,7 +1,7 @@
 from test.base import ClientBaseCase
-from linode.objects.base import MappedObject
+from linode_api.objects.base import MappedObject
 
-from linode.objects import LongviewSubscription
+from linode_api.objects import LongviewSubscription
 
 
 class LongviewSubscriptionTest(ClientBaseCase):

@@ -1,6 +1,6 @@
 from test.base import ClientBaseCase
 
-from linode.objects import Image
+from linode_api.objects import Image
 
 
 class ImageTest(ClientBaseCase):

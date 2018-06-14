@@ -1,6 +1,6 @@
 from test.base import ClientBaseCase
 
-from linode.objects import Type
+from linode_api.objects import Type
 
 
 class LinodeTypeTest(ClientBaseCase):

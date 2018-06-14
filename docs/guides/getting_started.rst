@@ -20,12 +20,6 @@ If you prefer, you can clone the package from github_ and install it from source
    cd linode-api-python
    python setup.py install
 
-.. note::
-   This library uses the "linode" namespace.  This could conflict with other
-   libraries intended to interact with older versions of the Linode API.  If
-   you depend on a python library to interact with older versions of the Linode
-   API, consider using a virtualenv when installing this library.
-
 Authentication
 --------------
 
@@ -58,7 +52,7 @@ Listing your Linodes
 Using the token you generated above, create a :py:class:`LinodeClient` object
 that will be used for all interactions with the API.::
 
-   from linode import LinodeClient
+   from linode_api import LinodeClient
    client = LinodeClient(token)
 
 This object will manage all requests you make through the API.  Once it's

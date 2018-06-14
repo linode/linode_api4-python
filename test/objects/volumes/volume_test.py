@@ -2,7 +2,7 @@ from datetime import datetime
 
 from test.base import ClientBaseCase
 
-from linode.objects import Volume
+from linode_api.objects import Volume
 
 
 class VolumeTest(ClientBaseCase):

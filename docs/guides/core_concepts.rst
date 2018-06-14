@@ -54,7 +54,7 @@ example::
 Filters may be combined using boolean operators similar to SQLAlchemy::
 
    # and_ and or_ can be imported from the linode package to combine filters
-   from linode import or_
+   from linode_api import or_
    prod_or_staging = client.linode.instances(or_(Linode.group == "production",
                                                      Linode.group == "staging"))
 
@@ -81,7 +81,7 @@ Creating Models
 In addition to looking up models from collections, you can simply import the
 model class and create it by ID.::
 
-   from linode import Linode
+   from linode_api import Linode
    my_linode = Linode(client, 123)
 
 All models take a `LinodeClient` as their first parameter, and their ID as the
