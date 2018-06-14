@@ -25,7 +25,7 @@ class Domain(Base):
         'type': Property(mutable=True),
     }
 
-    def create_record(self, record_type, **kwargs):
+    def record_create(self, record_type, **kwargs):
 
         params = {
             "type": record_type,

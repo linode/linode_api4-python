@@ -188,7 +188,7 @@ class Linode(Base):
         return password
 
     # create derived objects
-    def create_config(self, kernel=None, label=None, devices=[], disks=[],
+    def config_create(self, kernel=None, label=None, devices=[], disks=[],
             volumes=[], **kwargs):
         """
         Creates a Linode Config with the given attributes.
@@ -212,7 +212,7 @@ class Linode(Base):
         device_map = {device_names[i]: None for i in range(0, len(device_names))}
 
         if devices and (disks or volumes):
-            raise ValueError('You may not call create_config with "devices" and '
+            raise ValueError('You may not call config_create with "devices" and '
                     'either of "disks" or "volumes" specified!')
 
         if not devices:
@@ -268,7 +268,7 @@ class Linode(Base):
         c = Config(self._client, result['id'], self.id, result)
         return c
 
-    def create_disk(self, size, label=None, filesystem=None, read_only=False, image=None,
+    def disk_create(self, size, label=None, filesystem=None, read_only=False, image=None,
             root_pass=None, authorized_keys=None, stackscript=None, **stackscript_args):
 
         gen_pass = None

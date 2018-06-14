@@ -22,7 +22,7 @@ def get_obj_grants():
             ('stackscript', StackScript),
             ('nodebalancer', NodeBalancer),
             ('volume', Volume),
-            #('image', Image),
+            ('image', Image),
             ('longview', LongviewClient))
 
 

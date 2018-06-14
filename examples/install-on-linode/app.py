@@ -14,8 +14,8 @@ def get_login_client():
 @app.route('/')
 def index():
     client = LinodeClient('no-token')
-    types = client.linode.get_types(Type.label.contains("Linode"))
-    regions = client.get_regions()
+    types = client.linode.types(Type.label.contains("Linode"))
+    regions = client.regions()
     stackscript = StackScript(client, config.stackscript_id)
     return render_template('configure.html',  
         types=types,
@@ -43,7 +43,7 @@ def auth_callback():
         return render_template('error.html', error='Insufficient scopes granted to deploy {}'\
                 .format(config.application_name))
 
-    (linode, password) = create_linode(token, session['type'], session['dc'], session['distro'])
+    (linode, password) = make_instance(token, session['type'], session['dc'], session['distro'])
 
     get_login_client().expire_token(token)
     return render_template('success.html',
@@ -52,10 +52,10 @@ def auth_callback():
         application_name=config.application_name
     )
 
-def create_linode(token, type_id, region_id, distribution_id):
+def make_instance(token, type_id, region_id, distribution_id):
     client = LinodeClient('{}'.format(token))
     stackscript = StackScript(client, config.stackscript_id)
-    (linode, password) = client.linode.create_instance(type_id, region_id,
+    (linode, password) = client.linode.instance_create(type_id, region_id,
             group=config.application_name,
             image=distribution_id, stackscript=stackscript.id)
     

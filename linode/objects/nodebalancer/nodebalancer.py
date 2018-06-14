@@ -24,7 +24,7 @@ class NodeBalancer(Base):
     }
 
     # create derived objects
-    def create_config(self, label=None, **kwargs):
+    def config_create(self, label=None, **kwargs):
         params = kwargs
         if label:
             params['label'] = label

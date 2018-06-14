@@ -64,7 +64,7 @@ that will be used for all interactions with the API.::
 This object will manage all requests you make through the API.  Once it's
 set up, you can use it to retrieve and print a list of your Linodes::
 
-   my_linodes = client.linode.get_instances()
+   my_linodes = client.linode.instances()
 
    for current_linode in my_linodes:
        print(current_linode.label)
@@ -83,7 +83,7 @@ In order to create a Linode, we need a few pieces of information:
 
 We can query for these values similarly to how we listed our Linodes above::
 
-   available_regions = client.get_regions()
+   available_regions = client.regions()
 
 We could also use values that we know in advance to avoid the need to query the
 API.  For example, we may know that we want a `g5-standard-4` Linode running the
@@ -91,11 +91,11 @@ API.  For example, we may know that we want a `g5-standard-4` Linode running the
 
    chosen_region = available_regions[0]
 
-   new_linode, password = client.linode.create_instance(chosen_region,
+   new_linode, password = client.linode.instance_create(chosen_region,
                                                         'g5-standard-4',
                                                         image='linode/debian9')
 
-:py:func:`create_instance` returns the newly-created Linode object and the
+:py:func:`instance_create` returns the newly-created Linode object and the
 root password that was generated for it.  This Linode will boot automatically,
 and should be available shortly.  Finally, let's print out the results so we
 can access our new server.

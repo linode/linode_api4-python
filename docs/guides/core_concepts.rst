@@ -17,7 +17,7 @@ transparently, and does not load pages of data until they are required.  This
 is handled by the :any:`PaginatedList` class, which
 behaves similarly to a python list.  For example::
 
-   linodes = client.linode.get_instances() # returns a PaginatedList of linodes
+   linodes = client.linode.instances() # returns a PaginatedList of linodes
 
    first_linode = linodes[0] # the first page is loaded automatically, this does
                              # not emit an API call
@@ -49,18 +49,18 @@ group.  This library implements filtering with a SQLAlchemy-like syntax, where
 a model's attributes may be used in comparisons to generate filters.  For
 example::
 
-   prod_linodes = client.linode.get_instances(Linode.group == "production")
+   prod_linodes = client.linode.instances(Linode.group == "production")
 
 Filters may be combined using boolean operators similar to SQLAlchemy::
 
    # and_ and or_ can be imported from the linode package to combine filters
    from linode import or_
-   prod_or_staging = client.linode.get_instances(or_(Linode.group == "production"
+   prod_or_staging = client.linode.instances(or_(Linode.group == "production"
                                                      Linode.group == "staging"))
 
    # and_ isn't strictly necessary, as it's the default when passing multiple
    # filters to a collection
-   prod_and_green = client.linode.get_instances(Linode.group == "production",
+   prod_and_green = client.linode.instances(Linode.group == "production",
                                                 Linode.label.contains("green"))
 
 Filters are generally only applicable for the type of model you are querying,

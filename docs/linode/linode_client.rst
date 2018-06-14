@@ -25,10 +25,10 @@ design - some methods and functions are accessible only through members of the
 LinodeClient class::
 
    # access an ungrouped member
-   client.get_regions() # /regions
+   client.regions() # /regions
 
    # access a grouped member - note the URL matches the grouping
-   client.linode.get_instances() # /linode/instances
+   client.linode.instances() # /linode/instances
 
 The LinodeClient itself holds top-level collections of the API, while anything
 that exists under a group in the API belongs to a member of the client.
@@ -47,7 +47,7 @@ Groups
 These groups are accessed off of the :any:`LinodeClient` class by name.  For
 example::
 
-   client.linode.get_instances()
+   client.linode.instances()
 
 See :any:`LinodeClient` for more information on the naming of these groups,
 although generally they are named the same as the first word of the group.

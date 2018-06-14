@@ -29,7 +29,7 @@ class OAuthClient(Base):
         self._populate(result)
         return self.secret
 
-    def get_thumbnail(self, dump_to=None):
+    def thumbnail(self, dump_to=None):
         """
         This returns binary data that represents a 128x128 image.
         If dump_to is given, attempts to write the image to a file

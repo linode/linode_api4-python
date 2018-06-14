@@ -30,17 +30,17 @@ class LinodeGroup(Group):
     an instance of :any:`LinodeClient`::
 
        client = LinodeClient(token)
-       linodes = client.linode.get_instances() # use the LinodeGroup
+       linodes = client.linode.instances() # use the LinodeGroup
 
     This group contains all features beneath the `/linode` group in the API v4.
     """
-    def get_types(self, *filters):
+    def types(self, *filters):
         """
         Returns a list of Linode types.  These may be used to create or resize
         Linodes, or simply referenced on their own.  Types can be filtered to
         return specific types, for example::
 
-           standard_types = client.linode.get_types(Type.class == "standard")
+           standard_types = client.linode.types(Type.class == "standard")
 
         :param filters: Any number of filters to apply to the query.
 
@@ -49,12 +49,12 @@ class LinodeGroup(Group):
         """
         return self.client._get_and_filter(Type, *filters)
 
-    def get_instances(self, *filters):
+    def instances(self, *filters):
         """
         Returns a list of Linodes on your account.  You may filter this query
         to return only Linodes that match specific criteria::
 
-           prod_linodes = client.linode.get_instances(Linode.group == "prod")
+           prod_linodes = client.linode.instances(Linode.group == "prod")
 
         :param filters: Any number of filters to apply to this query.
 
@@ -63,14 +63,14 @@ class LinodeGroup(Group):
         """
         return self.client._get_and_filter(Linode, *filters)
 
-    def get_stackscripts(self, *filters, **kwargs):
+    def stackscripts(self, *filters, **kwargs):
         """
         Returns a list of :any:`StackScripts<StackScript>`, both public and
         private.  You may filter this query to return only
         :any:`StackScripts<StackScript>` that match certain criteria.  You may
         also request only your own private :any:`StackScripts<StackScript>`::
 
-           my_stackscripts = client.linode.get_stackscripts(mine_only=True)
+           my_stackscripts = client.linode.stackscripts(mine_only=True)
 
         :param filters: Any number of filters to apply to this query.
         :param mine_only: If True, returns only private StackScripts
@@ -92,11 +92,11 @@ class LinodeGroup(Group):
             del kwargs['mine_only']
 
         if kwargs:
-            raise TypeError("get_stackscripts() got unexpected keyword argument '{}'".format(kwargs.popitem()[0]))
+            raise TypeError("stackscripts() got unexpected keyword argument '{}'".format(kwargs.popitem()[0]))
 
         return self.client._get_and_filter(StackScript, *filters)
 
-    def get_kernels(self, *filters):
+    def kernels(self, *filters):
         """
         Returns a list of available :any:`Kernels<Kernel>`.  Kernels are used
         when creating or updating :any:`LinodeConfigs,LinodeConfig>`.
@@ -109,29 +109,29 @@ class LinodeGroup(Group):
         return self.client._get_and_filter(Kernel, *filters)
 
     # create things
-    def create_instance(self, ltype, region, image=None,
+    def instance_create(self, ltype, region, image=None,
             authorized_keys=None, **kwargs):
         """
         Creates a new Linode. This function has several modes of operation:
 
         **Create a Linode from an Image**
 
-        To create a Linode from an :any:`Image`, call `create_instance` with
+        To create a Linode from an :any:`Image`, call `instance_create` with
         a :any:`Type`, a :any:`Region`, and an :any:`Image`.  All three of
         these fields may be provided as either the ID or the appropriate object.
         In this mode, a root password will be generated and returned with the
         new Linode object.  For example::
 
-           new_linode, password = client.linode.create_instance(
+           new_linode, password = client.linode.instance_create(
                "g5-standard-1",
                "us-east",
                image="linode/debian9")
 
-           ltype = client.linode.get_types().first()
-           region = client.get_regions().first()
-           image = client.get_images().first()
+           ltype = client.linode.types().first()
+           region = client.regions().first()
+           image = client.images().first()
 
-           another_linode, password = client.linode.create_instance(
+           another_linode, password = client.linode.instance_create(
                ltype,
                region,
                image=image)
@@ -146,7 +146,7 @@ class LinodeGroup(Group):
 
            stackscript = StackScript(client, 10079)
 
-           new_linode, password = client.linode.create_instance(
+           new_linode, password = client.linode.instance_create(
               "g5-standard-2",
               "us-east",
               image="linode/debian9",
@@ -170,7 +170,7 @@ class LinodeGroup(Group):
            existing_linode = Linode(client, 123)
            snapshot = existing_linode.available_backups.snapshot.current
 
-           new_linode = client.linode.create_instance(
+           new_linode = client.linode.instance_create(
                "g5-standard-1",
                "us-east",
                backup=snapshot)
@@ -178,9 +178,9 @@ class LinodeGroup(Group):
         **Create an empty Linode**
 
         If you want to create an empty Linode that you will configure manually,
-        simply call `create_instance` with a :any:`Type` and a :any:`Region`::
+        simply call `instance_create` with a :any:`Type` and a :any:`Region`::
 
-           empty_linode = client.linode.create_instance("g5-standard-2", "us-east")
+           empty_linode = client.linode.instance_create("g5-standard-2", "us-east")
 
         When created this way, the Linode will not be booted and cannot boot
         successfully until disks and configs are created, or it is otherwise
@@ -264,7 +264,7 @@ class LinodeGroup(Group):
             return l
         return l, ret_pass
 
-    def create_stackscript(self, label, script, images, desc=None, public=False, **kwargs):
+    def stackscript_create(self, label, script, images, desc=None, public=False, **kwargs):
         """
         Creates a new :any:`StackScript` on your account.
 
@@ -309,7 +309,7 @@ class LinodeGroup(Group):
 
         params = {
             "label": label,
-            "image": image_list,
+            "images": image_list,
             "is_public": public,
             "script": script_body,
             "description": desc if desc else '',
@@ -329,13 +329,33 @@ class ProfileGroup(Group):
     """
     Collections related to your user.
     """
-    def get_tokens(self, *filters):
+    def __call__(self):
+        """
+        Retrieve the acting user's Profile, containing information about the
+        current user such as their email address, username, and uid.  This is
+        intended to be called off of a :any:`LinodeClient` object, like this::
+
+           profile = client.profile()
+
+        :returns: The acting user's profile.
+        :rtype: Profile
+        """
+        result = self.get('/profile')
+
+        if not 'username' in result:
+            raise UnexpectedResponseError('Unexpected response when getting profile!', json=result)
+
+        p = Profile(self, result['username'], result)
+        return p
+
+
+    def tokens(self, *filters):
         """
         Returns the Person Access Tokens active for this user
         """
         return self.client._get_and_filter(PersonalAccessToken, *filters)
 
-    def create_personal_access_token(self, label=None, expiry=None, scopes=None, **kwargs):
+    def token_create(self, label=None, expiry=None, scopes=None, **kwargs):
         """
         Creates and returns a new Personal Access Token
         """
@@ -357,7 +377,7 @@ class ProfileGroup(Group):
         token = PersonalAccessToken(self.client, result['id'], result)
         return token
 
-    def get_apps(self, *filters):
+    def apps(self, *filters):
         """
         Returns the Authorized Applications for this user
         """
@@ -365,14 +385,14 @@ class ProfileGroup(Group):
 
 
 class LongviewGroup(Group):
-    def get_clients(self, *filters):
+    def clients(self, *filters):
         """
         Requests and returns a paginated list of LongviewClients on your
         account.
         """
         return self.client._get_and_filter(LongviewClient, *filters)
 
-    def create_client(self, label=None):
+    def client_create(self, label=None):
         """
         Creates a new LongviewClient, optionally with a given label.
 
@@ -396,7 +416,7 @@ class LongviewGroup(Group):
         c = LongviewClient(self.client, result['id'], result)
         return c
 
-    def get_subscriptions(self, *filters):
+    def subscriptions(self, *filters):
         """
         Requests and returns a paginated list of LongviewSubscriptions available
         """
@@ -404,10 +424,29 @@ class LongviewGroup(Group):
 
 
 class AccountGroup(Group):
-    def get_events(self, *filters):
+    def __call__(self):
+        """
+        Retrieves information about the acting user's account, such as billing
+        information.  This is intended to be called off of the :any:`LinodeClient`
+        class, like this::
+
+           account = client.account()
+
+        :returns: Returns the acting user's account information.
+        :rtype: Account
+        """
+        result = self.client.get('/account')
+
+        if not 'email' in result:
+            raise UnexpectedResponseError('Unexpected response when getting account!', json=result)
+
+        return Account(self.client, result['email'], result)
+
+
+    def events(self, *filters):
         return self.client._get_and_filter(Event, *filters)
 
-    def mark_last_seen_event(self, event):
+    def events_mark_seen(self, event):
         """
         Marks event as the last event we have seen.  If event is an int, it is treated
         as an event_id, otherwise it should be an event object whose id will be used.
@@ -415,7 +454,7 @@ class AccountGroup(Group):
         last_seen = event if isinstance(event, int) else event.id
         self.client.post('{}/seen'.format(Event.api_endpoint), model=Event(self.client, last_seen))
 
-    def get_settings(self):
+    def settings(self):
         """
         Resturns the account settings data for this acocunt.  This is not  a
         listing endpoint.
@@ -429,25 +468,25 @@ class AccountGroup(Group):
         s = AccountSettings(self.client, result['managed'], result)
         return s
 
-    def get_invoices(self):
+    def invoices(self):
         """
         Returns Invoices issued to this account
         """
         return self.client._get_and_filter(Invoice)
 
-    def get_payments(self):
+    def payments(self):
         """
         Returns a list of Payments made to this account
         """
         return self.client._get_and_filter(Payment)
 
-    def get_oauth_clients(self, *filters):
+    def oauth_clients(self, *filters):
         """
         Returns the OAuth Clients associated to this account
         """
         return self.client._get_and_filter(OAuthClient, *filters)
 
-    def create_oauth_client(self, name, redirect_uri, **kwargs):
+    def oauth_client_create(self, name, redirect_uri, **kwargs):
         """
         Make a new OAuth Client and return it
         """
@@ -466,13 +505,13 @@ class AccountGroup(Group):
         c = OAuthClient(self.client, result['id'], result)
         return c
 
-    def get_users(self, *filters):
+    def users(self, *filters):
         """
         Returns a list of users on this account
         """
         return self.client._get_and_filter(User, *filters)
 
-    def get_transfer(self):
+    def transfer(self):
         """
         Returns a MappedObject containing the account's transfer pool data
         """
@@ -483,56 +522,56 @@ class AccountGroup(Group):
 
         return MappedObject(**result)
 
-def create_user(self, email, username, restricted=True):
-    """
-    Creates a new user on your account.  If you create an unrestricted user,
-    they will immediately be able to access everything on your account.  If
-    you create a restricted user, you must grant them access to parts of your
-    account that you want to allow them to manage (see :any:`User.grants` for
-    details).
+    def user_create(self, email, username, restricted=True):
+        """
+        Creates a new user on your account.  If you create an unrestricted user,
+        they will immediately be able to access everything on your account.  If
+        you create a restricted user, you must grant them access to parts of your
+        account that you want to allow them to manage (see :any:`User.grants` for
+        details).
 
-    The new user will receive an email inviting them to set up their password.
-    This must be completed before they can log in.
+        The new user will receive an email inviting them to set up their password.
+        This must be completed before they can log in.
 
-    :param email: The new user's email address.  This is used to finish setting
-                  up their user account.
-    :type email: str
-    :param username: The new user's unique username.  They will use this username
-                     to log in.
-    :type username: str
-    :param restricted: If True, the new user must be granted access to parts of
-                       the account before they can do anything.  If False, the
-                       new user will immediately be able to manage the entire
-                       account.  Defaults to True.
-    :type restricted: True
+        :param email: The new user's email address.  This is used to finish setting
+                      up their user account.
+        :type email: str
+        :param username: The new user's unique username.  They will use this username
+                         to log in.
+        :type username: str
+        :param restricted: If True, the new user must be granted access to parts of
+                           the account before they can do anything.  If False, the
+                           new user will immediately be able to manage the entire
+                           account.  Defaults to True.
+        :type restricted: True
 
-    :returns The new User.
-    :rtype: User
-    """
-    params = {
-        "email": email,
-        "username": username,
-        "restricted": restricted,
-    }
-    result = self.client.post('/account/users', data=params)
+        :returns The new User.
+        :rtype: User
+        """
+        params = {
+            "email": email,
+            "username": username,
+            "restricted": restricted,
+        }
+        result = self.client.post('/account/users', data=params)
 
-    if not 'email' and 'restricted' and 'username' in result:
-        raise UnexpectedResponseError('Unexpected response when creating user!', json=result)
+        if not 'email' and 'restricted' and 'username' in result:
+            raise UnexpectedResponseError('Unexpected response when creating user!', json=result)
 
-    u = User(self.client, result['username'], result)
-    return u
+        u = User(self.client, result['username'], result)
+        return u
 
 class NetworkingGroup(Group):
-    def get_ips(self, *filters):
+    def ips(self, *filters):
         return self.client._get_and_filter(IPAddress, *filters)
 
-    def get_ipv6_ranges(self, *filters):
+    def ipv6_ranges(self, *filters):
         return self.client._get_and_filter(IPv6Range, *filters)
 
-    def get_ipv6_pools(self, *filters):
+    def ipv6_pools(self, *filters):
         return self.client._get_and_filter(IPv6Pool, *filters)
 
-    def assign_ips(self, region, *assignments):
+    def ips_assign(self, region, *assignments):
         """
         Redistributes :any:`IP Addressees<IPAddress>` within a single region.
         This function takes a :any:`Region` and a list of assignments to make,
@@ -570,7 +609,7 @@ class NetworkingGroup(Group):
             "assignments": [ a for a in assignments ],
         })
 
-    def allocate_ip(self, linode, public=True):
+    def ip_allocate(self, linode, public=True):
         """
         Allocates an IP to a Linode you own.  Additional IPs must be requested
         by opening a support ticket first.
@@ -596,7 +635,7 @@ class NetworkingGroup(Group):
         ip = IPAddress(self.client, result['address'], result)
         return ip
 
-    def set_shared_ips(self, linode, *ips):
+    def shared_ips(self, linode, *ips):
         """
         Shares the given list of :any:`IPAddresses<IPAddress>` with the provided
         :any:`Linode`.  This will enable the provided Linode to bring up the
@@ -631,10 +670,10 @@ class NetworkingGroup(Group):
         linode.invalidate() # clear the Linode's shared IPs
 
 class SupportGroup(Group):
-    def get_tickets(self, *filters):
+    def tickets(self, *filters):
         return self.client._get_and_filter(SupportTicket, *filters)
 
-    def open_ticket(self, summary, description, regarding=None):
+    def ticket_open(self, summary, description, regarding=None):
         """
 
         """
@@ -834,7 +873,7 @@ class LinodeClient:
         return self._api_call(*args, method=requests.delete, **kwargs)
 
     # ungrouped list functions
-    def get_regions(self, *filters):
+    def regions(self, *filters):
         """
         Returns the available Regions for Linode products.
 
@@ -845,44 +884,13 @@ class LinodeClient:
         """
         return self._get_and_filter(Region, *filters)
 
-    def get_profile(self):
-        """
-        Retrieve the acting user's Profile, containing information about the
-        current user such as their email address, username, and uid.
-
-        :returns: The acting user's profile.
-        :rtype: Profile
-        """
-        result = self.get('/profile')
-
-        if not 'username' in result:
-            raise UnexpectedResponseError('Unexpected response when getting profile!', json=result)
-
-        p = Profile(self, result['username'], result)
-        return p
-
-    def get_account(self):
-        """
-        Retrieves information about the acting user's account, such as billing
-        information.
-
-        :returns: Returns the acting user's account information.
-        :rtype: Account
-        """
-        result = self.get('/account')
-
-        if not 'email' in result:
-            raise UnexpectedResponseError('Unexpected response when getting account!', json=result)
-
-        return Account(self, result['email'], result)
-
-    def get_images(self, *filters):
+    def images(self, *filters):
         """
         Retrieves a list of available Images, including public and private
         Images available to the acting user.  You can filter this query to
         retrieve only Images relevant to a specific query, for example::
 
-           debian_images = client.get_images(
+           debian_images = client.images(
                Image.vendor == "debain")
 
         :param filters: Any number of filters to apply to the query.
@@ -892,7 +900,7 @@ class LinodeClient:
         """
         return self._get_and_filter(Image, *filters)
 
-    def create_image(self, disk, label=None, description=None):
+    def image_create(self, disk, label=None, description=None):
         """
         Creates a new Image from a disk you own.
 
@@ -925,7 +933,7 @@ class LinodeClient:
 
         return Image(self, result['id'], result)
 
-    def get_domains(self, *filters):
+    def domains(self, *filters):
         """
         Retrieves all of the Domains the acting user has access to.
 
@@ -936,7 +944,7 @@ class LinodeClient:
         """
         return self._get_and_filter(Domain, *filters)
 
-    def get_nodebalancers(self, *filters):
+    def nodebalancers(self, *filters):
         """
         Retrieves all of the NodeBalancers the acting user has access to.
 
@@ -947,7 +955,7 @@ class LinodeClient:
         """
         return self._get_and_filter(NodeBalancer, *filters)
 
-    def create_nodebalancer(self, region, **kwargs):
+    def nodebalancer_create(self, region, **kwargs):
         """
         Creates a new NodeBalancer in the given Region.
 
@@ -970,7 +978,7 @@ class LinodeClient:
         n = NodeBalancer(self, result['id'], result)
         return n
 
-    def create_domain(self, domain, master=True, **kwargs):
+    def domain_create(self, domain, master=True, **kwargs):
         """
         Registers a new Domain on the acting user's account.  Make sure to point
         your registrar to Linode's nameservers so that Linode's DNS manager will
@@ -998,7 +1006,7 @@ class LinodeClient:
         d = Domain(self, result['id'], result)
         return d
 
-    def get_volumes(self, *filters):
+    def volumes(self, *filters):
         """
         Retrieves the Block Storage Volumes your user has access to.
 
@@ -1009,7 +1017,7 @@ class LinodeClient:
         """
         return self._get_and_filter(Volume, *filters)
 
-    def create_volume(self, label, region=None, linode=None, size=20, **kwargs):
+    def volume_create(self, label, region=None, linode=None, size=20, **kwargs):
         """
         Creates a new Block Storage Volume, either in the given Region or
         attached to the given Linode.

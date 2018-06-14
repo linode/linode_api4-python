@@ -13,7 +13,7 @@ class PaginatedList(object):
     be created by requesting a collection of resources from the :any:`LinodeClient`.
     For example::
 
-       linodes = client.linode.get_instances() # returns a PaginatedList of Linodes
+       linodes = client.linode.instances() # returns a PaginatedList of Linodes
 
     Once you have a PaginatedList of resources, it doesn't matter how many
     resources the API will return - you can iterate over all of them without
@@ -73,7 +73,7 @@ class PaginatedList(object):
         expecting to get only one back.  For instance::
 
            # raises if it finds more than one Linode
-           production_box = client.linode.get_instances(Linode.group == "prod").only()
+           production_box = client.linode.instances(Linode.group == "prod").only()
 
         :returns: The first and only item in this list.
         :raises ValueError: If more than one item is in this list.

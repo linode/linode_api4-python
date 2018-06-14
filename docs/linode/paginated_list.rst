@@ -6,7 +6,7 @@ this is useful, this library abstracts away the details of pagination and makes
 collections of resources appear as a single, uniform list that can be accessed,
 iterated over, and indexed as any normal Python list would be::
 
-   regions = client.get_regions() # get a collection of Regions
+   regions = client.regions() # get a collection of Regions
 
    for region in regions:
        print(region.id)
@@ -18,7 +18,7 @@ Pagination is handled transparently, and as requested.  For example, if you had
 three pages of Linodes, accessing your collection of Linodes would behave like
 this::
 
-   linodes = client.linode.get_instances() # loads the first page only
+   linodes = client.linode.instances() # loads the first page only
 
    linodes[0] # no additional data is loaded
 

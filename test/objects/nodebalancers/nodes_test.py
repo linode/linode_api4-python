@@ -34,7 +34,7 @@ class NodeBalancerNodeTest(ClientBaseCase):
         """
         with self.mock_post('nodebalancers/123456/configs/65432/nodes/54321') as m:
             config = NodeBalancerConfig(self.client, 65432, 123456)
-            node = config.create_node('node54321', '192.168.210.120',
+            node = config.node_create('node54321', '192.168.210.120',
                 weight=50, mode='accept')
 
             self.assertIsNotNone(node)

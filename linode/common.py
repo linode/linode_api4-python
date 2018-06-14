@@ -5,8 +5,9 @@ import os
 
 def load_and_validate_keys(authorized_keys):
     """
-    Loads authorized_keys as taken by create_linode, create_disk or rebuild, and
-    loads in any keys from any files provided.
+    Loads authorized_keys as taken by :any:`instance_create`,
+    :any:`disk_create` or :any:`rebuild`, and loads in any keys from any files
+    provided.
 
     :param authorized_keys: A list of keys or paths to keys, or a single key
 

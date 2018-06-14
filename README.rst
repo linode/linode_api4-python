@@ -78,7 +78,7 @@ used returned from the fixtures.  For example:
 .. code-block:: python
 
    with self.mock_post('/linode/instances/123'):
-     linode = self.client.linode.create_instance('g5-standard-1', 'us-east')
+     linode = self.client.linode.instance_create('g6-standard-2', 'us-east')
      self.assertEqual(linode.id, 123) # passes
 
 Documentation

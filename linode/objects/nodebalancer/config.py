@@ -49,7 +49,7 @@ class NodeBalancerConfig(DerivedBase):
 
         return self._nodes
 
-    def create_node(self, label, address, **kwargs):
+    def node_create(self, label, address, **kwargs):
         params = {
             "label": label,
             "address": address,

@@ -8,7 +8,7 @@ class LinodeTypeTest(ClientBaseCase):
         """
         Tests that Linode types can be returned
         """
-        types = self.client.linode.get_types()
+        types = self.client.linode.types()
 
         self.assertEqual(len(types), 4)
         for t in types:
