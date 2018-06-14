@@ -3,7 +3,43 @@ from __future__ import absolute_import
 from linode_api.errors import UnexpectedResponseError
 from linode_api.objects import Base, Property
 
-from .whitelist_entry import WhitelistEntry
+
+class AuthorizedApp(Base):
+    api_endpoint = "/profile/apps/{id}"
+
+    properties = {
+        "id": Property(identifier=True),
+        "scopes": Property(),
+        "label": Property(),
+        "created": Property(is_datetime=True),
+        "expiry": Property(is_datetime=True),
+        "thumbnail_url": Property(),
+        "website": Property(),
+    }
+
+
+class PersonalAccessToken(Base):
+    api_endpoint = "/profile/tokens/{id}"
+
+    properties = {
+        "id": Property(identifier=True),
+        "scopes": Property(),
+        "label": Property(mutable=True),
+        "created": Property(is_datetime=True),
+        "token": Property(),
+        "expiry": Property(is_datetime=True),
+    }
+
+
+class WhitelistEntry(Base):
+    api_endpoint = "/profile/whitelist/{id}"
+
+    properties = {
+        'id': Property(identifier=True),
+        'address': Property(),
+        'netmask': Property(),
+        'note': Property(),
+    }
 
 
 class Profile(Base):
