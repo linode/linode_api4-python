@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import requests
 from linode_api.errors import ApiError, UnexpectedResponseError
 from linode_api.objects import Base, Domain, Linode, Property, Volume
-from linode_api.objects.nodebalancer.nodebalancer import NodeBalancer
+from linode_api.objects.nodebalancer import NodeBalancer
 
 from .reply import TicketReply
 
