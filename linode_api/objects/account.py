@@ -6,7 +6,7 @@ from linode_api.errors import ApiError, UnexpectedResponseError
 from linode_api.objects import (Base, DerivedBase, Domain, Image, Linode,
                                 Property, StackScript, Volume)
 from linode_api.objects.nodebalancer import NodeBalancer
-from linode_api.objects.support.ticket import SupportTicket
+from linode_api.objects.support import SupportTicket
 from linode_api.objects.longview import LongviewClient, LongviewSubscription
 
 # TODO - UPDATE THESE (out of date)

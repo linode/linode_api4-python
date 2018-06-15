@@ -1,11 +1,25 @@
 from __future__ import absolute_import
 
 import requests
+
 from linode_api.errors import ApiError, UnexpectedResponseError
-from linode_api.objects import Base, Domain, Linode, Property, Volume
+from linode_api.objects import Base, Domain, DerivedBase, Linode, Property, Volume
 from linode_api.objects.nodebalancer import NodeBalancer
 
-from .reply import TicketReply
+
+class TicketReply(DerivedBase):
+    api_endpoint = '/support/tickets/{ticket_id}/replies'
+    derived_url_path = 'replies'
+    parent_id_name='ticket_id'
+
+    properties = {
+        'id': Property(identifier=True),
+        'ticket_id': Property(identifier=True),
+        'description': Property(),
+        'created': Property(is_datetime=True),
+        'created_by': Property(),
+        'from_linode': Property(),
+    }
 
 
 class SupportTicket(Base):
