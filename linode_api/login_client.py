@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from enum import Enum
 
 import requests
+
 from linode_api.errors import ApiError
 
 try:

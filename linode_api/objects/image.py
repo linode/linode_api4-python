@@ -3,7 +3,6 @@ from __future__ import absolute_import
 from linode_api.objects import Base, Property
 
 
-
 class Image(Base):
     """
     An Image is something a Linode Instance or Disk can be deployed from.

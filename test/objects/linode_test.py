@@ -1,9 +1,8 @@
 from datetime import datetime
-
 from test.base import ClientBaseCase
-from linode_api.objects.base import MappedObject
 
 from linode_api.objects import Config, Image, Instance, Type
+from linode_api.objects.base import MappedObject
 
 
 class LinodeTest(ClientBaseCase):

@@ -8,11 +8,12 @@ https://github.com/pypa/sampleproject/blob/master/setup.py
 
 # Always prefer setuptools over distutils
 import sys
-from setuptools import setup, find_packages
 # To use a consistent encoding
 from codecs import open
 from os import path
 from unittest import TestLoader
+
+from setuptools import find_packages, setup
 
 here = path.abspath(path.dirname(__file__))
 

@@ -1,9 +1,9 @@
 from __future__ import absolute_import
 
-from enum import Enum
 import string
 import sys
 from datetime import datetime
+from enum import Enum
 from os import urandom
 from random import choice, randint
 
@@ -13,7 +13,6 @@ from linode_api.objects import Base, DerivedBase, Image, Property, Region
 from linode_api.objects.base import MappedObject
 from linode_api.objects.networking import IPAddress, IPv6Pool
 from linode_api.paginated_list import PaginatedList
-
 
 PASSWORD_CHARS = string.ascii_letters + string.digits + string.punctuation
 

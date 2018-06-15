@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from test.base import ClientBaseCase
 
 from linode_api.objects import Volume

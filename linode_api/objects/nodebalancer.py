@@ -3,7 +3,6 @@ from __future__ import absolute_import
 import os
 
 from linode_api.errors import UnexpectedResponseError
-
 from linode_api.objects import Base, DerivedBase, Property, Region
 from linode_api.objects.networking import IPAddress
 

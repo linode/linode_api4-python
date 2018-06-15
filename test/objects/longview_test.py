@@ -1,9 +1,8 @@
 from datetime import datetime
-
 from test.base import ClientBaseCase
-from linode_api.objects.base import MappedObject
 
 from linode_api.objects import LongviewClient, LongviewSubscription
+from linode_api.objects.base import MappedObject
 
 
 class LongviewClientTest(ClientBaseCase):

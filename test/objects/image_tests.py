@@ -24,4 +24,3 @@ class ImageTest(ClientBaseCase):
         self.assertEqual(image.type, "manual")
         self.assertEqual(image.created_by, "linode")
         self.assertEqual(image.size, 1100)
-

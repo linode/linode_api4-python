@@ -1,6 +1,6 @@
+import json
 import os
 import sys
-import json
 
 FIXTURES_DIR = sys.path[0] + '/test/fixtures'
 
