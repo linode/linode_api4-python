@@ -5,7 +5,7 @@ import sys
 from datetime import datetime
 from enum import Enum
 from os import urandom
-from random import choice, randint
+from random import randint
 
 from linode_api.common import load_and_validate_keys
 from linode_api.errors import UnexpectedResponseError
