@@ -16,3 +16,13 @@ class LongviewClient(Base):
         "apps": Property(),
         "api_key": Property(),
     }
+
+
+class LongviewSubscription(Base):
+    api_endpoint = 'longview/subscriptions/{id}'
+    properties = {
+        "id": Property(identifier=True),
+        "label": Property(),
+        "clients_included": Property(),
+        "price": Property()
+    }
