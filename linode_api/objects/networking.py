@@ -3,6 +3,26 @@ from __future__ import absolute_import
 from linode_api.objects import Base, Property, Region
 
 
+class IPv6Pool(Base):
+    api_endpoint = '/networking/ipv6/pools/{}'
+    id_attribute = 'range'
+
+    properties = {
+        'range': Property(identifier=True),
+        'region': Property(slug_relationship=Region, filterable=True),
+    }
+
+
+class IPv6Range(Base):
+    api_endpoint = '/networking/ipv6/ranges/{}'
+    id_attribute = 'range'
+
+    properties = {
+        'range': Property(identifier=True),
+        'region': Property(slug_relationship=Region, filterable=True),
+    }
+
+
 class IPAddress(Base):
     api_endpoint = '/networking/ips/{address}'
     id_attribute = 'address'
@@ -21,7 +41,7 @@ class IPAddress(Base):
 
     @property
     def linode(self):
-        from ..linode import Linode
+        from .linode import Linode
         if not hasattr(self, '_linode'):
             self._set('_linode', Linode(self._client, self.linode_id))
         return self._linode
@@ -32,7 +52,7 @@ class IPAddress(Base):
         of that context.  It's used to cleanly build an IP Assign request with
         pretty python syntax.
         """
-        from ..linode import Linode
+        from .linode import Linode
         if not isinstance(linode, Linode):
             raise ValueError("IP Address can only be assigned to a Linode!")
         return { "address": self.address, "linode_id": linode.id }
