@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 from linode_api.errors import UnexpectedResponseError
-from linode_api.objects import Base, Linode, Property, Region
+from linode_api.objects import Base, Instance, Property, Region
 
 
 class Volume(Base):
@@ -11,7 +11,7 @@ class Volume(Base):
         'id': Property(identifier=True),
         'created': Property(is_datetime=True),
         'updated': Property(is_datetime=True),
-        'linode_id': Property(id_relationship=Linode),
+        'linode_id': Property(id_relationship=Instance),
         'label': Property(mutable=True, filterable=True),
         'size': Property(filterable=True),
         'status': Property(filterable=True),

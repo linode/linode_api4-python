@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import requests
 
 from linode_api.errors import ApiError, UnexpectedResponseError
-from linode_api.objects import (Base, DerivedBase, Domain, Image, Linode,
+from linode_api.objects import (Base, DerivedBase, Domain, Image, Instance,
                                 Property, StackScript, Volume)
 from linode_api.objects.nodebalancer import NodeBalancer
 from linode_api.objects.support import SupportTicket
@@ -67,7 +67,7 @@ class Event(Base):
     @property
     def linode(self):
         if self.entity and self.entity.type == 'linode':
-            return Linode(self._client, self.entity.id)
+            return Instance(self._client, self.entity.id)
         return None
 
     @property
@@ -259,7 +259,7 @@ def get_obj_grants():
     """
     Returns Grant keys mapped to Object types.
     """
-    return (('linode', Linode),
+    return (('linode', Instance),
             ('domain', Domain),
             ('stackscript', StackScript),
             ('nodebalancer', NodeBalancer),

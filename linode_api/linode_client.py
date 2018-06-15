@@ -30,15 +30,15 @@ class LinodeGroup(Group):
     an instance of :any:`LinodeClient`::
 
        client = LinodeClient(token)
-       linodes = client.linode.instances() # use the LinodeGroup
+       instances = client.linode.instances() # use the LinodeGroup
 
     This group contains all features beneath the `/linode` group in the API v4.
     """
     def types(self, *filters):
         """
-        Returns a list of Linode types.  These may be used to create or resize
-        Linodes, or simply referenced on their own.  Types can be filtered to
-        return specific types, for example::
+        Returns a list of Linode Instance types.  These may be used to create
+        or resize Linodes, or simply referenced on their own.  Types can be
+        filtered to return specific types, for example::
 
            standard_types = client.linode.types(Type.class == "standard")
 
@@ -51,17 +51,17 @@ class LinodeGroup(Group):
 
     def instances(self, *filters):
         """
-        Returns a list of Linodes on your account.  You may filter this query
-        to return only Linodes that match specific criteria::
+        Returns a list of Linode Instancess on your account.  You may filter
+        this query to return only Linodes that match specific criteria::
 
-           prod_linodes = client.linode.instances(Linode.group == "prod")
+           prod_linodes = client.linode.instances(Instance.group == "prod")
 
         :param filters: Any number of filters to apply to this query.
 
-        :returns: A list of Linodes that matched the query.
-        :rtype: PaginatedList of Linode
+        :returns: A list of Instances that matched the query.
+        :rtype: PaginatedList of Instance
         """
-        return self.client._get_and_filter(Linode, *filters)
+        return self.client._get_and_filter(Instance, *filters)
 
     def stackscripts(self, *filters, **kwargs):
         """
@@ -112,15 +112,15 @@ class LinodeGroup(Group):
     def instance_create(self, ltype, region, image=None,
             authorized_keys=None, **kwargs):
         """
-        Creates a new Linode. This function has several modes of operation:
+        Creates a new Linode Instance. This function has several modes of operation:
 
-        **Create a Linode from an Image**
+        **Create an Instance from an Image**
 
-        To create a Linode from an :any:`Image`, call `instance_create` with
+        To create an Instance from an :any:`Image`, call `instance_create` with
         a :any:`Type`, a :any:`Region`, and an :any:`Image`.  All three of
         these fields may be provided as either the ID or the appropriate object.
         In this mode, a root password will be generated and returned with the
-        new Linode object.  For example::
+        new Instance object.  For example::
 
            new_linode, password = client.linode.instance_create(
                "g6-standard-1",
@@ -136,12 +136,12 @@ class LinodeGroup(Group):
                region,
                image=image)
 
-        **Create a Linode from StackScript**
+        **Create an Instance from StackScript**
 
-        When creating a Linode from a :any:`StackScript`, an :any:`Image` that
+        When creating an Instance from a :any:`StackScript`, an :any:`Image` that
         the StackScript support must be provided..  You must also provide any
         required StackScript data for the script's User Defined Fields..  For
-        example, if deploying `StackScript 10079`_ (which deploys a new Linode
+        example, if deploying `StackScript 10079`_ (which deploys a new Instance
         with a user created from keys on `github`_::
 
            stackscript = StackScript(client, 10079)
@@ -161,13 +161,13 @@ class LinodeGroup(Group):
         .. _`github`: https://github.com
         .. _`StackScript guide`: https://www.linode.com/docs/platform/stackscripts/
 
-        **Create a Linode from a Backup**
+        **Create an Instance from a Backup**
 
-        To create a new Linode by restoring a :any:`Backup` to it, provide a
+        To create a new Instance by restoring a :any:`Backup` to it, provide a
         :any:`Type`, a :any:`Region`, and the :any:`Backup` to restore.  You
         may provide either IDs or objects for all of these fields::
 
-           existing_linode = Linode(client, 123)
+           existing_linode = Instance(client, 123)
            snapshot = existing_linode.available_backups.snapshot.current
 
            new_linode = client.linode.instance_create(
@@ -175,26 +175,26 @@ class LinodeGroup(Group):
                "us-east",
                backup=snapshot)
 
-        **Create an empty Linode**
+        **Create an empty Instance**
 
-        If you want to create an empty Linode that you will configure manually,
+        If you want to create an empty Instance that you will configure manually,
         simply call `instance_create` with a :any:`Type` and a :any:`Region`::
 
            empty_linode = client.linode.instance_create("g6-standard-2", "us-east")
 
-        When created this way, the Linode will not be booted and cannot boot
+        When created this way, the Instance will not be booted and cannot boot
         successfully until disks and configs are created, or it is otherwise
         configured.
 
-        :param ltype: The Linode Type we are creating
+        :param ltype: The Instance Type we are creating
         :type ltype: str or LinodeType
-        :param region: The Region in which we are creating the Linode
+        :param region: The Region in which we are creating the Instance
         :type region: str or Region
-        :param image: The Image to deploy to this Linode.  If this is provided
+        :param image: The Image to deploy to this Instance. If this is provided
                       and no root_pass is given, a password will be generated
-                      and returned along with the new Linode.
+                      and returned along with the new Instance.
         :type image: str or Image
-        :param stackscript: The StackScript to deploy to the new Linode.  If
+        :param stackscript: The StackScript to deploy to the new Instance.  If
                             provided, "image" is required and must be compatible
                             with the chosen StackScript.
         :type stackscript: int or StackScript
@@ -202,7 +202,7 @@ class LinodeGroup(Group):
                                  the chosen StackScript.  Does nothing if
                                  StackScript is not provided.
         :type stackscript_data: dict
-        :param backup: The Backup to restore to the new Linode.  May not be
+        :param backup: The Backup to restore to the new Instance.  May not be
                        provided if "image" is given.
         :type backup: int of Backup
         :param authorized_keys: The ssh public keys to install in the linode's
@@ -210,18 +210,18 @@ class LinodeGroup(Group):
                                 be a single key, or a path to a file containing
                                 the key.
         :type authorized_keys: list or str
-        :param label: The display label for the new Linode
+        :param label: The display label for the new Instance
         :type label: str
-        :param group: The display group for the new Linode
+        :param group: The display group for the new Instance
         :type group: str
-        :param booted: Whether the new Linode should be booted.  This will
-                       default to True if the Linode is deployed from an Image
+        :param booted: Whether the new Instance should be booted.  This will
+                       default to True if the Instance is deployed from an Image
                        or Backup.
         :type booted: bool
 
-        :returns: A new Linode object, or a tuple containing the new Linode and
+        :returns: A new Instance object, or a tuple containing the new Instance and
                   the generated password.
-        :rtype: Linode or tuple(Linode, str)
+        :rtype: Instance or tuple(Instance, str)
         :raises ApiError: If contacting the API fails
         :raises UnexpectedResponseError: If the API resposne is somehow malformed.
                                          This usually indicates that you are using
@@ -229,7 +229,7 @@ class LinodeGroup(Group):
         """
         ret_pass = None
         if image and not 'root_pass' in kwargs:
-            ret_pass = Linode.generate_root_password()
+            ret_pass = Instance.generate_root_password()
             kwargs['root_pass'] = ret_pass
 
         authorized_keys = load_and_validate_keys(authorized_keys)
@@ -259,7 +259,7 @@ class LinodeGroup(Group):
         if not 'id' in result:
             raise UnexpectedResponseError('Unexpected response when creating linode!', json=result)
 
-        l = Linode(self.client, result['id'], result)
+        l = Instance(self.client, result['id'], result)
         if not ret_pass:
             return l
         return l, ret_pass
@@ -270,11 +270,11 @@ class LinodeGroup(Group):
 
         :param label: The label for this StackScript.
         :type label: str
-        :param script: The script to run when a :any:`Linode` is deployed with
+        :param script: The script to run when an :any:`Instance` is deployed with
                        this StackScript.  Must begin with a shebang (#!).
         :type script: str
         :param images: A list of :any:`Images<Image>` that this StackScript
-                       supports.  Linodes will not be deployed from this
+                       supports.  Instances will not be deployed from this
                        StackScript unless deployed from one of these Images.
         :type images: list of Image
         :param desc: A description for this StackScript.
@@ -575,14 +575,14 @@ class NetworkingGroup(Group):
         """
         Redistributes :any:`IP Addressees<IPAddress>` within a single region.
         This function takes a :any:`Region` and a list of assignments to make,
-        then requests that the assignments take place.  If any :any:`Linode`
+        then requests that the assignments take place.  If any :any:`Instance`
         ends up without a public IP, or with more than one private IP, all of
         the assignments will fail.
 
         Example usage::
 
-           linode1 = Linode(client, 123)
-           linode2 = Linode(client, 456)
+           linode1 = Instance(client, 123)
+           linode2 = Instance(client, 456)
 
            # swap IPs between linodes 1 and 2
            client.networking.assign_ips(linode1.region,
@@ -590,7 +590,7 @@ class NetworkingGroup(Group):
                                         linode2.ips.ipv4.public[0].to(linode1))
 
         :param region: The Region in which the assignments should take place.
-                       All Linodes and IPAddresses involved in the assignment
+                       All Instances and IPAddresses involved in the assignment
                        must be within this region.
         :type region: str or Region
         :param assignments: Any number of assignments to make.  See
@@ -611,11 +611,11 @@ class NetworkingGroup(Group):
 
     def ip_allocate(self, linode, public=True):
         """
-        Allocates an IP to a Linode you own.  Additional IPs must be requested
+        Allocates an IP to a Instance you own.  Additional IPs must be requested
         by opening a support ticket first.
 
-        :param linode: The Linode to allocate the new IP for.
-        :type linode: Linode or int
+        :param linode: The Instance to allocate the new IP for.
+        :type linode: Instance or int
         :param public: If True, allocate a public IP address.  Defaults to True.
         :type public: bool
 
@@ -638,18 +638,18 @@ class NetworkingGroup(Group):
     def shared_ips(self, linode, *ips):
         """
         Shares the given list of :any:`IPAddresses<IPAddress>` with the provided
-        :any:`Linode`.  This will enable the provided Linode to bring up the
+        :any:`Instance`.  This will enable the provided Instance to bring up the
         shared IP Addresses even though it does not own them.
 
-        :param linode: The Linode to share the IPAddresses with.  This Linode
+        :param linode: The Instance to share the IPAddresses with.  This Instance
                        will be able to bring up the given addresses.
-        :type: linode: int or Linode
-        :param ips: Any number of IPAddresses to share to the Linode.
+        :type: linode: int or Instance
+        :param ips: Any number of IPAddresses to share to the Instance.
         :type ips: str or IPAddress
         """
-        if not isinstance(linode, Linode):
+        if not isinstance(linode, Instance):
             # make this an object
-            linode = Linode(self.client, linode)
+            linode = Instance(self.client, linode)
 
         params = []
         for ip in ips:
@@ -664,10 +664,10 @@ class NetworkingGroup(Group):
             "ips": params
         }
 
-        self.client.post('{}/networking/ipv4/share'.format(Linode.api_endpoint),
+        self.client.post('{}/networking/ipv4/share'.format(Instance.api_endpoint),
                          model=linode, data=params)
 
-        linode.invalidate() # clear the Linode's shared IPs
+        linode.invalidate() # clear the Instance's shared IPs
 
 class SupportGroup(Group):
     def tickets(self, *filters):
@@ -683,7 +683,7 @@ class SupportGroup(Group):
         }
 
         if regarding:
-            if isinstance(regarding, Linode):
+            if isinstance(regarding, Instance):
                 params['linode_id'] = regarding.id
             elif isinstance(regarding, Domain):
                 params['domain_id'] = regarding.id
@@ -764,10 +764,10 @@ class LinodeClient:
         lazy-loading scheme by immediately making an API request.  Does not
         load related objects.
 
-        For example, if you wanted to load a :any:`Linode` object with ID 123,
+        For example, if you wanted to load an :any:`Instance` object with ID 123,
         you could do this::
 
-           loaded_linode = client.load(Linode, 123)
+           loaded_linode = client.load(Instance, 123)
 
         Similarly, if you instead wanted to load a :any:`NodeBalancerConfig`,
         you could do so like this::
@@ -1020,16 +1020,16 @@ class LinodeClient:
     def volume_create(self, label, region=None, linode=None, size=20, **kwargs):
         """
         Creates a new Block Storage Volume, either in the given Region or
-        attached to the given Linode.
+        attached to the given Instance.
 
         :param label: The label for the new Volume.
         :type label: str
         :param region: The Region to create this Volume in.  Not required if
                        `linode` is provided.
         :type region: Region or str
-        :param linode: The Linode to attach this Volume to.  If not given, the
+        :param linode: The Instance to attach this Volume to.  If not given, the
                        new Volume will not be attached to anything.
-        :type linode: Linode or int
+        :type linode: Instance or int
         :param size: The size, in GB, of the new Volume.  Defaults to 20.
         :type size: int
 

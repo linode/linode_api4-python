@@ -42,12 +42,12 @@ this token may be used to access - for more information, see `OAuth Scopes`_.
 Restricting what a token can access is more secure than creating one with access
 to your entire account, but can be less convenient since you would need to create
 a new token to access other parts of the account.  For the examples on this page,
-your Personal Access Token must be able to view and create Linodes.
+your Personal Access Token must be able to view and create Linode Instances.
 
 .. _OAuth Scopes: #
 
-Listing your Linodes
---------------------
+Listing your Linode Instances
+-----------------------------
 
 Using the token you generated above, create a :py:class:`LinodeClient` object
 that will be used for all interactions with the API.::
@@ -56,7 +56,7 @@ that will be used for all interactions with the API.::
    client = LinodeClient(token)
 
 This object will manage all requests you make through the API.  Once it's
-set up, you can use it to retrieve and print a list of your Linodes::
+set up, you can use it to retrieve and print a list of your Linode Instances::
 
    my_linodes = client.linode.instances()
 
@@ -66,22 +66,24 @@ set up, you can use it to retrieve and print a list of your Linodes::
 When retrieving collections of objects from the API, a list-like object is
 returned, and may be iterated over or indexed as a normal list.
 
-Creating a Linode
------------------
+Creating a Linode Instance
+--------------------------
 
-In order to create a Linode, we need a few pieces of information:
+In order to create a Linode Instance, we need a few pieces of information:
 
- * what :py:class:Region to create the Linode in
- * what :py:class:Type of Linode to create
- * what :py:class:Image to deploy to the new Linode.
+ * what :py:class:Region to create the Instance in
+ * what :py:class:Type of Instance to create
+ * what :py:class:Image to deploy to the new Instance.
 
-We can query for these values similarly to how we listed our Linodes above::
+We can query for these values similarly to how we listed our Linode Instancess
+above::
 
    available_regions = client.regions()
 
 We could also use values that we know in advance to avoid the need to query the
-API.  For example, we may know that we want a `g6-standard-4` Linode running the
-`linode/debian9` Image.  Both objects and IDs are accepted when creating a Linode.::
+API.  For example, we may know that we want a `g6-standard-4` Instance running
+the `linode/debian9` Image.  Both objects and IDs are accepted when creating an
+Instance.::
 
    chosen_region = available_regions[0]
 
@@ -89,8 +91,8 @@ API.  For example, we may know that we want a `g6-standard-4` Linode running the
                                                         'g6-standard-4',
                                                         image='linode/debian9')
 
-:py:func:`instance_create` returns the newly-created Linode object and the
-root password that was generated for it.  This Linode will boot automatically,
+:py:func:`instance_create` returns the newly-created Instance object and the
+root password that was generated for it.  This Instance will boot automatically,
 and should be available shortly.  Finally, let's print out the results so we
 can access our new server.
 

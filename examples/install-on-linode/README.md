@@ -6,7 +6,7 @@ A sample application for the official [linode python library](https://github.com
 the Linode API - users arrive at a third-party application, and are asked
 to authorize the application to make changes to their account, which are then
 executed and reported to the user.  In this example, the third-party application
-uses the `linodes:*` OAuth scope to deploy a StackScript to a new Linode.
+uses the `linodes:*` OAuth scope to deploy a StackScript to a new Linode Instance.
 
 ### How to Use
 
@@ -36,7 +36,7 @@ Please note that in the future, users may be able to select what scopes they gra
 an application, so you should always check to make sure you are granted what your
 application needs in order to run.
 
-**Linode Creation** - This application creates a linode for the user with a specific
+**Instance Creation** - This application creates a linode for the user with a specific
 setup, configured in part by the user and in part by the program.  In this case, the
 application will install the owner's application on the new linode and provide information
 on how to access the newly-created server.
@@ -44,7 +44,7 @@ on how to access the newly-created server.
 **Unauthenticated Services** - This application accesses several public functions of the
 Linode API, including `linode.kernels()`, `regions()`, and a single public StackScript
 (presumably controlled by the application's author).  The StackScript needs to be public
-so that the authenticated user's account can access it in order to install it on the Linode.
+so that the authenticated user's account can access it in order to install it on the Instance.
 
 **Object Retreival** - This application retrieves objects from the Linode API in two ways:
 both as a list, and as a single requested object.  Lists are retrieved by asking the

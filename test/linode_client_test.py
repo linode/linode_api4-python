@@ -126,7 +126,7 @@ class LinodeGroupTest(ClientBaseCase):
     """
     def test_instance_create(self):
         """
-        Tests that a Linode can be created successfully
+        Tests that a Linode Instance can be created successfully
         """
         with self.mock_post('linode/instances/123') as m:
             l = self.client.linode.instance_create('g5-standard-1', 'us-east-1a')
@@ -143,7 +143,7 @@ class LinodeGroupTest(ClientBaseCase):
 
     def test_instance_create_with_image(self):
         """
-        Tests that a Linode can be created with an image, and a password generated
+        Tests that a Linode Instance can be created with an image, and a password generated
         """
         with self.mock_post('linode/instances/123') as m:
             l, pw = self.client.linode.instance_create(

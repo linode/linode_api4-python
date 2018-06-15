@@ -6,7 +6,7 @@ from linode_api.objects import Base, Property
 
 class Image(Base):
     """
-    An Image is something a Linode or Disk can be deployed from.
+    An Image is something a Linode Instance or Disk can be deployed from.
     """
     api_endpoint = '/images/{id}'
 

@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import requests
 
 from linode_api.errors import ApiError, UnexpectedResponseError
-from linode_api.objects import Base, Domain, DerivedBase, Linode, Property, Volume
+from linode_api.objects import Base, Domain, DerivedBase, Instance, Property, Volume
 from linode_api.objects.nodebalancer import NodeBalancer
 
 
@@ -40,7 +40,7 @@ class SupportTicket(Base):
     @property
     def linode(self):
         if self.entity and self.entity.type == 'linode':
-            return Linode(self._client, self.entity.id)
+            return Instance(self._client, self.entity.id)
         return None
 
     @property

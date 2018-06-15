@@ -6,38 +6,38 @@ SQLAlchemy-like syntax.  When calling any "get" method of the :any:`LinodeClient
 class of one of its groups, any number of filters may be passed in as boolean
 comparisons between attributes of the model returned by the collection.
 
-For example, calling :any:`instances` returns a list of :any:`Linode`
-objects, so we can use properties of :any:`Linode` to filter the results::
+For example, calling :any:`instances` returns a list of :any:`Instance`
+objects, so we can use properties of :any:`Instance` to filter the results::
 
-   # returns all Linodes in the "prod" group
-   client.linode.instances(Linode.group == "prod")
+   # returns all Instances in the "prod" group
+   client.linode.instances(Instance.group == "prod")
 
 You can use any boolean comparisons when filtering collections::
 
-   # returns all Linodes _not_ in us-east-1a
-   client.linode.instances(Linode.region != "us-east-1a")
+   # returns all Instances _not_ in us-east-1a
+   client.linode.instances(Instance.region != "us-east-1a")
 
 You can combine filters to be even more specific - by default all filters are
 considered::
 
-   # returns all Linodes in the "prod" group that are in us-east-1a
-   client.linode.instances(Linode.group == "prod",
-                               Linode.region == "us-east-1a")
+   # returns all Instances in the "prod" group that are in us-east-1a
+   client.linode.instances(Instance.group == "prod",
+                               Instance.region == "us-east-1a")
 
 If you need to combine the results of two filters, you can use :any:`or_` to define
 this relationship::
 
-   # returns all Linodes in either the "prod" or "staging" groups
-   client.linode.instances(or_(Linode.group == "prod",
-                                   Linode.group == "staging"))
+   # returns all Instance in either the "prod" or "staging" groups
+   client.linode.instances(or_(Instance.group == "prod",
+                                   Instance.group == "staging"))
 
 :any:`and_` is also available in case you need to do deeply-nested comparisons::
 
-   # returns all Linodes in the group "staging" and any Linodes in the "prod"
+   # returns all Instances in the group "staging" and any Instances in the "prod"
    # group that are located in "us-east-1a"
-   client.linode.instances(or_(Linode.group == "staging",
-                                   and_(Linode.group == "prod",
-                                        Linode.region == "us-east-1a"))
+   client.linode.instances(or_(Instance.group == "staging",
+                                   and_(Instance.group == "prod",
+                                        Instance.region == "us-east-1a"))
 
 """
 
@@ -81,8 +81,8 @@ def order_by(field, desc=False):
     Allows ordering of results.  You may only ever order a collection's results
     once in a given request.  For example::
 
-       # sort results by Linode group
-       client.linode.instances(order_by(Linode.group))
+       # sort results by Instances group
+       client.linode.instances(order_by(Instance.group))
 
     :param field: The field to order results by.  Must be a filterable attribute
                   of the model.
@@ -101,7 +101,7 @@ def limit(amount):
     Allows limiting of results in a collection.  You may only ever apply a limit
     once per request.  For example::
 
-        # returns my first 5 Linodes
+        # returns my first 5 Instances
         client.linode.instances(limit(5))
 
     :param amount: The number of results to return.

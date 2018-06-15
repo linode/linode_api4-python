@@ -75,9 +75,9 @@ construct lists of scopes to request.  OAuth scopes are divided into
 access to, and "subscopes," the level of access requested to a particular
 entity class.  For example, if you are writing a frontend to manage
 NodeBalancers, you may need access to create and modify NodeBalancers, and also
-to list Linodes (to display more information about the individual backends).
-In this hypothetical case, you would likely want to construct your requested
-scopes like this::
+to list Linode Instances (to display more information about the individual
+backends).  In this hypothetical case, you would likely want to construct your
+requested scopes like this::
 
    requested_scopes = [OAuthScopes.NodeBalancer.all, OAuthScopes.Linodes.view]
 

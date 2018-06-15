@@ -15,20 +15,20 @@ iterated over, and indexed as any normal Python list would be::
    last_region = regions[-1]
 
 Pagination is handled transparently, and as requested.  For example, if you had
-three pages of Linodes, accessing your collection of Linodes would behave like
-this::
+three pages of Linode Instances, accessing your collection of Instances would
+behave like this::
 
-   linodes = client.linode.instances() # loads the first page only
+   instances = client.linode.instances() # loads the first page only
 
-   linodes[0] # no additional data is loaded
+   instances[0] # no additional data is loaded
 
-   linodes[-1] # third page is loaded to retrieve the last Linode in the collection
+   instances[-1] # third page is loaded to retrieve the last Linode in the collection
 
-   for linode in linodes:
+   for instance in instances:
        # the second page will be loaded as soon as the first Linode on that page
        # is required.  The first and third pages are already loaded, and will not
        # be loaded again.
-       print(linode.label)
+       print(instance.label)
 
 The first page of a collection is always loaded when the collection is
 returned, and subsequent pages are loaded as they are required.  When slicing

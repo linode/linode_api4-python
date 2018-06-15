@@ -3,7 +3,7 @@ from datetime import datetime
 from test.base import ClientBaseCase
 from linode_api.objects.base import MappedObject
 
-from linode_api.objects import Config, Image, Linode, Type
+from linode_api.objects import Config, Image, Instance, Type
 
 
 class LinodeTest(ClientBaseCase):
@@ -14,7 +14,7 @@ class LinodeTest(ClientBaseCase):
         """
         Tests that a client is loaded correctly by ID
         """
-        linode = Linode(self.client, 123)
+        linode = Instance(self.client, 123)
         self.assertEqual(linode._populated, False)
 
         self.assertEqual(linode.label, "linode123")
@@ -27,7 +27,7 @@ class LinodeTest(ClientBaseCase):
         """
         Tests that you can rebuild with an image
         """
-        linode = Linode(self.client, 123)
+        linode = Instance(self.client, 123)
 
         with self.mock_post('/linode/instances/123') as m:
             pw = linode.rebuild('linode/debian9')
@@ -46,7 +46,7 @@ class LinodeTest(ClientBaseCase):
         """
         Tests that a Linode can retrieve its own backups
         """
-        linode = Linode(self.client, 123)
+        linode = Instance(self.client, 123)
 
         backups = linode.available_backups
 
@@ -89,7 +89,7 @@ class LinodeTest(ClientBaseCase):
         Tests that a Linode can be updated
         """
         with self.mock_put('linode/instances/123') as m:
-            linode = Linode(self.client, 123)
+            linode = Instance(self.client, 123)
 
             linode.label = "NewLinodeLabel"
             linode.group = "new_group"
@@ -106,7 +106,7 @@ class LinodeTest(ClientBaseCase):
         Tests that deleting a Linode creates the correct api request
         """
         with self.mock_delete() as m:
-            linode = Linode(self.client, 123)
+            linode = Instance(self.client, 123)
             linode.delete()
 
             self.assertEqual(m.call_url, '/linode/instances/123')
@@ -115,7 +115,7 @@ class LinodeTest(ClientBaseCase):
         """
         Tests that you can submit a correct reboot api request
         """
-        linode = Linode(self.client, 123)
+        linode = Instance(self.client, 123)
         result = {}
 
         with self.mock_post(result) as m:
@@ -126,7 +126,7 @@ class LinodeTest(ClientBaseCase):
         """
         Tests that you can submit a correct shutdown api request
         """
-        linode = Linode(self.client, 123)
+        linode = Instance(self.client, 123)
         result = {}
 
         with self.mock_post(result) as m:
@@ -137,7 +137,7 @@ class LinodeTest(ClientBaseCase):
         """
         Tests that you can submit a correct boot api request
         """
-        linode = Linode(self.client, 123)
+        linode = Instance(self.client, 123)
         result = {}
 
         with self.mock_post(result) as m:
@@ -148,7 +148,7 @@ class LinodeTest(ClientBaseCase):
         """
         Tests that you can submit a correct boot with a config api request
         """
-        linode = Linode(self.client, 123)
+        linode = Instance(self.client, 123)
         config = linode.configs[0]
         result = {}
 
@@ -160,7 +160,7 @@ class LinodeTest(ClientBaseCase):
         """
         Tests that you can submit a correct mutate api request
         """
-        linode = Linode(self.client, 123)
+        linode = Instance(self.client, 123)
         result = {}
 
         with self.mock_post(result) as m:

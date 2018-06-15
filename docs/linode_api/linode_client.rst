@@ -55,8 +55,8 @@ although generally they are named the same as the first word of the group.
 LinodeGroup
 ^^^^^^^^^^^
 
-Includes methods for managing and creating Linodes, as well as accessing and
-working with associated features.
+Includes methods for managing and creating Linode Instances, as well as
+accessing and working with associated features.
 
 .. autoclass:: linode.linode_client.LinodeGroup
    :members:

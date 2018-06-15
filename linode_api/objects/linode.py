@@ -80,7 +80,7 @@ class Disk(DerivedBase):
     def reset_root_password(self, root_password=None):
         rpass = root_password
         if not rpass:
-            rpass = Linode.generate_root_password()
+            rpass = Instance.generate_root_password()
 
         params = {
             'password': rpass,
@@ -176,7 +176,7 @@ class Config(DerivedBase):
         self._set('devices', MappedObject(**devices))
 
 
-class Linode(Base):
+class Instance(Base):
     api_endpoint = '/linode/instances/{id}'
     properties = {
         'id': Property(identifier=True, filterable=True),
@@ -205,7 +205,7 @@ class Linode(Base):
         make an ad-hoc object to return for its response
         """
         if not hasattr(self, '_ips'):
-            result = self._client.get("{}/ips".format(Linode.api_endpoint), model=self)
+            result = self._client.get("{}/ips".format(Instance.api_endpoint), model=self)
 
             if not "ipv4" in result:
                 raise UnexpectedResponseError('Unexpected response loading IPs', json=result)
@@ -257,7 +257,7 @@ class Linode(Base):
         The backups response contains what backups are available to be restored.
         """
         if not hasattr(self, '_avail_backups'):
-            result = self._client.get("{}/backups".format(Linode.api_endpoint), model=self)
+            result = self._client.get("{}/backups".format(Instance.api_endpoint), model=self)
 
             if not 'automatic' in result:
                 raise UnexpectedResponseError('Unexpected response loading available backups!', json=result)
@@ -308,21 +308,21 @@ class Linode(Base):
         Base.invalidate(self)
 
     def boot(self, config=None):
-        resp = self._client.post("{}/boot".format(Linode.api_endpoint), model=self, data={'config_id': config.id} if config else None)
+        resp = self._client.post("{}/boot".format(Instance.api_endpoint), model=self, data={'config_id': config.id} if config else None)
 
         if 'error' in resp:
             return False
         return True
 
     def shutdown(self):
-        resp = self._client.post("{}/shutdown".format(Linode.api_endpoint), model=self)
+        resp = self._client.post("{}/shutdown".format(Instance.api_endpoint), model=self)
 
         if 'error' in resp:
             return False
         return True
 
     def reboot(self):
-        resp = self._client.post("{}/reboot".format(Linode.api_endpoint), model=self)
+        resp = self._client.post("{}/reboot".format(Instance.api_endpoint), model=self)
 
         if 'error' in resp:
             return False
@@ -414,7 +414,7 @@ class Linode(Base):
         }
         params.update(kwargs)
 
-        result = self._client.post("{}/configs".format(Linode.api_endpoint), model=self, data=params)
+        result = self._client.post("{}/configs".format(Instance.api_endpoint), model=self, data=params)
         self.invalidate()
 
         if not 'id' in result:
@@ -428,7 +428,7 @@ class Linode(Base):
 
         gen_pass = None
         if image and not root_pass:
-            gen_pass  = Linode.generate_root_password()
+            gen_pass  = Instance.generate_root_password()
             root_pass = gen_pass
 
         authorized_keys = load_and_validate_keys(authorized_keys)
@@ -455,7 +455,7 @@ class Linode(Base):
             if stackscript_args:
                 params['stackscript_data'] = stackscript_args
 
-        result = self._client.post("{}/disks".format(Linode.api_endpoint), model=self, data=params)
+        result = self._client.post("{}/disks".format(Instance.api_endpoint), model=self, data=params)
         self.invalidate()
 
         if not 'id' in result:
@@ -469,30 +469,30 @@ class Linode(Base):
 
     def enable_backups(self):
         """
-        Enable Backups for this Linode.  When enabled, we will automatically
-        backup your Linode's data so that it can be restored at a later date.
-        For more information on Linode's Backups service and pricing, see our
+        Enable Backups for this Instance.  When enabled, we will automatically
+        backup your Instance's data so that it can be restored at a later date.
+        For more information on Instance's Backups service and pricing, see our
         `Backups Page`_
 
         .. _Backups Page: https://www.linode.com/backups
         """
-        self._client.post("{}/backups/enable".format(Linode.api_endpoint), model=self)
+        self._client.post("{}/backups/enable".format(Instance.api_endpoint), model=self)
         self.invalidate()
         return True
 
     def cancel_backups(self):
         """
-        Cancels Backups for this Linode.  All existing Backups will be lost,
+        Cancels Backups for this Instance.  All existing Backups will be lost,
         including any snapshots that have been taken.  This cannot be undone,
         but Backups can be re-enabled at a later date.
         """
-        self._client.post("{}/backups/cancel".format(Linode.api_endpoint), model=self)
+        self._client.post("{}/backups/cancel".format(Instance.api_endpoint), model=self)
         self.invalidate()
         return True
 
     def snapshot(self, label=None):
-        result = self._client.post("{}/backups".format(Linode.api_endpoint), model=self,
-            data={ "label": label })
+        result = self._client.post("{}/backups".format(Instance.api_endpoint), model=self,
+                                   data={ "label": label })
 
         if not 'id' in result:
             raise UnexpectedResponseError('Unexpected response taking snapshot!', json=result)
@@ -506,10 +506,10 @@ class Linode(Base):
 
     def ip_allocate(self, public=False):
         """
-        Allocates a new :any:`IPAddress` for this Linode.  Additional public
+        Allocates a new :any:`IPAddress` for this Instance.  Additional public
         IPs require justification, and you may need to open a :any:`SupportTicket`
         before you can add one.  You may only have, at most, one private IP per
-        Linode.
+        Instance.
 
         :param public: If the new IP should be public or private.  Defaults to
                        private.
@@ -519,7 +519,7 @@ class Linode(Base):
         :rtype: IPAddress
         """
         result = self._client.post(
-            "{}/ips".format(Linode.api_endpoint),
+            "{}/ips".format(Instance.api_endpoint),
             model=self,
             data={
                 "type": "ipv4",
@@ -535,13 +535,13 @@ class Linode(Base):
 
     def rebuild(self, image, root_pass=None, authorized_keys=None, **kwargs):
         """
-        Rebuilding a Linode deletes all existing Disks and Configs and deploys
+        Rebuilding an Instance deletes all existing Disks and Configs and deploys
         a new :any:`Image` to it.  This can be used to reset an existing
-        Linode or to install an Image on an empty Linode.
+        Instance or to install an Image on an empty Instance.
 
-        :param image: The Image to deploy to this Linode
+        :param image: The Image to deploy to this Instance
         :type image: str or Image
-        :param root_pass: The root password for the newly rebuilt Linode.  If
+        :param root_pass: The root password for the newly rebuilt Instance.  If
                           omitted, a password will be generated and returned.
         :type root_pass: str
         :param authorized_keys: The ssh public keys to install in the linode's
@@ -556,7 +556,7 @@ class Linode(Base):
         """
         ret_pass = None
         if not root_pass:
-            ret_pass = Linode.generate_root_password()
+            ret_pass = Instance.generate_root_password()
             root_pass = ret_pass
 
         authorized_keys = load_and_validate_keys(authorized_keys)
@@ -568,7 +568,7 @@ class Linode(Base):
          }
         params.update(kwargs)
 
-        result = self._client.post('{}/rebuild'.format(Linode.api_endpoint), model=self, data=params)
+        result = self._client.post('{}/rebuild'.format(Instance.api_endpoint), model=self, data=params)
 
         if not 'id' in result:
             raise UnexpectedResponseError('Unexpected response issuing rebuild!', json=result)
@@ -587,8 +587,8 @@ class Linode(Base):
         else:
             disks=None
 
-        result = self._client.post('{}/rescue'.format(Linode.api_endpoint), model=self,
-                data={ "devices": disks })
+        result = self._client.post('{}/rescue'.format(Instance.api_endpoint), model=self,
+                                   data={ "devices": disks })
 
         return result
 
@@ -596,15 +596,15 @@ class Linode(Base):
         """
         Converts this linode to KVM from Xen
         """
-        self._client.post('{}/kvmify'.format(Linode.api_endpoint), model=self)
+        self._client.post('{}/kvmify'.format(Instance.api_endpoint), model=self)
 
         return True
 
     def mutate(self):
         """
-        Upgrades this Linode to the latest generation type
+        Upgrades this Instance to the latest generation type
         """
-        self._client.post('{}/mutate'.format(Linode.api_endpoint), model=self)
+        self._client.post('{}/mutate'.format(Instance.api_endpoint), model=self)
 
         return True
 
@@ -636,21 +636,21 @@ class Linode(Base):
             "with_backups": with_backups,
         }
 
-        result = self._client.post('{}/clone'.format(Linode.api_endpoint), model=self, data=params)
+        result = self._client.post('{}/clone'.format(Instance.api_endpoint), model=self, data=params)
 
         if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response cloning Linode!', json=result)
+            raise UnexpectedResponseError('Unexpected response cloning Instance!', json=result)
 
-        l = Linode(self._client, result['id'], result)
+        l = Instance(self._client, result['id'], result)
         return l
 
     @property
     def stats(self):
         """
-        Returns the JSON stats for this Linode
+        Returns the JSON stats for this Instance
         """
         # TODO - this would be nicer if we formatted the stats
-        return self._client.get('{}/stats'.format(Linode.api_endpoint), model=self)
+        return self._client.get('{}/stats'.format(Instance.api_endpoint), model=self)
 
     def stats_for(self, dt):
         """
