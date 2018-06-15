@@ -168,7 +168,7 @@ class LinodeTest(ClientBaseCase):
             self.assertEqual(m.call_url, '/linode/instances/123/mutate')
 
 
-class LinodeTypeTest(ClientBaseCase):
+class TypeTest(ClientBaseCase):
     def test_get_types(self):
         """
         Tests that Linode types can be returned

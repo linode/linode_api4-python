@@ -187,7 +187,7 @@ class LinodeGroup(Group):
         configured.
 
         :param ltype: The Instance Type we are creating
-        :type ltype: str or LinodeType
+        :type ltype: str or Type
         :param region: The Region in which we are creating the Instance
         :type region: str or Region
         :param image: The Image to deploy to this Instance. If this is provided
