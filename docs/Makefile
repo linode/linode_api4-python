@@ -4,7 +4,7 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
-SPHINXPROJ    = linode-api
+SPHINXPROJ    = linode_api4
 SOURCEDIR     = .
 BUILDDIR      = _build
 

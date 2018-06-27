@@ -2,10 +2,10 @@ from __future__ import absolute_import
 
 import requests
 
-from linode_api.errors import ApiError, UnexpectedResponseError
-from linode_api.objects import (Base, DerivedBase, Domain, Instance, Property,
+from linode_api4.errors import ApiError, UnexpectedResponseError
+from linode_api4.objects import (Base, DerivedBase, Domain, Instance, Property,
                                 Volume)
-from linode_api.objects.nodebalancer import NodeBalancer
+from linode_api4.objects.nodebalancer import NodeBalancer
 
 
 class TicketReply(DerivedBase):

@@ -1,13 +1,13 @@
-python-linode-api
-=================
+linode_api4
+===========
 
 .. highlight:: python
 
-The official python library for the `Linode API`_ in python.
+The official python library for the `Linode API v4`_ in python.
 
 **This library is currently in beta.**
 
-.. _Linode API: https://developers.linode.com/v4/introduction
+.. _Linode API v4: https://developers.linode.com/v4/introduction
 
 .. image:: https://travis-ci.org/linode/linode-api-python.svg?branch=master
     :target: https://travis-ci.org/linode/linode-api-python
@@ -19,7 +19,7 @@ Installation
 ------------
 ::
 
-    pip install linode-api
+    pip install linode_api4
 
 Building from Source
 --------------------
@@ -39,8 +39,8 @@ Usage
 Check out the `Getting Started guide`_ to start using this library, or read
 `the docs`_ for extensive documentation.
 
-.. _Getting Started guide: http://python-linode-api.readthedocs.io/en/latest/guides/getting_started.html
-.. _the docs: http://python-linode-api.readthedocs.io/en/latest/index.html
+.. _Getting Started guide: http://linode_api4.readthedocs.io/en/latest/guides/getting_started.html
+.. _the docs: http://linode_api4.readthedocs.io/en/latest/index.html
 
 Examples
 --------
@@ -48,7 +48,7 @@ Examples
 See the `Install on a Linode`_ example project for a simple use case demonstrating
 many of the features of this library.
 
-.. _Install on a Linode: https://github.com/linode/linode-api-python/tree/master/examples/install-on-linode
+.. _Install on a Linode: https://github.com/linode/linode_api4/tree/master/examples/install-on-linode
 
 Contributing
 ============
@@ -105,4 +105,4 @@ documentation for this library is out of date or unclear, please
 `open an issue`_ to make us aware of the problem.
 
 .. _Sphinx: http://www.sphinx-doc.org/en/master/index.html
-.. _open an issue: https://github.com/linode/linode-api-python/issues/new
+.. _open an issue: https://github.com/linode/linode_api4/issues/new

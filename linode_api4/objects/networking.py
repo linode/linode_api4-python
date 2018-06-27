@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from linode_api.objects import Base, Property, Region
+from linode_api4.objects import Base, Property, Region
 
 
 class IPv6Pool(Base):

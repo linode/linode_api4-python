@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from linode_api.objects import Base
+from linode_api4.objects import Base
 
 
 class DerivedBase(Base):

@@ -1,8 +1,8 @@
 from datetime import datetime
 from test.base import ClientBaseCase
 
-from linode_api.objects import NodeBalancerConfig, NodeBalancerNode
-from linode_api.objects.base import MappedObject
+from linode_api4.objects import NodeBalancerConfig, NodeBalancerNode
+from linode_api4.objects.base import MappedObject
 
 
 class NodeBalancerConfigTest(ClientBaseCase):

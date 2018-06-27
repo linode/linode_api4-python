@@ -3,7 +3,7 @@ Core Concepts
 
 .. module:: linode
 
-The linode-api package, and the API V4, have a few ideas that will help you more
+The linode_api4 package, and the API V4, have a few ideas that will help you more
 quickly become proficient with their usage.  This page assumes you've read the
 `Getting Started <getting_started.html>`_ guide, and know the basics of
 authentication already.
@@ -54,7 +54,7 @@ filters.  For example::
 Filters may be combined using boolean operators similar to SQLAlchemy::
 
    # and_ and or_ can be imported from the linode package to combine filters
-   from linode_api import or_
+   from linode_api4 import or_
    prod_or_staging = client.linode.instances(or_(Instance.group == "production",
                                                      Instance.group == "staging"))
 
@@ -81,7 +81,7 @@ Creating Models
 In addition to looking up models from collections, you can simply import the
 model class and create it by ID.::
 
-   from linode_api import Instance
+   from linode_api4 import Instance
    my_linode = Instance(client, 123)
 
 All models take a `LinodeClient` as their first parameter, and their ID as the

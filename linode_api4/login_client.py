@@ -4,7 +4,7 @@ from enum import Enum
 
 import requests
 
-from linode_api.errors import ApiError
+from linode_api4.errors import ApiError
 
 try:
     from urllib.parse import urlparse

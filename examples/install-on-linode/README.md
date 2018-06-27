@@ -1,6 +1,6 @@
 # Install on Linode
 
-A sample application for the official [linode python library](https://github.com/linode/linode-api-python).
+A sample application for the official [linode python library](https://github.com/linode/linode_api4).
 
 **Install on Linode** demonstrates a multi-user application developed with
 the Linode API - users arrive at a third-party application, and are asked
@@ -12,7 +12,7 @@ uses the `linodes:*` OAuth scope to deploy a StackScript to a new Linode Instanc
 
 This project is very bare-bones to keep it simple and focused on the core
 concepts being demonstrated.  It relies on Flask and Flask-Login, as well
-as the `linode-api` package, and does not require any external services. All
+as the `linode_api4` package, and does not require any external services. All
 of the logic lives in app.py, with all configuration in config.py (not
 included in the repository, see instructions below).
 

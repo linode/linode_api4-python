@@ -2,12 +2,12 @@ from __future__ import absolute_import
 
 import requests
 
-from linode_api.errors import ApiError, UnexpectedResponseError
-from linode_api.objects import (Base, DerivedBase, Domain, Image, Instance,
-                                Property, StackScript, Volume)
-from linode_api.objects.longview import LongviewClient, LongviewSubscription
-from linode_api.objects.nodebalancer import NodeBalancer
-from linode_api.objects.support import SupportTicket
+from linode_api4.errors import ApiError, UnexpectedResponseError
+from linode_api4.objects import (Base, DerivedBase, Domain, Image, Instance,
+                                 Property, StackScript, Volume)
+from linode_api4.objects.longview import LongviewClient, LongviewSubscription
+from linode_api4.objects.nodebalancer import NodeBalancer
+from linode_api4.objects.support import SupportTicket
 
 # TODO - UPDATE THESE (out of date)
 normal_grants = ('all', 'access', 'delete')
@@ -240,7 +240,7 @@ class User(Base):
         :returns: The grants for this user.
         :rtype: linode.objects.account.UserGrants
         """
-        from linode_api.objects.account import UserGrants
+        from linode_api4.objects.account import UserGrants
         if not hasattr(self, '_grants'):
             resp = self._client.get(UserGrants.api_endpoint.format(username=self.username))
 

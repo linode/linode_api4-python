@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
-from linode_api.errors import UnexpectedResponseError
-from linode_api.objects import Base, DerivedBase, Property
+from linode_api4.errors import UnexpectedResponseError
+from linode_api4.objects import Base, DerivedBase, Property
 
 
 class DomainRecord(DerivedBase):

@@ -4,20 +4,20 @@ Getting Started
 Installation
 ------------
 
-The linode-api package can be installed from pypi as shown below:
+The linode_api4 package can be installed from pypi as shown below:
 
 .. code-block:: shell
 
-   pip install linode-api
+   pip install linode_api4
 
 If you prefer, you can clone the package from github_ and install it from source:
 
-.. _github: https://github.com/Linode/linode-api-python
+.. _github: https://github.com/Linode/linode_api4
 
 .. code-block:: shell
 
-   git clone git@github.com:Linode/linode-api-python
-   cd linode-api-python
+   git clone git@github.com:Linode/linode_api4
+   cd linode_api4
    python setup.py install
 
 Authentication
@@ -52,7 +52,7 @@ Listing your Linode Instances
 Using the token you generated above, create a :py:class:`LinodeClient` object
 that will be used for all interactions with the API.::
 
-   from linode_api import LinodeClient
+   from linode_api4 import LinodeClient
    client = LinodeClient(token)
 
 This object will manage all requests you make through the API.  Once it's

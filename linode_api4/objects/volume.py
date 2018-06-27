@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
-from linode_api.errors import UnexpectedResponseError
-from linode_api.objects import Base, Instance, Property, Region
+from linode_api4.errors import UnexpectedResponseError
+from linode_api4.objects import Base, Instance, Property, Region
 
 
 class Volume(Base):

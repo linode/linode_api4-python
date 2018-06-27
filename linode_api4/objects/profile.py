@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
-from linode_api.errors import UnexpectedResponseError
-from linode_api.objects import Base, Property
+from linode_api4.errors import UnexpectedResponseError
+from linode_api4.objects import Base, Property
 
 
 class AuthorizedApp(Base):
@@ -91,7 +91,7 @@ class Profile(Base):
         """
         Returns grants for the current user
         """
-        from linode_api.objects.account import UserGrants
+        from linode_api4.objects.account import UserGrants
         resp = self._client.get('/profile/grants') # use special endpoint for restricted users
 
         grants = None

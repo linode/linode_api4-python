@@ -7,12 +7,12 @@ from enum import Enum
 from os import urandom
 from random import randint
 
-from linode_api.common import load_and_validate_keys
-from linode_api.errors import UnexpectedResponseError
-from linode_api.objects import Base, DerivedBase, Image, Property, Region
-from linode_api.objects.base import MappedObject
-from linode_api.objects.networking import IPAddress, IPv6Pool
-from linode_api.paginated_list import PaginatedList
+from linode_api4.common import load_and_validate_keys
+from linode_api4.errors import UnexpectedResponseError
+from linode_api4.objects import Base, DerivedBase, Image, Property, Region
+from linode_api4.objects.base import MappedObject
+from linode_api4.objects.networking import IPAddress, IPv6Pool
+from linode_api4.paginated_list import PaginatedList
 
 PASSWORD_CHARS = string.ascii_letters + string.digits + string.punctuation
 

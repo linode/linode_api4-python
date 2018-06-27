@@ -1,6 +1,6 @@
 #!/usr/local/bin/python3
 
-from linode_api import LinodeClient, Image
+from linode_api4 import LinodeClient, Image
 import config
 
 token = input("Please provide an OAuth Token: ")

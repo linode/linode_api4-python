@@ -26,18 +26,18 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='linode-api',
+    name='linode_api4',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='4.1.9b1',
+    version='1.0.0',
 
     description='The official python SDK for Linode API v4',
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/linode/linode-api-python',
+    url='https://github.com/linode/linode_api4',
 
     # Author details
     author='Linode',

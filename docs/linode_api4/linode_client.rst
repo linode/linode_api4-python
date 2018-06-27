@@ -11,7 +11,7 @@ token, either an OAuth Token from the OAuth Exchange (see
 See our :doc:`getting_started<../guides/getting_started>` guide for more
 information::
 
-   from linode_api import LinodeClient
+   from linode_api4 import LinodeClient
 
    token = "api-token" # your token goes here
 
