@@ -29,10 +29,6 @@ To build and install this package:
 - Clone this repository
 - ``./setup.py install``
 
-This package uses the ``linode`` namespace.  This could conflict with libraries
-intended for previous versions of the Linode API.  Please be cautious when
-installing packages for both version of the API on the same machine.
-
 Usage
 -----
 
