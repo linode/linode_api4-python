@@ -40,6 +40,7 @@ Table of Contents
    guides/getting_started
    guides/core_concepts
    guides/oauth
+   guides/upgrading_from_linode-api
    linode_api4/linode_client
    linode_api4/login_client
    linode_api4/paginated_list
