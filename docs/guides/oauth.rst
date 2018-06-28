@@ -33,7 +33,7 @@ The OAuth 2 workflow has three actors:
       The application you are writing, that Linode users will login to through
       Linode's OAuth server.  You must register OAuth clients at
       https://cloud.linode.com or through
-      :any:`create_oauth_client<linode.linode_client.AccountGroup.create_oauth_client>`
+      :any:`oauth_client_create<linode.linode_client.AccountGroup.oauth_client_create>`
       to generate a client ID and client secret (used in the exchange detailed
       below).
 
@@ -56,7 +56,7 @@ The OAuth 2 exchange works as follows:
 A working example of completing an OAuth exchange using this library is
 available in the example project `Install on Linode`_
 
-.. _Install on Linode: https://github.com/linode/linode-api-python/tree/master/examples/install-on-linode
+.. _Install on Linode: https://github.com/linode/linode_api4-python/tree/master/examples/install-on-linode
 
 OAuth Scopes
 ------------
@@ -75,9 +75,9 @@ construct lists of scopes to request.  OAuth scopes are divided into
 access to, and "subscopes," the level of access requested to a particular
 entity class.  For example, if you are writing a frontend to manage
 NodeBalancers, you may need access to create and modify NodeBalancers, and also
-to list Linodes (to display more information about the individual backends).
-In this hypothetical case, you would likely want to construct your requested
-scopes like this::
+to list Linode Instances (to display more information about the individual
+backends).  In this hypothetical case, you would likely want to construct your
+requested scopes like this::
 
    requested_scopes = [OAuthScopes.NodeBalancer.all, OAuthScopes.Linodes.view]
 

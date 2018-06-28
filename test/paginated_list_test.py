@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from linode.paginated_list import PaginatedList
+from linode_api4.paginated_list import PaginatedList
 
 
 class PaginationSlicingTest(TestCase):

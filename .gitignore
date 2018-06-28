@@ -5,3 +5,7 @@ dist
 *.egg-info
 .eggs/*
 docs/_build/*
+.cache/*
+.coverage
+.pytest_cache/*
+.tox/*

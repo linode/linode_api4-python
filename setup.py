@@ -8,11 +8,12 @@ https://github.com/pypa/sampleproject/blob/master/setup.py
 
 # Always prefer setuptools over distutils
 import sys
-from setuptools import setup, find_packages
 # To use a consistent encoding
 from codecs import open
 from os import path
 from unittest import TestLoader
+
+from setuptools import find_packages, setup
 
 here = path.abspath(path.dirname(__file__))
 
@@ -25,18 +26,18 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='linode-api',
+    name='linode_api4',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='4.1.9b1',
+    version='1.0.0',
 
     description='The official python SDK for Linode API v4',
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/linode/linode-api-python',
+    url='https://github.com/linode/linode_api4-python',
 
     # Author details
     author='Linode',

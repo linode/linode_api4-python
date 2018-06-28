@@ -5,9 +5,9 @@ control.
 
 OAuth Client Details
 ====================
-Obtain these values from login.linode.com
-See Authentication (https://developers.linode.com/reference/#authentication)
-for details
+These values are obtained by creating a new OAuth Client on
+https://cloud.linode.com/profile/clients - see the README included here for
+more information.
 """
 client_id = 'my-client-id'
 client_secret = 'my-client-secret'
@@ -16,7 +16,7 @@ client_secret = 'my-client-secret'
 Application Details
 ===================
 stackscirpt_id - the stackscript to deploy on Linodes we are creating in
-this example application.  Run ./create_stackscript.py to generate a public
+this example application.  Run ./make_stackscript.py to generate a public
 stackscript and put the ID it returns here.
 
 application_name - displayed to the user of this example application and
@@ -25,6 +25,6 @@ used in the new Linode's label.  Can be any string.
 secret_key - this flask application's secret key.  Not very important since
 this is an example application and not for production deployment.
 """
-stackscript_id = 'my-stackscript-id'
+stackscript_id = 320826
 application_name = 'my-application-name'
 secret_key = 'my-secret-key'
