@@ -12,11 +12,11 @@ The linode_api4 package can be installed from pypi as shown below:
 
 If you prefer, you can clone the package from github_ and install it from source:
 
-.. _github: https://github.com/Linode/linode_api4
+.. _github: https://github.com/Linode/linode_api4-python
 
 .. code-block:: shell
 
-   git clone git@github.com:Linode/linode_api4
+   git clone git@github.com:Linode/linode_api4-python
    cd linode_api4
    python setup.py install
 

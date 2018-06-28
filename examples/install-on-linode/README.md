@@ -1,6 +1,6 @@
 # Install on Linode
 
-A sample application for the official [linode python library](https://github.com/linode/linode_api4).
+A sample application for the official [linode python library](https://github.com/linode/linode_api4-python).
 
 **Install on Linode** demonstrates a multi-user application developed with
 the Linode API - users arrive at a third-party application, and are asked

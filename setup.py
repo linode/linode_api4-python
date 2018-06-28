@@ -37,7 +37,7 @@ setup(
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/linode/linode_api4',
+    url='https://github.com/linode/linode_api4-python',
 
     # Author details
     author='Linode',

@@ -44,7 +44,7 @@ Examples
 See the `Install on a Linode`_ example project for a simple use case demonstrating
 many of the features of this library.
 
-.. _Install on a Linode: https://github.com/linode/linode_api4/tree/master/examples/install-on-linode
+.. _Install on a Linode: https://github.com/linode/linode_api4-python/tree/master/examples/install-on-linode
 
 Contributing
 ============
@@ -101,4 +101,4 @@ documentation for this library is out of date or unclear, please
 `open an issue`_ to make us aware of the problem.
 
 .. _Sphinx: http://www.sphinx-doc.org/en/master/index.html
-.. _open an issue: https://github.com/linode/linode_api4/issues/new
+.. _open an issue: https://github.com/linode/linode_api4-python/issues/new

@@ -10,7 +10,7 @@ available as a `branch on the linode_api4 github`_.  If you used the
 ``linode-api`` package previously and would like to upgrade your scripts
 to use ``linode_api4``, this guide is for you.
 
-.. _branch on the linode_api4 github: https://github.com/linode/linode_api4/tree/linode-api
+.. _branch on the linode_api4 github: https://github.com/linode/linode_api4-python/tree/linode-api
 
 New Dependency and Imports
 --------------------------
