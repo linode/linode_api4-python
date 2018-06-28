@@ -15,7 +15,7 @@ The official python library for the `Linode API v4`_ in python.
 .. image:: https://badge.fury.io/py/linode-api4.svg
    :target: https://badge.fury.io/py/linode-api4
 
-.. image:: //readthedocs.org/projects/linode-api4/badge/?version=latest
+.. image:: https//readthedocs.org/projects/linode-api4/badge/?version=latest
    :target: https://linode-api4.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
 
