@@ -33,7 +33,7 @@ The OAuth 2 workflow has three actors:
       The application you are writing, that Linode users will login to through
       Linode's OAuth server.  You must register OAuth clients at
       https://cloud.linode.com or through
-      :any:`oauth_client_craete<linode.linode_client.AccountGroup.oauth_client_create>`
+      :any:`oauth_client_create<linode.linode_client.AccountGroup.oauth_client_create>`
       to generate a client ID and client secret (used in the exchange detailed
       below).
 

@@ -194,7 +194,7 @@ class LongviewGroupTest(ClientBaseCase):
             self.assertEqual(m.call_data, {})
 
 
-    def test_client_craete_with_label(self):
+    def test_client_create_with_label(self):
         """
         Tests that creating a client with a label calls the api correctly
         """

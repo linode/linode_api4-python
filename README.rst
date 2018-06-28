@@ -74,9 +74,10 @@ this client (and by extension related models).
 
 When testing against requests other than GET requests, ``self.mock_post`` (and
 equivalent methods for other HTTP verbs) can be used in a ``with`` block to
-mock out the intended request type - include the URL whose response should be
-used returned from the fixtures.  For example::
+mock out the intended request type.  These functions accept the relative path
+from the api base url that should be returned, for example::
 
+   # this should return the result of GET /linode/instances/123
    with self.mock_post('/linode/instances/123'):
      linode = self.client.linode.instance_create('g6-standard-2', 'us-east')
      self.assertEqual(linode.id, 123) # passes

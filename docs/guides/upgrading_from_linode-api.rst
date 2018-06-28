@@ -43,11 +43,13 @@ You should change it to this::
 New Method Naming Scheme
 ------------------------
 
-Methods used to retrieve or create objects used to conform to a "verb-noun"
-naming scheme.  For example, ``create_domain`` was used to create a new Domain
-in Linode's DNS Manager.  This has been renamed to ``domain_create`` to conform
-to the new, "noun-verb" naming convention.  Methods that used to begin with
-"`get_`" simply dropped the prefix, making  ``get_domains`` into ``domians``.
+Methods used to retrieve or create objects now follow a "noun-verb" convention
+instead of the previous "verb-noun" convention. For example, the
+``create_domain`` method to create a new :any:`Domain` is now
+``domain_create``.
+
+Additionally, the ``get_`` prefix has been dropped from methods returning lists
+of objects.  The ``domains`` method replaces the old method name ``get_domains``.
 
 If your code looked like this::
 
@@ -83,11 +85,11 @@ New Package Structure
 ---------------------
 
 .. note::
-   The imports that need to be changed were never the recomended way of
-   importing classes, and all recoomended, documented import schemes still work
+   The imports that need to be changed were never the recommended way of
+   importing classes, and all recommended, documented import schemes still work
    without change.
 
-In the unlikely case that  you are importing classes from deep within the
+In the unlikely case that you are importing classes from deep within the
 ``linode.objects`` package, you may need to change your imports to match the
 new package structure.  For example, if your code currently does this::
 

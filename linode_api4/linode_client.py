@@ -52,7 +52,7 @@ class LinodeGroup(Group):
 
     def instances(self, *filters):
         """
-        Returns a list of Linode Instancess on your account.  You may filter
+        Returns a list of Linode Instances on your account.  You may filter
         this query to return only Linodes that match specific criteria::
 
            prod_linodes = client.linode.instances(Instance.group == "prod")
@@ -124,7 +124,7 @@ class LinodeGroup(Group):
         new Instance object.  For example::
 
            new_linode, password = client.linode.instance_create(
-               "g6-standard-1",
+               "g6-standard-2",
                "us-east",
                image="linode/debian9")
 
@@ -172,7 +172,7 @@ class LinodeGroup(Group):
            snapshot = existing_linode.available_backups.snapshot.current
 
            new_linode = client.linode.instance_create(
-               "g6-standard-1",
+               "g6-standard-2",
                "us-east",
                backup=snapshot)
 

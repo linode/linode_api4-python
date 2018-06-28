@@ -1,6 +1,6 @@
 # Install on Linode
 
-A sample application for the official [linode python library](https://github.com/linode/linode_api4-python).
+A sample application for the official [Linode Python Library](https://github.com/linode/linode_api4-python).
 
 **Install on Linode** demonstrates a multi-user application developed with
 the Linode API - users arrive at a third-party application, and are asked
@@ -20,7 +20,7 @@ To set up:
 
  * Install the required packages (see requirements.txt)
  * Copy config.py.example to config.py and populate values:
-   * You will need an OAuth Client created in [the manager](https://cloud.linode.com/profile/clients).
+   * You will need an OAuth Client created in [the Linode Manager](https://cloud.linode.com/profile/clients).
      When prompted, ensure that the "redirect_uri" is `http://localhost:5000/auth_callback`,
      and leave "Public" unchecked.
    * You will need a public stackscript to use this application - either use the
@@ -50,8 +50,8 @@ so that the authenticated user's account can access it in order to install it on
 both as a list, and as a single requested object.  Lists are retrieved by asking the
 `LinodeClient` for a list of related objects, like `client.regions()`, while
 individual objects that we already know the ID for and will not change can be accessed by
-creating a new instate of the correct type with the known ID.  For this to work, the
-user whose token is being used must have access to the construed object.
+creating a new instance of the correct type with the known ID.  For this to work, the
+user whose token is being used must have access to the constructed object.
 
 ### Disclaimer
 

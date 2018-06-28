@@ -71,11 +71,11 @@ Creating a Linode Instance
 
 In order to create a Linode Instance, we need a few pieces of information:
 
- * what :py:class:Region to create the Instance in
- * what :py:class:Type of Instance to create
- * what :py:class:Image to deploy to the new Instance.
+ * what :any:`Region` to create the Instance in.
+ * what :any:`Type` of Instance to create.
+ * what :any:`Image` to deploy to the new Instance.
 
-We can query for these values similarly to how we listed our Linode Instancess
+We can query for these values similarly to how we listed our Linode Instances
 above::
 
    available_regions = client.regions()
