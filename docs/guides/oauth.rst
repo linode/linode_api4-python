@@ -58,6 +58,8 @@ available in the example project `Install on Linode`_
 
 .. _Install on Linode: https://github.com/linode/linode_api4-python/tree/master/examples/install-on-linode
 
+.. _oauth_scopes:
+
 OAuth Scopes
 ------------
 

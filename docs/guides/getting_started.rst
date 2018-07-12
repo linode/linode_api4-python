@@ -31,20 +31,16 @@ Access Token".
 .. _profile: https://cloud.linode.com/profile/tokens
 
 .. note::
-   You can also use an OAuth Token to authenticate to the API - see OAuth_
+   You can also use an OAuth Token to authenticate to the API - see :doc:`OAuth<oauth>`
    for details.
-
-.. _OAuth: #
 
 When creating a Personal Access Token, you will be prompted for what scopes the
 token should be created with.  These scopes control what parts of your account
-this token may be used to access - for more information, see `OAuth Scopes`_.
+this token may be used to access - for more information, see :ref:`OAuth Scopes<oauth_scopes>`.
 Restricting what a token can access is more secure than creating one with access
 to your entire account, but can be less convenient since you would need to create
 a new token to access other parts of the account.  For the examples on this page,
 your Personal Access Token must be able to view and create Linode Instances.
-
-.. _OAuth Scopes: #
 
 Listing your Linode Instances
 -----------------------------
