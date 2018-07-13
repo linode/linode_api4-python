@@ -37,5 +37,5 @@ a paginated list, only the pages required for the slice are loaded.
 PaginatedList class
 -------------------
 
-.. autoclass:: linode.PaginatedList
+.. autoclass:: linode_api4.PaginatedList
    :members: first, only, last

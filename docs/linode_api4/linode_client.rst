@@ -1,7 +1,7 @@
 Linode Client
 =============
 
-.. module:: linode
+.. module:: linode_api4
 
 The LinodeClient is responsible for managing your connection to the API using
 your token.  A LinodeClient is required for all connections to the API, and a
@@ -58,7 +58,7 @@ LinodeGroup
 Includes methods for managing and creating Linode Instances, as well as
 accessing and working with associated features.
 
-.. autoclass:: linode.linode_client.LinodeGroup
+.. autoclass:: linode_api4.linode_client.LinodeGroup
    :members:
 
 AccountGroup
@@ -66,7 +66,7 @@ AccountGroup
 
 Includes methods for managing your account.
 
-.. autoclass:: linode.linode_client.AccountGroup
+.. autoclass:: linode_api4.linode_client.AccountGroup
    :members:
 
 ProfileGroup
@@ -74,7 +74,7 @@ ProfileGroup
 
 Includes methods for managing your user.
 
-.. autoclass:: linode.linode_client.ProfileGroup
+.. autoclass:: linode_api4.linode_client.ProfileGroup
    :members:
 
 NetworkingGroup
@@ -82,7 +82,7 @@ NetworkingGroup
 
 Includes methods for managing your networking systems.
 
-.. autoclass:: linode.linode_client.NetworkingGroup
+.. autoclass:: linode_api4.linode_client.NetworkingGroup
    :members:
 
 LongviewGroup
@@ -90,7 +90,7 @@ LongviewGroup
 
 Includes methods for interacting with our Longview service.
 
-.. autoclass:: linode.linode_client.LongviewGroup
+.. autoclass:: linode_api4.linode_client.LongviewGroup
    :members:
 
 SupportGroup
@@ -98,5 +98,5 @@ SupportGroup
 
 Includes methods for viewing and opening tickets with our support department.
 
-.. autoclass:: linode.linode_client.SupportGroup
+.. autoclass:: linode_api4.linode_client.SupportGroup
    :members:

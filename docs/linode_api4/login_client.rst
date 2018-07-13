@@ -1,7 +1,7 @@
 Linode Login Client
 ===================
 
-.. module:: linode
+.. module:: linode_api4
 
 The :any:`LinodeLoginClient` is the primary interface to the
 `login.linode.com`_ OAuth service, and only needs to be used if writing an
@@ -17,7 +17,7 @@ LinodeLoginClient class
 
 Your interface to Linode's OAuth authentication server.
 
-.. autoclass:: linode.LinodeLoginClient
+.. autoclass:: linode_api4.LinodeLoginClient
    :members:
    
    .. automethod:: __init__
@@ -28,5 +28,5 @@ OAuth Scopes
 When requesting authorization to a user's account, OAuth Scopes allow you to
 specify the level of access you are requesting.
 
-.. autoclass:: linode.login_client.OAuthScopes
+.. autoclass:: linode_api4.login_client.OAuthScopes
    :members:

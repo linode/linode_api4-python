@@ -1,5 +1,5 @@
 Filtering Collections
 =====================
 
-.. automodule:: linode.objects.filtering
+.. automodule:: linode_api4.objects.filtering
    :members:
