@@ -687,7 +687,7 @@ class StackScript(Base):
         "user_defined_fields": Property(),
         "label": Property(mutable=True, filterable=True),
         "rev_note": Property(mutable=True),
-        "usernam": Property(filterable=True),
+        "username": Property(filterable=True),
         "user_gravatar_id": Property(),
         "is_public": Property(mutable=True, filterable=True),
         "created": Property(is_datetime=True),
