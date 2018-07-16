@@ -340,7 +340,7 @@ class Instance(Base):
         ])
 
         # ensure the generated password is not too long
-        if len(password > 110):
+        if len(password) > 110:
             password = password[:110]
 
         return password
