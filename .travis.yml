@@ -10,4 +10,4 @@ install:
 script:
     - coverage run --source linode_api4 -m pytest
     - coverage report
-    - pylint linode_api4
+    - pylint --rcfile='.pylintrc' linode_api4
