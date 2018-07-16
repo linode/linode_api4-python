@@ -336,8 +336,12 @@ class Instance(Base):
 
         password = ''.join([
             PASSWORD_CHARS[_func(c) % len(PASSWORD_CHARS)]
-            for c in urandom(randint(50, 128))
+            for c in urandom(randint(50, 110))
         ])
+
+        # ensure the generated password is not too long
+        if len(password > 110):
+            password = password[:110]
 
         return password
 
