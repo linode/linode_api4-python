@@ -726,6 +726,7 @@ class LinodeClient:
         self.base_url = base_url
         self._add_user_agent = user_agent
         self.token = token
+        self.session = requests.Session()
 
         #: Access methods related to Linodes - see :any:`LinodeGroup` for
         #: more information
@@ -862,16 +863,16 @@ class LinodeClient:
                 parent_id=parent_id)
 
     def get(self, *args, **kwargs):
-        return self._api_call(*args, method=requests.get, **kwargs)
+        return self._api_call(*args, method=self.session.get, **kwargs)
 
     def post(self, *args, **kwargs):
-        return self._api_call(*args, method=requests.post, **kwargs)
+        return self._api_call(*args, method=self.session.post, **kwargs)
 
     def put(self, *args, **kwargs):
-        return self._api_call(*args, method=requests.put, **kwargs)
+        return self._api_call(*args, method=self.session.put, **kwargs)
 
     def delete(self, *args, **kwargs):
-        return self._api_call(*args, method=requests.delete, **kwargs)
+        return self._api_call(*args, method=self.session.delete, **kwargs)
 
     # ungrouped list functions
     def regions(self, *filters):
