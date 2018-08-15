@@ -611,6 +611,13 @@ class Instance(Base):
 
         return True
 
+    def initiate_migration(self):
+        """
+        Initiates a pending migration that is already scheduled for this Linode
+        Instance
+        """
+        self._client.post('{}/migrate'.format(Instance.api_endpoint), model=self)
+
     def clone(self, to_linode=None, region=None, service=None, configs=[], disks=[],
             label=None, group=None, with_backups=None):
         """ Clones this linode into a new linode or into a new linode in the given region """
