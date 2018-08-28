@@ -372,7 +372,7 @@ class LinodeLoginClient:
 
         token = r.json()["access_token"]
         scopes = OAuthScopes.parse(r.json()["scopes"])
-        expiry = datetime.now() + timedelta(seconds=r.json['expires_in'])
+        expiry = datetime.now() + timedelta(seconds=r.json()['expires_in'])
         refresh_token = r.json()['refresh_token']
 
         return token, scopes, expiry, refresh_token
