@@ -349,7 +349,6 @@ class ProfileGroup(Group):
         p = Profile(self, result['username'], result)
         return p
 
-
     def tokens(self, *filters):
         """
         Returns the Person Access Tokens active for this user
@@ -369,7 +368,7 @@ class ProfileGroup(Group):
         if scopes:
             kwargs['scopes'] = scopes
 
-        result = self.client.post('/account/tokens', data=kwargs)
+        result = self.client.post('/profile/tokens', data=kwargs)
 
         if not 'id' in result:
             raise UnexpectedResponseError('Unexpected response when creating Personal Access '
