@@ -166,6 +166,17 @@ class LinodeTest(ClientBaseCase):
             linode.mutate()
             self.assertEqual(m.call_url, '/linode/instances/123/mutate')
 
+    def test_initiate_migration(self):
+        """
+        Tests that you can initiate a pending migration
+        """
+        linode = Instance(self.client, 123)
+        result = {}
+
+        with self.mock_post(result) as m:
+            linode.initiate_migration()
+            self.assertEqual(m.call_url, '/linode/instances/123/migrate')
+
 
 class TypeTest(ClientBaseCase):
     def test_get_types(self):
