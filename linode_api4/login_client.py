@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+from datetime import datetime, timedelta
 from enum import Enum
 
 import requests
@@ -353,7 +354,9 @@ class LinodeLoginClient:
                      server in the query string.
         :type code: str
 
-        :returns: The new OAuth token, and a list of scopes the token has.
+        :returns: The new OAuth token, and a list of scopes the token has, when
+                  the token expires, and a refresh token that can generate a new
+                  valid token when this one is expired.
         :rtype: tuple(str, list)
 
         :raise ApiError: If the OAuth exchange fails.
@@ -363,11 +366,53 @@ class LinodeLoginClient:
                 "client_id": self.client_id,
                 "client_secret": self.client_secret
             })
+
         if r.status_code != 200:
             raise ApiError("OAuth token exchange failed", r)
+
         token = r.json()["access_token"]
         scopes = OAuthScopes.parse(r.json()["scopes"])
-        return token, scopes
+        expiry = datetime.now() + timedelta(seconds=r.json()['expires_in'])
+        refresh_token = r.json()['refresh_token']
+
+        return token, scopes, expiry, refresh_token
+
+    def refresh_oauth_token(self, refresh_token):
+        """
+        Some tokens are generated with refresh tokens (namely tokens generated
+        through an OAuth Exchange).  These tokens may be renewed, or "refreshed",
+        with the auth server, generating a new OAuth Token with a new (later)
+        expiry.  This method handles refreshing an OAuth Token using the refresh
+        token that was generated at the time of its issuance, and returns a new
+        OAuth token and refresh token for the same client and user.
+
+        :param refresh_token: The refresh token returned for the OAuth Token we
+                              are renewing.
+        :type refresh_token: str
+
+        :returns: The new OAuth token, and a list of scopes the token has, when
+                  the token expires, and a refresh token that can generate a new
+                  valid token when this one is expired.
+        :rtype: tuple(str, list)
+
+        :raise ApiError: If the refresh fails..
+        """
+        r = requests.post(self._login_uri("/oauth/token"), data={
+            "grant_type": "refresh_token",
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+            "refresh_token": refresh_token,
+        })
+
+        if r.status_code != 200:
+            raise ApiError("Refresh failed", r)
+
+        token = r.json()["access_token"]
+        scopes = OAuthScopes.parse(r.json()["scopes"])
+        expiry = datetime.now() + timedelta(seconds=r.json['expires_in'])
+        refresh_token = r.json()['refresh_token']
+
+        return token, scopes, expiry, refresh_token
 
     def expire_token(self, token):
         """
