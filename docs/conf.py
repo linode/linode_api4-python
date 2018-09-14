@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.abspath('..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'linode-api'
+project = 'linode_api4'
 copyright = '2018, Linode'
 author = 'Linode'
 
@@ -107,7 +107,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'linode-apidoc'
+htmlhelp_basename = 'linode_api4doc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -134,7 +134,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'linode-api.tex', 'linode-api Documentation',
+    (master_doc, 'linode_api4.tex', 'linode_api4 Documentation',
      'Linode', 'manual'),
 ]
 
@@ -144,7 +144,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'linode-api', 'linode-api Documentation',
+    (master_doc, 'linode_api4', 'linode_api4 Documentation',
      [author], 1)
 ]
 
@@ -155,8 +155,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'linode-api', 'linode-api Documentation',
-     author, 'linode-api', 'One line description of project.',
+    (master_doc, 'linode_api', 'linode_api4 Documentation',
+     author, 'linode_api4', 'One line description of project.',
      'Miscellaneous'),
 ]
 

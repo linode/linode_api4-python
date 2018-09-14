@@ -1,6 +1,6 @@
 from test.base import ClientBaseCase
 
-from linode import LongviewSubscription
+from linode_api4 import LongviewSubscription
 
 
 class LinodeClientGeneralTest(ClientBaseCase):
@@ -12,13 +12,13 @@ class LinodeClientGeneralTest(ClientBaseCase):
         Tests that a valid JSON body is passed for a GET call
         """
         with self.mock_get('linode/instances') as m:
-            self.client.get_regions()
+            self.client.regions()
 
             self.assertEqual(m.call_data_raw, None)
 
 
     def test_get_account(self):
-        a = self.client.get_account()
+        a = self.client.account()
         self.assertEqual(a._populated, True)
 
         self.assertEqual(a.first_name, 'Test')
@@ -36,7 +36,7 @@ class LinodeClientGeneralTest(ClientBaseCase):
         self.assertEqual(a.balance, 0)
 
     def test_get_regions(self):
-        r = self.client.get_regions()
+        r = self.client.regions()
 
         self.assertEqual(len(r), 9)
         for region in r:
@@ -45,7 +45,7 @@ class LinodeClientGeneralTest(ClientBaseCase):
             self.assertIsNotNone(region.country)
 
     def test_get_images(self):
-        r = self.client.get_images()
+        r = self.client.images()
 
         self.assertEqual(len(r), 4)
         for image in r:
@@ -56,7 +56,7 @@ class LinodeClientGeneralTest(ClientBaseCase):
         """
         Tests that domains can be retrieved and are marshalled properly
         """
-        r = self.client.get_domains()
+        r = self.client.domains()
 
         self.assertEqual(len(r), 1)
         domain = r.first()
@@ -75,12 +75,12 @@ class LinodeClientGeneralTest(ClientBaseCase):
         self.assertEqual(domain.soa_email, "test@example.org",)
         self.assertEqual(domain.refresh_sec, 0)
 
-    def test_create_image(self):
+    def test_image_create(self):
         """
         Tests that an Image can be created successfully
         """
         with self.mock_post('images/private/123') as m:
-            i = self.client.create_image(654, 'Test-Image', 'This is a test')
+            i = self.client.image_create(654, 'Test-Image', 'This is a test')
 
             self.assertIsNotNone(i)
             self.assertEqual(i.id, 'private/123')
@@ -94,7 +94,7 @@ class LinodeClientGeneralTest(ClientBaseCase):
             })
 
     def test_get_volumes(self):
-        v = self.client.get_volumes()
+        v = self.client.volumes()
 
         self.assertEqual(len(v), 2)
         self.assertEqual(v[0].label, 'block1')
@@ -111,7 +111,7 @@ class AccountGroupTest(ClientBaseCase):
         """
         Tests that account settings can be retrieved.
         """
-        s = self.client.account.get_settings()
+        s = self.client.account.settings()
         self.assertEqual(s._populated, True)
 
         self.assertEqual(s.network_helper, False)
@@ -124,12 +124,12 @@ class LinodeGroupTest(ClientBaseCase):
     """
     Tests methods of the LinodeGroup
     """
-    def test_create_linode(self):
+    def test_instance_create(self):
         """
-        Tests that a Linode can be created successfully
+        Tests that a Linode Instance can be created successfully
         """
         with self.mock_post('linode/instances/123') as m:
-            l = self.client.linode.create_instance('g5-standard-1', 'us-east-1a')
+            l = self.client.linode.instance_create('g5-standard-1', 'us-east-1a')
 
             self.assertIsNotNone(l)
             self.assertEqual(l.id, 123)
@@ -141,12 +141,12 @@ class LinodeGroupTest(ClientBaseCase):
                 "type": "g5-standard-1"
             })
 
-    def test_create_linode_with_image(self):
+    def test_instance_create_with_image(self):
         """
-        Tests that a Linode can be created with an image, and a password generated
+        Tests that a Linode Instance can be created with an image, and a password generated
         """
         with self.mock_post('linode/instances/123') as m:
-            l, pw = self.client.linode.create_instance(
+            l, pw = self.client.linode.instance_create(
                 'g5-standard-1', 'us-east-1a', image='linode/debian9')
 
             self.assertIsNotNone(l)
@@ -170,7 +170,7 @@ class LongviewGroupTest(ClientBaseCase):
         """
         Tests that a list of LongviewClients can be retrieved
         """
-        r = self.client.longview.get_clients()
+        r = self.client.longview.clients()
 
         self.assertEqual(len(r), 2)
         self.assertEqual(r[0].label, "test_client_1")
@@ -179,12 +179,12 @@ class LongviewGroupTest(ClientBaseCase):
         self.assertEqual(r[1].id, 5678)
 
 
-    def test_create_client(self):
+    def test_client_create(self):
         """
         Tests that creating a client calls the api correctly
         """
         with self.mock_post('longview/clients/5678') as m:
-            client = self.client.longview.create_client()
+            client = self.client.longview.client_create()
 
             self.assertIsNotNone(client)
             self.assertEqual(client.id, 5678)
@@ -194,12 +194,12 @@ class LongviewGroupTest(ClientBaseCase):
             self.assertEqual(m.call_data, {})
 
 
-    def test_create_client_with_label(self):
+    def test_client_create_with_label(self):
         """
         Tests that creating a client with a label calls the api correctly
         """
         with self.mock_post('longview/clients/1234') as m:
-            client = self.client.longview.create_client(label='test_client_1')
+            client = self.client.longview.client_create(label='test_client_1')
 
             self.assertIsNotNone(client)
             self.assertEqual(client.id, 1234)
@@ -212,7 +212,7 @@ class LongviewGroupTest(ClientBaseCase):
         """
         Tests that Longview subscriptions can be retrieved
         """
-        r = self.client.longview.get_subscriptions()
+        r = self.client.longview.subscriptions()
 
         self.assertEqual(len(r), 4)
 

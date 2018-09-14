@@ -1,23 +1,29 @@
-python-linode-api
-=================
+linode_api4
+===========
 
-The official python library for the `Linode API`_ in python.
+.. highlight:: python
+
+The official python library for the `Linode API v4`_ in python.
 
 **This library is currently in beta.**
 
-.. _Linode API: https://developers.linode.com/v4/introduction
+.. _Linode API v4: https://developers.linode.com/v4/introduction
 
-.. image:: https://travis-ci.org/linode/python-linode-api.svg?branch=master
-    :target: https://travis-ci.org/linode/python-linode-api
+.. image:: https://travis-ci.org/linode/linode_api4-python.svg?branch=master
+    :target: https://travis-ci.org/linode/linode_api4-python
 
-.. image:: https://badge.fury.io/py/linode-api.svg
-    :target: https://badge.fury.io/py/linode-api
+.. image:: https://badge.fury.io/py/linode-api4.svg
+   :target: https://badge.fury.io/py/linode-api4
+
+.. image:: https://readthedocs.org/projects/linode-api4/badge/?version=latest
+   :target: https://linode-api4.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
 
 Installation
 ------------
 ::
 
-    pip install linode-api
+    pip install linode_api4
 
 Building from Source
 --------------------
@@ -27,18 +33,14 @@ To build and install this package:
 - Clone this repository
 - ``./setup.py install``
 
-This package uses the ``linode`` namespace.  This could conflict with libraries
-intended for previous versions of the Linode API.  Please be cautious when
-installing packages for both version of the API on the same machine.
-
 Usage
 -----
 
 Check out the `Getting Started guide`_ to start using this library, or read
 `the docs`_ for extensive documentation.
 
-.. _Getting Started guide: http://python-linode-api.readthedocs.io/en/latest/guides/getting_started.html
-.. _the docs: http://python-linode-api.readthedocs.io/en/latest/index.html
+.. _Getting Started guide: http://linode_api4.readthedocs.io/en/latest/guides/getting_started.html
+.. _the docs: http://linode_api4.readthedocs.io/en/latest/index.html
 
 Examples
 --------
@@ -46,7 +48,7 @@ Examples
 See the `Install on a Linode`_ example project for a simple use case demonstrating
 many of the features of this library.
 
-.. _Install on a Linode: https://github.com/linode/python-api/tree/master/examples/install-on-linode
+.. _Install on a Linode: https://github.com/linode/linode_api4-python/tree/master/examples/install-on-linode
 
 Contributing
 ============
@@ -54,11 +56,15 @@ Contributing
 Tests
 -----
 
-Tests live in the ``tests`` directory.  To run tests, use setup.py:
+Tests live in the ``tests`` directory.  When invoking tests, make sure you are
+in the root directory of this project.  To run the full suite across all
+supported python versions, use tox_:
 
 .. code-block:: shell
 
-   python setup.py test
+   tox
+
+Running tox also runs pylint and coverage reports.
 
 The test suite uses fixtures stored as JSON in ``test/fixtures``.  These files
 contain sanitized JSON responses from the API - the file name is the URL called
@@ -72,14 +78,15 @@ this client (and by extension related models).
 
 When testing against requests other than GET requests, ``self.mock_post`` (and
 equivalent methods for other HTTP verbs) can be used in a ``with`` block to
-mock out the intended request type - include the URL whose response should be
-used returned from the fixtures.  For example:
+mock out the intended request type.  These functions accept the relative path
+from the api base url that should be returned, for example::
 
-.. code-block:: python
-
+   # this should return the result of GET /linode/instances/123
    with self.mock_post('/linode/instances/123'):
-     linode = self.client.linode.create_instance('g5-standard-1', 'us-east')
+     linode = self.client.linode.instance_create('g6-standard-2', 'us-east')
      self.assertEqual(linode.id, 123) # passes
+
+.. _tox: http://tox.readthedocs.io
 
 Documentation
 -------------
@@ -99,4 +106,4 @@ documentation for this library is out of date or unclear, please
 `open an issue`_ to make us aware of the problem.
 
 .. _Sphinx: http://www.sphinx-doc.org/en/master/index.html
-.. _open an issue: https://github.com/linode/python-linode-api/issues/new
+.. _open an issue: https://github.com/linode/linode_api4-python/issues/new

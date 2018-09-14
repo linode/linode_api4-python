@@ -3,7 +3,7 @@ Core Concepts
 
 .. module:: linode
 
-The linode-api package, and the API V4, have a few ideas that will help you more
+The linode_api4 package, and the API V4, have a few ideas that will help you more
 quickly become proficient with their usage.  This page assumes you've read the
 `Getting Started <getting_started.html>`_ guide, and know the basics of
 authentication already.
@@ -17,7 +17,7 @@ transparently, and does not load pages of data until they are required.  This
 is handled by the :any:`PaginatedList` class, which
 behaves similarly to a python list.  For example::
 
-   linodes = client.linode.get_instances() # returns a PaginatedList of linodes
+   linodes = client.linode.instances() # returns a PaginatedList of linodes
 
    first_linode = linodes[0] # the first page is loaded automatically, this does
                              # not emit an API call
@@ -44,24 +44,24 @@ Filtering
 
 Collections of objects in the API can be filtered to make their results more
 useful.  For example, instead of having to do this filtering yourself on the
-full list, you can ask the API for all Linodes you own belonging to a certain
-group.  This library implements filtering with a SQLAlchemy-like syntax, where
-a model's attributes may be used in comparisons to generate filters.  For
-example::
+full list, you can ask the API for all Linode Instances you own belonging to a
+certain group.  This library implements filtering with a SQLAlchemy-like
+syntax, where a model's attributes may be used in comparisons to generate
+filters.  For example::
 
-   prod_linodes = client.linode.get_instances(Linode.group == "production")
+   prod_linodes = client.linode.instances(Instance.group == "production")
 
 Filters may be combined using boolean operators similar to SQLAlchemy::
 
    # and_ and or_ can be imported from the linode package to combine filters
-   from linode import or_
-   prod_or_staging = client.linode.get_instances(or_(Linode.group == "production"
-                                                     Linode.group == "staging"))
+   from linode_api4 import or_
+   prod_or_staging = client.linode.instances(or_(Instance.group == "production",
+                                                     Instance.group == "staging"))
 
    # and_ isn't strictly necessary, as it's the default when passing multiple
    # filters to a collection
-   prod_and_green = client.linode.get_instances(Linode.group == "production",
-                                                Linode.label.contains("green"))
+   prod_and_green = client.linode.instances(Instance.group == "production",
+                                                Instance.label.contains("green"))
 
 Filters are generally only applicable for the type of model you are querying,
 but can be combined to your heart's content.  For numeric fields, the standard
@@ -81,14 +81,14 @@ Creating Models
 In addition to looking up models from collections, you can simply import the
 model class and create it by ID.::
 
-   from linode import Linode
-   my_linode = Linode(client, 123)
+   from linode_api4 import Instance
+   my_linode = Instance(client, 123)
 
 All models take a `LinodeClient` as their first parameter, and their ID as the
 second.  For derived models (models that belong to another model), the parent
 model's ID is taken as a third argument to the constructor (i.e. to construct
 a :any:`Disk` you pass a :any:`LinodeClient`, the disk's ID, then the parent
-Linode's ID).
+Linode Instance's ID).
 
 Be aware that when creating a model this way, it is _not_ loaded from the API
 immediately.  Models in this library are **lazy-loaded**, and will not be looked
@@ -156,10 +156,10 @@ models can also be deleted in a similar fashion.::
 Relationships
 ^^^^^^^^^^^^^
 
-Many models are related to other models (for example a Linode has disks, configs,
-volumes, backups, a region, etc).  Related attributes are accessed like
-any other attribute on the model, and will emit an API call to retrieve the
-related models if necessary.::
+Many models are related to other models (for example a Linode Instance has
+disks, configs, volumes, backups, a region, etc).  Related attributes are
+accessed like any other attribute on the model, and will emit an API call to
+retrieve the related models if necessary.::
 
    len(my_linode.disks) # emits an API call to retrieve related disks
    my_linode.disks[0] # no API call emitted - this is already loaded

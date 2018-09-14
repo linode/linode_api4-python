@@ -1,6 +1,6 @@
 from test.base import ClientBaseCase
 
-from linode.objects import Image
+from linode_api4.objects import Image
 
 
 class ImageTest(ClientBaseCase):
@@ -24,4 +24,3 @@ class ImageTest(ClientBaseCase):
         self.assertEqual(image.type, "manual")
         self.assertEqual(image.created_by, "linode")
         self.assertEqual(image.size, 1100)
-
