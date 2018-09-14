@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from test.base import ClientBaseCase
 
 from linode_api4 import LongviewSubscription
@@ -178,7 +180,6 @@ class LongviewGroupTest(ClientBaseCase):
         self.assertEqual(r[1].label, "longview5678")
         self.assertEqual(r[1].id, 5678)
 
-
     def test_client_create(self):
         """
         Tests that creating a client calls the api correctly
@@ -192,7 +193,6 @@ class LongviewGroupTest(ClientBaseCase):
 
             self.assertEqual(m.call_url, '/longview/clients')
             self.assertEqual(m.call_data, {})
-
 
     def test_client_create_with_label(self):
         """
@@ -226,3 +226,97 @@ class LongviewGroupTest(ClientBaseCase):
         for result, (expected_id, expected_label) in zip(r, expected_results):
             self.assertEqual(result.id, expected_id)
             self.assertEqual(result.label, expected_label)
+
+
+class ProfileGroupTest(ClientBaseCase):
+    """
+    Tests methods of the ProfileGroup
+    """
+    def test_get_sshkeys(self):
+        """
+        Tests that a list of SSH Keys can be retrieved
+        """
+        r = self.client.profile.ssh_keys()
+
+        self.assertEqual(len(r), 2)
+
+        key1, key2 = r
+
+        self.assertEqual(key1.label, 'Home Ubuntu PC')
+        self.assertEqual(key1.created, datetime(year=2018, month=9, day=14, hour=13,
+                                                minute=0, second=0))
+        self.assertEqual(key1.id, 22)
+        self.assertEqual(
+            key1.ssh_key, "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDe9NlKepJsI/S98"
+                          "ISBJmG+cpEARtM0T1Qa5uTOUB/vQFlHmfQW07ZfA++ybPses0vRCD"
+                          "eWyYPIuXcV5yFrf8YAW/Am0+/60MivT3jFY0tDfcrlvjdJAf1NpWO"
+                          "TVlzv0gpsHFO+XIZcfEj3V0K5+pOMw9QGVf6Qbg8qzHVDPFdYKu3i"
+                          "muc9KHY8F/b4DN/Wh17k3xAJpspCZEFkn0bdaYafJj0tPs0k78JRo"
+                          "F2buc3e3M6dlvHaoON1votmrri9lut65OIpglOgPwE3QU8toGyyoC"
+                          "MGaT4R7kIRjXy3WSyTMAi0KTAdxRK+IlDVMXWoE5TdLovd0a9L7qy"
+                          "nZungKhKZUgFma7r9aTFVHXKh29Tzb42neDTpQnZ/Et735sDC1vfz"
+                          "/YfgZNdgMUXFJ3+uA4M/36/Vy3Dpj2Larq3qY47RDFitmwSzwUlfz"
+                          "tUoyiQ7e1WvXHT4N4Z8K2FPlTvNMg5CSjXHdlzcfiRFPwPn13w36v"
+                          "TvAUxPvTa84P1eOLDp/JzykFbhHNh8Cb02yrU28zDeoTTyjwQs0eH"
+                          "d1wtgIXJ8wuUgcaE4LgcgLYWwiKTq4/FnX/9lfvuAiPFl6KLnh23b"
+                          "cKwnNA7YCWlb1NNLb2y+mCe91D8r88FGvbnhnOuVjd/SxQWDHtxCI"
+                          "CmhW7erNJNVxYjtzseGpBLmRRUTsT038w== dorthu@dorthu-command")
+
+    def test_client_create(self):
+        """
+        Tests that creating a client calls the api correctly
+        """
+        with self.mock_post('longview/clients/5678') as m:
+            client = self.client.longview.client_create()
+
+            self.assertIsNotNone(client)
+            self.assertEqual(client.id, 5678)
+            self.assertEqual(client.label, 'longview5678')
+
+            self.assertEqual(m.call_url, '/longview/clients')
+            self.assertEqual(m.call_data, {})
+
+    def test_ssh_key_create(self):
+        """
+        Tests that creating an ssh key works as expected
+        """
+        with self.mock_post('profile/sshkeys/72') as m:
+            key = self.client.profile.ssh_key_upload(
+                         "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDe9NlKepJsI/S98"
+                         "ISBJmG+cpEARtM0T1Qa5uTOUB/vQFlHmfQW07ZfA++ybPses0vRCD"
+                         "eWyYPIuXcV5yFrf8YAW/Am0+/60MivT3jFY0tDfcrlvjdJAf1NpWO"
+                         "TVlzv0gpsHFO+XIZcfEj3V0K5+pOMw9QGVf6Qbg8qzHVDPFdYKu3i"
+                         "muc9KHY8F/b4DN/Wh17k3xAJpspCZEFkn0bdaYafJj0tPs0k78JRo"
+                         "F2buc3e3M6dlvHaoON1votmrri9lut65OIpglOgPwE3QU8toGyyoC"
+                         "MGaT4R7kIRjXy3WSyTMAi0KTAdxRK+IlDVMXWoE5TdLovd0a9L7qy"
+                         "nZungKhKZUgFma7r9aTFVHXKh29Tzb42neDTpQnZ/Et735sDC1vfz"
+                         "/YfgZNdgMUXFJ3+uA4M/36/Vy3Dpj2Larq3qY47RDFitmwSzwUlfz"
+                         "tUoyiQ7e1WvXHT4N4Z8K2FPlTvNMg5CSjXHdlzcfiRFPwPn13w36v"
+                         "TvAUxPvTa84P1eOLDp/JzykFbhHNh8Cb02yrU28zDeoTTyjwQs0eH"
+                         "d1wtgIXJ8wuUgcaE4LgcgLYWwiKTq4/FnX/9lfvuAiPFl6KLnh23b"
+                         "cKwnNA7YCWlb1NNLb2y+mCe91D8r88FGvbnhnOuVjd/SxQWDHtxCI"
+                         "CmhW7erNJNVxYjtzseGpBLmRRUTsT038w==dorthu@dorthu-command",
+                         'Work Laptop')
+
+            self.assertIsNotNone(key)
+            self.assertEqual(key.id, 72)
+            self.assertEqual(key.label, 'Work Laptop')
+
+            self.assertEqual(m.call_url, '/profile/sshkeys')
+            self.assertEqual(m.call_data, {
+                "ssh_key":  "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDe9NlKepJsI/S98"
+                            "ISBJmG+cpEARtM0T1Qa5uTOUB/vQFlHmfQW07ZfA++ybPses0vRCD"
+                            "eWyYPIuXcV5yFrf8YAW/Am0+/60MivT3jFY0tDfcrlvjdJAf1NpWO"
+                            "TVlzv0gpsHFO+XIZcfEj3V0K5+pOMw9QGVf6Qbg8qzHVDPFdYKu3i"
+                            "muc9KHY8F/b4DN/Wh17k3xAJpspCZEFkn0bdaYafJj0tPs0k78JRo"
+                            "F2buc3e3M6dlvHaoON1votmrri9lut65OIpglOgPwE3QU8toGyyoC"
+                            "MGaT4R7kIRjXy3WSyTMAi0KTAdxRK+IlDVMXWoE5TdLovd0a9L7qy"
+                            "nZungKhKZUgFma7r9aTFVHXKh29Tzb42neDTpQnZ/Et735sDC1vfz"
+                            "/YfgZNdgMUXFJ3+uA4M/36/Vy3Dpj2Larq3qY47RDFitmwSzwUlfz"
+                            "tUoyiQ7e1WvXHT4N4Z8K2FPlTvNMg5CSjXHdlzcfiRFPwPn13w36v"
+                            "TvAUxPvTa84P1eOLDp/JzykFbhHNh8Cb02yrU28zDeoTTyjwQs0eH"
+                            "d1wtgIXJ8wuUgcaE4LgcgLYWwiKTq4/FnX/9lfvuAiPFl6KLnh23b"
+                            "cKwnNA7YCWlb1NNLb2y+mCe91D8r88FGvbnhnOuVjd/SxQWDHtxCI"
+                            "CmhW7erNJNVxYjtzseGpBLmRRUTsT038w==dorthu@dorthu-command",
+                "label": "Work Laptop"
+            })

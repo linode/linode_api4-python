@@ -383,6 +383,52 @@ class ProfileGroup(Group):
         """
         return self.client._get_and_filter(AuthorizedApp, *filters)
 
+    def ssh_keys(self, *filters):
+        """
+        Returns the SSH Public Keys uploaded to your profile
+        """
+        return self.client._get_and_filter(SSHKey, *filters)
+
+    def ssh_key_upload(self, key, label):
+        """
+        Uploads a new SSH Public Key to your profile  This key can be used in
+        later Linode deployments.
+
+        :param key: The ssh key, or a path to the ssh key.  If a path is provided,
+                    the file at the path must exist and be readable or an exception
+                    will be thrown.
+        :type key: str
+        :param label: The name to give this key.  This is purely aesthetic.
+        :type label: str
+
+        :returns: The newly uploaded SSH Key
+        :rtype: SSHKey
+        :raises ValueError: If the key provided does not appear to be valid, and
+                            does not appear to be a path to a valid key.
+        """
+        if not key.startswith('ssh-rsa'):
+            # this might be a file path - look for it
+            path = os.path.expanduser(key)
+            if os.path.isfile(path):
+                with open(path) as f:
+                    key = f.read().strip()
+            if not key.startswith('ssh-rsa'):
+                raise ValueError('Invalid SSH Public Key')
+
+        params = {
+            'ssh_key': key,
+            'label': label,
+        }
+
+        result = self.client.post('/profile/sshkeys', data=params)
+
+        if not 'id' in result:
+            raise UnexpectedResponseError('Unexpected response when uploading SSH Key!',
+                                          json=result)
+
+        ssh_key = SSHKey(self.client, result['id'], result)
+        return ssh_key
+
 
 class LongviewGroup(Group):
     def clients(self, *filters):
