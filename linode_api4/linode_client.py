@@ -11,7 +11,7 @@ from linode_api4.errors import ApiError, UnexpectedResponseError
 from linode_api4.objects import *
 from linode_api4.objects.filtering import Filter
 
-from .common import load_and_validate_keys
+from .common import load_and_validate_keys, SSH_KEY_TYPES
 from .paginated_list import PaginatedList
 
 package_version = pkg_resources.require("linode_api4")[0].version
@@ -406,13 +406,13 @@ class ProfileGroup(Group):
         :raises ValueError: If the key provided does not appear to be valid, and
                             does not appear to be a path to a valid key.
         """
-        if not key.startswith('ssh-rsa'):
+        if not key.startswith(SSH_KEY_TYPES):
             # this might be a file path - look for it
             path = os.path.expanduser(key)
             if os.path.isfile(path):
                 with open(path) as f:
                     key = f.read().strip()
-            if not key.startswith('ssh-rsa'):
+            if not key.startswith(SSH_KEY_TYPES):
                 raise ValueError('Invalid SSH Public Key')
 
         params = {

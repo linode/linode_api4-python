@@ -3,6 +3,10 @@ from __future__ import absolute_import
 import os
 
 
+SSH_KEY_TYPES = ("ssh-dss", "ssh-rsa", "ssh-ed25519", "ecdsa-sha2-nistp256",
+                 "ecdsa-sha2-nistp384", "ecdsa-sha2-nistp521")
+
+
 def load_and_validate_keys(authorized_keys):
     """
     Loads authorized_keys as taken by :any:`instance_create`,
