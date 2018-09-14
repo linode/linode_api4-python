@@ -83,8 +83,9 @@ Instance.::
 
    chosen_region = available_regions[0]
 
-   new_linode, password = client.linode.instance_create(chosen_region,
-                                                        'g6-standard-4',
+
+   new_linode, password = client.linode.instance_create('g5-standard-4',
+                                                        chosen_region,
                                                         image='linode/debian9')
 
 :py:func:`instance_create` returns the newly-created Instance object and the
