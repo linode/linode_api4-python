@@ -102,6 +102,51 @@ class LinodeClientGeneralTest(ClientBaseCase):
         self.assertEqual(v[1].label, 'block2')
         self.assertEqual(v[1].size, 100)
 
+    def test_get_tags(self):
+        """
+        Tests that a list of Tags can be retrieved as expected
+        """
+        t = self.client.tags()
+
+        self.assertEqual(len(t), 2)
+        self.assertEqual(t[0].label, 'nothing')
+        self.assertEqual(t[1].label, 'something')
+
+    def test_tag_create(self):
+        """
+        Tests that creating a tag works as expected
+        """
+        # tags don't work like a normal RESTful collection, so we have to do this
+        with self.mock_post({'label':'nothing'}) as m:
+            t = self.client.tag_create('nothing')
+
+            self.assertIsNotNone(t)
+            self.assertEqual(t.label, 'nothing')
+
+            self.assertEqual(m.call_url, '/tags')
+            self.assertEqual(m.call_data, {
+                'label': 'nothing',
+            })
+
+    def test_tag_create_with_instances(self):
+        """
+        Tests that creating a tag with instances works as expected
+        """
+        instance = self.client.linode.instances().first()
+
+        # tags don't work like a normal RESTful collection, so we have to do this
+        with self.mock_post({'label':'something'}) as m:
+            t = self.client.tag_create('something', instances=[instance])
+
+            self.assertIsNotNone(t)
+            self.assertEqual(t.label, 'something')
+
+            self.assertEqual(m.call_url, '/tags')
+            self.assertEqual(m.call_data, {
+                'label': 'something',
+                'linodes': [instance.id],
+            })
+
 
 class AccountGroupTest(ClientBaseCase):
     """

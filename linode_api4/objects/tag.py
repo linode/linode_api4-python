@@ -28,7 +28,9 @@ class Tag(Base):
         if not hasattr(self, '_raw_objects'):
             result = self._client.get(type(self).api_endpoint, model=self)
 
-            self._raw_objects = result
+            # I want to cache this to avoid making duplicate requests, but I don't
+            # want it in the __init__
+            self._raw_objects = result # pylint: disable=attribute-defined-outside-init
 
     def _api_get(self):
         """
@@ -41,8 +43,8 @@ class Tag(Base):
         self._get_raw_objects()
 
         return self
-        
 
+    @property
     def objects(self):
         """
         Returns a list of objects that have been given this tag.  Right now this

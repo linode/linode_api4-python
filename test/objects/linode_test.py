@@ -88,7 +88,7 @@ class LinodeTest(ClientBaseCase):
         Tests that a Linode can be updated
         """
         with self.mock_put('linode/instances/123') as m:
-            linode = Instance(self.client, 123)
+            linode = self.client.load(Instance, 123)
 
             linode.label = "NewLinodeLabel"
             linode.group = "new_group"
@@ -97,7 +97,8 @@ class LinodeTest(ClientBaseCase):
             self.assertEqual(m.call_url, '/linode/instances/123')
             self.assertEqual(m.call_data, {
                 "label": "NewLinodeLabel",
-                "group": "new_group"
+                "group": "new_group",
+                "tags": ["something"],
             })
 
     def test_delete_linode(self):
