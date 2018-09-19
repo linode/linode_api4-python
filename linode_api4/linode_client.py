@@ -1007,6 +1007,57 @@ class LinodeClient:
         d = Domain(self, result['id'], result)
         return d
 
+    def tags(self, *filters):
+        """
+        Retrieves the Tags on your account.  This may only be attempted by
+        unrestricted users.
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of Tags on the account.
+        :rtype: PaginatedList of Tag
+        """
+        return self._get_and_filter(Tag, *filters)
+
+    def tag_create(self, label, instances=None):
+        """
+        Creates a new Tag and optionally applies it to the given Linode Instances.
+
+        :param label: The label for the new Tag
+        :type label: str
+        :param instances: A list of Linode Instances to apply this Tag to upon
+                        creation
+        :type instances: list of Instance or list of int
+
+        :returns: The new Tag
+        :rtype: Tag
+        """
+        linode_ids = None
+
+        if instances is not None:
+            linode_ids = []
+
+            for l in instances:
+                if isinstance(l, Instance):
+                    linode_ids.append(l.id)
+                elif isinstance(l, int):
+                    linode_ids.append(l)
+                else:
+                    raise ValueError('Expected list of Instance or int for "instances"')
+
+        params = {
+            'label': label,
+            'linodes': linode_ids,
+        }
+
+        result = self.post('/tags', data=params)
+
+        if not 'label' in result:
+            raise UnexpectedResponseError('Unexpected response when creating Tag!', json=result)
+
+        t = Tag(self, result['label'], result)
+        return t
+
     def volumes(self, *filters):
         """
         Retrieves the Block Storage Volumes your user has access to.
