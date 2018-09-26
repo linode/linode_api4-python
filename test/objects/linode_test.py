@@ -22,6 +22,22 @@ class LinodeTest(ClientBaseCase):
         self.assertTrue(isinstance(linode.image, Image))
         self.assertEqual(linode.image.label, "Ubuntu 17.04")
 
+        json = linode._raw_json
+        self.assertIsNotNone(json)
+        self.assertEqual(json['id'], 123)
+        self.assertEqual(json['label'], 'linode123')
+        self.assertEqual(json['group'], 'test')
+
+        # test that the _raw_json stored on the object is sufficient to populate
+        # a new object
+        linode2 = Instance(self.client, json['id'], json=json)
+
+        self.assertTrue(linode2._populated)
+        self.assertEqual(linode2.id, linode.id)
+        self.assertEqual(linode2.label, linode.label)
+        self.assertEqual(linode2.group, linode.group)
+        self.assertEqual(linode2._raw_json, linode._raw_json)
+
     def test_rebuild(self):
         """
         Tests that you can rebuild with an image
