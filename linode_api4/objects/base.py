@@ -76,6 +76,11 @@ class Base(object, with_metaclass(FilterableMetaclass)):
         self._set('_populated', False)
         self._set('_last_updated', datetime.min)
         self._set('_client', client)
+
+        #: self._raw_json is a copy of the json received from the API on population,
+        #: and cannot be relied upon to be current.  Local changes to mutable fields
+        #: that have not been saved will not be present, and volatile fields will not
+        #: be updated on access.
         self._set('_raw_json', None)
 
         for prop in type(self).properties:
