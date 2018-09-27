@@ -101,7 +101,7 @@ class Disk(DerivedBase):
 
 
     def delete(self)
-        self._client.delete('{}/delete'.format(self.api_endpoint), model=self)
+        self._client.delete('{}'.format(self.api_endpoint), model=self)
 
 
 class Kernel(Base):
