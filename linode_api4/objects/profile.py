@@ -124,3 +124,17 @@ class Profile(Base):
             raise UnexpectedResponseError("Unexpected response creating whitelist entry!")
 
         return WhitelistEntry(result['id'], self._client, json=result)
+
+
+class SSHKey(Base):
+    """
+    An SSH Public Key uploaded to your profile for use in Linode Instance deployments.
+    """
+    api_endpoint = '/profile/sshkeys/{id}'
+
+    properties = {
+        "id": Property(identifier=True),
+        "label": Property(mutable=True),
+        "ssh_key": Property(),
+        "created": Property(is_datetime=True),
+    }
