@@ -12,3 +12,4 @@ from .nodebalancer import *
 from .support import *
 from .profile import *
 from .longview import *
+from .tag import Tag
