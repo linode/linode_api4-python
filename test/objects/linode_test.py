@@ -1,7 +1,7 @@
 from datetime import datetime
 from test.base import ClientBaseCase
 
-from linode_api4.objects import Config, Image, Instance, Type
+from linode_api4.objects import Config, Disk, Image, Instance, Type
 from linode_api4.objects.base import MappedObject
 
 
@@ -193,6 +193,25 @@ class LinodeTest(ClientBaseCase):
         with self.mock_post(result) as m:
             linode.initiate_migration()
             self.assertEqual(m.call_url, '/linode/instances/123/migrate')
+
+
+class DiskTest(ClientBaseCase):
+    """
+    Tests for the Disk object
+    """
+    def test_resize(self):
+        """
+        Tests that a resize is submitted correctly
+        """
+        disk = Disk(self.client, 12345, 123)
+
+        with self.mock_post({}) as m:
+            r = disk.resize(1000)
+
+            self.assertTrue(r)
+
+            self.assertEqual(m.call_url, '/linode/instances/123/disks/12345/resize')
+            self.assertEqual(m.call_data, {"size": 1000})
 
 
 class TypeTest(ClientBaseCase):

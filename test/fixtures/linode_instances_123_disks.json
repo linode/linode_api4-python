@@ -1,0 +1,25 @@
+{
+  "page": 1,
+  "results": 2,
+  "pages": 1,
+  "data": [
+    {
+      "size": 25088,
+      "status": "ready",
+      "filesystem": "ext4",
+      "id": 12345,
+      "updated": "2017-01-01T00:00:00",
+      "label": "Ubuntu 17.04 Disk",
+      "created": "2017-01-01T00:00:00"
+    },
+    {
+      "size": 512,
+      "status": "ready",
+      "filesystem": "swap",
+      "id": 12346,
+      "updated": "2017-01-01T00:00:00",
+      "label": "512 MB Swap Image",
+      "created": "2017-01-01T00:00:00"
+    }
+  ]
+}
