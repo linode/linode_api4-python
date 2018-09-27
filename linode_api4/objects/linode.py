@@ -96,6 +96,9 @@ class Disk(DerivedBase):
         return True
 
 
+    def resize(self, new_size):
+        self._client.post('{}/resize'.format(self.api_endpoint), model=self, data={"size": new_size})
+
 class Kernel(Base):
     api_endpoint="/linode/kernels/{id}"
     properties = {
