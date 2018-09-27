@@ -99,6 +99,11 @@ class Disk(DerivedBase):
     def resize(self, new_size):
         self._client.post('{}/resize'.format(self.api_endpoint), model=self, data={"size": new_size})
 
+
+    def delete(self)
+        self._client.delete('{}'.format(self.api_endpoint), model=self)
+
+
 class Kernel(Base):
     api_endpoint="/linode/kernels/{id}"
     properties = {
