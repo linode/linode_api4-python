@@ -95,9 +95,26 @@ class Disk(DerivedBase):
             return True, rpass
         return True
 
-
     def resize(self, new_size):
-        self._client.post('{}/resize'.format(self.api_endpoint), model=self, data={"size": new_size})
+        """
+        Resizes this disk.  The Linode Instance this disk belongs to must have
+        sufficient space available to accommodate the new size, and must be
+        offline.
+
+        **NOTE** If resizing a disk down, the filesystem on the disk must still
+        fit on the new disk size.  You may need to resize the filesystem on the
+        disk first before performing this action.
+
+        :param new_size: The intended new size of the disk, in MB
+        :type new_size: int
+
+        :returns: True if the resize was initiated successfully.
+        :rtype: bool
+        """
+        self._client.post('{}/resize'.format(Disk.api_endpoint), model=self, data={"size": new_size})
+
+        return True
+
 
 class Kernel(Base):
     api_endpoint="/linode/kernels/{id}"
