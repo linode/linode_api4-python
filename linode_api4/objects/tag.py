@@ -99,9 +99,9 @@ class TaggedObjectProxy:
 
         :returns: A new instance of this type, populated with json
         """
-        cls = CLASS_MAP.get(id) # in this case, ID is coming in as the type
+        make_cls = CLASS_MAP.get(id) # in this case, ID is coming in as the type
 
-        if cls is None:
+        if make_cls is None:
             # we don't recognize this entity type - do nothing?
             return None
 
@@ -110,4 +110,4 @@ class TaggedObjectProxy:
         real_id = real_json['id']
 
         # make the real object type
-        return Base.make(real_id, client, cls, parent_id=None, json=real_json)
+        return Base.make(real_id, client, make_cls, parent_id=None, json=real_json)
