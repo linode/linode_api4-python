@@ -1065,7 +1065,8 @@ class LinodeClient:
         """
         return self._get_and_filter(Tag, *filters)
 
-    def tag_create(self, label, instances=None):
+    def tag_create(self, label, instances=None, domains=None, nodebalancers=None,
+                   volumes=None, entities=[]):
         """
         Creates a new Tag and optionally applies it to the given Linode Instances.
 
@@ -1074,26 +1075,59 @@ class LinodeClient:
         :param instances: A list of Linode Instances to apply this Tag to upon
                         creation
         :type instances: list of Instance or list of int
+        :param domains: A list of Domains to apply this Tag to upon
+                        creation
+        :type domains: list of Domain or list of int
+        :param nodebalancers: A list of NodeBalancers to apply this Tag to upon
+                        creation
+        :type nodebalancers: list of NodeBalancer or list of int
+        :param volumes: A list of Volumes to apply this Tag to upon
+                        creation
+        :type volumes: list of Volumes or list of int
+        :param entities: A list of objects to apply this Tag to upon creation.
+                         May only be taggable types (Linode Instances, Domains,
+                         NodeBalancers ord Volumes).
+        :type entities: list of Instance, Domain, NodeBalancer, and/or Volume
 
         :returns: The new Tag
         :rtype: Tag
         """
-        linode_ids = None
+        linode_ids, nodebalancer_ids, domain_ids, volume_ids = [], [], [], []
 
-        if instances is not None:
-            linode_ids = []
+        # filter input into lists of ids
+        sorter = zip((linode_ids, nodebalancer_ids, domain_ids, volume_ids),
+                     (instances, nodebalancers, domains, volumes))
 
-            for l in instances:
-                if isinstance(l, Instance):
-                    linode_ids.append(l.id)
-                elif isinstance(l, int):
-                    linode_ids.append(l)
-                else:
-                    raise ValueError('Expected list of Instance or int for "instances"')
+        for id_list, input_list in sorter:
+            # if we got something, we need to find its ID
+            if input_list is not None:
+                for cur in input_list:
+                    if isinstance(cur, int):
+                        id_list.append(cur)
+                    else:
+                        id_list.append(cur.id)
 
+        # filter entities into id lists too
+        type_map = {
+            Instance: linode_ids,
+            NodeBalancer: nodebalancer_ids,
+            Domain: domain_ids,
+            Volume: volume_ids,
+        }
+
+        for e in entities:
+            if type(e) in type_map:
+                type_map[type(e)].append(e.id)
+            else:
+                raise ValueError('Unsupported entity type {}'.format(type(e)))
+
+        # finally, omit all id lists that are empty
         params = {
             'label': label,
-            'linodes': linode_ids,
+            'linodes': linode_ids or None,
+            'nodebalancers': nodebalancer_ids or None,
+            'domains': domain_ids or None,
+            'volumes': volume_ids or None,
         }
 
         result = self.post('/tags', data=params)

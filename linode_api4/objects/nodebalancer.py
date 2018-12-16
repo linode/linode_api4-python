@@ -21,6 +21,7 @@ class NodeBalancerNode(DerivedBase):
         "weight": Property(mutable=True),
         "mode": Property(mutable=True),
         "status": Property(),
+        'tags': Property(mutable=True),
     }
 
     def __init__(self, client, id, parent_id, nodebalancer_id=None, json=None):
