@@ -85,7 +85,7 @@ class NodeBalancerNodeTest(ClientBaseCase):
         Tests that a node can be updated
         """
         with self.mock_put('nodebalancers/123456/configs/65432/nodes/54321') as m:
-            node = NodeBalancerNode(self.client, 54321, (65432, 123456))
+            node = self.client.load(NodeBalancerNode, 54321, (65432, 123456))
             node.label = "ThisNewLabel"
             node.weight = 60
             node.mode = "drain"
