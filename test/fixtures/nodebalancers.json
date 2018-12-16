@@ -9,7 +9,8 @@
       "id": 123456,
       "updated": "2018-01-01T00:01:01",
       "label": "balancer123456",
-      "client_conn_throttle": 0
+      "client_conn_throttle": 0,
+      "tags": ["something"]
     },
     {
       "created": "2018-01-01T00:01:01",
@@ -20,7 +21,8 @@
       "id": 123457,
       "updated": "2018-01-01T00:01:01",
       "label": "balancer123457",
-      "client_conn_throttle": 0
+      "client_conn_throttle": 0,
+      "tags": []
     }
   ],
   "results": 2,

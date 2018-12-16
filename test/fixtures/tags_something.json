@@ -42,6 +42,54 @@
         "image": "linode/ubuntu17.04",
         "tags": ["something"]
       }
+    },
+    {
+      "type": "domain",
+      "data": {
+        "domain": "example.org",
+        "type": "master",
+        "id": 12345,
+        "axfr_ips": [],
+        "retry_sec": 0,
+        "ttl_sec": 300,
+        "status": "active",
+        "master_ips": [],
+        "description": "",
+        "group": "",
+        "expire_sec": 0,
+        "soa_email": "test@example.org",
+        "refresh_sec": 0,
+        "tags": ["something"]
+      }
+    },
+    {
+      "type": "nodebalancer",
+      "data": {
+        "created": "2018-01-01T00:01:01",
+        "ipv6": "c001:d00d:b01::1:abcd:1234",
+        "region": "us-east-1a",
+        "ipv4": "12.34.56.789",
+        "hostname": "nb-12-34-56-789.newark.nodebalancer.linode.com",
+        "id": 123456,
+        "updated": "2018-01-01T00:01:01",
+        "label": "balancer123456",
+        "client_conn_throttle": 0,
+        "tags": ["something"]
+      }
+    },
+    {
+      "type": "volume",
+      "data": {
+        "id": 1,
+        "label": "block1",
+        "created": "2017-08-04T03:00:00",
+        "region": "us-east-1a",
+        "linode_id": null,
+        "size": 40,
+        "updated": "2017-08-04T04:00:00",
+        "status": "active",
+        "tags": ["something"]
+      }
     }
   ]
 }

@@ -23,3 +23,18 @@ class VolumeTest(ClientBaseCase):
         self.assertEqual(volume.status, 'active')
         self.assertIsInstance(volume.updated, datetime)
         self.assertEqual(volume.region.id, 'us-east-1a')
+
+        assert volume.tags == ["something"]
+
+    def test_update_volume_tags(self):
+        """
+        Tests that updating tags on an entity send the correct request
+        """
+        volume = self.client.volumes().first()
+
+        with self.mock_put('volumes/1') as m:
+            volume.tags = ['test1', 'test2']
+            volume.save()
+
+            assert m.call_url == '/volumes/{}'.format(volume.id)
+            assert m.call_data['tags'] == ['test1', 'test2']
