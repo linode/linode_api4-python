@@ -70,7 +70,7 @@ class Tag(Base):
 
 class TaggedObjectProxy:
     """
-    This class accepts an object form a list of Tagged objects and returns
+    This class accepts an object from a list of Tagged objects and returns
     the correct type of object based on the response data.
 
     .. warning::
@@ -89,9 +89,9 @@ class TaggedObjectProxy:
     def make_instance(cls, id, client, parent_id=None, json=None):
         """
         Overrides Base's ``make_instance`` to allow dynamic creation of objects
-        based on the defined type in the response json
+        based on the defined type in the response json.
 
-        :param cls: The class this was called on.
+        :param cls: The class this was called on
         :param id: The id of the instance to create
         :param client: The client to use for this instance
         :param parent_id: The parent id for derived classes
