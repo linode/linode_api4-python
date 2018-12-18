@@ -70,7 +70,7 @@ class Tag(Base):
 
 class TaggedObjectProxy:
     """
-    This class accepts an object form a list of Tagged objects and returns
+    This class accepts an object from a list of Tagged objects and returns
     the correct type of object based on the response data.
 
     .. warning::
