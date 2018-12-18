@@ -36,7 +36,7 @@ def start_auth():
 def auth_callback():
     code = request.args.get('code')
     login_client = get_login_client()
-    token, scopes = login_client.finish_oauth(code)
+    token, scopes, _, _ = login_client.finish_oauth(code)
 
     # ensure we have sufficient scopes
     if not OAuthScopes.Linodes.create in scopes:
