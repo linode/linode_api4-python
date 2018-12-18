@@ -1068,10 +1068,18 @@ class LinodeClient:
     def tag_create(self, label, instances=None, domains=None, nodebalancers=None,
                    volumes=None, entities=[]):
         """
-        Creates a new Tag and optionally applies it to the given Linode Instances.
+        Creates a new Tag and optionally applies it to the given entities.
 
         :param label: The label for the new Tag
         :type label: str
+        :param entities: A list of objects to apply this Tag to upon creation.
+                         May only be taggable types (Linode Instances, Domains,
+                         NodeBalancers, or Volumes).  These are applied *in addition
+                         to* any IDs specified with ``instances``, ``domains``,
+                         ``nodebalancers``, or ``volumes``, and is a convenience
+                         for sending multiple entity types without sorting them
+                         yourself.
+        :type entities: list of Instance, Domain, NodeBalancer, and/or Volume
         :param instances: A list of Linode Instances to apply this Tag to upon
                         creation
         :type instances: list of Instance or list of int
@@ -1084,10 +1092,6 @@ class LinodeClient:
         :param volumes: A list of Volumes to apply this Tag to upon
                         creation
         :type volumes: list of Volumes or list of int
-        :param entities: A list of objects to apply this Tag to upon creation.
-                         May only be taggable types (Linode Instances, Domains,
-                         NodeBalancers ord Volumes).
-        :type entities: list of Instance, Domain, NodeBalancer, and/or Volume
 
         :returns: The new Tag
         :rtype: Tag
