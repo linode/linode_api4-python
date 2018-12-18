@@ -16,7 +16,8 @@
        "group": "",
        "expire_sec": 0,
        "soa_email": "test@example.org",
-       "refresh_sec": 0
+       "refresh_sec": 0,
+       "tags": ["something"]
      }
   ]
 }

@@ -104,6 +104,9 @@ class LinodeClientGeneralTest(ClientBaseCase):
         self.assertEqual(v[1].label, 'block2')
         self.assertEqual(v[1].size, 100)
 
+        assert v[0].tags == ["something"]
+        assert v[1].tags == []
+
     def test_get_tags(self):
         """
         Tests that a list of Tags can be retrieved as expected
@@ -130,23 +133,59 @@ class LinodeClientGeneralTest(ClientBaseCase):
                 'label': 'nothing',
             })
 
-    def test_tag_create_with_instances(self):
+    def test_tag_create_with_ids(self):
         """
-        Tests that creating a tag with instances works as expected
+        Tests that creating a tag with IDs sends the correct request
         """
-        instance = self.client.linode.instances().first()
+        instance1, instance2 = self.client.linode.instances()[:2]
+        domain1 = self.client.domains().first()
+        nodebalancer1, nodebalancer2 = self.client.nodebalancers()[:2]
+        volume1, volume2 = self.client.volumes()[:2]
 
         # tags don't work like a normal RESTful collection, so we have to do this
-        with self.mock_post({'label':'something'}) as m:
-            t = self.client.tag_create('something', instances=[instance])
+        with self.mock_post({'label':'pytest'}) as m:
+            t = self.client.tag_create('pytest',
+                                       instances=[instance1.id, instance2],
+                                       nodebalancers=[nodebalancer1.id, nodebalancer2],
+                                       domains=[domain1.id],
+                                       volumes=[volume1.id, volume2])
 
             self.assertIsNotNone(t)
-            self.assertEqual(t.label, 'something')
+            self.assertEqual(t.label, 'pytest')
 
             self.assertEqual(m.call_url, '/tags')
             self.assertEqual(m.call_data, {
-                'label': 'something',
-                'linodes': [instance.id],
+                'label': 'pytest',
+                'linodes': [instance1.id, instance2.id],
+                'domains': [domain1.id],
+                'nodebalancers': [nodebalancer1.id, nodebalancer2.id],
+                'volumes': [volume1.id, volume2.id],
+            })
+
+    def test_tag_create_with_entities(self):
+        """
+        Tests that creating a tag with entities sends the correct request
+        """
+        instance1, instance2 = self.client.linode.instances()[:2]
+        domain = self.client.domains().first()
+        nodebalancer = self.client.nodebalancers().first()
+        volume = self.client.volumes().first()
+
+        # tags don't work like a normal RESTful collection, so we have to do this
+        with self.mock_post({'label':'pytest'}) as m:
+            t = self.client.tag_create('pytest',
+                                       entities=[instance1, domain, nodebalancer, volume, instance2])
+
+            self.assertIsNotNone(t)
+            self.assertEqual(t.label, 'pytest')
+
+            self.assertEqual(m.call_url, '/tags')
+            self.assertEqual(m.call_data, {
+                'label': 'pytest',
+                'linodes': [instance1.id, instance2.id],
+                'domains': [domain.id],
+                'nodebalancers': [nodebalancer.id],
+                'volumes': [volume.id],
             })
 
 
