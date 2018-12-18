@@ -89,7 +89,7 @@ class TaggedObjectProxy:
     def make_instance(cls, id, client, parent_id=None, json=None):
         """
         Overrides Base's ``make_instance`` to allow dynamic creation of objects
-        based on the defined type in the response json
+        based on the defined type in the response json.
 
         :param cls: The class this was called on.
         :param id: The id of the instance to create
