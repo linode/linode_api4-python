@@ -1,6 +1,5 @@
 import re
 from flask import Flask, redirect, request, render_template, session, send_from_directory
-from flask.ext.session import Session
 from linode_api4 import (LinodeClient, LinodeLoginClient, StackScript, Image, Region,
                          Type, OAuthScopes)
 import config
