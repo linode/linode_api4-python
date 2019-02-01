@@ -751,7 +751,7 @@ class SupportGroup(Group):
         return t
 
 class LinodeClient:
-    def __init__(self, token, base_url="https://api.linode.com/v4", user_agent=None):
+    def __init__(self, token, base_url="https://api.linode.com/v4", user_agent=None, cert_path=None):
         """
         The main interface to the Linode API.
 
@@ -767,11 +767,18 @@ class LinodeClient:
                            application.  Setting this is not necessary, but some
                            applications may desire this behavior.
         :type user_agent: str
+        :param cert_path: The path to a certfile to use in verifying requests
+        :type cert_path: str
         """
         self.base_url = base_url
         self._add_user_agent = user_agent
         self.token = token
         self.session = requests.Session()
+        #: Python requests allows for True, False, or a path to the certfile
+        #: this allows users to only submit a path to a certfile
+        if cert_path and isinstance(cert_path, str) and str(cert_path) not in ['True', 'False']:
+            if os.path.exists(cert_path):
+                self.session.verify = str(cert_path)
 
         #: Access methods related to Linodes - see :any:`LinodeGroup` for
         #: more information
