@@ -348,6 +348,13 @@ class Instance(Base):
             return False
         return True
 
+    def resize(self, new_type):
+        resp = self._client.post("{}/resize".format(Instance.api_endpoint), model=self, data={"type": new_type})
+
+        if 'error' in resp:
+            return False
+        return True
+
     @staticmethod
     def generate_root_password():
         def _func(value):
