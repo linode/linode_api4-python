@@ -349,6 +349,7 @@ class Instance(Base):
         return True
 
     def resize(self, new_type):
+        new_type = new_type.id if issubclass(type(new_type), Base) else new_type
         resp = self._client.post("{}/resize".format(Instance.api_endpoint), model=self, data={"type": new_type})
 
         if 'error' in resp:

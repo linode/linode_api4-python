@@ -172,6 +172,19 @@ class LinodeTest(ClientBaseCase):
             self.assertEqual(m.call_url, '/linode/instances/123/resize')
             self.assertEqual(m.call_data, {'type': 'g6-standard-1'})
 
+    def test_resize_with_class(self):
+        """
+        Tests that you can submit a correct resize api request with a Base class type
+        """
+        linode = Instance(self.client, 123)
+        ltype = Type(self.client, 'g6-standard-2')
+        result = {}
+
+        with self.mock_post(result) as m:
+            linode.resize(new_type=ltype)
+            self.assertEqual(m.call_url, '/linode/instances/123/resize')
+            self.assertEqual(m.call_data, {'type': 'g6-standard-2'})
+
     def test_boot_with_config(self):
         """
         Tests that you can submit a correct boot with a config api request
