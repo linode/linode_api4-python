@@ -205,6 +205,20 @@ class AccountGroupTest(ClientBaseCase):
         self.assertEqual(type(s.longview_subscription), LongviewSubscription)
         self.assertEqual(s.longview_subscription.id, 'longview-100')
 
+    def test_get_invoices(self):
+        """
+        Tests that invoices can be retrieved
+        """
+        i = self.client.account.invoices()
+
+        self.assertEqual(len(i), 1)
+        invoice = i[0]
+
+        self.assertEqual(invoice.id, 123456)
+        self.assertEqual(invoice.date, datetime(2015, 1, 1, 5, 1, 2))
+        self.assertEqual(invoice.label, 'Invoice #123456')
+        self.assertEqual(invoice.total, 9.51)
+
 
 class LinodeGroupTest(ClientBaseCase):
     """

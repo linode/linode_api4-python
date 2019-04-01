@@ -104,21 +104,11 @@ class Event(Base):
         self._client.post('{}/read'.format(Event.api_endpoint), model=self)
 
 
-class Invoice(Base):
-    api_endpoint = "/account/invoices/{id}"
-
-    properties = {
-        "id": Property(identifier=True),
-        "label": Property(),
-        "date": Property(is_datetime=True),
-        "total": Property(),
-    }
-
-
 class InvoiceItem(DerivedBase):
     api_endpoint = '/account/invoices/{invoice_id}/items'
     derived_url_path = 'items'
     parent_id_name='invoice_id'
+    id_attribute = 'label' # this has to be something
 
     # TODO - this object doesn't have its own ID .. this might need
     # special handling
@@ -131,6 +121,18 @@ class InvoiceItem(DerivedBase):
         'from': Property(is_datetime=True),
         'to': Property(is_datetime=True),
         'type': Property(),
+    }
+
+
+class Invoice(Base):
+    api_endpoint = "/account/invoices/{id}"
+
+    properties = {
+        "id": Property(identifier=True),
+        "label": Property(),
+        "date": Property(is_datetime=True),
+        "total": Property(),
+        "items": Property(derived_class=InvoiceItem),
     }
 
 
