@@ -252,6 +252,7 @@ class TypeTest(ClientBaseCase):
             self.assertIsNotNone(t.id)
             self.assertIsNotNone(t.label)
             self.assertIsNotNone(t.disk)
+            self.assertIsNotNone(t.type_class)
 
     def test_get_type_by_id(self):
         """
@@ -263,3 +264,4 @@ class TypeTest(ClientBaseCase):
         self.assertEqual(t.vcpus, 1)
         self.assertEqual(t.label, "Linode 1024")
         self.assertEqual(t.disk, 20480)
+        self.assertEqual(t.type_class, 'nanode')

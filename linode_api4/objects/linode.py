@@ -11,6 +11,7 @@ from linode_api4.common import load_and_validate_keys
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import Base, DerivedBase, Image, Property, Region
 from linode_api4.objects.base import MappedObject
+from linode_api4.objects.filtering import FilterableAttribute
 from linode_api4.objects.networking import IPAddress, IPv6Pool
 from linode_api4.paginated_list import PaginatedList
 
@@ -144,7 +145,22 @@ class Type(Base):
         'memory': Property(filterable=True),
         'transfer': Property(filterable=True),
         'vcpus': Property(filterable=True),
+        # type_class is populated from the 'class' attribute of the returned JSON
     }
+
+    def _populate(self, json):
+        """
+        Allows changing the name "class" in JSON to "type_class" in python
+        """
+        super(Type, self)._populate(json)
+
+        if 'class' in json:
+            setattr(self, 'type_class', json['class'])
+        else:
+            setattr(self, 'type_class', None)
+
+    # allow filtering on this converted type
+    type_class = FilterableAttribute('class')
 
 
 class Config(DerivedBase):
