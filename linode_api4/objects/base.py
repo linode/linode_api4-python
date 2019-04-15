@@ -5,6 +5,10 @@ from future.utils import with_metaclass
 
 from .filtering import FilterableMetaclass
 
+
+DATE_FORMAT = "%Y-%m-%dT%H:%M:%S"
+
+
 # The interval to reload volatile properties
 volatile_refresh_timeout = timedelta(seconds=15)
 
@@ -249,7 +253,7 @@ class Base(object, with_metaclass(FilterableMetaclass)):
                     self._set(key, mapping._list) # pylint: disable=no-member
                 elif type(self).properties[key].is_datetime:
                     try:
-                        t = time.strptime(json[key], "%Y-%m-%dT%H:%M:%S")
+                        t = time.strptime(json[key], DATE_FORMAT)
                         self._set(key, datetime.fromtimestamp(time.mktime(t)))
                     except:
                         #TODO - handle this better (or log it?)

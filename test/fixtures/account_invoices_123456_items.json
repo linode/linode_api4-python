@@ -1,0 +1,16 @@
+{
+  "data": [
+    {
+      "from": "2014-12-19T00:27:02",
+      "label": "Linode 2048 - Example",
+      "type": "hourly",
+      "amount": 9.51,
+      "to": "2015-01-01T04:59:59",
+      "quantity": 317,
+      "unit_price": "0.03"
+    }
+  ],
+  "page": 1,
+  "pages": 1,
+  "results": 1
+}
