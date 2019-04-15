@@ -119,8 +119,9 @@ class InvoiceItem(DerivedBase):
         'label': Property(),
         'amount': Property(),
         'quantity': Property(),
-        #'from_date': Property(is_datetime=True),
+        #'from_date': Property(is_datetime=True), this is populated below from the "from" attribute
         'to': Property(is_datetime=True),
+        #'to_date': Property(is_datetime=True), this is populated below from the "to" attribute
         'type': Property(),
     }
 
