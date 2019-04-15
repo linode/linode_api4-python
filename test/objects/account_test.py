@@ -34,3 +34,5 @@ class InvoiceTest(ClientBaseCase):
         self.assertEqual(item.amount, 9.51)
         self.assertEqual(item.quantity, 317)
         self.assertEqual(item.unit_price, "0.03")
+        self.assertEqual(item.from_date, datetime(year=2014, month=12, day=19, hour=0, minute=27, second=2))
+        self.assertEqual(item.to_date, datetime(year=2015, month=1, day=1, hour=4, minute=59, second=59))

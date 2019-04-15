@@ -1,10 +1,11 @@
 from __future__ import absolute_import
 
+from datetime import datetime
 import requests
 
 from linode_api4.errors import ApiError, UnexpectedResponseError
 from linode_api4.objects import (Base, DerivedBase, Domain, Image, Instance,
-                                 Property, StackScript, Volume)
+                                 Property, StackScript, Volume, DATE_FORMAT)
 from linode_api4.objects.longview import LongviewClient, LongviewSubscription
 from linode_api4.objects.nodebalancer import NodeBalancer
 from linode_api4.objects.support import SupportTicket
@@ -118,10 +119,20 @@ class InvoiceItem(DerivedBase):
         'label': Property(),
         'amount': Property(),
         'quantity': Property(),
-        'from': Property(is_datetime=True),
+        #'from_date': Property(is_datetime=True),
         'to': Property(is_datetime=True),
         'type': Property(),
     }
+
+    def _populate(self, json):
+        """
+        Allows population of "from_date" from the returned "from" attribute which
+        is a reserved word in python.  Also populates "to_date" to be complete.
+        """
+        super(InvoiceItem, self)._populate(json)
+
+        self.from_date = datetime.strptime(json['from'], DATE_FORMAT)
+        self.to_date = datetime.strptime(json['to'], DATE_FORMAT)
 
 
 class Invoice(Base):
