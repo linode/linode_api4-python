@@ -85,11 +85,13 @@ setup(
     install_requires=[
         "future",
         "requests",
-    ] if sys.version_info >= (3, 4) else [
-        "future",
-        "requests",
-        "enum34",
     ],
+
+    extras_require={
+        ':python_version < "3.4"': [
+            "enum34",
+        ],
+    },
 
     tests_require=[
         "mock",
