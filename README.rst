@@ -1,8 +1,6 @@
 linode_api4
 ===========
 
-.. highlight:: python
-
 The official python library for the `Linode API v4`_ in python.
 
 **This library is currently in beta.**
