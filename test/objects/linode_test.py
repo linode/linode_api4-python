@@ -38,6 +38,18 @@ class LinodeTest(ClientBaseCase):
         self.assertEqual(linode2.group, linode.group)
         self.assertEqual(linode2._raw_json, linode._raw_json)
 
+    def test_transfer(self):
+        """
+        Tests that you can get transfer
+        """
+        linode = Instance(self.client, 123)
+
+        transfer = linode.transfer
+
+        self.assertEqual(transfer.quota, 471)
+        self.assertEqual(transfer.billable, 0)
+        self.assertEqual(transfer.used, 10369075)
+
     def test_rebuild(self):
         """
         Tests that you can rebuild with an image
