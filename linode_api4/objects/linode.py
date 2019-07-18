@@ -323,6 +323,23 @@ class Instance(Base):
 
         return self._avail_backups
 
+    @property
+    def transfer(self):
+        """
+        Get per-linode transfer
+        """
+        if not hasattr(self, '_transfer'):
+            result = self._client.get("{}/transfer".format(Instance.api_endpoint), model=self)
+
+            if not 'used' in result:
+                raise UnexpectedResponseError('Unexpected response when getting Transfer Pool!')
+
+            mapped = MappedObject(**result)
+
+            setattr(self, '_transfer', mapped)
+
+        return self._transfer
+
     def _populate(self, json):
         if json is not None:
             # fixes ipv4 and ipv6 attribute of json to make base._populate work
@@ -340,6 +357,8 @@ class Instance(Base):
             del self._avail_backups
         if hasattr(self, '_ips'):
             del self._ips
+        if hasattr(self, '_transfer'):
+            del self._transfer
 
         Base.invalidate(self)
 
