@@ -625,6 +625,12 @@ class NetworkingGroup(Group):
         ends up without a public IP, or with more than one private IP, all of
         the assignments will fail.
 
+        .. note::
+           This function *does not* update the local Linode Instance objects
+           when called.  In order to see the new addresses on the local
+           instance objects, be sure to invalidate them with ``invalidate()``
+           after this completes.
+
         Example usage::
 
            linode1 = Instance(client, 123)
@@ -634,6 +640,11 @@ class NetworkingGroup(Group):
            client.networking.assign_ips(linode1.region,
                                         linode1.ips.ipv4.public[0].to(linode2),
                                         linode2.ips.ipv4.public[0].to(linode1))
+
+           # make sure linode1 and linode2 have updated ipv4 and ips values
+           linode1.invalidate()
+           linode2.invalidate()
+
 
         :param region: The Region in which the assignments should take place.
                        All Instances and IPAddresses involved in the assignment
