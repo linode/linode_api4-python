@@ -292,7 +292,7 @@ class Base(object, with_metaclass(FilterableMetaclass)):
 
         :returns: An instance of cls with the given id
         """
-        from .dbase import DerivedBase # pylint: disable=import-outside-toplevel
+        from .dbase import DerivedBase # pylint: disable-all
 
         if issubclass(cls, DerivedBase):
             return cls(client, id, parent_id, json)

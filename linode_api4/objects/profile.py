@@ -92,7 +92,7 @@ class Profile(Base):
         """
         Returns grants for the current user
         """
-        from linode_api4.objects.account import UserGrants # pylint: disable=import-outside-toplevel
+        from linode_api4.objects.account import UserGrants # pylint: disable-all
         resp = self._client.get('/profile/grants') # use special endpoint for restricted users
 
         grants = None
