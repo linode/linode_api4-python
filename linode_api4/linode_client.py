@@ -817,6 +817,15 @@ class ObjectStorageGroup(Group):
         ret = ObjectStorageKeys(self.client, result['id'], result)
         return ret
 
+    def cancel(self):
+        """
+        Cancels Object Storage service.  This may be a destructive operation.  Once
+        cancelled, you will no longer receive the transfer for or be billed for
+        Object Storage, and all keys will be invalidated.
+        """
+        self.client.post('/object-storage/cancel', data={})
+        return True
+
 
 class LinodeClient:
     def __init__(self, token, base_url="https://api.linode.com/v4", user_agent=None):

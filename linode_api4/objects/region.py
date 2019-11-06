@@ -8,4 +8,5 @@ class Region(Base):
     properties = {
         'id': Property(identifier=True),
         'country': Property(filterable=True),
+        'capabilities': Property(),
     }

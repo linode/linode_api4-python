@@ -11,5 +11,11 @@
   "zip": "19106",
   "first_name": "Test",
   "last_name": "Guy",
-  "country": "US"
+  "country": "US",
+  "capabilities": [
+    "Linodes",
+    "NodeBalancers",
+    "Block Storage",
+    "Object Storage"
+  ]
 }

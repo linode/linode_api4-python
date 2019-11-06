@@ -33,6 +33,7 @@ class Account(Base):
         "zip": Property(mutable=True),
         "address_2": Property(mutable=True),
         "tax_id": Property(mutable=True),
+        "capabilities": Property(),
     }
 
 
@@ -43,7 +44,8 @@ class AccountSettings(Base):
     properties = {
         "network_helper": Property(mutable=True),
         "managed": Property(),
-        "longview_subscription": Property(slug_relationship=LongviewSubscription)
+        "longview_subscription": Property(slug_relationship=LongviewSubscription),
+        "object_storage": Property(),
     }
 
 

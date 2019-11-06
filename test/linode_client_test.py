@@ -36,6 +36,7 @@ class LinodeClientGeneralTest(ClientBaseCase):
         self.assertEqual(a.zip, '19106')
         self.assertEqual(a.tax_id, '')
         self.assertEqual(a.balance, 0)
+        self.assertEqual(a.capabilities, ["Linodes","NodeBalancers","Block Storage","Object Storage"])
 
     def test_get_regions(self):
         r = self.client.regions()
@@ -45,6 +46,10 @@ class LinodeClientGeneralTest(ClientBaseCase):
             self.assertTrue(region._populated)
             self.assertIsNotNone(region.id)
             self.assertIsNotNone(region.country)
+            if region.id == 'us-east-1a':
+                self.assertEqual(region.capabilities, ["Linodes","NodeBalancers","Block Storage","Object Storage"])
+            else:
+                self.assertEqual(region.capabilities, ["Linodes","NodeBalancers","Block Storage"])
 
     def test_get_images(self):
         r = self.client.images()
@@ -204,6 +209,7 @@ class AccountGroupTest(ClientBaseCase):
         self.assertEqual(s.managed, False)
         self.assertEqual(type(s.longview_subscription), LongviewSubscription)
         self.assertEqual(s.longview_subscription.id, 'longview-100')
+        self.assertEqual(s.object_storage, "active")
 
     def test_get_invoices(self):
         """
