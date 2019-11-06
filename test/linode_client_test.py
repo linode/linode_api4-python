@@ -418,3 +418,55 @@ class ProfileGroupTest(ClientBaseCase):
                             "CmhW7erNJNVxYjtzseGpBLmRRUTsT038w==dorthu@dorthu-command",
                 "label": "Work Laptop"
             })
+
+class ObjectStorageGroupTest(ClientBaseCase):
+    """
+    Tests for the ObjectStorageGroup
+    """
+    def test_get_clusters(self):
+        """
+        Tests that Object Storage Clusters can be retrieved
+        """
+        clusters = self.client.object_storage.clusters()
+
+        self.assertEqual(len(clusters), 1)
+        cluster = clusters[0]
+
+        self.assertEqual(cluster.id, 'us-east-1')
+        self.assertEqual(cluster.region.id, 'us-east')
+        self.assertEqual(cluster.domain, 'us-east-1.linodeobjects.com')
+        self.assertEqual(cluster.static_site_domain, 'website-us-east-1.linodeobjects.com')
+
+    def test_get_keys(self):
+        """
+        Tests that you can retrieve Object Storage Keys
+        """
+        keys = self.client.object_storage.keys()
+
+        self.assertEqual(len(keys), 2)
+        key1 = keys[0]
+        key2 = keys[1]
+
+        self.assertEqual(key1.id, 1)
+        self.assertEqual(key1.label, 'object-storage-key-1')
+        self.assertEqual(key1.access_key, 'testAccessKeyHere123')
+        self.assertEqual(key1.secret_key, '[REDACTED]')
+
+        self.assertEqual(key2.id, 2)
+        self.assertEqual(key2.label, 'object-storage-key-2')
+        self.assertEqual(key2.access_key, 'testAccessKeyHere456')
+        self.assertEqual(key2.secret_key, '[REDACTED]')
+
+    def test_keys_create(self):
+        """
+        Tests that you can create Object Storage Keys
+        """
+        with self.mock_post('object-storage/keys/1') as m:
+            keys = self.client.object_storage.keys_create('object-storage-key-1')
+
+            self.assertIsNotNone(keys)
+            self.assertEqual(keys.id, 1)
+            self.assertEqual(keys.label, 'object-storage-key-1')
+
+            self.assertEqual(m.call_url, '/object-storage/keys')
+            self.assertEqual(m.call_data, {"label":"object-storage-key-1"})

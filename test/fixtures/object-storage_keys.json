@@ -1,0 +1,19 @@
+{
+  "results": 2,
+  "pages": 1,
+  "data": [
+    {
+      "id": 1,
+      "label": "object-storage-key-1",
+      "secret_key": "[REDACTED]",
+      "access_key": "testAccessKeyHere123"
+    },
+    {
+      "id": 2,
+      "label": "object-storage-key-2",
+      "secret_key": "[REDACTED]",
+      "access_key": "testAccessKeyHere456"
+    }
+  ],
+  "page": 1
+}

@@ -761,6 +761,63 @@ class SupportGroup(Group):
         t = SupportTicket(self.client, result['id'], result)
         return t
 
+
+class ObjectStorageGroup(Group):
+    """
+    This group encapsulates all endpoints under /object-storage, including viewing
+    available clusters and managing keys.
+    """
+    def clusters(self, *filters):
+        """
+        Returns a list of available Object Storage Clusters.  You may filter
+        this query to return only Clusters that are available in a specific region::
+
+           us_east_clusters = client.object_storage.clusters(ObjectStorageCluster.region == "us-east")
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of Object Storage Clusters that matched the query.
+        :rtype: PaginatedList of ObjectStorageCluster
+        """
+        return self.client._get_and_filter(ObjectStorageCluster, *filters)
+
+    def keys(self, *filters):
+        """
+        Returns a list of Object Storage Keys active on this account.  These keys
+        allow third-party applications to interact directly with Linode Object Storage.
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of Object Storage Keys that matched the query.
+        :rtype: PaginatedList of ObjectStorageKeys
+        """
+        return self.client._get_and_filter(ObjectStorageKeys, *filters)
+
+    def keys_create(self, label):
+        """
+        Creates a new Object Storage keypair that may be used to interact directly
+        with Linode Object Storage in third-party applications.  This response is
+        the only time that "secret_key" will be populated - be sure to capture its
+        value or it will be lost forever.
+
+        :param label: The label for this keypair, for identification only.
+        :type label: str
+
+        :returns: The new keypair, with the secret key populated.
+        :rtype: ObjectStorageKeys
+        """
+        params = {
+            "label": label
+        }
+        result = self.client.post('/object-storage/keys', data=params)
+
+        if not 'id' in result:
+            raise UnexpectedResponseError('Unexpected response when creating Object Storage Keys!', json=result)
+
+        ret = ObjectStorageKeys(self.client, result['id'], result)
+        return ret
+
+
 class LinodeClient:
     def __init__(self, token, base_url="https://api.linode.com/v4", user_agent=None):
         """
@@ -807,6 +864,10 @@ class LinodeClient:
         #: Access information related to the Longview service - see
         #: :any:`LongviewGroup` for more information
         self.longview = LongviewGroup(self)
+
+        #: Access methods related to Object Storage - see :any:`ObjectStorageGroup`
+        #: for more information
+        self.object_storage = ObjectStorageGroup(self)
 
     @property
     def _user_agent(self):
