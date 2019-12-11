@@ -254,7 +254,7 @@ class User(Base):
         :returns: The grants for this user.
         :rtype: linode.objects.account.UserGrants
         """
-        from linode_api4.objects.account import UserGrants
+        from linode_api4.objects.account import UserGrants # pylint: disable=import-outside-toplevel
         if not hasattr(self, '_grants'):
             resp = self._client.get(UserGrants.api_endpoint.format(username=self.username))
 

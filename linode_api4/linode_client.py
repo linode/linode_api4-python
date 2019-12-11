@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import json
 import logging
 from datetime import datetime
+import os
 
 import pkg_resources
 import requests
@@ -85,7 +86,6 @@ class LinodeGroup(Group):
             if kwargs['mine_only']:
                 new_filter = Filter({"mine":True})
                 if filters:
-                    filters = [ f for f in filters ]
                     filters[0] = filters[0] & new_filter
                 else:
                     filters = [new_filter]
@@ -301,7 +301,6 @@ class LinodeGroup(Group):
         script_body = script
         if not script.startswith("#!"):
             # it doesn't look like a stackscript body, let's see if it's a file
-            import os
             if os.path.isfile(script):
                 with open(script) as f:
                     script_body = f.read()
@@ -663,7 +662,7 @@ class NetworkingGroup(Group):
 
         self.client.post('/networking/ipv4/assign', data={
             "region": region,
-            "assignments": [ a for a in assignments ],
+            "assignments": assignments,
         })
 
     def ip_allocate(self, linode, public=True):
