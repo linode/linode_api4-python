@@ -86,6 +86,7 @@ class LinodeGroup(Group):
             if kwargs['mine_only']:
                 new_filter = Filter({"mine":True})
                 if filters:
+                    filters = list(filters)
                     filters[0] = filters[0] & new_filter
                 else:
                     filters = [new_filter]
