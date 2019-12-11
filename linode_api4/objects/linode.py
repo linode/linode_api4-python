@@ -189,7 +189,8 @@ class Config(DerivedBase):
         """
         Map devices more nicely while populating.
         """
-        from .volume import Volume
+        # needed here to avoid circular imports
+        from .volume import Volume # pylint: disable=import-outside-toplevel
 
         DerivedBase._populate(self, json)
 
@@ -427,7 +428,8 @@ class Instance(Base):
 
         :returns: A new Linode Config
         """
-        from .volume import Volume
+        # needed here to avoid circular imports
+        from .volume import Volume # pylint: disable=import-outside-toplevel
 
         hypervisor_prefix = 'sd' if self.hypervisor == 'kvm' else 'xvd'
         device_names = [hypervisor_prefix + string.ascii_lowercase[i] for i in range(0, 8)]
