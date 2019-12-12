@@ -1,0 +1,14 @@
+{
+  "pages": 1,
+  "page": 1,
+  "data": [
+    {
+      "id": "us-east-1",
+      "status": "available",
+      "static_site_domain": "website-us-east-1.linodeobjects.com",
+      "region": "us-east",
+      "domain": "us-east-1.linodeobjects.com"
+    }
+  ],
+  "results": 1
+}

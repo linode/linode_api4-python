@@ -36,6 +36,7 @@ class LinodeClientGeneralTest(ClientBaseCase):
         self.assertEqual(a.zip, '19106')
         self.assertEqual(a.tax_id, '')
         self.assertEqual(a.balance, 0)
+        self.assertEqual(a.capabilities, ["Linodes","NodeBalancers","Block Storage","Object Storage"])
 
     def test_get_regions(self):
         r = self.client.regions()
@@ -45,6 +46,10 @@ class LinodeClientGeneralTest(ClientBaseCase):
             self.assertTrue(region._populated)
             self.assertIsNotNone(region.id)
             self.assertIsNotNone(region.country)
+            if region.id == 'us-east-1a':
+                self.assertEqual(region.capabilities, ["Linodes","NodeBalancers","Block Storage","Object Storage"])
+            else:
+                self.assertEqual(region.capabilities, ["Linodes","NodeBalancers","Block Storage"])
 
     def test_get_images(self):
         r = self.client.images()
@@ -204,6 +209,7 @@ class AccountGroupTest(ClientBaseCase):
         self.assertEqual(s.managed, False)
         self.assertEqual(type(s.longview_subscription), LongviewSubscription)
         self.assertEqual(s.longview_subscription.id, 'longview-100')
+        self.assertEqual(s.object_storage, "active")
 
     def test_get_invoices(self):
         """
@@ -418,3 +424,55 @@ class ProfileGroupTest(ClientBaseCase):
                             "CmhW7erNJNVxYjtzseGpBLmRRUTsT038w==dorthu@dorthu-command",
                 "label": "Work Laptop"
             })
+
+class ObjectStorageGroupTest(ClientBaseCase):
+    """
+    Tests for the ObjectStorageGroup
+    """
+    def test_get_clusters(self):
+        """
+        Tests that Object Storage Clusters can be retrieved
+        """
+        clusters = self.client.object_storage.clusters()
+
+        self.assertEqual(len(clusters), 1)
+        cluster = clusters[0]
+
+        self.assertEqual(cluster.id, 'us-east-1')
+        self.assertEqual(cluster.region.id, 'us-east')
+        self.assertEqual(cluster.domain, 'us-east-1.linodeobjects.com')
+        self.assertEqual(cluster.static_site_domain, 'website-us-east-1.linodeobjects.com')
+
+    def test_get_keys(self):
+        """
+        Tests that you can retrieve Object Storage Keys
+        """
+        keys = self.client.object_storage.keys()
+
+        self.assertEqual(len(keys), 2)
+        key1 = keys[0]
+        key2 = keys[1]
+
+        self.assertEqual(key1.id, 1)
+        self.assertEqual(key1.label, 'object-storage-key-1')
+        self.assertEqual(key1.access_key, 'testAccessKeyHere123')
+        self.assertEqual(key1.secret_key, '[REDACTED]')
+
+        self.assertEqual(key2.id, 2)
+        self.assertEqual(key2.label, 'object-storage-key-2')
+        self.assertEqual(key2.access_key, 'testAccessKeyHere456')
+        self.assertEqual(key2.secret_key, '[REDACTED]')
+
+    def test_keys_create(self):
+        """
+        Tests that you can create Object Storage Keys
+        """
+        with self.mock_post('object-storage/keys/1') as m:
+            keys = self.client.object_storage.keys_create('object-storage-key-1')
+
+            self.assertIsNotNone(keys)
+            self.assertEqual(keys.id, 1)
+            self.assertEqual(keys.label, 'object-storage-key-1')
+
+            self.assertEqual(m.call_url, '/object-storage/keys')
+            self.assertEqual(m.call_data, {"label":"object-storage-key-1"})

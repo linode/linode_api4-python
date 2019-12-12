@@ -3,39 +3,92 @@
   "data": [
     {
       "country": "us",
-      "id": "us-south-1a"
+      "id": "us-south-1a",
+      "capabilities": [
+        "Linodes",
+        "NodeBalancers",
+        "Block Storage"
+      ]
+
     },
     {
       "country": "us",
-      "id": "us-west-1a"
+      "id": "us-west-1a",
+      "capabilities": [
+        "Linodes",
+        "NodeBalancers",
+        "Block Storage"
+      ]
+
     },
     {
       "country": "us",
-      "id": "us-southeast-1a"
+      "id": "us-southeast",
+      "capabilities": [
+        "Linodes",
+        "NodeBalancers",
+        "Block Storage"
+      ]
     },
     {
       "country": "us",
-      "id": "us-east-1a"
+      "id": "us-east-1a",
+      "capabilities": [
+        "Linodes",
+        "NodeBalancers",
+        "Block Storage",
+        "Object Storage"
+      ]
+
     },
     {
       "country": "uk",
-      "id": "eu-west-1a"
+      "id": "eu-west-1a",
+      "capabilities": [
+        "Linodes",
+        "NodeBalancers",
+        "Block Storage"
+      ]
+
     },
     {
       "country": "sg",
-      "id": "ap-south-1a"
+      "id": "ap-south-1a",
+      "capabilities": [
+        "Linodes",
+        "NodeBalancers",
+        "Block Storage"
+      ]
+
     },
     {
       "country": "de",
-      "id": "eu-central-1a"
+      "id": "eu-central-1a",
+      "capabilities": [
+        "Linodes",
+        "NodeBalancers",
+        "Block Storage"
+      ]
+
     },
     {
       "country": "jp",
-      "id": "ap-northeast-1b"
+      "id": "ap-northeast-1b",
+      "capabilities": [
+        "Linodes",
+        "NodeBalancers",
+        "Block Storage"
+      ]
+
     },
     {
       "country": "jp",
-      "id": "ap-northeast-1a"
+      "id": "ap-northeast-1a",
+      "capabilities": [
+        "Linodes",
+        "NodeBalancers",
+        "Block Storage"
+      ]
     }
   ],
   "page": 1,
