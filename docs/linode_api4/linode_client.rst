@@ -93,6 +93,17 @@ Includes methods for interacting with our Longview service.
 .. autoclass:: linode_api4.linode_client.LongviewGroup
    :members:
 
+ObjectStorageGroup
+^^^^^^^^^^^^^^^^^^
+
+Includes methods for interacting with Linode Objects Storage.  For interacting
+with buckets and objects, use the s3 API directly with a library like `boto3`_.
+
+.. autoclass:: linode_api4.linode_client.ObjectStorageGroup
+   :members:
+
+.. _boto3: https://github.com/boto/boto3
+
 SupportGroup
 ^^^^^^^^^^^^
 
