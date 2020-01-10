@@ -21,6 +21,7 @@ class DomainRecord(DerivedBase):
         'service': Property(mutable=True),
         'protocol': Property(mutable=True),
         'ttl_sec': Property(mutable=True),
+        'tag': Property(mutable=True),
     }
 
 
