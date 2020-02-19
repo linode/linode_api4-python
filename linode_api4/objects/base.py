@@ -72,7 +72,7 @@ class MappedObject:
     
     @property
     def dict(self):
-        return self.__dict__
+        return dict(self.__dict__)
 
 class Base(object, with_metaclass(FilterableMetaclass)):
     """
@@ -195,7 +195,7 @@ class Base(object, with_metaclass(FilterableMetaclass)):
         for k, v in result.items():
             if isinstance(v, Base):
                 result[k] = v.id
-            elif type(v)==MappedObject:
+            elif isinstance(v,MappedObject):
                 result[k] = v.dict
 
         return result
