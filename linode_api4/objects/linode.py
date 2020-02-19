@@ -222,7 +222,7 @@ class Instance(Base):
         'created': Property(is_datetime=True),
         'updated': Property(volatile=True, is_datetime=True),
         'region': Property(slug_relationship=Region, filterable=True),
-        'alerts': Property(),
+        'alerts': Property(mutable=True),
         'image': Property(slug_relationship=Image, filterable=True),
         'disks': Property(derived_class=Disk),
         'configs': Property(derived_class=Config),
