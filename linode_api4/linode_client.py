@@ -346,7 +346,7 @@ class ProfileGroup(Group):
         if not 'username' in result:
             raise UnexpectedResponseError('Unexpected response when getting profile!', json=result)
 
-        p = Profile(self, result['username'], result)
+        p = Profile(self.client, result['username'], result)
         return p
 
     def tokens(self, *filters):

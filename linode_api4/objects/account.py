@@ -34,6 +34,7 @@ class Account(Base):
         "address_2": Property(mutable=True),
         "tax_id": Property(mutable=True),
         "capabilities": Property(),
+        'credit_card': Property(),
     }
 
 
