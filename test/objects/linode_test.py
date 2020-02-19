@@ -124,6 +124,13 @@ class LinodeTest(ClientBaseCase):
 
             self.assertEqual(m.call_url, '/linode/instances/123')
             self.assertEqual(m.call_data, {
+                "alerts": {
+                    "cpu": 90,
+                    "io": 5000,
+                    "network_in": 5,
+                    "network_out": 5,
+                    "transfer_quota": 80
+                },
                 "label": "NewLinodeLabel",
                 "group": "new_group",
                 "tags": ["something"],
