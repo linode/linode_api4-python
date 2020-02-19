@@ -173,7 +173,7 @@ class FilterableAttribute:
         return Filter({ self.name: other })
 
     def __ne__(self, other):
-        return Filter({ self.name: { "+ne": other } })
+        return Filter({ self.name: { "+neq": other } })
 
     # "in" evaluates the return value - have to use 
     # type.contains instead
