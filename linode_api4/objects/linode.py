@@ -735,7 +735,7 @@ class Instance(Base):
         # TODO - this would be nicer if we formatted the stats
         if not isinstance(dt, datetime):
             raise TypeError('stats_for requires a datetime object!')
-        return self._client.get('{}/stats/'.format(dt.strftime('%Y/%m')))
+        return self._client.get('{}/stats/{}'.format(Instance.api_endpoint, dt.strftime('%Y/%m')), model=self)
 
 
 class UserDefinedFieldType(Enum):
