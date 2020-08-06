@@ -272,6 +272,7 @@ class TypeTest(ClientBaseCase):
             self.assertIsNotNone(t.label)
             self.assertIsNotNone(t.disk)
             self.assertIsNotNone(t.type_class)
+            self.assertIsNotNone(t.gpus)
 
     def test_get_type_by_id(self):
         """
@@ -281,6 +282,17 @@ class TypeTest(ClientBaseCase):
         self.assertEqual(t._populated, False)
 
         self.assertEqual(t.vcpus, 1)
+        self.assertEqual(t.gpus, 0)
         self.assertEqual(t.label, "Linode 1024")
         self.assertEqual(t.disk, 20480)
         self.assertEqual(t.type_class, 'nanode')
+
+    def test_get_type_gpu(self):
+        """
+        Tests that gpu types load up right
+        """
+        t = Type(self.client, "g5-gpu-2")
+        self.assertEqual(t._populated, False)
+
+        self.assertEqual(t.gpus, 1)
+        self.assertEqual(t._populated, True)
