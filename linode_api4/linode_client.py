@@ -679,7 +679,7 @@ class NetworkingGroup(Group):
         :returns: The new IPAddress
         :rtype: IPAddress
         """
-        result = self.client.post('/networking/ipv4/', data={
+        result = self.client.post('/networking/ips/', data={
             "linode_id": linode.id if isinstance(linode, Base) else linode,
             "type": "ipv4",
             "public": public,
