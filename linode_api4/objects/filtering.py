@@ -228,4 +228,4 @@ class FilterableMetaclass(type):
                 #else:
                 #    setattr(cls, key, NonFilterableAttribute(cls.__name__, key))
 
-        super(FilterableMetaclass, cls).__init__(name, bases, dct)
+        super().__init__(name, bases, dct)

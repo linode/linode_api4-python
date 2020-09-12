@@ -133,7 +133,7 @@ class InvoiceItem(DerivedBase):
         Allows population of "from_date" from the returned "from" attribute which
         is a reserved word in python.  Also populates "to_date" to be complete.
         """
-        super(InvoiceItem, self)._populate(json)
+        super()._populate(json)
 
         self.from_date = datetime.strptime(json['from'], DATE_FORMAT)
         self.to_date = datetime.strptime(json['to'], DATE_FORMAT)
