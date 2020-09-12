@@ -44,11 +44,9 @@ class OAuthScopes:
         """
         Access to Linodes
         """
-        view = 0
-        create = 1
-        modify = 2
-        delete = 3
-        all = 4
+        read_only = 0
+        read_write = 1
+        all = 2
 
         def __repr__(self):
             if(self.name == 'all'):
@@ -59,11 +57,9 @@ class OAuthScopes:
         """
         Access to Domains
         """
-        view = 0
-        create = 1
-        modify = 2
-        delete = 3
-        all = 4
+        read_only = 0
+        read_write = 1
+        all = 2
 
         def __repr__(self):
             if(self.name == 'all'):
@@ -74,11 +70,9 @@ class OAuthScopes:
         """
         Access to private StackScripts
         """
-        view = 0
-        create = 1
-        modify = 2
-        delete = 3
-        all = 4
+        read_only = 0
+        read_write = 1
+        all = 2
 
         def __repr__(self):
             if(self.name == 'all'):
@@ -86,11 +80,9 @@ class OAuthScopes:
             return "stackscripts:{}".format(self.name)
 
     class Users(Enum):
-        view = 0
-        create = 1
-        modify = 2
-        delete = 3
-        all = 4
+        read_only = 0
+        read_write = 1
+        all = 2
 
         def __repr__(self):
             if(self.name == 'all'):
@@ -101,11 +93,9 @@ class OAuthScopes:
         """
         Access to NodeBalancers
         """
-        view = 0
-        create = 1
-        modify = 2
-        delete = 3
-        all = 4
+        read_only = 0
+        read_write = 1
+        all = 2
 
         def __repr__(self):
             if(self.name == 'all'):
@@ -113,11 +103,9 @@ class OAuthScopes:
             return "nodebalancers:{}".format(self.name)
 
     class Tokens(Enum):
-        view = 0
-        create = 1
-        modify = 2
-        delete = 3
-        all = 4
+        read_only = 0
+        read_write = 1
+        all = 2
 
         def __repr__(self):
             if(self.name == 'all'):
@@ -128,11 +116,9 @@ class OAuthScopes:
         """
         Access to IPs and networking managements
         """
-        view = 0
-        create = 1
-        modify = 2
-        delete = 3
-        all = 4
+        read_only = 0
+        read_write = 1
+        all = 2
 
         def __repr__(self):
             if(self.name == 'all'):
@@ -143,11 +129,9 @@ class OAuthScopes:
         """
         Access to view, open, and respond to Support Tickets
         """
-        view = 0
-        create = 1
-        modify = 2
-        delete = 3
-        all = 4
+        read_only = 0
+        read_write = 1
+        all = 2
 
         def __repr__(self):
             if(self.name == 'all'):
@@ -155,11 +139,9 @@ class OAuthScopes:
             return "tickets:{}".format(self.name)
 
     class Clients(Enum):
-        view = 0
-        create = 1
-        modify = 2
-        delete = 3
-        all = 4
+        read_only = 0
+        read_write = 1
+        all = 2
 
         def __repr__(self):
             if(self.name == 'all'):
@@ -171,11 +153,9 @@ class OAuthScopes:
         Access to the user's account, including billing information, tokens
         management, user management, etc.
         """
-        view = 0
-        create = 1
-        modify = 2
-        delete = 3
-        all = 4
+        read_only = 0
+        read_write = 1
+        all = 2
 
         def __repr__(self):
             if(self.name == 'all'):
@@ -186,11 +166,9 @@ class OAuthScopes:
         """
         Access to a user's Events
         """
-        view = 0
-        create = 1
-        modify = 2
-        delete = 3
-        all = 4
+        read_only = 0
+        read_write = 1
+        all = 2
 
         def __repr__(self):
             if(self.name == 'all'):
@@ -201,16 +179,53 @@ class OAuthScopes:
         """
         Access to Block Storage Volumes
         """
-        view = 0
-        create = 1
-        modify = 2
-        delete = 3
-        all = 4
+        read_only = 0
+        read_write = 1
+        all = 2
 
         def __repr__(self):
             if(self.name == 'all'):
                 return "volumes:*"
             return "volumes:{}".format(self.name)
+
+    class LKE(Enum):
+        """
+        Access to LKE Endpoint
+        """
+        read_only = 0
+        read_write = 1
+        all = 2
+
+        def __repr__(self):
+            if(self.name == 'all'):
+                return "lke:*"
+            return "lke:{}".format(self.name)
+
+    class ObjectStorage(Enum):
+        """
+        Access to Object Storage
+        """
+        read_only = 0
+        read_write = 1
+        all = 2
+
+        def __repr__(self):
+            if(self.name == 'all'):
+                return "object_storage:*"
+            return "object_storage:{}".format(self.name)
+
+    class Longview(Enum):
+        """
+        Access to Longview
+        """
+        read_only = 0
+        read_write = 1
+        all = 2
+
+        def __repr__(self):
+            if(self.name == 'all'):
+                return "longview:*"
+            return "longview:{}".format(self.name)
 
     _scope_families = {
         'linodes': Linodes,
@@ -218,6 +233,16 @@ class OAuthScopes:
         'stackscripts': StackScripts,
         'users': Users,
         'tokens': Tokens,
+        'ips': IPs,
+        'tickets': Tickets,
+        'clients': Clients,
+        'account': Account,
+        'events': Events,
+        'volumes': Volumes,
+        'lke': LKE,
+        'object_storage': ObjectStorage,
+        'nodebalancers': NodeBalancers,
+        'longview': Longview,
     }
 
     @staticmethod
