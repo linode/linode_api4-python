@@ -1,8 +1,6 @@
 import time
 from datetime import datetime, timedelta
 
-from future.utils import with_metaclass
-
 from .filtering import FilterableMetaclass
 
 
@@ -74,7 +72,7 @@ class MappedObject:
     def dict(self):
         return dict(self.__dict__)
 
-class Base(object, with_metaclass(FilterableMetaclass)):
+class Base(object, metaclass=FilterableMetaclass):
     """
     The Base class knows how to look up api properties of a model, and lazy-load them.
     """

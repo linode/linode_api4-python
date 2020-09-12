@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 from linode_api4.objects import Base, Property
 
 
