@@ -129,7 +129,8 @@ class LinodeGroup(Group):
 
            ltype = client.linode.types().first()
            region = client.regions().first()
-           image = client.images().first()
+           image = client.images().first(:param kwargs: Any other arguments to pass along to the API.  See the API
+                       docs for possible values.
 
            another_linode, password = client.linode.instance_create(
                ltype,
@@ -428,6 +429,105 @@ class ProfileGroup(Group):
         return ssh_key
 
 
+class LKEGroup(Group):
+    """
+    Encapsulates LKE-related methods of the :any:`LinodeClient`.  This
+    should not be instantiated on its own, but should instead be used through
+    an instance of :any:`LinodeClient`::
+
+       client = LinodeClient(token)
+       instances = client.lke.clusters() # use the LKEGroup
+
+    This group contains all features beneath the `/lke` group in the API v4.
+    """
+    def versions(self, *filters):
+        """
+        Returns a :any:`PaginatedList` of :any:`KubeVersion` objects that can be
+        used when creating an LKE Cluster.
+
+        :param filters: Any number of filters to apply to the query.
+
+        :returns: A Paginated List of kube versions that match the query.
+        :rtype: PaginatedList of KubeVersion
+        """
+        return self.client._get_and_filter(KubeVersion, *filters)
+
+    def clusters(self, *filters):
+        """
+        Returns a :any:`PaginagtedList` of :any:`LKECluster` objects that belong
+        to this account.
+
+        :param filters: Any number of filters to apply to the query.
+
+        :returns: A Paginated List of LKE clusters that match the query.
+        :rtype: PaginatedList of LKECluster
+        """
+        return self.client._get_and_filter(LKECluster, *filters)
+
+    def cluster_create(self, region, label, node_pools, **kwargs):
+        """
+        Creates an :any:`LKECluster` on this account.
+
+        :param region: The Region to create this LKE Cluster in.
+        :type region: Region of str
+        :param label: The label for the new LKE Cluster.
+        :type label: str
+        :param node_pools: The Node Pools to create.
+        :type node_pools: one or a list of dicts containing keys "type" and "count".  See
+                          :any:`node_pool` for a convenient way to create correctly-
+                          formatted dicts.
+        :param kwargs: Any other arguments to pass along to the API.  See the API
+                       docs for possible values.
+
+        :returns: The new LKE Cluster
+        :rtype: LKECluster
+        """
+        pools = []
+        if not isinstance(node_pools, list):
+            node_pools = [node_pools]
+
+        for c in node_pools:
+            if isinstance(c, dict):
+                new_pool = {
+                    "type": c["type"].id if "type" in c and issubclass(c["type"], Base) else c.get("type"),
+                    "count": c.get("count"),
+                }
+
+                pools += [new_pool]
+
+        params = {
+            "label": label,
+            "region": region.id if issubclass(region, Base) else region,
+            "node_pools": pools,
+        }
+        params.update(kwargs)
+
+        result = self.client.post('/lke/clusters', data=params)
+
+        if not 'id' in result:
+            raise UnexpectedResponseError('Unexpected response when creating lke cluster!', json=result)
+
+        return LKECluster(self.client, result['id'], result)
+
+    def node_pool(self, node_type, node_count):
+        """
+        Returns a dict that is suitable for passing into the `node_pools` array
+        of :any:`cluster_create`.  This is a convenience method, and need not be
+        used to create Node Pools.  For proper usage, see the docs for :any:`cluster_create`.
+
+        :param node_type: The type of node to create in this node pool.
+        :type node_type: Type or str
+        :param node_count: The number of nodes to create in this node pool.
+        :type node_count: int
+
+        :returns: A dict describing the desired node pool.
+        :rtype: dict
+        """
+        return {
+            "type": node_type,
+            "count": node_count,
+        }
+
 class LongviewGroup(Group):
     def clients(self, *filters):
         """
@@ -690,7 +790,7 @@ class NetworkingGroup(Group):
         ip = IPAddress(self.client, result['address'], result)
         return ip
 
-    def shared_ips(self, linode, *ips):
+    def ips_share(self, linode, *ips):
         """
         Shares the given list of :any:`IPAddresses<IPAddress>` with the provided
         :any:`Instance`.  This will enable the provided Instance to bring up the
@@ -875,6 +975,9 @@ class LinodeClient:
         #: Access methods related to Object Storage - see :any:`ObjectStorageGroup`
         #: for more information
         self.object_storage = ObjectStorageGroup(self)
+
+        #: Access methods related to LKE - see :any:`LKEGroup` for more information.
+        self.lke = LKEGroup(self)
 
     @property
     def _user_agent(self):
