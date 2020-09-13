@@ -114,7 +114,7 @@ class LKECluster(Base):
         in base64.  Note that this config contains sensitive credentials to your
         cluster.
 
-        To convert this config into a readable form, use python's `base64` module:
+        To convert this config into a readable form, use python's `base64` module::
 
            import base64
 

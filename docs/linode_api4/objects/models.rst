@@ -41,6 +41,15 @@ Linode Models
    :undoc-members:
    :inherited-members:
 
+LKE Models
+----------
+
+.. automodule:: linode_api4.objects.lke
+   :members:
+   :exclude-members: api_endpoint, properties, derived_url_path, id_attribute, parent_id_name
+   :undoc-members:
+   :inherited-members:
+
 Longview Models
 ---------------
 
