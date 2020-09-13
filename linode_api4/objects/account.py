@@ -8,11 +8,6 @@ from linode_api4.objects.longview import LongviewClient, LongviewSubscription
 from linode_api4.objects.nodebalancer import NodeBalancer
 from linode_api4.objects.support import SupportTicket
 
-# TODO - UPDATE THESE (out of date)
-normal_grants = ('all', 'access', 'delete')
-stackscript_grants = ('all', 'use', 'edit', 'delete')
-linode_grants = ('all', 'access', 'delete', 'resize')
-
 class Account(Base):
     api_endpoint = "/account"
     id_attribute = 'email'
@@ -112,8 +107,6 @@ class InvoiceItem(DerivedBase):
     parent_id_name='invoice_id'
     id_attribute = 'label' # this has to be something
 
-    # TODO - this object doesn't have its own ID .. this might need
-    # special handling
     properties = {
         'invoice_id': Property(identifier=True),
         'unit_price': Property(),
