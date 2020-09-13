@@ -1,3 +1,4 @@
+from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import (
     Base, DerivedBase, Property, Region, Type, Instance, MappedObject
 )
@@ -103,7 +104,7 @@ class LKECluster(Base):
         if not hasattr(self, "_api_endpoints"):
             results = self._client.get("{}/api-endpoints".format(LKECluster.api_endpoint), model=self)
         
-            self._api_endpoints = [MappedObject(**c) for c in results["data"]]
+            self._api_endpoints = [MappedObject(**c) for c in results["data"]] # pylint: disable=attribute-defined-outside-init
 
         return self._api_endpoints
 
@@ -131,7 +132,8 @@ class LKECluster(Base):
         if not hasattr(self, "_kubeconfig"):
             result = self._client.get("{}/kubeconfig".format(LKECluster.api_endpoint), model=self)
 
-            self._kubeconfig = result["kubeconfig"]
+            self._kubeconfig = result["kubeconfig"] # pylint: disable=attribute-defined-outside-init
+
 
         return self._kubeconfig
 
