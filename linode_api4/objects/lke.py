@@ -41,7 +41,7 @@ class LKENodePool(DerivedBase):
     An LKE Node Pool describes a pool of Linode Instances that exist within an
     LKE Cluster.
     """
-    api_endpoint = "/lke/clustters/{cluster_id}/pools/{id}"
+    api_endpoint = "/lke/clusters/{cluster_id}/pools/{id}"
     derived_url_path = 'pools'
     parent_id = "linode_id"
 

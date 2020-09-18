@@ -520,7 +520,7 @@ class LKEGroup(Group):
         result = self.client.post('/lke/clusters', data=params)
 
         if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating lke cluster!', json=result)
+            raise UnexpectedResponseError('Unexpected response when creating LKE cluster!', json=result)
 
         return LKECluster(self.client, result['id'], result)
 
