@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 import math
 
 
@@ -128,7 +126,7 @@ class PaginatedList(object):
 
         # we do not support steps outside of 1 yet
         if s.step is not None and s.step != 1:
-            raise NotImplementedError('TODO')
+            raise NotImplementedError('Only step sizes of 1 are currently supported.')
 
         # if i or j are negative, normalize them
         if i < 0:

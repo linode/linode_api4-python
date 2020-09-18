@@ -1,8 +1,6 @@
 import time
 from datetime import datetime, timedelta
 
-from future.utils import with_metaclass
-
 from .filtering import FilterableMetaclass
 
 
@@ -74,7 +72,7 @@ class MappedObject:
     def dict(self):
         return dict(self.__dict__)
 
-class Base(object, with_metaclass(FilterableMetaclass)):
+class Base(object, metaclass=FilterableMetaclass):
     """
     The Base class knows how to look up api properties of a model, and lazy-load them.
     """
@@ -262,7 +260,9 @@ class Base(object, with_metaclass(FilterableMetaclass)):
                         t = time.strptime(json[key], DATE_FORMAT)
                         self._set(key, datetime.fromtimestamp(time.mktime(t)))
                     except:
-                        #TODO - handle this better (or log it?)
+                        # if this came back, there's probably an issue with the
+                        # python library; a field was marked as a datetime but
+                        # wasn't in the expected format.
                         self._set(key, json[key])
                 else:
                     self._set(key, json[key])

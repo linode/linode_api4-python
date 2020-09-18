@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 import json
 import logging
 from datetime import datetime
@@ -430,6 +428,120 @@ class ProfileGroup(Group):
         return ssh_key
 
 
+class LKEGroup(Group):
+    """
+    Encapsulates LKE-related methods of the :any:`LinodeClient`.  This
+    should not be instantiated on its own, but should instead be used through
+    an instance of :any:`LinodeClient`::
+
+       client = LinodeClient(token)
+       instances = client.lke.clusters() # use the LKEGroup
+
+    This group contains all features beneath the `/lke` group in the API v4.
+    """
+    def versions(self, *filters):
+        """
+        Returns a :any:`PaginatedList` of :any:`KubeVersion` objects that can be
+        used when creating an LKE Cluster.
+
+        :param filters: Any number of filters to apply to the query.
+
+        :returns: A Paginated List of kube versions that match the query.
+        :rtype: PaginatedList of KubeVersion
+        """
+        return self.client._get_and_filter(KubeVersion, *filters)
+
+    def clusters(self, *filters):
+        """
+        Returns a :any:`PaginagtedList` of :any:`LKECluster` objects that belong
+        to this account.
+
+        :param filters: Any number of filters to apply to the query.
+
+        :returns: A Paginated List of LKE clusters that match the query.
+        :rtype: PaginatedList of LKECluster
+        """
+        return self.client._get_and_filter(LKECluster, *filters)
+
+    def cluster_create(self, region, label, node_pools, **kwargs):
+        """
+        Creates an :any:`LKECluster` on this account in the given region, with
+        the given label, and with node pools as described.  For example::
+
+           client = LinodeClient(TOKEN)
+
+           # look up Region and Types to use.  In this example I'm just using
+           # the first ones returned.
+           target_region = client.regions().first()
+           node_type = client.linode.types()[0]
+           node_type_2 = client.linode.types()[1]
+
+           new_cluster = client.lke.cluster_create(
+               target_region,
+               "example-cluster",
+               [client.lke.node_pool(node_type, 3), client.lke.node_pool(node_type_2, 3)]
+            )
+
+        :param region: The Region to create this LKE Cluster in.
+        :type region: Region of str
+        :param label: The label for the new LKE Cluster.
+        :type label: str
+        :param node_pools: The Node Pools to create.
+        :type node_pools: one or a list of dicts containing keys "type" and "count".  See
+                          :any:`node_pool` for a convenient way to create correctly-
+                          formatted dicts.
+        :param kwargs: Any other arguments to pass along to the API.  See the API
+                       docs for possible values.
+
+        :returns: The new LKE Cluster
+        :rtype: LKECluster
+        """
+        pools = []
+        if not isinstance(node_pools, list):
+            node_pools = [node_pools]
+
+        for c in node_pools:
+            if isinstance(c, dict):
+                new_pool = {
+                    "type": c["type"].id if "type" in c and issubclass(c["type"], Base) else c.get("type"),
+                    "count": c.get("count"),
+                }
+
+                pools += [new_pool]
+
+        params = {
+            "label": label,
+            "region": region.id if issubclass(region, Base) else region,
+            "node_pools": pools,
+        }
+        params.update(kwargs)
+
+        result = self.client.post('/lke/clusters', data=params)
+
+        if not 'id' in result:
+            raise UnexpectedResponseError('Unexpected response when creating LKE cluster!', json=result)
+
+        return LKECluster(self.client, result['id'], result)
+
+    def node_pool(self, node_type, node_count):
+        """
+        Returns a dict that is suitable for passing into the `node_pools` array
+        of :any:`cluster_create`.  This is a convenience method, and need not be
+        used to create Node Pools.  For proper usage, see the docs for :any:`cluster_create`.
+
+        :param node_type: The type of node to create in this node pool.
+        :type node_type: Type or str
+        :param node_count: The number of nodes to create in this node pool.
+        :type node_count: int
+
+        :returns: A dict describing the desired node pool.
+        :rtype: dict
+        """
+        return {
+            "type": node_type,
+            "count": node_count,
+        }
+
 class LongviewGroup(Group):
     def clients(self, *filters):
         """
@@ -692,7 +804,7 @@ class NetworkingGroup(Group):
         ip = IPAddress(self.client, result['address'], result)
         return ip
 
-    def shared_ips(self, linode, *ips):
+    def ips_share(self, linode, *ips):
         """
         Shares the given list of :any:`IPAddresses<IPAddress>` with the provided
         :any:`Instance`.  This will enable the provided Instance to bring up the
@@ -793,15 +905,51 @@ class ObjectStorageGroup(Group):
         """
         return self.client._get_and_filter(ObjectStorageKeys, *filters)
 
-    def keys_create(self, label):
+    def keys_create(self, label, bucket_access=None):
         """
         Creates a new Object Storage keypair that may be used to interact directly
         with Linode Object Storage in third-party applications.  This response is
         the only time that "secret_key" will be populated - be sure to capture its
         value or it will be lost forever.
 
+        If given, `bucket_access` will cause the new keys to be restricted to only
+        the specified level of access for the specified buckets.  For example, to
+        create a keypair that can only access the "example" bucket in all clusters
+        (and assuming you own that bucket in every cluster), you might do this::
+
+           client = LinodeClient(TOKEN)
+
+           # look up clusters
+           all_clusters = client.object_storage.clusters()
+
+           new_keys = client.object_storage.keys_create(
+               "restricted-keys",
+               bucket_access=[
+                   client.object_storage.bucket_access(cluster, "example", "read_write")
+                   for cluster in all_clusters
+               ],
+           )
+
+        To create a keypair that can only read from the bucket "example2" in the
+        "us-east-1" cluster (an assuming you own that bucket in that cluster),
+        you might do this::
+
+           client = LinodeClient(TOKEN)
+           new_keys_2 = client.object_storage.keys_create(
+               "restricted-keys-2",
+               bucket_access=client.object_storage.bucket_access("us-east-1", "example2", "read_only"),
+           )
+
         :param label: The label for this keypair, for identification only.
         :type label: str
+        :param bucket_access: One or a list of dicts with keys "cluster,"
+                              "permissions", and "bucket_name".  If given, the
+                              resulting Object Storage keys will only have the
+                              requested level of access to the requested buckets,
+                              if they exist and are owned by you.  See the provided
+                              :any:`bucket_access` function for a convenient way
+                              to create these dicts.
+        :type bucket_access: dict or list of dict
 
         :returns: The new keypair, with the secret key populated.
         :rtype: ObjectStorageKeys
@@ -809,6 +957,21 @@ class ObjectStorageGroup(Group):
         params = {
             "label": label
         }
+
+        if bucket_access is not None:
+            if not isinstance(bucket_access, list):
+                bucket_access = [bucket_access]
+
+            ba = [
+                {
+                    "permissions": c.get("permissions"),
+                    "bucket_name": c.get("bucket_name"),
+                    "cluster": c.id if "cluster" in c and issubclass(c["cluster"], Base) else c.get("cluster"),
+                } for c in bucket_access
+            ]
+
+            params['bucket_access'] = ba
+
         result = self.client.post('/object-storage/keys', data=params)
 
         if not 'id' in result:
@@ -816,6 +979,30 @@ class ObjectStorageGroup(Group):
 
         ret = ObjectStorageKeys(self.client, result['id'], result)
         return ret
+
+    def bucket_access(self, cluster, bucket_name, permissions):
+        """
+        Returns a dict formatted to be included in the `bucket_access` argument
+        of :any:`keys_create`.  See the docs for that method for an example of
+        usage.
+
+        :param cluster: The Object Storage cluster to grant access in.
+        :type cluster: :any:`ObjectStorageCluster` or str
+        :param bucket_name: The name of the bucket to grant access to.
+        :type bucket_name: str
+        :param permissions: The permissions to grant.  Should be one of "read_only"
+                            or "read_write".
+        :type permissions: str
+
+        :returns: A dict formatted correctly for specifying  bucket access for
+                  new keys.
+        :rtype: dict
+        """
+        return {
+            "cluster": cluster,
+            "bucket_name": bucket_name,
+            "permissions": permissions,
+        }
 
     def cancel(self):
         """
@@ -877,6 +1064,9 @@ class LinodeClient:
         #: Access methods related to Object Storage - see :any:`ObjectStorageGroup`
         #: for more information
         self.object_storage = ObjectStorageGroup(self)
+
+        #: Access methods related to LKE - see :any:`LKEGroup` for more information.
+        self.lke = LKEGroup(self)
 
     @property
     def _user_agent(self):

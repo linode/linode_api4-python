@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 import os
 
 from linode_api4.errors import UnexpectedResponseError

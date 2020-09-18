@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 import string
 import sys
 from datetime import datetime
@@ -153,7 +151,7 @@ class Type(Base):
         """
         Allows changing the name "class" in JSON to "type_class" in python
         """
-        super(Type, self)._populate(json)
+        super()._populate(json)
 
         if 'class' in json:
             setattr(self, 'type_class', json['class'])

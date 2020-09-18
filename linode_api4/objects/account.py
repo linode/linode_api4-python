@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 from datetime import datetime
 import requests
 
@@ -9,11 +7,6 @@ from linode_api4.objects import (Base, DerivedBase, Domain, Image, Instance,
 from linode_api4.objects.longview import LongviewClient, LongviewSubscription
 from linode_api4.objects.nodebalancer import NodeBalancer
 from linode_api4.objects.support import SupportTicket
-
-# TODO - UPDATE THESE (out of date)
-normal_grants = ('all', 'access', 'delete')
-stackscript_grants = ('all', 'use', 'edit', 'delete')
-linode_grants = ('all', 'access', 'delete', 'resize')
 
 class Account(Base):
     api_endpoint = "/account"
@@ -114,8 +107,6 @@ class InvoiceItem(DerivedBase):
     parent_id_name='invoice_id'
     id_attribute = 'label' # this has to be something
 
-    # TODO - this object doesn't have its own ID .. this might need
-    # special handling
     properties = {
         'invoice_id': Property(identifier=True),
         'unit_price': Property(),
@@ -133,7 +124,7 @@ class InvoiceItem(DerivedBase):
         Allows population of "from_date" from the returned "from" attribute which
         is a reserved word in python.  Also populates "to_date" to be complete.
         """
-        super(InvoiceItem, self)._populate(json)
+        super()._populate(json)
 
         self.from_date = datetime.strptime(json['from'], DATE_FORMAT)
         self.to_date = datetime.strptime(json['to'], DATE_FORMAT)
