@@ -129,8 +129,7 @@ class LinodeGroup(Group):
 
            ltype = client.linode.types().first()
            region = client.regions().first()
-           image = client.images().first(:param kwargs: Any other arguments to pass along to the API.  See the API
-                       docs for possible values.
+           image = client.images().first()
 
            another_linode, password = client.linode.instance_create(
                ltype,
