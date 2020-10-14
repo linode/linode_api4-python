@@ -383,9 +383,15 @@ class Instance(Base):
             return False
         return True
 
-    def resize(self, new_type):
+    def resize(self, new_type, **kwargs):
         new_type = new_type.id if issubclass(type(new_type), Base) else new_type
-        resp = self._client.post("{}/resize".format(Instance.api_endpoint), model=self, data={"type": new_type})
+
+        params = {
+            "type": new_type,
+        }
+        params.update(kwargs)
+
+        resp = self._client.post("{}/resize".format(Instance.api_endpoint), model=self, data=params)
 
         if 'error' in resp:
             return False
