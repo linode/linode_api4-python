@@ -41,15 +41,19 @@ class LinodeClientGeneralTest(ClientBaseCase):
     def test_get_regions(self):
         r = self.client.regions()
 
-        self.assertEqual(len(r), 9)
+        self.assertEqual(len(r), 11)
         for region in r:
             self.assertTrue(region._populated)
             self.assertIsNotNone(region.id)
             self.assertIsNotNone(region.country)
-            if region.id == 'us-east-1a':
+            if region.id in ('us-east', 'eu-central', 'ap-south'):
                 self.assertEqual(region.capabilities, ["Linodes","NodeBalancers","Block Storage","Object Storage"])
             else:
                 self.assertEqual(region.capabilities, ["Linodes","NodeBalancers","Block Storage"])
+            self.assertEqual(region.status, "ok")
+            self.assertIsNotNone(region.resolvers)
+            self.assertIsNotNone(region.resolvers.ipv4)
+            self.assertIsNotNone(region.resolvers.ipv6)
 
     def test_get_images(self):
         r = self.client.images()
