@@ -7,4 +7,6 @@ class Region(Base):
         'id': Property(identifier=True),
         'country': Property(filterable=True),
         'capabilities': Property(),
+        'status': Property(mutable=True),
+        'resolvers': Property(),
     }
