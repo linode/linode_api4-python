@@ -54,9 +54,24 @@ class MappedObject:
     object.this # "that"
     """
     def __init__(self, **vals):
+        """
+        Initialize the values.
+
+        Args:
+            self: (todo): write your description
+            vals: (array): write your description
+        """
         self._expand_vals(self.__dict__, **vals)
 
     def _expand_vals(self, target, **vals):
+        """
+        Expand the values in a dictionary.
+
+        Args:
+            self: (todo): write your description
+            target: (str): write your description
+            vals: (str): write your description
+        """
         for v in vals:
             if type(vals[v]) is dict:
                 vals[v] = MappedObject(**vals[v])
@@ -66,10 +81,22 @@ class MappedObject:
         target.update(vals)
 
     def __repr__(self):
+        """
+        Return a repr representation of - repr repr.
+
+        Args:
+            self: (todo): write your description
+        """
         return "Mapping containing {}".format(vars(self).keys())
     
     @property
     def dict(self):
+        """
+        Return a dict representation of the object.
+
+        Args:
+            self: (todo): write your description
+        """
         return dict(self.__dict__)
 
 class Base(object, metaclass=FilterableMetaclass):
@@ -79,6 +106,15 @@ class Base(object, metaclass=FilterableMetaclass):
     properties = {}
 
     def __init__(self, client, id, json={}):
+        """
+        Initialize the object.
+
+        Args:
+            self: (todo): write your description
+            client: (todo): write your description
+            id: (str): write your description
+            json: (dict): write your description
+        """
         self._set('_populated', False)
         self._set('_last_updated', datetime.min)
         self._set('_client', client)

@@ -8,6 +8,15 @@ class ApiError(RuntimeError):
     often, this will be caused by invalid input to the API.
     """
     def __init__(self, message, status=400, json=None):
+        """
+        Initialize a json response
+
+        Args:
+            self: (todo): write your description
+            message: (str): write your description
+            status: (str): write your description
+            json: (dict): write your description
+        """
         super().__init__(message)
         self.status = status
         self.json = json
@@ -24,6 +33,15 @@ class UnexpectedResponseError(RuntimeError):
     library, and should be fixed with changes to this codebase.
     """
     def __init__(self, message, status=200, json=None):
+        """
+        Initialize the message.
+
+        Args:
+            self: (todo): write your description
+            message: (str): write your description
+            status: (str): write your description
+            json: (dict): write your description
+        """
         super().__init__(message)
         self.status = status
         self.json = json

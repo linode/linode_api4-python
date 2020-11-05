@@ -38,6 +38,13 @@ class Backup(DerivedBase):
     }
 
     def restore_to(self, linode, **kwargs):
+        """
+        Restore this model
+
+        Args:
+            self: (todo): write your description
+            linode: (str): write your description
+        """
         d = {
             "linode_id": linode.id if issubclass(type(linode), Base) else linode,
         }
@@ -66,6 +73,12 @@ class Disk(DerivedBase):
 
 
     def duplicate(self):
+        """
+        Duplicate this model.
+
+        Args:
+            self: (todo): write your description
+        """
         result = self._client.post(Disk.api_endpoint, model=self, data={})
 
         if not 'id' in result:
@@ -76,6 +89,13 @@ class Disk(DerivedBase):
 
 
     def reset_root_password(self, root_password=None):
+        """
+        Reset the password.
+
+        Args:
+            self: (todo): write your description
+            root_password: (str): write your description
+        """
         rpass = root_password
         if not rpass:
             rpass = Instance.generate_root_password()
@@ -341,6 +361,13 @@ class Instance(Base):
         return self._transfer
 
     def _populate(self, json):
+        """
+        Populate the json object.
+
+        Args:
+            self: (todo): write your description
+            json: (str): write your description
+        """
         if json is not None:
             # fixes ipv4 and ipv6 attribute of json to make base._populate work
             if 'ipv4' in json and 'address' in json['ipv4']:
@@ -363,6 +390,13 @@ class Instance(Base):
         Base.invalidate(self)
 
     def boot(self, config=None):
+        """
+        Boot a node.
+
+        Args:
+            self: (todo): write your description
+            config: (todo): write your description
+        """
         resp = self._client.post("{}/boot".format(Instance.api_endpoint), model=self, data={'config_id': config.id} if config else None)
 
         if 'error' in resp:
@@ -370,6 +404,12 @@ class Instance(Base):
         return True
 
     def shutdown(self):
+        """
+        Shutdown the model.
+
+        Args:
+            self: (todo): write your description
+        """
         resp = self._client.post("{}/shutdown".format(Instance.api_endpoint), model=self)
 
         if 'error' in resp:
@@ -377,6 +417,12 @@ class Instance(Base):
         return True
 
     def reboot(self):
+        """
+        Reboot the network.
+
+        Args:
+            self: (todo): write your description
+        """
         resp = self._client.post("{}/reboot".format(Instance.api_endpoint), model=self)
 
         if 'error' in resp:
@@ -384,6 +430,13 @@ class Instance(Base):
         return True
 
     def resize(self, new_type, **kwargs):
+        """
+        Resize this model.
+
+        Args:
+            self: (todo): write your description
+            new_type: (str): write your description
+        """
         new_type = new_type.id if issubclass(type(new_type), Base) else new_type
 
         params = {
@@ -399,7 +452,18 @@ class Instance(Base):
 
     @staticmethod
     def generate_root_password():
+        """
+        Generate a random password.
+
+        Args:
+        """
         def _func(value):
+            """
+            Convert a 16 bit string.
+
+            Args:
+                value: (todo): write your description
+            """
             if sys.version_info[0] < 3:
                 value = int(value.encode('hex'), 16)
             return value
@@ -499,6 +563,21 @@ class Instance(Base):
 
     def disk_create(self, size, label=None, filesystem=None, read_only=False, image=None,
             root_pass=None, authorized_keys=None, stackscript=None, **stackscript_args):
+        """
+        Creates a new image.
+
+        Args:
+            self: (todo): write your description
+            size: (int): write your description
+            label: (str): write your description
+            filesystem: (str): write your description
+            read_only: (bool): write your description
+            image: (array): write your description
+            root_pass: (str): write your description
+            authorized_keys: (str): write your description
+            stackscript: (str): write your description
+            stackscript_args: (dict): write your description
+        """
 
         gen_pass = None
         if image and not root_pass:
@@ -565,6 +644,13 @@ class Instance(Base):
         return True
 
     def snapshot(self, label=None):
+        """
+        Creates a snapshot of a snapshot.
+
+        Args:
+            self: (todo): write your description
+            label: (str): write your description
+        """
         result = self._client.post("{}/backups".format(Instance.api_endpoint), model=self,
                                    data={ "label": label })
 
@@ -656,6 +742,13 @@ class Instance(Base):
             return ret_pass
 
     def rescue(self, *disks):
+        """
+        Rescue the specified person.
+
+        Args:
+            self: (todo): write your description
+            disks: (todo): write your description
+        """
         if disks:
             disks = { x: { 'disk_id': y } for x,y in zip(('sda','sdb','sdc','sdd','sde','sdf','sdg'), disks) }
         else:
@@ -750,6 +843,17 @@ class UserDefinedFieldType(Enum):
 
 class UserDefinedField():
     def __init__(self, name, label, example, field_type, choices=None):
+        """
+        Initialize a field.
+
+        Args:
+            self: (todo): write your description
+            name: (str): write your description
+            label: (str): write your description
+            example: (todo): write your description
+            field_type: (str): write your description
+            choices: (todo): write your description
+        """
         self.name = name
         self.label = label
         self.example = example
@@ -757,6 +861,12 @@ class UserDefinedField():
         self.choices = choices
 
     def __repr__(self):
+        """
+        Return a human - readable representation of this field.
+
+        Args:
+            self: (todo): write your description
+        """
         return "{}({}): {}".format(self.label, self.field_type.name, self.example)
 
 class StackScript(Base):
@@ -805,6 +915,12 @@ class StackScript(Base):
         self._set('images', ndist)
 
     def _serialize(self):
+        """
+        Serialize the image.
+
+        Args:
+            self: (todo): write your description
+        """
         dct = Base._serialize(self)
         dct['images'] = [ d.id for d in self.images ]
         return dct

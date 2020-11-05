@@ -39,6 +39,12 @@ class IPAddress(Base):
 
     @property
     def linode(self):
+        """
+        Returns the linode object.
+
+        Args:
+            self: (todo): write your description
+        """
         from .linode import Instance # pylint: disable-all
         if not hasattr(self, '_linode'):
             self._set('_linode', Instance(self._client, self.linode_id))

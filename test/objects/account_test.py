@@ -10,6 +10,12 @@ class InvoiceTest(ClientBaseCase):
     Tests methods of the Invoice
     """
     def test_get_invoice(self):
+        """
+        Get invoice invoice the invoice.
+
+        Args:
+            self: (todo): write your description
+        """
         invoice = Invoice(self.client, 123456)
         self.assertEqual(invoice._populated, False)
 

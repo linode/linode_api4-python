@@ -31,6 +31,19 @@ class PaginatedList(object):
     """
     def __init__(self, client, page_endpoint, page=[], max_pages=1,
             total_items=None, parent_id=None, filters=None):
+        """
+        Initialize all objects.
+
+        Args:
+            self: (todo): write your description
+            client: (todo): write your description
+            page_endpoint: (str): write your description
+            page: (int): write your description
+            max_pages: (int): write your description
+            total_items: (todo): write your description
+            parent_id: (int): write your description
+            filters: (list): write your description
+        """
         self.client = client
         self.page_endpoint = page_endpoint
         self.query_filters = filters
@@ -81,9 +94,22 @@ class PaginatedList(object):
         raise ValueError("List {} has more than one element!".format(self))
 
     def __repr__(self):
+        """
+        Return a human - readable representation of this object.
+
+        Args:
+            self: (todo): write your description
+        """
         return "PaginatedList ({} items)".format(self.total_items)
 
     def _load_page(self, page_number):
+        """
+        Loads a list.
+
+        Args:
+            self: (todo): write your description
+            page_number: (int): write your description
+        """
         j = self.client.get("/{}?page={}".format(self.page_endpoint, page_number+1),
                 filters=self.query_filters)
 
@@ -95,6 +121,13 @@ class PaginatedList(object):
         self.lists[page_number] = l
 
     def __getitem__(self, index):
+        """
+        Return item from index.
+
+        Args:
+            self: (todo): write your description
+            index: (int): write your description
+        """
         # this comes in here now, but we're hadling it elsewhere
         if isinstance(index, slice):
             return self._get_slice(index)
@@ -117,9 +150,22 @@ class PaginatedList(object):
         return self.lists[target_page][normalized_index]
 
     def __len__(self):
+        """
+        Return the total number of items in this queue.
+
+        Args:
+            self: (todo): write your description
+        """
         return self.total_items
 
     def _get_slice(self, s):
+        """
+        Slice slice from s.
+
+        Args:
+            self: (todo): write your description
+            s: (str): write your description
+        """
         # get range
         i = s.start if s.start is not None else 0
         j = s.stop if s.stop is not None else self.total_items
@@ -151,12 +197,33 @@ class PaginatedList(object):
         return result
 
     def __setitem__(self, index, value):
+        """
+        Sets the item at index.
+
+        Args:
+            self: (todo): write your description
+            index: (int): write your description
+            value: (str): write your description
+        """
         raise AttributeError('Assigning to indicies in paginated lists is not supported')
 
     def __delitem__(self, index):
+        """
+        Removes an item from the index.
+
+        Args:
+            self: (todo): write your description
+            index: (int): write your description
+        """
         raise AttributeError('Deleting from paginated lists is not supported')
 
     def __next__(self):
+        """
+        Returns the next iteration.
+
+        Args:
+            self: (todo): write your description
+        """
         if self.cur < len(self):
             self.cur += 1
             return self[self.cur-1]

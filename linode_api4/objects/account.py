@@ -63,41 +63,83 @@ class Event(Base):
 
     @property
     def linode(self):
+        """
+        Returns the linode for this entity.
+
+        Args:
+            self: (todo): write your description
+        """
         if self.entity and self.entity.type == 'linode':
             return Instance(self._client, self.entity.id)
         return None
 
     @property
     def stackscript(self):
+        """
+        Returns the stack of the stack.
+
+        Args:
+            self: (todo): write your description
+        """
         if self.entity and self.entity.type == 'stackscript':
             return StackScript(self._client, self.entity.id)
         return None
 
     @property
     def domain(self):
+        """
+        Returns the domain for this entity.
+
+        Args:
+            self: (todo): write your description
+        """
         if self.entity and self.entity.type == 'domain':
             return Domain(self._client, self.entity.id)
         return None
 
     @property
     def nodebalancer(self):
+        """
+        Returns the : class associated with the given id.
+
+        Args:
+            self: (todo): write your description
+        """
         if self.entity and self.entity.type == 'nodebalancer':
             return NodeBalancer(self._client, self.entity.id)
         return None
 
     @property
     def ticket(self):
+        """
+        Return the ticket.
+
+        Args:
+            self: (todo): write your description
+        """
         if self.entity and self.entity.type == 'ticket':
             return SupportTicket(self._client, self.entity.id)
         return None
 
     @property
     def volume(self):
+        """
+        The volume of this volume.
+
+        Args:
+            self: (todo): write your description
+        """
         if self.entity and self.entity.type == 'volume':
             return Volume(self._client, self.entity.id)
         return None
 
     def mark_read(self):
+        """
+        Mark the read as read.
+
+        Args:
+            self: (todo): write your description
+        """
         self._client.post('{}/read'.format(Event.api_endpoint), model=self)
 
 
@@ -258,6 +300,12 @@ class User(Base):
         return self._grants
 
     def invalidate(self):
+        """
+        Invalidate the grants.
+
+        Args:
+            self: (todo): write your description
+        """
         if hasattr(self, '_grants'):
             del self._grants
         Base.invalidate(self)
@@ -286,6 +334,15 @@ class Grant:
     the context of a UserGrants object.
     """
     def __init__(self, client, cls, dct):
+        """
+        Initializes the label.
+
+        Args:
+            self: (todo): write your description
+            client: (todo): write your description
+            cls: (todo): write your description
+            dct: (str): write your description
+        """
         self._client = client
         self.cls = cls
         self.id = dct['id']
@@ -332,6 +389,15 @@ class UserGrants:
     parent_id_name = 'username'
 
     def __init__(self, client, username, json=None):
+        """
+        Initialize the client.
+
+        Args:
+            self: (todo): write your description
+            client: (todo): write your description
+            username: (str): write your description
+            json: (dict): write your description
+        """
         self._client = client
         self.username = username
 
@@ -339,6 +405,13 @@ class UserGrants:
             self._populate(json)
     
     def _populate(self, json):
+        """
+        Populate the global attributes.
+
+        Args:
+            self: (todo): write your description
+            json: (str): write your description
+        """
         self.global_grants = type('global_grants', (object,), json['global'])
 
         for key, cls in get_obj_grants():
@@ -348,6 +421,12 @@ class UserGrants:
             setattr(self, key, lst)
 
     def save(self):
+        """
+        Save the current user
+
+        Args:
+            self: (todo): write your description
+        """
         req = {
             'global': {k: v for k, v in vars(self.global_grants).items() if not k.startswith('_')},
         }

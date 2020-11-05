@@ -38,24 +38,48 @@ class SupportTicket(Base):
 
     @property
     def linode(self):
+        """
+        Returns the linode for this entity.
+
+        Args:
+            self: (todo): write your description
+        """
         if self.entity and self.entity.type == 'linode':
             return Instance(self._client, self.entity.id)
         return None
 
     @property
     def domain(self):
+        """
+        Returns the domain for this entity.
+
+        Args:
+            self: (todo): write your description
+        """
         if self.entity and self.entity.type == 'domain':
             return Domain(self._client, self.entity.id)
         return None
 
     @property
     def nodebalancer(self):
+        """
+        Returns the : class associated with the given id.
+
+        Args:
+            self: (todo): write your description
+        """
         if self.entity and self.entity.type == 'nodebalancer':
             return NodeBalancer(self._client, self.entity.id)
         return None
 
     @property
     def volume(self):
+        """
+        The volume of this volume.
+
+        Args:
+            self: (todo): write your description
+        """
         if self.entity and self.entity.type == 'volume':
             return Volume(self._client, self.entity.id)
         return None
@@ -75,6 +99,13 @@ class SupportTicket(Base):
         return r
 
     def upload_attachment(self, attachment):
+        """
+        Upload an attachment. attachment.
+
+        Args:
+            self: (todo): write your description
+            attachment: (todo): write your description
+        """
         content = None
         with open(attachment) as f:
             content = f.read()

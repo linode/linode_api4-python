@@ -20,6 +20,12 @@ class LinodeClientGeneralTest(ClientBaseCase):
 
 
     def test_get_account(self):
+        """
+        Test if the account.
+
+        Args:
+            self: (todo): write your description
+        """
         a = self.client.account()
         self.assertEqual(a._populated, True)
 
@@ -39,6 +45,12 @@ class LinodeClientGeneralTest(ClientBaseCase):
         self.assertEqual(a.capabilities, ["Linodes","NodeBalancers","Block Storage","Object Storage"])
 
     def test_get_regions(self):
+        """
+        Get regions for all regions.
+
+        Args:
+            self: (todo): write your description
+        """
         r = self.client.regions()
 
         self.assertEqual(len(r), 11)
@@ -56,6 +68,12 @@ class LinodeClientGeneralTest(ClientBaseCase):
             self.assertIsNotNone(region.resolvers.ipv6)
 
     def test_get_images(self):
+        """
+        Get image images.
+
+        Args:
+            self: (todo): write your description
+        """
         r = self.client.images()
 
         self.assertEqual(len(r), 4)
@@ -105,6 +123,12 @@ class LinodeClientGeneralTest(ClientBaseCase):
             })
 
     def test_get_volumes(self):
+        """
+        Return the volumes
+
+        Args:
+            self: (todo): write your description
+        """
         v = self.client.volumes()
 
         self.assertEqual(len(v), 2)

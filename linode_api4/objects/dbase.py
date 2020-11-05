@@ -11,12 +11,30 @@ class DerivedBase(Base):
     parent_id_name = 'parent_id' #override in child classes
 
     def __init__(self, client, id, parent_id, json={}):
+        """
+        Initializes the parent.
+
+        Args:
+            self: (todo): write your description
+            client: (todo): write your description
+            id: (str): write your description
+            parent_id: (int): write your description
+            json: (dict): write your description
+        """
         Base.__init__(self, client, id, json=json)
 
         self._set(type(self).parent_id_name, parent_id)
 
     @classmethod
     def _api_get_derived(cls, parent, client):
+        """
+        Return the parent
+
+        Args:
+            cls: (todo): write your description
+            parent: (todo): write your description
+            client: (todo): write your description
+        """
         base_url = "{}/{}".format(type(parent).api_endpoint, cls.derived_url_path)
          
         return client._get_objects(base_url, cls, model=parent, parent_id=parent.id)

@@ -11,12 +11,27 @@ FIXTURES = TestFixtures()
 
 class MockResponse:
     def __init__(self, status_code, json, headers={}):
+        """
+        Initialize a json object.
+
+        Args:
+            self: (todo): write your description
+            status_code: (int): write your description
+            json: (dict): write your description
+            headers: (list): write your description
+        """
         self.status_code = status_code
         self._json = json
         # Headers is a dict, do not want to use a getter here
         self.headers = headers
 
     def json(self):
+        """
+        Returns the json representation of this : class.
+
+        Args:
+            self: (todo): write your description
+        """
         return self._json
 
 
@@ -128,6 +143,12 @@ class MethodMock:
 
 class ClientBaseCase(TestCase):
     def setUp(self):
+        """
+        Set this client.
+
+        Args:
+            self: (todo): write your description
+        """
         self.client = LinodeClient('testing', base_url='/')
 
         self.get_patch = patch('linode_api4.linode_client.requests.Session.get',
@@ -135,6 +156,12 @@ class ClientBaseCase(TestCase):
         self.get_patch.start()
 
     def tearDown(self):
+        """
+        Tear down.
+
+        Args:
+            self: (todo): write your description
+        """
         self.get_patch.stop()
 
 

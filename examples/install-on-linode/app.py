@@ -8,10 +8,20 @@ app=Flask(__name__)
 app.config['SECRET_KEY'] = config.secret_key
 
 def get_login_client():
+    """
+    Returns a client object.
+
+    Args:
+    """
     return LinodeLoginClient(config.client_id, config.client_secret)
 
 @app.route('/')
 def index():
+    """
+    List all index.
+
+    Args:
+    """
     client = LinodeClient('no-token')
     types = client.linode.types(Type.label.contains("Linode"))
     regions = client.regions()
@@ -25,6 +35,11 @@ def index():
 
 @app.route('/', methods=["POST"])
 def start_auth():
+    """
+    Authenticate to authenticate session.
+
+    Args:
+    """
     login_client = get_login_client()
     session['dc'] = request.form['region']
     session['distro'] = request.form['distribution']
@@ -33,6 +48,11 @@ def start_auth():
 
 @app.route('/auth_callback')
 def auth_callback():
+    """
+    View function for oauth2 authorization.
+
+    Args:
+    """
     code = request.args.get('code')
     login_client = get_login_client()
     token, scopes, _, _ = login_client.finish_oauth(code)
@@ -52,6 +72,15 @@ def auth_callback():
     )
 
 def make_instance(token, type_id, region_id, distribution_id):
+    """
+    Creates an instance of an instance.
+
+    Args:
+        token: (str): write your description
+        type_id: (str): write your description
+        region_id: (str): write your description
+        distribution_id: (str): write your description
+    """
     client = LinodeClient('{}'.format(token))
     stackscript = StackScript(client, config.stackscript_id)
     (linode, password) = client.linode.instance_create(type_id, region_id,

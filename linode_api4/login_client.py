@@ -16,6 +16,12 @@ except ImportError:
 
 class AllWrapper():
     def __repr__(self):
+        """
+        Return a repr representation of a repr__.
+
+        Args:
+            self: (todo): write your description
+        """
         return '*'
 
 class OAuthScopes:
@@ -49,6 +55,12 @@ class OAuthScopes:
         all = 2
 
         def __repr__(self):
+            """
+            Return a human - friendly name.
+
+            Args:
+                self: (todo): write your description
+            """
             if(self.name == 'all'):
                 return "linodes:*"
             return "linodes:{}".format(self.name)
@@ -62,6 +74,12 @@ class OAuthScopes:
         all = 2
 
         def __repr__(self):
+            """
+            Return a human - friendly name.
+
+            Args:
+                self: (todo): write your description
+            """
             if(self.name == 'all'):
                 return "domains:*"
             return "domains:{}".format(self.name)
@@ -75,6 +93,12 @@ class OAuthScopes:
         all = 2
 
         def __repr__(self):
+            """
+            Return a human - friendly name.
+
+            Args:
+                self: (todo): write your description
+            """
             if(self.name == 'all'):
                 return "stackscripts:*"
             return "stackscripts:{}".format(self.name)
@@ -85,6 +109,12 @@ class OAuthScopes:
         all = 2
 
         def __repr__(self):
+            """
+            Return a human - friendly name.
+
+            Args:
+                self: (todo): write your description
+            """
             if(self.name == 'all'):
                 return "users:*"
             return "users:{}".format(self.name)
@@ -98,6 +128,12 @@ class OAuthScopes:
         all = 2
 
         def __repr__(self):
+            """
+            Return a human - friendly name.
+
+            Args:
+                self: (todo): write your description
+            """
             if(self.name == 'all'):
                 return "nodebalancers:*"
             return "nodebalancers:{}".format(self.name)
@@ -108,6 +144,12 @@ class OAuthScopes:
         all = 2
 
         def __repr__(self):
+            """
+            Return a human - friendly name.
+
+            Args:
+                self: (todo): write your description
+            """
             if(self.name == 'all'):
                 return "tokens:*"
             return "tokens:{}".format(self.name)
@@ -121,6 +163,12 @@ class OAuthScopes:
         all = 2
 
         def __repr__(self):
+            """
+            Return a human - friendly name.
+
+            Args:
+                self: (todo): write your description
+            """
             if(self.name == 'all'):
                 return "ips:*"
             return "ips:{}".format(self.name)
@@ -134,6 +182,12 @@ class OAuthScopes:
         all = 2
 
         def __repr__(self):
+            """
+            Return a human - friendly name.
+
+            Args:
+                self: (todo): write your description
+            """
             if(self.name == 'all'):
                 return "tickets:*"
             return "tickets:{}".format(self.name)
@@ -144,6 +198,12 @@ class OAuthScopes:
         all = 2
 
         def __repr__(self):
+            """
+            Return a human - friendly name.
+
+            Args:
+                self: (todo): write your description
+            """
             if(self.name == 'all'):
                 return "clients:*"
             return "clients:{}".format(self.name)
@@ -158,6 +218,12 @@ class OAuthScopes:
         all = 2
 
         def __repr__(self):
+            """
+            Return a human - friendly name.
+
+            Args:
+                self: (todo): write your description
+            """
             if(self.name == 'all'):
                 return "account:*"
             return "account:{}".format(self.name)
@@ -171,6 +237,12 @@ class OAuthScopes:
         all = 2
 
         def __repr__(self):
+            """
+            Return a human - friendly name.
+
+            Args:
+                self: (todo): write your description
+            """
             if(self.name == 'all'):
                 return "events:*"
             return "events:{}".format(self.name)
@@ -184,6 +256,12 @@ class OAuthScopes:
         all = 2
 
         def __repr__(self):
+            """
+            Return a human - friendly name.
+
+            Args:
+                self: (todo): write your description
+            """
             if(self.name == 'all'):
                 return "volumes:*"
             return "volumes:{}".format(self.name)
@@ -197,6 +275,12 @@ class OAuthScopes:
         all = 2
 
         def __repr__(self):
+            """
+            Return a human - friendly name.
+
+            Args:
+                self: (todo): write your description
+            """
             if(self.name == 'all'):
                 return "lke:*"
             return "lke:{}".format(self.name)
@@ -210,6 +294,12 @@ class OAuthScopes:
         all = 2
 
         def __repr__(self):
+            """
+            Return a human - friendly name.
+
+            Args:
+                self: (todo): write your description
+            """
             if(self.name == 'all'):
                 return "object_storage:*"
             return "object_storage:{}".format(self.name)
@@ -223,6 +313,12 @@ class OAuthScopes:
         all = 2
 
         def __repr__(self):
+            """
+            Return a human - friendly name.
+
+            Args:
+                self: (todo): write your description
+            """
             if(self.name == 'all'):
                 return "longview:*"
             return "longview:{}".format(self.name)
@@ -247,6 +343,12 @@ class OAuthScopes:
 
     @staticmethod
     def parse(scopes):
+        """
+        Parse scopes.
+
+        Args:
+            scopes: (str): write your description
+        """
         ret = []
 
         # special all-scope case
@@ -270,6 +372,13 @@ class OAuthScopes:
 
     @staticmethod
     def _get_parsed_scope(resource, access):
+        """
+        Get scope scope scope.
+
+        Args:
+            resource: (str): write your description
+            access: (str): write your description
+        """
         resource = resource.lower()
         access = access.lower()
         if resource in OAuthScopes._scope_families:
@@ -282,6 +391,12 @@ class OAuthScopes:
 
     @staticmethod
     def serialize(scopes):
+        """
+        Serialize scopes.
+
+        Args:
+            scopes: (list): write your description
+        """
         ret = ''
         if not type(scopes) is list:
             scopes = [ scopes ]
@@ -313,6 +428,13 @@ class LinodeLoginClient:
         self.client_secret = client_secret
 
     def _login_uri(self, path):
+        """
+        Return the uri for a given path.
+
+        Args:
+            self: (todo): write your description
+            path: (str): write your description
+        """
         return "{}{}".format(self.base_url, path)
 
     def generate_login_url(self, scopes=None, redirect_uri=None):

@@ -121,9 +121,23 @@ class Filter:
     be combined with :any:`and_` and :any:`or_`.
     """
     def __init__(self, dct):
+        """
+        Initialize the dct.
+
+        Args:
+            self: (todo): write your description
+            dct: (str): write your description
+        """
         self.dct = dct
 
     def __or__(self, other):
+        """
+        Applies a filter.
+
+        Args:
+            self: (todo): write your description
+            other: (todo): write your description
+        """
         if not isinstance(other, Filter):
             raise TypeError("You can only or Filter types!")
         if '+or' in self.dct:
@@ -132,6 +146,13 @@ class Filter:
             return Filter({ '+or': [self.dct, other.dct] })
 
     def __and__(self, other):
+        """
+        Applies a filter.
+
+        Args:
+            self: (todo): write your description
+            other: (todo): write your description
+        """
         if not isinstance(other, Filter):
             raise TypeError("You can only and Filter types!")
         if '+and' in self.dct:
@@ -140,6 +161,14 @@ class Filter:
             return Filter({ '+and': [self.dct, other.dct] })
 
     def order_by(self, field, desc=False):
+        """
+        Add a filter to the query.
+
+        Args:
+            self: (todo): write your description
+            field: (todo): write your description
+            desc: (str): write your description
+        """
         # we can't include two order_bys
         if '+order_by' in self.dct:
             raise AssertionError("You may only order by once!")
@@ -154,6 +183,13 @@ class Filter:
         return self
 
     def limit(self, limit):
+        """
+        Limit the number of the query.
+
+        Args:
+            self: (todo): write your description
+            limit: (int): write your description
+        """
         # we can't limit twice
         if '+limit' in self.dct:
             raise AssertionError("You may only limit once!")
@@ -167,59 +203,181 @@ class Filter:
 
 class FilterableAttribute:
     def __init__(self, name):
+        """
+        Sets the name.
+
+        Args:
+            self: (todo): write your description
+            name: (str): write your description
+        """
         self.name = name
 
     def __eq__(self, other):
+        """
+        Return a new filterset from other.
+
+        Args:
+            self: (todo): write your description
+            other: (todo): write your description
+        """
         return Filter({ self.name: other })
 
     def __ne__(self, other):
+        """
+        Create a filter with another filter.
+
+        Args:
+            self: (todo): write your description
+            other: (todo): write your description
+        """
         return Filter({ self.name: { "+neq": other } })
 
     # "in" evaluates the return value - have to use 
     # type.contains instead
     def contains(self, other):
+        """
+        Returns true if this filter contains another filter.
+
+        Args:
+            self: (todo): write your description
+            other: (todo): write your description
+        """
         return Filter({ self.name: { "+contains": other } })
 
     def __gt__(self, other):
+        """
+        Return a new filter with another filter.
+
+        Args:
+            self: (todo): write your description
+            other: (todo): write your description
+        """
         return Filter({ self.name: { "+gt": other } })
 
     def __lt__(self, other):
+        """
+        Construct a filter with another filter.
+
+        Args:
+            self: (todo): write your description
+            other: (todo): write your description
+        """
         return Filter({ self.name: { "+lt": other } })
 
     def __ge__(self, other):
+        """
+        Return a new filter with another filter.
+
+        Args:
+            self: (todo): write your description
+            other: (todo): write your description
+        """
         return Filter({ self.name: { "+gte": other } })
 
     def __le__(self, other):
+        """
+        Return a new filter with another filter.
+
+        Args:
+            self: (todo): write your description
+            other: (todo): write your description
+        """
         return Filter({ self.name: { "+lte": other } })
 
 class NonFilterableAttribute:
     def __init__(self, clsname, atrname):
+        """
+        Initialize an instance.
+
+        Args:
+            self: (todo): write your description
+            clsname: (str): write your description
+            atrname: (str): write your description
+        """
         self.clsname = clsname
         self.atrname = atrname
 
     def __eq__(self, other):
+        """
+        Determine if self.
+
+        Args:
+            self: (todo): write your description
+            other: (todo): write your description
+        """
         raise AttributeError("{} cannot be filtered by {}".format(self.clsname, self.atrname))
 
     def __ne__(self, other):
+        """
+        Set self.
+
+        Args:
+            self: (todo): write your description
+            other: (todo): write your description
+        """
         raise AttributeError("{} cannot be filtered by {}".format(self.clsname, self.atrname))
 
     def contains(self, other):
+        """
+        Determine whether other.
+
+        Args:
+            self: (todo): write your description
+            other: (todo): write your description
+        """
         raise AttributeError("{} cannot be filtered by {}".format(self.clsname, self.atrname))
 
     def __gt__(self, other):
+        """
+        Set self.
+
+        Args:
+            self: (todo): write your description
+            other: (todo): write your description
+        """
         raise AttributeError("{} cannot be filtered by {}".format(self.clsname, self.atrname))
 
     def __lt__(self, other):
+        """
+        Determine if self.
+
+        Args:
+            self: (todo): write your description
+            other: (todo): write your description
+        """
         raise AttributeError("{} cannot be filtered by {}".format(self.clsname, self.atrname))
 
     def __ge__(self, other):
+        """
+        Geo. gername.
+
+        Args:
+            self: (todo): write your description
+            other: (todo): write your description
+        """
         raise AttributeError("{} cannot be filtered by {}".format(self.clsname, self.atrname))
 
     def __le__(self, other):
+        """
+        Raise the valueerror if self.
+
+        Args:
+            self: (todo): write your description
+            other: (todo): write your description
+        """
         raise AttributeError("{} cannot be filtered by {}".format(self.clsname, self.atrname))
 
 class FilterableMetaclass(type):
     def __init__(cls, name, bases, dct):
+        """
+        Initialize the properties of the class.
+
+        Args:
+            cls: (todo): write your description
+            name: (str): write your description
+            bases: (float): write your description
+            dct: (str): write your description
+        """
         if hasattr(cls, 'properties'):
             for key in cls.properties.keys():
                 setattr(cls, key, FilterableAttribute(key))

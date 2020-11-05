@@ -20,6 +20,13 @@ logger = logging.getLogger(__name__)
 
 class Group:
     def __init__(self, client):
+        """
+        Initialize the client.
+
+        Args:
+            self: (todo): write your description
+            client: (todo): write your description
+        """
         self.client = client
 
 
@@ -602,6 +609,13 @@ class AccountGroup(Group):
 
 
     def events(self, *filters):
+        """
+        Returns an iterable of events.
+
+        Args:
+            self: (todo): write your description
+            filters: (dict): write your description
+        """
         return self.client._get_and_filter(Event, *filters)
 
     def events_mark_seen(self, event):
@@ -721,12 +735,33 @@ class AccountGroup(Group):
 
 class NetworkingGroup(Group):
     def ips(self, *filters):
+        """
+        Returns a list of ips.
+
+        Args:
+            self: (todo): write your description
+            filters: (list): write your description
+        """
         return self.client._get_and_filter(IPAddress, *filters)
 
     def ipv6_ranges(self, *filters):
+        """
+        Returns a list of ipv6.
+
+        Args:
+            self: (todo): write your description
+            filters: (list): write your description
+        """
         return self.client._get_and_filter(IPv6Range, *filters)
 
     def ipv6_pools(self, *filters):
+        """
+        Return a list of ipv6 addresses.
+
+        Args:
+            self: (todo): write your description
+            filters: (list): write your description
+        """
         return self.client._get_and_filter(IPv6Pool, *filters)
 
     def ips_assign(self, region, *assignments):
@@ -840,6 +875,13 @@ class NetworkingGroup(Group):
 
 class SupportGroup(Group):
     def tickets(self, *filters):
+        """
+        Returns a list of filters.
+
+        Args:
+            self: (todo): write your description
+            filters: (list): write your description
+        """
         return self.client._get_and_filter(SupportTicket, *filters)
 
     def ticket_open(self, summary, description, regarding=None):
@@ -1070,6 +1112,12 @@ class LinodeClient:
 
     @property
     def _user_agent(self):
+        """
+        Return the user agent string.
+
+        Args:
+            self: (todo): write your description
+        """
         return '{}python-linode_api4/{} {}'.format(
                 '{} '.format(self._add_user_agent) if self._add_user_agent else '',
                 package_version,
@@ -1163,6 +1211,17 @@ class LinodeClient:
         return j
 
     def _get_objects(self, endpoint, cls, model=None, parent_id=None, filters=None):
+        """
+        Return a list of objects.
+
+        Args:
+            self: (dict): write your description
+            endpoint: (str): write your description
+            cls: (todo): write your description
+            model: (str): write your description
+            parent_id: (str): write your description
+            filters: (list): write your description
+        """
         response_json = self.get(endpoint, model=model, filters=filters)
 
         if not "data" in response_json:
@@ -1179,15 +1238,39 @@ class LinodeClient:
                 parent_id=parent_id)
 
     def get(self, *args, **kwargs):
+        """
+        Executes an http delete request.
+
+        Args:
+            self: (todo): write your description
+        """
         return self._api_call(*args, method=self.session.get, **kwargs)
 
     def post(self, *args, **kwargs):
+        """
+        Executes an http post request.
+
+        Args:
+            self: (todo): write your description
+        """
         return self._api_call(*args, method=self.session.post, **kwargs)
 
     def put(self, *args, **kwargs):
+        """
+        Executes an http put request.
+
+        Args:
+            self: (todo): write your description
+        """
         return self._api_call(*args, method=self.session.put, **kwargs)
 
     def delete(self, *args, **kwargs):
+        """
+        Executes an http delete request.
+
+        Args:
+            self: (todo): write your description
+        """
         return self._api_call(*args, method=self.session.delete, **kwargs)
 
     # ungrouped list functions
@@ -1464,6 +1547,14 @@ class LinodeClient:
 
     # helper functions
     def _filter_list(self, results, **filter_by):
+        """
+        Convert a list of results to a list.
+
+        Args:
+            self: (todo): write your description
+            results: (list): write your description
+            filter_by: (dict): write your description
+        """
         if not results or not len(results):
             return results
 
@@ -1483,6 +1574,14 @@ class LinodeClient:
         return results
 
     def _get_and_filter(self, obj_type, *filters):
+        """
+        Get the filter and filters.
+
+        Args:
+            self: (todo): write your description
+            obj_type: (str): write your description
+            filters: (list): write your description
+        """
         parsed_filters = None
         if filters:
             if(len(filters) > 1):

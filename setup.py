@@ -18,6 +18,11 @@ from setuptools import find_packages, setup
 here = path.abspath(path.dirname(__file__))
 
 def get_test_suite():
+    """
+    Returns test test test test test test test test suite.
+
+    Args:
+    """
     test_loader = TestLoader()
     return test_loader.discover('test', pattern='*_test.py')
 

@@ -44,6 +44,13 @@ class Domain(Base):
     }
 
     def record_create(self, record_type, **kwargs):
+        """
+        Create a new record
+
+        Args:
+            self: (todo): write your description
+            record_type: (str): write your description
+        """
 
         params = {
             "type": record_type,

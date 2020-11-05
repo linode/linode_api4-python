@@ -82,6 +82,14 @@ class NodeBalancerConfig(DerivedBase):
         return self._nodes
 
     def node_create(self, label, address, **kwargs):
+        """
+        Creates a node.
+
+        Args:
+            self: (todo): write your description
+            label: (str): write your description
+            address: (str): write your description
+        """
         params = {
             "label": label,
             "address": address,
@@ -142,6 +150,13 @@ class NodeBalancer(Base):
 
     # create derived objects
     def config_create(self, label=None, **kwargs):
+        """
+        Creates a new label configuration.
+
+        Args:
+            self: (todo): write your description
+            label: (str): write your description
+        """
         params = kwargs
         if label:
             params['label'] = label
