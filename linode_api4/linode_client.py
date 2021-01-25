@@ -1015,7 +1015,7 @@ class ObjectStorageGroup(Group):
 
 
 class LinodeClient:
-    def __init__(self, token, base_url="https://api.linode.com/v4", user_agent=None):
+    def __init__(self, token, base_url="https://api.linode.com/v4", user_agent=None, page_size=None):
         """
         The main interface to the Linode API.
 
@@ -1031,11 +1031,17 @@ class LinodeClient:
                            application.  Setting this is not necessary, but some
                            applications may desire this behavior.
         :type user_agent: str
+        :param page_size: The default size to request pages at.  If not given,
+                                  the API's default page size is used.  Valid values
+                                  can be found in the API docs, but at time of writing
+                                  are between 25 and 500.
+        :type page_size: int
         """
         self.base_url = base_url
         self._add_user_agent = user_agent
         self.token = token
         self.session = requests.Session()
+        self.page_size = page_size
 
         #: Access methods related to Linodes - see :any:`LinodeGroup` for
         #: more information
@@ -1163,7 +1169,12 @@ class LinodeClient:
         return j
 
     def _get_objects(self, endpoint, cls, model=None, parent_id=None, filters=None):
-        response_json = self.get(endpoint, model=model, filters=filters)
+        # handle non-default page sizes
+        call_endpoint = endpoint
+        if self.page_size is not None:
+            call_endpoint += "?page_size={}".format(self.page_size)
+
+        response_json = self.get(call_endpoint, model=model, filters=filters)
 
         if not "data" in response_json:
             raise UnexpectedResponseError("Problem with response!", json=response_json)
