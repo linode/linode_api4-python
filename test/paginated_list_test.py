@@ -1,4 +1,5 @@
 from unittest import TestCase
+from unittest.mock import MagicMock
 
 from linode_api4.paginated_list import PaginatedList
 
@@ -76,3 +77,36 @@ class PaginationSlicingTest(TestCase):
         Tests that backwards indexing works as expected
         """
         self.assertEqual(self.normal_list[10:5], self.paginated_list[10:5])
+
+
+class PageLoadingTest(TestCase):
+    def test_page_size_in_request(self):
+        """
+        Tests that the correct page_size is added to requests when loading subsequent pages
+        """
+        class Test():
+            # the PaginatedList expects a model class here
+            @classmethod
+            def make_instance(*args, **kwargs):
+                return Test()
+
+        for i in (25, 100, 500):
+            # these are the pages we're sending in to the mocked list
+            first_page = [ Test()  for x in range(i) ]
+            second_page = {
+                "data": [{"id": 1}],
+                "pages": 2,
+                "page": 2,
+                "results": i + 1,
+            }
+
+            # our mock client to intercept the requests and return the mocked info
+            client = MagicMock()
+            client.get = MagicMock(return_value=second_page)
+
+            # let's do it!
+            p = PaginatedList(client, "/test", page=first_page, max_pages=2, total_items=i+1)
+            p[i] # load second page
+
+            # and we called the next page URL with the correct page_size
+            assert client.mock_calls[0].args[0].endswith("?page=2&page_size={}".format(i))
