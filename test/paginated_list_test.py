@@ -1,5 +1,5 @@
 from unittest import TestCase
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, call
 
 from linode_api4.paginated_list import PaginatedList
 
@@ -109,4 +109,4 @@ class PageLoadingTest(TestCase):
             p[i] # load second page
 
             # and we called the next page URL with the correct page_size
-            assert client.mock_calls[0].args[0].endswith("?page=2&page_size={}".format(i))
+            assert client.get.call_args == call("//test?page=2&page_size={}".format(i), filters=None)
