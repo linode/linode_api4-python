@@ -84,7 +84,7 @@ class PaginatedList(object):
         return "PaginatedList ({} items)".format(self.total_items)
 
     def _load_page(self, page_number):
-        j = self.client.get("/{}?page={}".format(self.page_endpoint, page_number+1),
+        j = self.client.get("/{}?page={}&page_size={}".format(self.page_endpoint, page_number+1, self.page_size),
                 filters=self.query_filters)
 
         if j['pages'] != self.max_pages or j['results'] != len(self):
