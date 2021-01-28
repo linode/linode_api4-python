@@ -35,7 +35,7 @@ class PaginatedList(object):
         self.page_endpoint = page_endpoint
         self.query_filters = filters
         self.page_size = len(page)
-        self.max_pages = max_pages
+        self.max_pages = max_pages if max_pages > 0 else 1
         self.lists = [ None for _ in range(0, self.max_pages) ]
         self.lists[0] = page
         self.list_cls = type(page[0]) if page else None # TODO if this is None that's bad

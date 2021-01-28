@@ -4,6 +4,14 @@ from unittest.mock import MagicMock, call
 from linode_api4.paginated_list import PaginatedList
 
 
+class PaginatedListTest(TestCase):
+    def test_init_zero_max_pages(self):
+        """
+        Ensures that PaginatedList can be instatiated with max_pages=0
+        """
+        self.paginated_list = PaginatedList(None, None, max_pages=0)
+
+
 class PaginationSlicingTest(TestCase):
     def setUp(self):
         """
