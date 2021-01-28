@@ -37,7 +37,8 @@ class PaginatedList(object):
         self.page_size = len(page)
         self.max_pages = max_pages
         self.lists = [ None for _ in range(0, self.max_pages) ]
-        self.lists[0] = page
+        if self.lists:
+            self.lists[0] = page
         self.list_cls = type(page[0]) if page else None # TODO if this is None that's bad
         self.objects_parent_id = parent_id
         self.cur = 0 # for being a generator
