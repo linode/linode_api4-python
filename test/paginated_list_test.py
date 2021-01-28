@@ -79,20 +79,25 @@ class PaginationSlicingTest(TestCase):
         self.assertEqual(self.normal_list[10:5], self.paginated_list[10:5])
 
 
+class TestModel():
+    """
+    This is a test model class used to simulate an actual model that would be
+    returned by the API
+    """
+    @classmethod
+    def make_instance(*args, **kwargs):
+        return TestModel()
+
+
 class PageLoadingTest(TestCase):
     def test_page_size_in_request(self):
         """
         Tests that the correct page_size is added to requests when loading subsequent pages
         """
-        class Test():
-            # the PaginatedList expects a model class here
-            @classmethod
-            def make_instance(*args, **kwargs):
-                return Test()
 
         for i in (25, 100, 500):
             # these are the pages we're sending in to the mocked list
-            first_page = [ Test()  for x in range(i) ]
+            first_page = [ TestModel()  for x in range(i) ]
             second_page = {
                 "data": [{"id": 1}],
                 "pages": 2,
@@ -110,3 +115,14 @@ class PageLoadingTest(TestCase):
 
             # and we called the next page URL with the correct page_size
             assert client.get.call_args == call("//test?page=2&page_size={}".format(i), filters=None)
+
+    def test_no_pages(self):
+        """
+        Tests that this library correctly handles paginated lists with no data, such
+        as if a paginated endpoint is given a filter that matches nothing.
+        """
+        client = MagicMock()
+
+        p = PaginatedList(client, "/test", page=[], max_pages=0, total_items=0)
+
+        assert(len(p) == 0)
