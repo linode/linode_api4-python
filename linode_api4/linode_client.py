@@ -218,6 +218,10 @@ class LinodeGroup(Group):
                        default to True if the Instance is deployed from an Image
                        or Backup.
         :type booted: bool
+        :param tags: A list of tags to apply to the new instance.  If any of the
+                     tags included do not exist, they will be created as part of
+                     this operation.
+        :type tags: list[str]
 
         :returns: A new Instance object, or a tuple containing the new Instance and
                   the generated password.
@@ -1317,6 +1321,10 @@ class LinodeClient:
         :type domain: str
         :param master: Whether this is a master (defaults to true)
         :type master: bool
+        :param tags: A list of tags to apply to the new domain.  If any of the
+                     tags included do not exist, they will be created as part of
+                     this operation.
+        :type tags: list[str]
 
         :returns: The new Domain object.
         :rtype: Domain
@@ -1450,6 +1458,10 @@ class LinodeClient:
         :type linode: Instance or int
         :param size: The size, in GB, of the new Volume.  Defaults to 20.
         :type size: int
+        :param tags: A list of tags to apply to the new volume.  If any of the
+                     tags included do not exist, they will be created as part of
+                     this operation.
+        :type tags: list[str]
 
         :returns: The new Volume.
         :rtype: Volume
