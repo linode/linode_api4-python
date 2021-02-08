@@ -37,6 +37,7 @@ class NodeBalancerConfigTest(ClientBaseCase):
         self.assertEqual(config.nodes_status.up, 0)
         self.assertEqual(config.nodes_status.down, 0)
         self.assertEqual(config.ssl_fingerprint, "")
+        self.assertEqual(config.proxy_protocol, "none")
 
 
 class NodeBalancerNodeTest(ClientBaseCase):

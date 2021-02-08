@@ -22,7 +22,8 @@
         "down": 0
       },
       "protocol": "http",
-      "ssl_fingerprint": ""
+      "ssl_fingerprint": "",
+      "proxy_protocol": "none"
     }
   ],
   "results": 1,

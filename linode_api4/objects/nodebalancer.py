@@ -65,6 +65,7 @@ class NodeBalancerConfig(DerivedBase):
         "ssl_fingerprint": Property(),
         "cipher_suite": Property(mutable=True),
         "nodes_status": Property(),
+        'proxy_protocol': Property(mutable=True),
     }
 
     @property
