@@ -514,7 +514,7 @@ class Instance(Base):
             'size': size,
             'label': label if label else "{}_disk_{}".format(self.label, len(self.disks)),
             'read_only': read_only,
-            'filesystem': filesystem if filesystem else 'raw',
+            'filesystem': filesystem,
             'authorized_keys': authorized_keys,
         }
 
