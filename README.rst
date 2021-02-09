@@ -3,8 +3,6 @@ linode_api4
 
 The official python library for the `Linode API v4`_ in python.
 
-**This library is currently in beta.**
-
 .. _Linode API v4: https://developers.linode.com/api/v4/
 
 .. image:: https://travis-ci.com/linode/linode_api4-python.svg?branch=master
