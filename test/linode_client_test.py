@@ -336,6 +336,21 @@ class LongviewGroupTest(ClientBaseCase):
             self.assertEqual(result.label, expected_label)
 
 
+class LKEGroupTest(ClientBaseCase):
+    """
+    Tests methods of the LKEGroupTest
+    """
+    def test_kube_version(self):
+        """
+        Tests that KubeVersions can be retrieved
+        """
+        versions = self.client.lke.versions()
+        self.assertEqual(len(versions), 3)
+        self.assertEqual(versions[0].id, "1.19")
+        self.assertEqual(versions[1].id, "1.18")
+        self.assertEqual(versions[2].id, "1.17")
+
+
 class ProfileGroupTest(ClientBaseCase):
     """
     Tests methods of the ProfileGroup
