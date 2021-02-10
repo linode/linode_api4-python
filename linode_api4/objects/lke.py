@@ -7,7 +7,7 @@ class KubeVersion(Base):
     """
     A KubeVersion is a version of Kubernetes that can be deployed on LKE.
     """
-    api_endpoint = "/lke/versions"
+    api_endpoint = "/lke/versions/{id}"
 
     properties = {
         "id": Property(identifier=True),
@@ -17,7 +17,7 @@ class KubeVersion(Base):
 class LKENodePoolNode():
     """
     AN LKE Node Pool Node is a helper class that is used to populate the "nodes"
-    array of an LKE Node Pool, and set up an automatic relationship with the 
+    array of an LKE Node Pool, and set up an automatic relationship with the
     Linode Instance the Node represented.
     """
     def __init__(self, client, json):
@@ -103,7 +103,7 @@ class LKECluster(Base):
         # pagination properties, so we're converting this to a list of strings.
         if not hasattr(self, "_api_endpoints"):
             results = self._client.get("{}/api-endpoints".format(LKECluster.api_endpoint), model=self)
-        
+
             self._api_endpoints = [MappedObject(**c) for c in results["data"]] # pylint: disable=attribute-defined-outside-init
 
         return self._api_endpoints
