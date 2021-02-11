@@ -467,7 +467,7 @@ class LKEGroup(Group):
         """
         return self.client._get_and_filter(LKECluster, *filters)
 
-    def cluster_create(self, region, label, node_pools, **kwargs):
+    def cluster_create(self, region, label, node_pools, kube_version, **kwargs):
         """
         Creates an :any:`LKECluster` on this account in the given region, with
         the given label, and with node pools as described.  For example::
@@ -517,6 +517,9 @@ class LKEGroup(Group):
             "label": label,
             "region": region.id if issubclass(type(region), Base) else region,
             "node_pools": pools,
+            "k8s_version": kube_version.id
+            if issubclass(type(kube_version), Base)
+            else kube_version,
         }
         params.update(kwargs)
 
