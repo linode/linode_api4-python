@@ -507,7 +507,7 @@ class LKEGroup(Group):
         for c in node_pools:
             if isinstance(c, dict):
                 new_pool = {
-                    "type": c["type"].id if "type" in c and issubclass(c["type"], Base) else c.get("type"),
+                    "type": c["type"].id if "type" in c and issubclass(type(c["type"]), Base) else c.get("type"),
                     "count": c.get("count"),
                 }
 
@@ -515,14 +515,14 @@ class LKEGroup(Group):
 
         params = {
             "label": label,
-            "region": region.id if issubclass(region, Base) else region,
+            "region": region.id if issubclass(type(region), Base) else region,
             "node_pools": pools,
         }
         params.update(kwargs)
 
         result = self.client.post('/lke/clusters', data=params)
 
-        if not 'id' in result:
+        if 'id' not in result:
             raise UnexpectedResponseError('Unexpected response when creating LKE cluster!', json=result)
 
         return LKECluster(self.client, result['id'], result)
