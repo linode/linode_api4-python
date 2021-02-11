@@ -479,21 +479,25 @@ class LKEGroup(Group):
            target_region = client.regions().first()
            node_type = client.linode.types()[0]
            node_type_2 = client.linode.types()[1]
+           kube_version = client.lke.versions()[0]
 
            new_cluster = client.lke.cluster_create(
                target_region,
                "example-cluster",
-               [client.lke.node_pool(node_type, 3), client.lke.node_pool(node_type_2, 3)]
+               [client.lke.node_pool(node_type, 3), client.lke.node_pool(node_type_2, 3)],
+               kube_version
             )
 
         :param region: The Region to create this LKE Cluster in.
-        :type region: Region of str
+        :type region: Region or str
         :param label: The label for the new LKE Cluster.
         :type label: str
         :param node_pools: The Node Pools to create.
         :type node_pools: one or a list of dicts containing keys "type" and "count".  See
                           :any:`node_pool` for a convenient way to create correctly-
                           formatted dicts.
+        :param kube_version: The version of Kubernetes to use
+        :type kube_version: KubeVersion or str
         :param kwargs: Any other arguments to pass along to the API.  See the API
                        docs for possible values.
 
