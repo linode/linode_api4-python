@@ -498,7 +498,31 @@ class Instance(Base):
         return c
 
     def disk_create(self, size, label=None, filesystem=None, read_only=False, image=None,
-            root_pass=None, authorized_keys=None, stackscript=None, **stackscript_args):
+            root_pass=None, authorized_keys=None, authorized_users=None, stackscript=None, **stackscript_args):
+        """
+        Creates a new Disk for this Instance.
+
+        :param size: The size of the disk, in MB
+        :param label: The label of the disk.  If not given, a default label will be generated.
+        :param filesystem: The filesystem type for the disk.  If not given, the default
+                           for the image deployed the disk will be used.  Required
+                           if creating a disk without an image.
+        :param read_only: If True, creates a read-only disk
+        :param image: The Image to deploy to the disk.
+        :param root_pass: The password to configure for the root user when deploying an
+                          image to this disk.  Not used if image is not given.  If an
+                          image is given and root_pass is not, a password will be
+                          generated and returned alongside the new disk.
+        :param authorized_keys: A list of SSH keys to install as trusted for the root user.
+        :param authorized_users: A list of usernames whose keys should be installed
+                                 as trusted for the root user.  These user's keys
+                                 should already be set up, see :any:`ProfileGroup.ssh_keys`
+                                 for details.
+        :param stackscript: A StackScript object, or the ID of one, to deploy to this
+                            disk.  Requires deploying a compatible image.
+        :param **stackscript_args: Any arguments to pass to the StackScript, as defined
+                                   by its User Defined Fields.
+        """
 
         gen_pass = None
         if image and not root_pass:
@@ -516,6 +540,7 @@ class Instance(Base):
             'read_only': read_only,
             'filesystem': filesystem,
             'authorized_keys': authorized_keys,
+            'authorized_users': authorized_users,
         }
 
         if image:

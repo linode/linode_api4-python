@@ -238,6 +238,27 @@ class LinodeTest(ClientBaseCase):
             linode.initiate_migration()
             self.assertEqual(m.call_url, '/linode/instances/123/migrate')
 
+    def test_create_disk(self):
+        """
+        Tests that disk_create behaves as expected
+        """
+        linode = Instance(self.client, 123)
+
+        with self.mock_post("/linode/instances/123/disks/12345") as m:
+            disk, gen_pass = linode.disk_create(1234, label="test", authorized_users=["test"], image="linode/debian10")
+            self.assertEqual(m.call_url, "/linode/instances/123/disks")
+            print(m.call_data)
+            self.assertEqual(m.call_data, {
+                "size": 1234,
+                "label": "test",
+                "root_pass": gen_pass,
+                "image": "linode/debian10",
+                "authorized_users": ["test"],
+                "read_only": False,
+            })
+
+        assert disk.id == 12345
+
 
 class DiskTest(ClientBaseCase):
     """
