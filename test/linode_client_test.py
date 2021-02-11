@@ -350,6 +350,15 @@ class LKEGroupTest(ClientBaseCase):
         self.assertEqual(versions[1].id, "1.18")
         self.assertEqual(versions[2].id, "1.17")
 
+    def test_cluster_create(self):
+        region = self.client.regions().first()
+        node_type = self.client.linode.types().first()
+        with self.mock_post('lke/clusters') as m:
+            cluster = self.client.lke.cluster_create(region, "example-cluster", node_type, "1.19")
+
+        self.assertEqual(cluster.id, 18881)
+        self.assertEqual(cluster.region.id, "ap-west")
+        self.assertEqual(cluster.k8s_version.id, "1.19")
 
 class ProfileGroupTest(ClientBaseCase):
     """
