@@ -511,7 +511,9 @@ class LKEGroup(Group):
         for c in node_pools:
             if isinstance(c, dict):
                 new_pool = {
-                    "type": c["type"].id if "type" in c and issubclass(type(c["type"]), Base) else c.get("type"),
+                    "type": c["type"].id
+                    if "type" in c and issubclass(type(c["type"]), Base)
+                    else c.get("type"),
                     "count": c.get("count"),
                 }
 
