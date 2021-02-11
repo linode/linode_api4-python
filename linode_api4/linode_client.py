@@ -467,7 +467,7 @@ class LKEGroup(Group):
         """
         return self.client._get_and_filter(LKECluster, *filters)
 
-    def cluster_create(self, region, label, node_pools, **kwargs):
+    def cluster_create(self, region, label, node_pools, kube_version, **kwargs):
         """
         Creates an :any:`LKECluster` on this account in the given region, with
         the given label, and with node pools as described.  For example::
@@ -479,21 +479,25 @@ class LKEGroup(Group):
            target_region = client.regions().first()
            node_type = client.linode.types()[0]
            node_type_2 = client.linode.types()[1]
+           kube_version = client.lke.versions()[0]
 
            new_cluster = client.lke.cluster_create(
                target_region,
                "example-cluster",
-               [client.lke.node_pool(node_type, 3), client.lke.node_pool(node_type_2, 3)]
+               [client.lke.node_pool(node_type, 3), client.lke.node_pool(node_type_2, 3)],
+               kube_version
             )
 
         :param region: The Region to create this LKE Cluster in.
-        :type region: Region of str
+        :type region: Region or str
         :param label: The label for the new LKE Cluster.
         :type label: str
         :param node_pools: The Node Pools to create.
         :type node_pools: one or a list of dicts containing keys "type" and "count".  See
                           :any:`node_pool` for a convenient way to create correctly-
                           formatted dicts.
+        :param kube_version: The version of Kubernetes to use
+        :type kube_version: KubeVersion or str
         :param kwargs: Any other arguments to pass along to the API.  See the API
                        docs for possible values.
 
@@ -507,7 +511,9 @@ class LKEGroup(Group):
         for c in node_pools:
             if isinstance(c, dict):
                 new_pool = {
-                    "type": c["type"].id if "type" in c and issubclass(c["type"], Base) else c.get("type"),
+                    "type": c["type"].id
+                    if "type" in c and issubclass(type(c["type"]), Base)
+                    else c.get("type"),
                     "count": c.get("count"),
                 }
 
@@ -515,14 +521,17 @@ class LKEGroup(Group):
 
         params = {
             "label": label,
-            "region": region.id if issubclass(region, Base) else region,
+            "region": region.id if issubclass(type(region), Base) else region,
             "node_pools": pools,
+            "k8s_version": kube_version.id
+            if issubclass(type(kube_version), Base)
+            else kube_version,
         }
         params.update(kwargs)
 
         result = self.client.post('/lke/clusters', data=params)
 
-        if not 'id' in result:
+        if 'id' not in result:
             raise UnexpectedResponseError('Unexpected response when creating LKE cluster!', json=result)
 
         return LKECluster(self.client, result['id'], result)

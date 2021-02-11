@@ -18,7 +18,6 @@ class LinodeClientGeneralTest(ClientBaseCase):
 
             self.assertEqual(m.call_data_raw, None)
 
-
     def test_get_account(self):
         a = self.client.account()
         self.assertEqual(a._populated, True)
@@ -334,6 +333,60 @@ class LongviewGroupTest(ClientBaseCase):
         for result, (expected_id, expected_label) in zip(r, expected_results):
             self.assertEqual(result.id, expected_id)
             self.assertEqual(result.label, expected_label)
+
+
+class LKEGroupTest(ClientBaseCase):
+    """
+    Tests methods of the LKEGroupTest
+    """
+    def test_kube_version(self):
+        """
+        Tests that KubeVersions can be retrieved
+        """
+        versions = self.client.lke.versions()
+        self.assertEqual(len(versions), 3)
+        self.assertEqual(versions[0].id, "1.19")
+        self.assertEqual(versions[1].id, "1.18")
+        self.assertEqual(versions[2].id, "1.17")
+
+    def test_cluster_create_with_api_objects(self):
+        """
+        Tests clusters can be created using api objects
+        """
+        region = self.client.regions().first()
+        node_type = self.client.linode.types()[0]
+        version = self.client.lke.versions()[0]
+        node_pools = self.client.lke.node_pool(node_type, 3)
+        with self.mock_post("lke/clusters") as m:
+            cluster = self.client.lke.cluster_create(
+                region, "example-cluster", node_pools, version
+            )
+            self.assertEqual(m.call_data["region"], "ap-west")
+            self.assertEqual(m.call_data["node_pools"],
+                             [{"type": "g5-nanode-1", "count": 3}])
+            self.assertEqual(m.call_data["k8s_version"], "1.19")
+
+        self.assertEqual(cluster.id, 18881)
+        self.assertEqual(cluster.region.id, "ap-west")
+        self.assertEqual(cluster.k8s_version.id, "1.19")
+
+    def test_cluster_create_with_string_repr(self):
+        """
+        Tests clusters can be created using string representations
+        """
+        with self.mock_post("lke/clusters") as m:
+            cluster = self.client.lke.cluster_create(
+                "ap-west", "example-cluster",
+                {"type": "g6-standard-1", "count": 3}, "1.19"
+            )
+            self.assertEqual(m.call_data["region"], "ap-west")
+            self.assertEqual(m.call_data["node_pools"],
+                             [{"type": "g6-standard-1", "count": 3}])
+            self.assertEqual(m.call_data["k8s_version"], "1.19")
+
+        self.assertEqual(cluster.id, 18881)
+        self.assertEqual(cluster.region.id, "ap-west")
+        self.assertEqual(cluster.k8s_version.id, "1.19")
 
 
 class ProfileGroupTest(ClientBaseCase):
