@@ -726,7 +726,7 @@ class AccountGroup(Group):
         }
         result = self.client.post('/account/users', data=params)
 
-        if not 'email' and 'restricted' and 'username' in result:
+        if not all([c in result for c in ('email', 'restricted', 'username')]):
             raise UnexpectedResponseError('Unexpected response when creating user!', json=result)
 
         u = User(self.client, result['username'], result)
