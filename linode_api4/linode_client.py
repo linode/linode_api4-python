@@ -726,7 +726,7 @@ class AccountGroup(Group):
         }
         result = self.client.post('/account/users', data=params)
 
-        if not all([c in result for c in ('email', 'restricted', 'username')]):
+        if not all([c in result for c in ('email', 'restricted', 'username')]): # pylint: disable=use-a-generator
             raise UnexpectedResponseError('Unexpected response when creating user!', json=result)
 
         u = User(self.client, result['username'], result)
