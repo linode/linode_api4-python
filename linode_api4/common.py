@@ -27,7 +27,7 @@ def load_and_validate_keys(authorized_keys):
 
     for k in authorized_keys:
         accepted_types = ('ssh-dss', 'ssh-rsa', 'ecdsa-sha2-nistp', 'ssh-ed25519')
-        if any([ t for t in accepted_types if k.startswith(t) ]):
+        if any([ t for t in accepted_types if k.startswith(t) ]): # pylint: disable=use-a-generator
             # this looks like a key, cool
             ret.append(k)
         else:

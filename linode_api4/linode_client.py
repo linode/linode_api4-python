@@ -726,7 +726,7 @@ class AccountGroup(Group):
         }
         result = self.client.post('/account/users', data=params)
 
-        if not 'email' and 'restricted' and 'username' in result:
+        if not all([c in result for c in ('email', 'restricted', 'username')]): # pylint: disable=use-a-generator
             raise UnexpectedResponseError('Unexpected response when creating user!', json=result)
 
         u = User(self.client, result['username'], result)
@@ -979,7 +979,7 @@ class ObjectStorageGroup(Group):
                 {
                     "permissions": c.get("permissions"),
                     "bucket_name": c.get("bucket_name"),
-                    "cluster": c.id if "cluster" in c and issubclass(c["cluster"], Base) else c.get("cluster"),
+                    "cluster": c.id if "cluster" in c and issubclass(type(c["cluster"]), Base) else c.get("cluster"),
                 } for c in bucket_access
             ]
 
