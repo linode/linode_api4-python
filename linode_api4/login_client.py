@@ -125,6 +125,19 @@ class OAuthScopes:
                 return "ips:*"
             return "ips:{}".format(self.name)
 
+    class Firewalls(Enum):
+        """
+        Access to Firewalls
+        """
+        read_only = 0
+        read_write = 1
+        all = 2
+
+        def __repr__(self):
+            if(self.name == 'all'):
+                return "firewall:*"
+            return "firewall:{}".format(self.name)
+
     class Tickets(Enum):
         """
         Access to view, open, and respond to Support Tickets
@@ -234,6 +247,7 @@ class OAuthScopes:
         'users': Users,
         'tokens': Tokens,
         'ips': IPs,
+        'firewall': Firewalls,
         'tickets': Tickets,
         'clients': Clients,
         'account': Account,
