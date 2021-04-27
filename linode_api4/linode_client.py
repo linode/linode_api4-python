@@ -742,6 +742,12 @@ class NetworkingGroup(Group):
     def ipv6_pools(self, *filters):
         return self.client._get_and_filter(IPv6Pool, *filters)
 
+    def vlans(self, *filters):
+        """
+        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+        """
+        return self.client._get_and_filter(VLAN, *filters)
+
     def ips_assign(self, region, *assignments):
         """
         Redistributes :any:`IP Addressees<IPAddress>` within a single region.
@@ -850,6 +856,7 @@ class NetworkingGroup(Group):
                          model=linode, data=params)
 
         linode.invalidate() # clear the Instance's shared IPs
+
 
 class SupportGroup(Group):
     def tickets(self, *filters):

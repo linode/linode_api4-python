@@ -54,3 +54,19 @@ class IPAddress(Base):
         if not isinstance(linode, Instance):
             raise ValueError("IP Address can only be assigned to a Linode!")
         return { "address": self.address, "linode_id": linode.id }
+
+
+class VLAN(Base):
+    """
+    .. note:: At this time, the Linode API only supports listing VLANs.
+    .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+    """
+    api_endpoint = '/networking/vlans/{}'
+    id_attribute = 'label'
+
+    properties = {
+        'label': Property(identifier=True),
+        'created': Property(is_datetime=True),
+        'linodes': Property(filterable=True),
+        'region': Property(slug_relationship=Region, filterable=True)
+    }

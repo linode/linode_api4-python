@@ -1,0 +1,16 @@
+{
+  "data": [
+    {
+      "created": "2020-01-01T00:01:01",
+      "label": "vlan-test",
+      "linodes": [
+        111,
+        222
+      ],
+      "region": "us-southeast"
+    }
+  ],
+  "page": 1,
+  "pages": 1,
+  "results": 1
+}

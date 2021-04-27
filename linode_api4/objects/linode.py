@@ -182,6 +182,7 @@ class Config(DerivedBase):
         "run_level": Property(mutable=True, filterable=True),
         "virt_mode": Property(mutable=True, filterable=True),
         "memory_limit": Property(mutable=True, filterable=True),
+        "interfaces": Property(mutable=True),
     }
 
     def _populate(self, json):
