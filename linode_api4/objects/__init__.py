@@ -6,7 +6,6 @@ from .image import Image
 from .linode import *
 from .volume import Volume
 from .domain import *
-from .firewall import *
 from .account import *
 from .networking import *
 from .nodebalancer import *

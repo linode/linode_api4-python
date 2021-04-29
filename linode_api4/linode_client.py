@@ -802,7 +802,7 @@ class NetworkingGroup(Group):
         if not 'id' in result:
             raise UnexpectedResponseError('Unexpected response when creating Firewall!', json=result)
 
-        f = Firewall(self, result['id'], result)
+        f = Firewall(self.client, result['id'], result)
         return f
 
     def ips(self, *filters):

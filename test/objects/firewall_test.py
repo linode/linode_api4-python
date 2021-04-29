@@ -13,10 +13,10 @@ class FirewallTest(ClientBaseCase):
         firewall = Firewall(self.client, 123)
         rules = firewall.rules
 
-        self.assertEqual(len(rules['inbound']), 0)
-        self.assertEqual(rules['inbound_policy'], 'DROP')
-        self.assertEqual(len(rules['outbound']), 0)
-        self.assertEqual(rules['outbound_policy'], 'DROP')
+        self.assertEqual(len(rules.inbound), 0)
+        self.assertEqual(rules.inbound_policy, 'DROP')
+        self.assertEqual(len(rules.outbound), 0)
+        self.assertEqual(rules.outbound_policy, 'DROP')
 
     def test_update_rules(self):
         """
