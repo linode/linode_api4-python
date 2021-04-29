@@ -222,6 +222,9 @@ class LinodeGroup(Group):
                      tags included do not exist, they will be created as part of
                      this operation.
         :type tags: list[str]
+        :param private_ip: Whether the new Instance should have private networking
+                           enabled and assigned a private IPv4 address.
+        :type private_ip: bool
 
         :returns: A new Instance object, or a tuple containing the new Instance and
                   the generated password.
