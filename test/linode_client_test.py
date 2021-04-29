@@ -550,3 +550,38 @@ class NetworkingGroupTest(ClientBaseCase):
         self.assertEqual(len(vlans[0].linodes), 2)
         self.assertEqual(vlans[0].linodes[0], 111)
         self.assertEqual(vlans[0].linodes[1], 222)
+
+    def test_firewall_create(self):
+        with self.mock_post('networking/firewalls/123') as m:
+            rules = {
+                'outbound': [],
+                'outbound_policy': 'DROP',
+                'inbound': [],
+                'inbound_policy': 'DROP'
+            }
+
+            f = self.client.networking.firewall_create('test-firewall-1', rules,
+                                            status='enabled')
+
+            self.assertIsNotNone(f)
+
+            self.assertEqual(m.call_url, '/networking/firewalls')
+            self.assertEqual(m.method, 'post')
+
+            self.assertEqual(f.id, 123)
+            self.assertEqual(m.call_data, {
+                'label': 'test-firewall-1',
+                'status': 'enabled',
+                'rules': rules
+            })
+
+    def test_get_firewalls(self):
+        """
+        Tests that firewalls can be retrieved
+        """
+        f = self.client.networking.firewalls()
+
+        self.assertEqual(len(f), 1)
+        firewall = f[0]
+
+        self.assertEqual(firewall.id, 123)
