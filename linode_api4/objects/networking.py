@@ -1,4 +1,5 @@
-from linode_api4.objects import Base, Property, Region
+from linode_api4.errors import UnexpectedResponseError
+from linode_api4.objects import Base, DerivedBase, Property, Region
 
 
 class IPv6Pool(Base):
@@ -54,3 +55,66 @@ class IPAddress(Base):
         if not isinstance(linode, Instance):
             raise ValueError("IP Address can only be assigned to a Linode!")
         return { "address": self.address, "linode_id": linode.id }
+
+
+class FirewallDevice(DerivedBase):
+    api_endpoint = '/networking/firewalls/{firewall_id}/devices/{id}'
+    derived_url_path = 'devices'
+    parent_id_name = 'firewall_id'
+
+    properties = {
+        'created': Property(filterable=True, is_datetime=True),
+        'updated': Property(filterable=True, is_datetime=True),
+        'entity': Property(),
+        'id': Property(identifier=True)
+    }
+
+
+class Firewall(Base):
+    """
+    .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+    """
+
+    api_endpoint = "/networking/firewalls/{id}"
+
+    properties = {
+        'id': Property(identifier=True),
+        'label': Property(mutable=True, filterable=True),
+        'tags': Property(mutable=True, filterable=True),
+        'status': Property(mutable=True),
+        'created': Property(filterable=True, is_datetime=True),
+        'updated': Property(filterable=True, is_datetime=True),
+        'devices': Property(derived_class=FirewallDevice),
+        'rules': Property(),
+    }
+    def update_rules(self, rules):
+        """
+        Sets the JSON rules for this Firewall
+        """
+        self._client.put('{}/rules'.format(self.api_endpoint), model=self, data=rules)
+        self.invalidate()
+
+    def device_create(self, id, type='linode', **kwargs):
+        """
+        Creates and attaches a device to this Firewall
+
+        :param id: The ID of the entity to create a device for.
+        :type id: int
+
+        :param type: The type of entity the device is being created for. (`linode`)
+        :type type: str
+        """
+        params = {
+            'id': id,
+            'type': type,
+        }
+        params.update(kwargs)
+
+        result = self._client.post("{}/devices".format(Firewall.api_endpoint), model=self, data=params)
+        self.invalidate()
+
+        if not 'id' in result:
+            raise UnexpectedResponseError('Unexpected response creating device!', json=result)
+
+        c = FirewallDevice(self._client, result['id'], self.id, result)
+        return c

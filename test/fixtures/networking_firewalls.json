@@ -1,0 +1,21 @@
+{
+   "data":[
+      {
+         "id":123,
+         "label":"test-firewall-1",
+         "created":"2018-01-01T00:01:01",
+         "updated":"2018-01-01T00:01:01",
+         "status":"enabled",
+         "rules":{
+            "outbound":[],
+            "outbound_policy":"DROP",
+            "inbound":[],
+            "inbound_policy":"DROP"
+         },
+         "tags":[]
+      }
+   ],
+   "page":1,
+   "pages":1,
+   "results":1
+}
