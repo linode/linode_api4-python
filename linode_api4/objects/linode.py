@@ -268,7 +268,7 @@ class Config(DerivedBase):
 
         for c in self.interfaces:
             if isinstance(c, ConfigInterface):
-                interfaces.append(c._seiralize())
+                interfaces.append(c._serialize())
             else:
                 interfaces.append(c)
 
