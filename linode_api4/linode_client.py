@@ -1028,7 +1028,7 @@ class ObjectStorageGroup(Group):
 
 
 class LinodeClient:
-    def __init__(self, token, base_url="https://api.linode.com/v4", user_agent=None, page_size=None):
+    def __init__(self, token, base_url="https://api.linode.com/v4", user_agent=None, page_size=None, retry_rate_limit_backoff=0):
         """
         The main interface to the Linode API.
 
@@ -1049,12 +1049,14 @@ class LinodeClient:
                                   can be found in the API docs, but at time of writing
                                   are between 25 and 500.
         :type page_size: int
+        :type retry_rate_limit_backoff: int
         """
         self.base_url = base_url
         self._add_user_agent = user_agent
         self.token = token
         self.session = requests.Session()
         self.page_size = page_size
+        self.retry_rate_limit_backoff = retry_rate_limit_backoff
 
         #: Access methods related to Linodes - see :any:`LinodeGroup` for
         #: more information
@@ -1160,6 +1162,19 @@ class LinodeClient:
         warning = response.headers.get('Warning', None)
         if warning:
             logger.warning('Received warning from server: {}'.format(warning))
+
+        if self.retry_rate_limit_backoff:
+            try:
+                max_retries = 5
+                attempt = 0
+                while attempt < max_retries:
+                    attempt += 1
+                    # retry 429
+                    if response.status_code == 429:
+                            time.sleep(self.retry_rate_limit_backoff)
+                            _api_call(self, endpoint, model, method, data, filters)
+            except TypeError:
+                print("Integer is required for retry rate limit backoff!")
 
         if 399 < response.status_code < 600:
             j = None
