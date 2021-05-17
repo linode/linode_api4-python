@@ -279,6 +279,38 @@ class DiskTest(ClientBaseCase):
             self.assertEqual(m.call_data, {"size": 1000})
 
 
+class ConfigTest(ClientBaseCase):
+    """
+    Tests for the Config object
+    """
+
+    def test_update_interfaces(self):
+        """
+        Tests that a configs interfaces update correctly
+        """
+
+        json = self.client.get('/linode/instances/123/configs/456789')
+        config = Config(self.client, 456789, 123, json=json)
+
+        with self.mock_put('/linode/instances/123/configs/456789') as m:
+            new_interfaces = [
+                {
+                    'purpose': 'public'
+                },
+                {
+                    'purpose': 'vlan',
+                    'label': 'cool-vlan'
+                }
+            ]
+
+            config.interfaces = new_interfaces
+
+            config.save()
+
+            self.assertEqual(m.call_url, '/linode/instances/123/configs/456789')
+            self.assertEqual(m.call_data.get('interfaces'), new_interfaces)
+
+
 class TypeTest(ClientBaseCase):
     def test_get_types(self):
         """

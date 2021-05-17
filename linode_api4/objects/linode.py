@@ -162,6 +162,45 @@ class Type(Base):
     type_class = FilterableAttribute('class')
 
 
+class ConfigInterface:
+    """
+    This is a helper class used to populate 'interfaces' in the Config calss
+    below.
+    """
+    def __init__(self, purpose, label="", ipam_address=""):
+        """
+        Creates a new ConfigInterface
+        """
+        #: The Label for the VLAN this interface is connected to.  Blank for public
+        #: interfaces.
+        self.label = label
+
+        #: The IPAM Address this interface will bring up.  Blank for public interfaces.
+        self.ipam_address = ipam_address
+
+        #: The purpose of this interface.  "public" means this interface can access
+        #: the internet, "vlan" means it is a VLAN interface.
+        self.purpose = purpose
+
+    def __repr__(self):
+        if self.purpose == "public":
+            return "Public Interface"
+        return "Interface {}; purpose: {}; ipam_address: {}".format(
+            self.label, self.purpose, self.ipam_address
+        )
+
+    def _serialize(self):
+        """
+        Returns this object as a dict
+        """
+        return {
+            "label": self.label,
+            "ipam_address": self.ipam_address,
+            "purpose": self.purpose,
+        }
+
+
+
 class Config(DerivedBase):
     api_endpoint="/linode/instances/{linode_id}/configs/{id}"
     derived_url_path="configs"
@@ -182,6 +221,7 @@ class Config(DerivedBase):
         "run_level": Property(mutable=True, filterable=True),
         "virt_mode": Property(mutable=True, filterable=True),
         "memory_limit": Property(mutable=True, filterable=True),
+        "interfaces": Property(mutable=True), # gets setup in _populate below
     }
 
     def _populate(self, json):
@@ -209,6 +249,31 @@ class Config(DerivedBase):
             devices[device_index] = dev
 
         self._set('devices', MappedObject(**devices))
+
+        interfaces = []
+        if "interfaces" in json:
+            interfaces = [
+                ConfigInterface(c["purpose"], label=c["label"], ipam_address=c["ipam_address"])
+                for c in json["interfaces"]
+            ]
+
+        self._set("interfaces", interfaces)
+
+    def _serialize(self):
+        """
+        Overrides _serialize to transform interfaces into json
+        """
+        partial = DerivedBase._serialize(self)
+        interfaces = []
+
+        for c in self.interfaces:
+            if isinstance(c, ConfigInterface):
+                interfaces.append(c._serialize())
+            else:
+                interfaces.append(c)
+
+        partial["interfaces"] = interfaces
+        return partial
 
 
 class Instance(Base):

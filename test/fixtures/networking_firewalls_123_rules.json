@@ -1,0 +1,6 @@
+{
+  "inbound": [],
+  "inbound_policy": "DROP",
+  "outbound": [],
+  "outbound_policy": "DROP"
+}

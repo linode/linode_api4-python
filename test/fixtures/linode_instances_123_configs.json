@@ -14,6 +14,13 @@
       "created": "2014-10-07T20:04:00",
       "memory_limit": 0,
       "id": 456789,
+      "interfaces": [
+        {
+          "ipam_address": "0.0.0.0/24",
+          "label": "test-interface",
+          "purpose": "vlan"
+        }
+      ],
       "run_level": "default",
       "initrd": null,
       "virt_mode": "paravirt",
