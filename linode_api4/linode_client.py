@@ -2,6 +2,7 @@ import json
 import logging
 from datetime import datetime
 import os
+import time
 
 import pkg_resources
 import requests
@@ -222,9 +223,6 @@ class LinodeGroup(Group):
                      tags included do not exist, they will be created as part of
                      this operation.
         :type tags: list[str]
-        :param private_ip: Whether the new Instance should have private networking
-                           enabled and assigned a private IPv4 address.
-        :type private_ip: bool
 
         :returns: A new Instance object, or a tuple containing the new Instance and
                   the generated password.
@@ -736,78 +734,6 @@ class AccountGroup(Group):
         return u
 
 class NetworkingGroup(Group):
-    def firewalls(self, *filters):
-        """
-        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
-
-        Retrieves the Firewalls your user has access to.
-
-        :param filters: Any number of filters to apply to this query.
-
-        :returns: A list of Firewalls the acting user can access.
-        :rtype: PaginatedList of Firewall
-        """
-        return self.client._get_and_filter(Firewall, *filters)
-
-    def firewall_create(self, label, rules, **kwargs):
-        """
-        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
-
-        Creates a new Firewall, either in the given Region or
-        attached to the given Instance.
-
-        :param label: The label for the new Firewall.
-        :type label: str
-        :param rules: The rules to apply to the new Firewall. For more information on Firewall rules, see our `Firewalls Documentation`_.
-        :type rules: dict
-
-        :returns: The new Firewall.
-        :rtype: Firewall
-
-        Example usage::
-
-           rules = {
-                'outbound': [
-                    {
-                        'action': 'ACCEPT',
-                        'addresses': {
-                            'ipv4': [
-                                '0.0.0.0/0'
-                            ],
-                            'ipv6': [
-                                "ff00::/8"
-                            ]
-                        },
-                        'description': 'Allow HTTP out.',
-                        'label': 'allow-http-out',
-                        'ports': '80',
-                        'protocol': 'TCP'
-                    }
-                ],
-                'outbound_policy': 'DROP',
-                'inbound': [],
-                'inbound_policy': 'DROP'
-            }
-
-            firewall = client.networking.firewall_create('my-firewall', rules)
-
-        .. _Firewalls Documentation: https://www.linode.com/docs/api/networking/#firewall-create__request-body-schema
-        """
-
-        params = {
-            'label': label,
-            'rules': rules,
-        }
-        params.update(kwargs)
-
-        result = self.client.post('/networking/firewalls', data=params)
-
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating Firewall!', json=result)
-
-        f = Firewall(self.client, result['id'], result)
-        return f
-
     def ips(self, *filters):
         return self.client._get_and_filter(IPAddress, *filters)
 
@@ -816,16 +742,6 @@ class NetworkingGroup(Group):
 
     def ipv6_pools(self, *filters):
         return self.client._get_and_filter(IPv6Pool, *filters)
-
-    def vlans(self, *filters):
-        """
-        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
-        Returns a list of VLANs on your account.
-        
-        :returns: A Paginated List of VLANs on your account.
-        :rtype: PaginatedList of VLAN
-        """
-        return self.client._get_and_filter(VLAN, *filters)
 
     def ips_assign(self, region, *assignments):
         """
@@ -935,7 +851,6 @@ class NetworkingGroup(Group):
                          model=linode, data=params)
 
         linode.invalidate() # clear the Instance's shared IPs
-
 
 class SupportGroup(Group):
     def tickets(self, *filters):
@@ -1243,24 +1158,22 @@ class LinodeClient:
         if data is not None:
             body = json.dumps(data)
 
-        response = method(url, headers=headers, data=body)
+        # retry on 429 response
+        max_retries = 5 if self.retry_rate_limit_backoff else 0
+        for attempt in range(max_retries):
+            response = method(url, headers=headers, data=body)
 
-        warning = response.headers.get('Warning', None)
-        if warning:
-            logger.warning('Received warning from server: {}'.format(warning))
+            warning = response.headers.get('Warning', None)
+            if warning:
+                logger.warning('Received warning from server: {}'.format(warning))
 
-        if self.retry_rate_limit_backoff:
-            try:
-                max_retries = 5
-                attempt = 0
-                while attempt < max_retries:
-                    attempt += 1
-                    # retry 429
-                    if response.status_code == 429:
-                            time.sleep(self.retry_rate_limit_backoff)
-                            _api_call(self, endpoint, model, method, data, filters)
-            except TypeError:
-                print("Integer is required for retry rate limit backoff!")
+            if self.retry_rate_limit_backoff and response.status_code == 429:
+                try:
+                    time.sleep(self.retry_rate_limit_backoff)
+                except TypeError:
+                    print("Integer is required for retry rate limit backoff!")
+            else:
+                break
 
         if 399 < response.status_code < 600:
             j = None
