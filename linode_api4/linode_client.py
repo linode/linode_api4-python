@@ -2,6 +2,7 @@ import json
 import logging
 from datetime import datetime
 import os
+import time
 
 import pkg_resources
 import requests
@@ -1114,7 +1115,7 @@ class ObjectStorageGroup(Group):
 
 
 class LinodeClient:
-    def __init__(self, token, base_url="https://api.linode.com/v4", user_agent=None, page_size=None):
+    def __init__(self, token, base_url="https://api.linode.com/v4", user_agent=None, page_size=None, retry_rate_limit_backoff=0):
         """
         The main interface to the Linode API.
 
@@ -1135,12 +1136,14 @@ class LinodeClient:
                                   can be found in the API docs, but at time of writing
                                   are between 25 and 500.
         :type page_size: int
+        :type retry_rate_limit_backoff: int
         """
         self.base_url = base_url
         self._add_user_agent = user_agent
         self.token = token
         self.session = requests.Session()
         self.page_size = page_size
+        self.retry_rate_limit_backoff = retry_rate_limit_backoff
 
         #: Access methods related to Linodes - see :any:`LinodeGroup` for
         #: more information
@@ -1242,10 +1245,22 @@ class LinodeClient:
             body = json.dumps(data)
 
         response = method(url, headers=headers, data=body)
+        # retry on 429 response
+        max_retries = 5 if self.retry_rate_limit_backoff else 0
+        for attempt in range(max_retries):
+            response = method(url, headers=headers, data=body)
 
-        warning = response.headers.get('Warning', None)
-        if warning:
-            logger.warning('Received warning from server: {}'.format(warning))
+            warning = response.headers.get('Warning', None)
+            if warning:
+                logger.warning('Received warning from server: {}'.format(warning))
+
+            if self.retry_rate_limit_backoff and response.status_code == 429:
+                try:
+                    time.sleep(self.retry_rate_limit_backoff)
+                except TypeError:
+                    print("Integer is required for retry rate limit backoff!")
+            else:
+                break
 
         if 399 < response.status_code < 600:
             j = None
