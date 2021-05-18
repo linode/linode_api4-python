@@ -36,6 +36,7 @@ class LKENodePoolNode():
         #: The Status of this Node Pool Node
         self.status = json.get("status")
 
+
 class LKENodePool(DerivedBase):
     """
     An LKE Node Pool describes a pool of Linode Instances that exist within an
@@ -43,7 +44,7 @@ class LKENodePool(DerivedBase):
     """
     api_endpoint = "/lke/clusters/{cluster_id}/pools/{id}"
     derived_url_path = 'pools'
-    parent_id = "linode_id"
+    parent_id_name = "cluster_id"
 
     properties = {
         "id": Property(identifier=True),
