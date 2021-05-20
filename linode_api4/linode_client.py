@@ -1115,7 +1115,7 @@ class ObjectStorageGroup(Group):
 
 
 class LinodeClient:
-    def __init__(self, token, base_url="https://api.linode.com/v4", user_agent=None, page_size=None, retry_rate_limit_backoff=0):
+    def __init__(self, token, base_url="https://api.linode.com/v4", user_agent=None, page_size=None, retry_rate_limit_backoff=None):
         """
         The main interface to the Linode API.
 
@@ -1136,6 +1136,9 @@ class LinodeClient:
                                   can be found in the API docs, but at time of writing
                                   are between 25 and 500.
         :type page_size: int
+        :param retry_rate_limit_backoff: If given, 429 responses will be automatically
+                                         retried up to 5 times with the given interval,
+                                         in seconds, between attempts.
         :type retry_rate_limit_backoff: int
         """
         self.base_url = base_url
@@ -1144,6 +1147,13 @@ class LinodeClient:
         self.session = requests.Session()
         self.page_size = page_size
         self.retry_rate_limit_backoff = retry_rate_limit_backoff
+
+        # make sure we got a sane backoff
+        if self.retry_rate_limit_backoff is not None:
+            if not isinstance(self.retry_rate_limit_backoff, int):
+                raise ValueError("retry_rate_limit_backoff must be an int!")
+            if self.retry_rate_limit_backoff < 1:
+                raise ValueError("retry_rate_limit_backoff must not be less than 1!")
 
         #: Access methods related to Linodes - see :any:`LinodeGroup` for
         #: more information
@@ -1244,9 +1254,8 @@ class LinodeClient:
         if data is not None:
             body = json.dumps(data)
 
-        response = method(url, headers=headers, data=body)
         # retry on 429 response
-        max_retries = 5 if self.retry_rate_limit_backoff else 0
+        max_retries = 5 if self.retry_rate_limit_backoff else 1
         for attempt in range(max_retries):
             response = method(url, headers=headers, data=body)
 
@@ -1254,11 +1263,12 @@ class LinodeClient:
             if warning:
                 logger.warning('Received warning from server: {}'.format(warning))
 
+            # if we were configured to retry 429s, and we got a 429, sleep briefly and then retry
             if self.retry_rate_limit_backoff and response.status_code == 429:
-                try:
-                    time.sleep(self.retry_rate_limit_backoff)
-                except TypeError:
-                    print("Integer is required for retry rate limit backoff!")
+                logger.warning("Received 429 response; waiting {} seconds and retrying request (attempt {}/{})".format(
+                    self.retry_rate_limit_backoff, attempt, max_retries,
+                ))
+                time.sleep(self.retry_rate_limit_backoff)
             else:
                 break
 
