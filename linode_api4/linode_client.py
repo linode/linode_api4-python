@@ -1153,7 +1153,7 @@ class LinodeClient:
             if not isinstance(self.retry_rate_limit_backoff, int):
                 raise ValueError("retry_rate_limit_backoff must be an int")
             if self.retry_rate_limit_backoff < 1:
-                raise ValueError("retry_rate_limit_backoff must not be less than 1!")
+                raise ValueError("retry_rate_limit_backoff must not be less than 1")
 
         #: Access methods related to Linodes - see :any:`LinodeGroup` for
         #: more information
