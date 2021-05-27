@@ -1115,7 +1115,7 @@ class ObjectStorageGroup(Group):
 
 
 class LinodeClient:
-    def __init__(self, token, base_url="https://api.linode.com/v4", user_agent=None, page_size=None, retry_rate_limit_backoff=None):
+    def __init__(self, token, base_url="https://api.linode.com/v4", user_agent=None, page_size=None, retry_rate_limit_interval=None):
         """
         The main interface to the Linode API.
 
@@ -1136,24 +1136,24 @@ class LinodeClient:
                                   can be found in the API docs, but at time of writing
                                   are between 25 and 500.
         :type page_size: int
-        :param retry_rate_limit_backoff: If given, 429 responses will be automatically
+        :param retry_rate_limit_interval: If given, 429 responses will be automatically
                                          retried up to 5 times with the given interval,
                                          in seconds, between attempts.
-        :type retry_rate_limit_backoff: int
+        :type retry_rate_limit_interval: int
         """
         self.base_url = base_url
         self._add_user_agent = user_agent
         self.token = token
         self.session = requests.Session()
         self.page_size = page_size
-        self.retry_rate_limit_backoff = retry_rate_limit_backoff
+        self.retry_rate_limit_interval = retry_rate_limit_interval
 
         # make sure we got a sane backoff
-        if self.retry_rate_limit_backoff is not None:
-            if not isinstance(self.retry_rate_limit_backoff, int):
-                raise ValueError("retry_rate_limit_backoff must be an int")
-            if self.retry_rate_limit_backoff < 1:
-                raise ValueError("retry_rate_limit_backoff must not be less than 1")
+        if self.retry_rate_limit_interval is not None:
+            if not isinstance(self.retry_rate_limit_interval, int):
+                raise ValueError("retry_rate_limit_interval must be an int")
+            if self.retry_rate_limit_interval < 1:
+                raise ValueError("retry_rate_limit_interval must not be less than 1")
 
         #: Access methods related to Linodes - see :any:`LinodeGroup` for
         #: more information
@@ -1255,7 +1255,7 @@ class LinodeClient:
             body = json.dumps(data)
 
         # retry on 429 response
-        max_retries = 5 if self.retry_rate_limit_backoff else 1
+        max_retries = 5 if self.retry_rate_limit_interval else 1
         for attempt in range(max_retries):
             response = method(url, headers=headers, data=body)
 
@@ -1264,11 +1264,11 @@ class LinodeClient:
                 logger.warning('Received warning from server: {}'.format(warning))
 
             # if we were configured to retry 429s, and we got a 429, sleep briefly and then retry
-            if self.retry_rate_limit_backoff and response.status_code == 429:
+            if self.retry_rate_limit_interval and response.status_code == 429:
                 logger.warning("Received 429 response; waiting {} seconds and retrying request (attempt {}/{})".format(
-                    self.retry_rate_limit_backoff, attempt, max_retries,
+                    self.retry_rate_limit_interval, attempt, max_retries,
                 ))
-                time.sleep(self.retry_rate_limit_backoff)
+                time.sleep(self.retry_rate_limit_interval)
             else:
                 break
 

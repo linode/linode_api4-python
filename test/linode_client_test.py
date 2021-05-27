@@ -600,9 +600,9 @@ class LinodeClientRateLimitRetryTest(TestCase):
        (or else they will make real requests and those won't work).
     """
     def setUp(self):
-        self.client = LinodeClient("testing", base_url="/", retry_rate_limit_backoff=1)
+        self.client = LinodeClient("testing", base_url="/", retry_rate_limit_interval=1)
         # sidestep the validation to do immediate retries so tests aren't slow
-        self.client.retry_rate_limit_backoff = 0.1
+        self.client.retry_rate_limit_interval = 0.1
 
     def _get_mock_response(self, response_code):
         """
