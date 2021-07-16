@@ -114,6 +114,12 @@ class NodeBalancerConfig(DerivedBase):
         :param key_file: A path to the file containing the unpassphrased private key
         :type key_file: str
         """
+        # access a server-loaded field to ensure this object is loaded from the
+        # server before setting values.  Failing to do this can cause an unloaded
+        # object to overwrite these values on a subsequent load, which happens to
+        # occur on a save()
+        _ = self.ssl_fingerprint
+
         # we're disabling warnings here because these attributes are defined dynamically
         # through linode.objects.Base, and pylint isn't privy
         if os.path.isfile(os.path.expanduser(cert_file)):
