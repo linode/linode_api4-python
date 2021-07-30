@@ -37,8 +37,6 @@ class Volume(Base):
         """
         Detaches this Volume if it is attached
         """
-        if self.linode_id is None or self.linode_id == "":
-            return True
         self._client.post('{}/detach'.format(Volume.api_endpoint), model=self)
 
         return True

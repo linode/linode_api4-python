@@ -75,16 +75,6 @@ class VolumeTest(ClientBaseCase):
             assert mock.call_url == f'/volumes/{volume.id}/detach'
             assert result is True
 
-    def test_detach_volume_no_linode_id(self):
-        """
-        Tests that a volume with no linode_id still detachs successfully
-        """
-        volume = self.client.volumes().first()
-
-        with self.mock_post(f'volumes/{volume.id}') as _mock:
-            result = volume.detach()
-            assert result is True
-
     def test_attach_volume_to_linode(self):
         """
         Tests that the given volume attaches to the Linode via id
