@@ -8,6 +8,7 @@ class VolumeTest(ClientBaseCase):
     """
     Tests methods of the Volume class
     """
+
     def test_get_volume(self):
         """
         Tests that a volume is loaded correctly by ID
@@ -38,3 +39,60 @@ class VolumeTest(ClientBaseCase):
 
             assert m.call_url == '/volumes/{}'.format(volume.id)
             assert m.call_data['tags'] == ['test1', 'test2']
+
+    def test_clone_volume(self):
+        """
+        Tests that cloning a volume returns new volume object with
+        same region and the given label
+        """
+        volume_to_clone = self.client.volumes().first()
+
+        with self.mock_post(f'volumes/{volume_to_clone.id}') as mock:
+            new_volume = volume_to_clone.clone('new-volume')
+            assert mock.call_url == f'/volumes/{volume_to_clone.id}/clone'
+            self.assertEqual(str(new_volume.region), str(volume_to_clone.region), 'the regions should be the same')
+            assert new_volume.id != str(volume_to_clone.id)
+
+    def test_resize_volume(self):
+        """
+        Tests that resizing a given volume volume works
+        """
+        volume = self.client.volumes().first()
+
+        with self.mock_post(f'volumes/{volume.id}') as mock:
+            volume.resize(3048)
+            assert mock.call_url == f'/volumes/{volume.id}/resize'
+            assert str(mock.call_data['size']) == '3048'
+
+    def test_detach_volume(self):
+        """
+        Tests that detaching the volume succeeds
+        """
+        volume = self.client.volumes()[2]
+
+        with self.mock_post(f'volumes/{volume.id}') as mock:
+            result = volume.detach()
+            assert mock.call_url == f'/volumes/{volume.id}/detach'
+            assert result is True
+
+    def test_detach_volume_no_linode_id(self):
+        """
+        Tests that a volume with no linode_id still detachs successfully
+        """
+        volume = self.client.volumes().first()
+
+        with self.mock_post(f'volumes/{volume.id}') as _mock:
+            result = volume.detach()
+            assert result is True
+
+    def test_attach_volume_to_linode(self):
+        """
+        Tests that the given volume attaches to the Linode via id
+        """
+        volume = self.client.volumes().first()
+
+        with self.mock_post(f'volumes/{volume.id}') as mock:
+            result = volume.attach(1)
+            assert mock.call_url == f'/volumes/{volume.id}/attach'
+            assert result is True
+            assert str(mock.call_data['linode_id']) == '1'
