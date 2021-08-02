@@ -108,14 +108,17 @@ class LinodeClientGeneralTest(ClientBaseCase):
     def test_get_volumes(self):
         v = self.client.volumes()
 
-        self.assertEqual(len(v), 2)
+        self.assertEqual(len(v), 3)
         self.assertEqual(v[0].label, 'block1')
         self.assertEqual(v[0].region.id, 'us-east-1a')
         self.assertEqual(v[1].label, 'block2')
         self.assertEqual(v[1].size, 100)
+        self.assertEqual(v[2].size, 200)
+        self.assertEqual(v[2].label, 'block3')
 
         assert v[0].tags == ["something"]
         assert v[1].tags == []
+        assert v[2].tags == ["attached"]
 
     def test_get_tags(self):
         """
