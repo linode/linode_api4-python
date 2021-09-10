@@ -231,7 +231,7 @@ class LinodeGroup(Group):
                   the generated password.
         :rtype: Instance or tuple(Instance, str)
         :raises ApiError: If contacting the API fails
-        :raises UnexpectedResponseError: If the API resposne is somehow malformed.
+        :raises UnexpectedResponseError: If the API response is somehow malformed.
                                          This usually indicates that you are using
                                          an outdated library.
         """
