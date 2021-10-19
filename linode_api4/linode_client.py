@@ -1279,8 +1279,13 @@ class LinodeClient:
                 j = response.json()
                 if 'errors' in j.keys():
                     for e in j['errors']:
-                        error_msg += '{}; '.format(e['reason']) \
-                                if 'reason' in e.keys() else ''
+                        msg = e.get('reason', '')
+                        field = e.get('field', None)
+
+                        error_msg += '{}{}; '.format(
+                            '[{}] '.format(field) if field is not None else '',
+                            msg,
+                        )
             except:
                 pass
             raise ApiError(error_msg, status=response.status_code, json=j)
