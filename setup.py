@@ -85,11 +85,7 @@ setup(
     ],
 
     extras_require={
+        "test": ["tox"],
     },
-    tests_require=[
-        "tox",
-        "mock",
-    ],
-
     test_suite = 'setup.get_test_suite'
 )
