@@ -86,8 +86,8 @@ setup(
 
     extras_require={
     },
-
     tests_require=[
+        "tox",
         "mock",
     ],
 
