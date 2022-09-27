@@ -77,14 +77,29 @@ class Database(Base):
                 print(f"{db.hosts.primary}: {db.instance.credentials.username} {db.instance.credentials.password}")
         """
 
-        engine_type_translation = {
-            'mysql': MySQLDatabase
-        }
+        if not hasattr(self, '_instance'):
+            engine_type_translation = {
+                'mysql': MySQLDatabase
+            }
 
-        if self.engine not in engine_type_translation:
-            return None
+            if self.engine not in engine_type_translation:
+                return None
 
-        return engine_type_translation[self.engine](self._client, self.id)
+            self._set('_instance', engine_type_translation[self.engine](self._client, self.id))
+
+        return self._instance
+
+    def invalidate(self):
+        """
+        Clear out cached properties.
+        """
+
+        for attr in ['_instance']:
+            if hasattr(self, attr):
+                delattr(self, attr)
+
+        Base.invalidate(self)
+
 
 class MySQLDatabaseBackup(DerivedBase):
     api_endpoint = '/databases/mysql/instances/{database_id}/backups/{id}'
@@ -132,13 +147,19 @@ class MySQLDatabase(Base):
 
     @property
     def credentials(self):
-        resp = self._client.get('{}/credentials'.format(MySQLDatabase.api_endpoint), model=self)
-        return MappedObject(**resp)
+        if not hasattr(self, '_credentials'):
+            resp = self._client.get('{}/credentials'.format(MySQLDatabase.api_endpoint), model=self)
+            self._set('_credentials', MappedObject(**resp))
+
+        return self._credentials
 
     @property
     def ssl(self):
-        resp = self._client.get('{}/ssl'.format(MySQLDatabase.api_endpoint), model=self)
-        return MappedObject(**resp)
+        if not hasattr(self, '_ssl'):
+            resp = self._client.get('{}/ssl'.format(MySQLDatabase.api_endpoint), model=self)
+            self._set('_ssl', MappedObject(**resp))
+
+        return self._ssl
 
     def credentials_reset(self):
         """
@@ -176,3 +197,14 @@ class MySQLDatabase(Base):
 
         b = MySQLDatabaseBackup(self._client, result['id'], self.id, result)
         return b
+
+    def invalidate(self):
+        """
+        Clear out cached properties.
+        """
+
+        for attr in ['_ssl', '_credentials']:
+            if hasattr(self, attr):
+                delattr(self, attr)
+
+        Base.invalidate(self)
