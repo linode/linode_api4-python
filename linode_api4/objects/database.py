@@ -81,6 +81,9 @@ class Database(Base):
             'mysql': MySQLDatabase
         }
 
+        if self.engine not in engine_type_translation:
+            return None
+
         return engine_type_translation[self.engine](self._client, self.id)
 
 class MySQLDatabaseBackup(DerivedBase):
