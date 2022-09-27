@@ -61,6 +61,27 @@ class Database(Base):
         'version': Property(),
     }
 
+    @property
+    def instance(self):
+        """
+        Returns the underlying database object for the corresponding database
+        engine. This is useful for performing operations on generic databases.
+
+        The following is an example of printing credentials for all databases regardless of engine::
+
+            client = LinodeClient(TOKEN)
+
+            databases = client.database.instances()
+
+            for db in databases:
+                print(f"{db.hosts.primary}: {db.instance.credentials.username} {db.instance.credentials.password}")
+        """
+
+        engine_type_translation = {
+            'mysql': MySQLDatabase
+        }
+
+        return engine_type_translation[self.engine](self._client, self.id)
 
 class MySQLDatabaseBackup(DerivedBase):
     api_endpoint = '/databases/mysql/instances/{database_id}/backups/{id}'

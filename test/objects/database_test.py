@@ -53,6 +53,17 @@ class DatabaseTest(ClientBaseCase):
         self.assertEqual(dbs[0].updates.duration, 3)
         self.assertEqual(dbs[0].version, '8.0.26')
 
+    def test_database_instance(self):
+        """
+        Ensures that the .instance attribute properly translates database types
+        """
+
+        dbs = self.client.database.instances()
+        db_translated = dbs[0].instance
+
+        self.assertTrue(isinstance(db_translated, MySQLDatabase))
+        self.assertEqual(db_translated.ssl_connection, True)
+
 
 class MySQLDatabaseTest(ClientBaseCase):
     """

@@ -1185,7 +1185,7 @@ class DatabaseGroup(Group):
         Creates an :any:`MySQLDatabase` on this account with
         the given label, region, engine, and node type.  For example::
 
-            client = LinodeClient(TOKEN)
+           client = LinodeClient(TOKEN)
 
            # look up Region and Types to use.  In this example I'm just using
            # the first ones returned.
