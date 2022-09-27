@@ -1114,6 +1114,110 @@ class ObjectStorageGroup(Group):
         return True
 
 
+class DatabaseGroup(Group):
+    """
+    Encapsulates Linode Managed Databases related methods of the :any:`LinodeClient`. This
+    should not be instantiated on its own, but should instead be used through
+    an instance of :any:`LinodeClient`::
+
+       client = LinodeClient(token)
+       instances = client.database.instances() # use the DatabaseGroup
+
+    This group contains all features beneath the `/databases` group in the API v4.
+    """
+
+    def types(self, *filters):
+        """
+        Returns a list of Linode Database-compatible Instance types.
+        These may be used to create Managed Databases, or simply
+        referenced to on their own. DatabaseTypes can be
+        filtered to return specific types, for example::
+
+           database_types = client.database.types(DatabaseType.deprecated == False)
+
+        :param filters: Any number of filters to apply to the query.
+
+        :returns: A list of types that match the query.
+        :rtype: PaginatedList of DatabaseType
+        """
+        return self.client._get_and_filter(DatabaseType, *filters)
+
+    def engines(self, *filters):
+        """
+        Returns a list of Linode Managed Database Engines.
+        These may be used to create Managed Databases, or simply
+        referenced to on their own. Engines can be filtered to
+        return specific engines, for example::
+
+           mysql_engines = client.database.engines(DatabaseEngine.engine == 'mysql')
+
+        :param filters: Any number of filters to apply to the query.
+
+        :returns: A list of types that match the query.
+        :rtype: PaginatedList of DatabaseEngine
+        """
+        return self.client._get_and_filter(DatabaseEngine, *filters)
+
+    def instances(self, *filters):
+        """
+        Returns a list of Managed Databases active on this account.
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of databases that matched the query.
+        :rtype: PaginatedList of Database
+        """
+        return self.client._get_and_filter(Database, *filters)
+
+    def mysql_instances(self, *filters):
+        """
+        Returns a list of Managed MySQL Databases active on this account.
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of MySQL databases that matched the query.
+        :rtype: PaginatedList of MySQLDatabase
+        """
+        return self.client._get_and_filter(MySQLDatabase, *filters)
+
+    def mysql_create(self, label, region, engine, type, **kwargs):
+        """
+        Creates an :any:`MySQLDatabase` on this account with
+        the given label, region, engine, and node type.  For example::
+
+            client = LinodeClient(TOKEN)
+
+           # look up Region and Types to use.  In this example I'm just using
+           # the first ones returned.
+           region = client.regions().first()
+           node_type = client.database.types()[0]
+           engine = client.database.engines(DatabaseEngine.engine == 'mysql')[0]
+
+           new_database = client.database.mysql_create(
+               "example-database",
+               region,
+               engine.id,
+               type.id
+            )
+        """
+
+        params = {
+            'label': label,
+            'region': region,
+            'engine': engine,
+            'type': type,
+        }
+        params.update(kwargs)
+
+        result = self.client.post('/databases/mysql/instances', data=params)
+
+        if 'id' not in result:
+            raise UnexpectedResponseError('Unexpected response when creating MySQL Database', json=result)
+
+        d = MySQLDatabase(self, result['id'], result)
+        return d
+
+
 class LinodeClient:
     def __init__(self, token, base_url="https://api.linode.com/v4", user_agent=None, page_size=None, retry_rate_limit_interval=None):
         """
@@ -1185,6 +1289,9 @@ class LinodeClient:
 
         #: Access methods related to LKE - see :any:`LKEGroup` for more information.
         self.lke = LKEGroup(self)
+
+        #: Access methods related to Managed Databases - see :any:`DatabaseGroup` for more information.
+        self.database = DatabaseGroup(self)
 
     @property
     def _user_agent(self):
