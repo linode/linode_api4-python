@@ -306,7 +306,119 @@ class PostgreSQLDatabase(Base):
         if 'id' not in result:
             raise UnexpectedResponseError('Unexpected response when creating backup', json=result)
 
-        b = MySQLDatabaseBackup(self._client, result['id'], self.id, result)
+        b = PostgreSQLDatabaseBackup(self._client, result['id'], self.id, result)
+        return b
+
+    def invalidate(self):
+        """
+        Clear out cached properties.
+        """
+
+        for attr in ['_ssl', '_credentials']:
+            if hasattr(self, attr):
+                delattr(self, attr)
+
+        Base.invalidate(self)
+
+
+class MongoDBDatabaseBackup(DerivedBase):
+    api_endpoint = '/databases/mongodb/instances/{database_id}/backups/{id}'
+    derived_url_path = 'backups'
+    parent_id_name = 'database_id'
+
+    properties = {
+        'created': Property(is_datetime=True),
+        'id': Property(identifier=True),
+        'label': Property(),
+        'type': Property(),
+    }
+
+    def restore(self):
+        """
+        Restore a backup to a Managed MongoDB Database on your Account.
+        """
+
+        return self._client.post('{}/restore'.format(MongoDBDatabaseBackup.api_endpoint), model=self)
+
+
+class MongoDBDatabase(Base):
+    api_endpoint = '/databases/mongodb/instances/{id}'
+
+    properties = {
+        'id': Property(identifier=True),
+        'label': Property(mutable=True, filterable=True),
+        'allow_list': Property(mutable=True),
+        'backups': Property(derived_class=MongoDBDatabaseBackup),
+        'cluster_size': Property(),
+        'compression_type': Property(),
+        'created': Property(is_datetime=True),
+        'encrypted': Property(),
+        'engine': Property(filterable=True),
+        'hosts': Property(),
+        'peers': Property(),
+        'port': Property(),
+        'region': Property(filterable=True),
+        'replica_set': Property(),
+        'ssl_connection': Property(),
+        'status': Property(volatile=True, filterable=True),
+        'storage_engine': Property(),
+        'type': Property(filterable=True),
+        'updated': Property(volatile=True, is_datetime=True),
+        'updates': Property(mutable=True),
+        'version': Property(filterable=True),
+    }
+
+    @property
+    def credentials(self):
+        if not hasattr(self, '_credentials'):
+            resp = self._client.get('{}/credentials'.format(MongoDBDatabase.api_endpoint), model=self)
+            self._set('_credentials', MappedObject(**resp))
+
+        return self._credentials
+
+    @property
+    def ssl(self):
+        if not hasattr(self, '_ssl'):
+            resp = self._client.get('{}/ssl'.format(MongoDBDatabase.api_endpoint), model=self)
+            self._set('_ssl', MappedObject(**resp))
+
+        return self._ssl
+
+    def credentials_reset(self):
+        """
+        Reset the root password for a Managed MongoDB Database.
+        """
+
+        self.invalidate()
+
+        return self._client.post('{}/credentials/reset'.format(MongoDBDatabase.api_endpoint), model=self)
+
+    def patch(self):
+        """
+        Apply security patches and updates to the underlying operating system of the Managed MongoDB Database.
+        """
+
+        self.invalidate()
+
+        return self._client.post('{}/patch'.format(MongoDBDatabase.api_endpoint), model=self)
+
+    def backup_create(self, label, **kwargs):
+        """
+        Creates a snapshot backup of a Managed MongoDB Database.
+        """
+
+        params = {
+            'label': label,
+        }
+        params.update(kwargs)
+
+        result = self._client.post('{}/backups'.format(MongoDBDatabase.api_endpoint), model=self, data=params)
+        self.invalidate()
+
+        if 'id' not in result:
+            raise UnexpectedResponseError('Unexpected response when creating backup', json=result)
+
+        b = MongoDBDatabaseBackup(self._client, result['id'], self.id, result)
         return b
 
     def invalidate(self):

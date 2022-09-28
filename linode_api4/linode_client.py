@@ -1265,6 +1265,54 @@ class DatabaseGroup(Group):
         d = PostgreSQLDatabase(self, result['id'], result)
         return d
 
+    def mongodb_instances(self, *filters):
+        """
+        Returns a list of Managed MongoDB Databases active on this account.
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of MongoDB databases that matched the query.
+        :rtype: PaginatedList of MongoDBDatabase
+        """
+        return self.client._get_and_filter(MongoDBDatabase, *filters)
+
+    def mongodb_create(self, label, region, engine, type, **kwargs):
+        """
+        Creates an :any:`MongoDBDatabase` on this account with
+        the given label, region, engine, and node type.  For example::
+
+           client = LinodeClient(TOKEN)
+
+           # look up Region and Types to use.  In this example I'm just using
+           # the first ones returned.
+           region = client.regions().first()
+           node_type = client.database.types()[0]
+           engine = client.database.engines(DatabaseEngine.engine == 'mongodb')[0]
+
+           new_database = client.database.mongodb_create(
+               "example-database",
+               region,
+               engine.id,
+               type.id
+            )
+        """
+
+        params = {
+            'label': label,
+            'region': region,
+            'engine': engine,
+            'type': type,
+        }
+        params.update(kwargs)
+
+        result = self.client.post('/databases/mongodb/instances', data=params)
+
+        if 'id' not in result:
+            raise UnexpectedResponseError('Unexpected response when creating MongoDB Database', json=result)
+
+        d = MongoDBDatabase(self, result['id'], result)
+        return d
+
 
 class LinodeClient:
     def __init__(self, token, base_url="https://api.linode.com/v4", user_agent=None, page_size=None, retry_rate_limit_interval=None):
