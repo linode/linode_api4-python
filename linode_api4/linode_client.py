@@ -1214,7 +1214,7 @@ class DatabaseGroup(Group):
         if 'id' not in result:
             raise UnexpectedResponseError('Unexpected response when creating MySQL Database', json=result)
 
-        d = MySQLDatabase(self, result['id'], result)
+        d = MySQLDatabase(self.client, result['id'], result)
         return d
 
     def postgresql_instances(self, *filters):
@@ -1262,7 +1262,7 @@ class DatabaseGroup(Group):
         if 'id' not in result:
             raise UnexpectedResponseError('Unexpected response when creating PostgreSQL Database', json=result)
 
-        d = PostgreSQLDatabase(self, result['id'], result)
+        d = PostgreSQLDatabase(self.client, result['id'], result)
         return d
 
     def mongodb_instances(self, *filters):
@@ -1310,7 +1310,7 @@ class DatabaseGroup(Group):
         if 'id' not in result:
             raise UnexpectedResponseError('Unexpected response when creating MongoDB Database', json=result)
 
-        d = MongoDBDatabase(self, result['id'], result)
+        d = MongoDBDatabase(self.client, result['id'], result)
         return d
 
 
