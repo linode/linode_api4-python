@@ -102,8 +102,8 @@ class Database(Base):
         Base.invalidate(self)
 
 
-class MySQLDatabaseBackup(DerivedBase):
-    api_endpoint = '/databases/mysql/instances/{database_id}/backups/{id}'
+class DatabaseBackup(DerivedBase):
+    api_endpoint = ''
     derived_url_path = 'backups'
     parent_id_name = 'database_id'
 
@@ -116,10 +116,22 @@ class MySQLDatabaseBackup(DerivedBase):
 
     def restore(self):
         """
-        Restore a backup to a Managed MySQL Database on your Account.
+        Restore a backup to a Managed Database on your Account.
         """
 
-        return self._client.post('{}/restore'.format(MySQLDatabaseBackup.api_endpoint), model=self)
+        return self._client.post('{}/restore'.format(self.api_endpoint), model=self)
+
+
+class MySQLDatabaseBackup(DatabaseBackup):
+    api_endpoint = '/databases/mysql/instances/{database_id}/backups/{id}'
+
+
+class MongoDBDatabaseBackup(DatabaseBackup):
+    api_endpoint = '/databases/mongodb/instances/{database_id}/backups/{id}'
+
+
+class PostgreSQLDatabaseBackup(DatabaseBackup):
+    api_endpoint = '/databases/postgresql/instances/{database_id}/backups/{id}'
 
 
 class MySQLDatabase(Base):
@@ -211,26 +223,6 @@ class MySQLDatabase(Base):
         Base.invalidate(self)
 
 
-class PostgreSQLDatabaseBackup(DerivedBase):
-    api_endpoint = '/databases/postgresql/instances/{database_id}/backups/{id}'
-    derived_url_path = 'backups'
-    parent_id_name = 'database_id'
-
-    properties = {
-        'created': Property(is_datetime=True),
-        'id': Property(identifier=True),
-        'label': Property(),
-        'type': Property(),
-    }
-
-    def restore(self):
-        """
-        Restore a backup to a Managed PostgreSQL Database on your Account.
-        """
-
-        return self._client.post('{}/restore'.format(PostgreSQLDatabaseBackup.api_endpoint), model=self)
-
-
 class PostgreSQLDatabase(Base):
     api_endpoint = '/databases/postgresql/instances/{id}'
 
@@ -319,26 +311,6 @@ class PostgreSQLDatabase(Base):
                 delattr(self, attr)
 
         Base.invalidate(self)
-
-
-class MongoDBDatabaseBackup(DerivedBase):
-    api_endpoint = '/databases/mongodb/instances/{database_id}/backups/{id}'
-    derived_url_path = 'backups'
-    parent_id_name = 'database_id'
-
-    properties = {
-        'created': Property(is_datetime=True),
-        'id': Property(identifier=True),
-        'label': Property(),
-        'type': Property(),
-    }
-
-    def restore(self):
-        """
-        Restore a backup to a Managed MongoDB Database on your Account.
-        """
-
-        return self._client.post('{}/restore'.format(MongoDBDatabaseBackup.api_endpoint), model=self)
 
 
 class MongoDBDatabase(Base):
