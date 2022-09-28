@@ -12,6 +12,7 @@ class DatabaseType(Base):
         'label': Property(),
         'memory': Property(),
         'vcpus': Property(),
+        # type_class is populated from the 'class' attribute of the returned JSON
     }
 
     def _populate(self, json):
@@ -81,6 +82,7 @@ class Database(Base):
             engine_type_translation = {
                 'mysql': MySQLDatabase,
                 'postgresql': PostgreSQLDatabase,
+                'mongodb': MongoDBDatabase,
             }
 
             if self.engine not in engine_type_translation:
@@ -103,6 +105,13 @@ class Database(Base):
 
 
 class DatabaseBackup(DerivedBase):
+    """
+    A generic Managed Database backup.
+
+    This class is not intended to be used on its own.
+    Use the appropriate subclasses for the corresponding database engine. (e.g. MySQLDatabaseBackup)
+    """
+
     api_endpoint = ''
     derived_url_path = 'backups'
     parent_id_name = 'database_id'
@@ -195,6 +204,9 @@ class MySQLDatabase(Base):
     def backup_create(self, label, **kwargs):
         """
         Creates a snapshot backup of a Managed MySQL Database.
+
+        :param label: The name for this backup
+        :type label: str
         """
 
         params = {

@@ -1180,7 +1180,7 @@ class DatabaseGroup(Group):
         """
         return self.client._get_and_filter(MySQLDatabase, *filters)
 
-    def mysql_create(self, label, region, engine, type, **kwargs):
+    def mysql_create(self, label, region, engine, ltype, **kwargs):
         """
         Creates an :any:`MySQLDatabase` on this account with
         the given label, region, engine, and node type.  For example::
@@ -1199,21 +1199,22 @@ class DatabaseGroup(Group):
                engine.id,
                type.id
             )
+
         :param label: The name for this cluster
         :type label: str
         :param region: The region to deploy this cluster in
         :type region: str or Region
         :param engine: The engine to deploy this cluster with
         :type engine: str or Engine
-        :param type: The Linode Type to use for this cluster
-        :type type: str or Type
+        :param ltype: The Linode Type to use for this cluster
+        :type ltype: str or Type
         """
 
         params = {
             'label': label,
-            'region': region,
-            'engine': engine,
-            'type': type,
+            'region': region.id if issubclass(type(region), Base) else region,
+            'engine': engine.id if issubclass(type(engine), Base) else engine,
+            'type': ltype.id if issubclass(type(ltype), Base) else ltype,
         }
         params.update(kwargs)
 
@@ -1236,7 +1237,7 @@ class DatabaseGroup(Group):
         """
         return self.client._get_and_filter(PostgreSQLDatabase, *filters)
 
-    def postgresql_create(self, label, region, engine, type, **kwargs):
+    def postgresql_create(self, label, region, engine, ltype, **kwargs):
         """
         Creates an :any:`PostgreSQLDatabase` on this account with
         the given label, region, engine, and node type.  For example::
@@ -1255,13 +1256,22 @@ class DatabaseGroup(Group):
                engine.id,
                type.id
             )
+
+        :param label: The name for this cluster
+        :type label: str
+        :param region: The region to deploy this cluster in
+        :type region: str or Region
+        :param engine: The engine to deploy this cluster with
+        :type engine: str or Engine
+        :param ltype: The Linode Type to use for this cluster
+        :type ltype: str or Type
         """
 
         params = {
             'label': label,
-            'region': region,
-            'engine': engine,
-            'type': type,
+            'region': region.id if issubclass(type(region), Base) else region,
+            'engine': engine.id if issubclass(type(engine), Base) else engine,
+            'type': ltype.id if issubclass(type(ltype), Base) else ltype,
         }
         params.update(kwargs)
 
@@ -1284,7 +1294,7 @@ class DatabaseGroup(Group):
         """
         return self.client._get_and_filter(MongoDBDatabase, *filters)
 
-    def mongodb_create(self, label, region, engine, type, **kwargs):
+    def mongodb_create(self, label, region, engine, ltype, **kwargs):
         """
         Creates an :any:`MongoDBDatabase` on this account with
         the given label, region, engine, and node type.  For example::
@@ -1303,13 +1313,22 @@ class DatabaseGroup(Group):
                engine.id,
                type.id
             )
+
+        :param label: The name for this cluster
+        :type label: str
+        :param region: The region to deploy this cluster in
+        :type region: str or Region
+        :param engine: The engine to deploy this cluster with
+        :type engine: str or Engine
+        :param ltype: The Linode Type to use for this cluster
+        :type ltype: str or Type
         """
 
         params = {
             'label': label,
-            'region': region,
-            'engine': engine,
-            'type': type,
+            'region': region.id if issubclass(type(region), Base) else region,
+            'engine': engine.id if issubclass(type(engine), Base) else engine,
+            'type': ltype.id if issubclass(type(ltype), Base) else ltype,
         }
         params.update(kwargs)
 
