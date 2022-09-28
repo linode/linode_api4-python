@@ -1217,6 +1217,54 @@ class DatabaseGroup(Group):
         d = MySQLDatabase(self, result['id'], result)
         return d
 
+    def postgresql_instances(self, *filters):
+        """
+        Returns a list of Managed PostgreSQL Databases active on this account.
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of PostgreSQL databases that matched the query.
+        :rtype: PaginatedList of PostgreSQLDatabase
+        """
+        return self.client._get_and_filter(PostgreSQLDatabase, *filters)
+
+    def postgresql_create(self, label, region, engine, type, **kwargs):
+        """
+        Creates an :any:`PostgreSQLDatabase` on this account with
+        the given label, region, engine, and node type.  For example::
+
+           client = LinodeClient(TOKEN)
+
+           # look up Region and Types to use.  In this example I'm just using
+           # the first ones returned.
+           region = client.regions().first()
+           node_type = client.database.types()[0]
+           engine = client.database.engines(DatabaseEngine.engine == 'postgresql')[0]
+
+           new_database = client.database.postgresql_create(
+               "example-database",
+               region,
+               engine.id,
+               type.id
+            )
+        """
+
+        params = {
+            'label': label,
+            'region': region,
+            'engine': engine,
+            'type': type,
+        }
+        params.update(kwargs)
+
+        result = self.client.post('/databases/postgresql/instances', data=params)
+
+        if 'id' not in result:
+            raise UnexpectedResponseError('Unexpected response when creating PostgreSQL Database', json=result)
+
+        d = PostgreSQLDatabase(self, result['id'], result)
+        return d
+
 
 class LinodeClient:
     def __init__(self, token, base_url="https://api.linode.com/v4", user_agent=None, page_size=None, retry_rate_limit_interval=None):
