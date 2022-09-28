@@ -214,14 +214,8 @@ class MySQLDatabase(Base):
         }
         params.update(kwargs)
 
-        result = self._client.post('{}/backups'.format(MySQLDatabase.api_endpoint), model=self, data=params)
+        self._client.post('{}/backups'.format(MySQLDatabase.api_endpoint), model=self, data=params)
         self.invalidate()
-
-        if 'id' not in result:
-            raise UnexpectedResponseError('Unexpected response when creating backup', json=result)
-
-        b = MySQLDatabaseBackup(self._client, result['id'], self.id, result)
-        return b
 
     def invalidate(self):
         """
@@ -304,14 +298,8 @@ class PostgreSQLDatabase(Base):
         }
         params.update(kwargs)
 
-        result = self._client.post('{}/backups'.format(PostgreSQLDatabase.api_endpoint), model=self, data=params)
+        self._client.post('{}/backups'.format(PostgreSQLDatabase.api_endpoint), model=self, data=params)
         self.invalidate()
-
-        if 'id' not in result:
-            raise UnexpectedResponseError('Unexpected response when creating backup', json=result)
-
-        b = PostgreSQLDatabaseBackup(self._client, result['id'], self.id, result)
-        return b
 
     def invalidate(self):
         """
@@ -396,14 +384,8 @@ class MongoDBDatabase(Base):
         }
         params.update(kwargs)
 
-        result = self._client.post('{}/backups'.format(MongoDBDatabase.api_endpoint), model=self, data=params)
+        self._client.post('{}/backups'.format(MongoDBDatabase.api_endpoint), model=self, data=params)
         self.invalidate()
-
-        if 'id' not in result:
-            raise UnexpectedResponseError('Unexpected response when creating backup', json=result)
-
-        b = MongoDBDatabaseBackup(self._client, result['id'], self.id, result)
-        return b
 
     def invalidate(self):
         """
