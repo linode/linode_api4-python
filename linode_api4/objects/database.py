@@ -1,4 +1,4 @@
-from linode_api4.objects import Base, Property, MappedObject, DerivedBase, UnexpectedResponseError
+from linode_api4.objects import Base, Property, MappedObject, DerivedBase
 
 
 class DatabaseType(Base):
@@ -35,62 +35,6 @@ class DatabaseEngine(Base):
         'engine': Property(filterable=True),
         'version': Property(filterable=True),
     }
-
-
-class Database(Base):
-    """
-    A generic Database instance.
-    """
-
-    api_endpoint = '/databases/instances/{id}'
-
-    properties = {
-        'id': Property(),
-        'label': Property(),
-        'allow_list': Property(),
-        'cluster_size': Property(),
-        'created': Property(),
-        'encrypted': Property(),
-        'engine': Property(),
-        'hosts': Property(),
-        'instance_uri': Property(),
-        'region': Property(),
-        'status': Property(),
-        'type': Property(),
-        'updated': Property(),
-        'updates': Property(),
-        'version': Property(),
-    }
-
-    @property
-    def instance(self):
-        """
-        Returns the underlying database object for the corresponding database
-        engine. This is useful for performing operations on generic databases.
-
-        The following is an example of printing credentials for all databases regardless of engine::
-
-            client = LinodeClient(TOKEN)
-
-            databases = client.database.instances()
-
-            for db in databases:
-                print(f"{db.hosts.primary}: {db.instance.credentials.username} {db.instance.credentials.password}")
-        """
-
-        if not hasattr(self, '_instance'):
-            engine_type_translation = {
-                'mysql': MySQLDatabase,
-                'postgresql': PostgreSQLDatabase,
-                'mongodb': MongoDBDatabase,
-            }
-
-            if self.engine not in engine_type_translation:
-                return None
-
-            self._set('_instance', engine_type_translation[self.engine](self._client, self.id))
-
-        return self._instance
 
     def invalidate(self):
         """
@@ -397,3 +341,60 @@ class MongoDBDatabase(Base):
                 delattr(self, attr)
 
         Base.invalidate(self)
+
+
+ENGINE_TYPE_TRANSLATION = {
+    'mysql': MySQLDatabase,
+    'postgresql': PostgreSQLDatabase,
+    'mongodb': MongoDBDatabase,
+}
+
+
+class Database(Base):
+    """
+    A generic Database instance.
+    """
+
+    api_endpoint = '/databases/instances/{id}'
+
+    properties = {
+        'id': Property(),
+        'label': Property(),
+        'allow_list': Property(),
+        'cluster_size': Property(),
+        'created': Property(),
+        'encrypted': Property(),
+        'engine': Property(),
+        'hosts': Property(),
+        'instance_uri': Property(),
+        'region': Property(),
+        'status': Property(),
+        'type': Property(),
+        'updated': Property(),
+        'updates': Property(),
+        'version': Property(),
+    }
+
+    @property
+    def instance(self):
+        """
+        Returns the underlying database object for the corresponding database
+        engine. This is useful for performing operations on generic databases.
+
+        The following is an example of printing credentials for all databases regardless of engine::
+
+            client = LinodeClient(TOKEN)
+
+            databases = client.database.instances()
+
+            for db in databases:
+                print(f"{db.hosts.primary}: {db.instance.credentials.username} {db.instance.credentials.password}")
+        """
+
+        if not hasattr(self, '_instance'):
+            if self.engine not in ENGINE_TYPE_TRANSLATION:
+                return None
+
+            self._set('_instance', ENGINE_TYPE_TRANSLATION[self.engine](self._client, self.id))
+
+        return self._instance
