@@ -1199,6 +1199,14 @@ class DatabaseGroup(Group):
                engine.id,
                type.id
             )
+        :param label: The name for this cluster
+        :type label: str
+        :param region: The region to deploy this cluster in
+        :type region: str or Region
+        :param engine: The engine to deploy this cluster with
+        :type engine: str or Engine
+        :param type: The Linode Type to use for this cluster
+        :type type: str or Type
         """
 
         params = {
