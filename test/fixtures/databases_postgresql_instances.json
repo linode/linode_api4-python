@@ -1,0 +1,39 @@
+{
+  "data": [
+    {
+      "allow_list": [
+        "203.0.113.1/32",
+        "192.0.1.0/24"
+      ],
+      "cluster_size": 3,
+      "created": "2022-01-01T00:01:01",
+      "encrypted": false,
+      "engine": "postgresql",
+      "hosts": {
+        "primary": "lin-0000-000-pgsql-primary.servers.linodedb.net",
+        "secondary": "lin-0000-000-pgsql-primary-private.servers.linodedb.net"
+      },
+      "id": 123,
+      "label": "example-db",
+      "port": 3306,
+      "region": "us-east",
+      "replication_commit_type": "local",
+      "replication_type": "semi_synch",
+      "ssl_connection": true,
+      "status": "active",
+      "type": "g6-dedicated-2",
+      "updated": "2022-01-01T00:01:01",
+      "updates": {
+        "day_of_week": 1,
+        "duration": 3,
+        "frequency": "weekly",
+        "hour_of_day": 0,
+        "week_of_month": null
+      },
+      "version": "13.2"
+    }
+  ],
+  "page": 1,
+  "pages": 1,
+  "results": 1
+}

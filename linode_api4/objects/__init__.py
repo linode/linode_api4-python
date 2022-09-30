@@ -15,3 +15,4 @@ from .longview import *
 from .tag import Tag
 from .object_storage import ObjectStorageCluster, ObjectStorageKeys
 from .lke import *
+from .database import *
