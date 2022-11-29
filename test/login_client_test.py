@@ -24,6 +24,13 @@ class OAuthScopesTest(TestCase):
         """
         scopes = OAuthScopes.parse("linodes:read_only domains:read_write")
         self.assertEqual(scopes, [OAuthScopes.Linodes.read_only, OAuthScopes.Domains.read_write])
+
+    def test_parse_scopes_many_comma_delimited(self):
+        """
+        Tests parsing many scopes that are comma-delimited (which preserves old behavior)
+        """
+        scopes = OAuthScopes.parse("nodebalancers:read_write,stackscripts:*,events:read_only")
+        self.assertEqual(scopes, [OAuthScopes.NodeBalancers.read_write, OAuthScopes.StackScripts.all, OAuthScopes.Events.read_only])
         
     def test_parse_scopes_all(self):
         """
