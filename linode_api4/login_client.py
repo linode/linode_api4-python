@@ -268,7 +268,7 @@ class OAuthScopes:
             return [ getattr(OAuthScopes._scope_families[s], 'all')
                     for s in OAuthScopes._scope_families ] # pylint: disable=consider-using-dict-items
 
-        for scope in scopes.split(','):
+        for scope in scopes.split(' '):
             resource = access = None
             if ':' in scope:
                 resource, access = scope.split(':')
