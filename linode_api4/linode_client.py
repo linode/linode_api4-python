@@ -1,8 +1,9 @@
 import json
 import logging
-from datetime import datetime
 import os
 import time
+from datetime import datetime
+from typing import TYPE_CHECKING
 
 import pkg_resources
 import requests
@@ -11,8 +12,11 @@ from linode_api4.errors import ApiError, UnexpectedResponseError
 from linode_api4.objects import *
 from linode_api4.objects.filtering import Filter
 
-from .common import load_and_validate_keys, SSH_KEY_TYPES
+from .common import SSH_KEY_TYPES, load_and_validate_keys
 from .paginated_list import PaginatedList
+
+if TYPE_CHECKING:
+    from linode_api4 import LinodeClient
 
 package_version = pkg_resources.require("linode_api4")[0].version
 
@@ -20,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 class Group:
-    def __init__(self, client):
+    def __init__(self, client: LinodeClient):
         self.client = client
 
 
