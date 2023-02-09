@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import logging
 import os
@@ -14,9 +16,6 @@ from linode_api4.objects.filtering import Filter
 
 from .common import SSH_KEY_TYPES, load_and_validate_keys
 from .paginated_list import PaginatedList
-
-if TYPE_CHECKING:
-    from linode_api4 import LinodeClient
 
 package_version = pkg_resources.require("linode_api4")[0].version
 
