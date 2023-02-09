@@ -5,7 +5,6 @@ import logging
 import os
 import time
 from datetime import datetime
-from typing import TYPE_CHECKING
 
 import pkg_resources
 import requests
