@@ -103,3 +103,10 @@ documentation for this library is out of date or unclear, please
 
 .. _Sphinx: http://www.sphinx-doc.org/en/master/index.html
 .. _open an issue: https://github.com/linode/linode_api4-python/issues/new
+
+Contributing
+------------
+
+Please follow the `Contributing Guidelines`_ when making a contribution.
+
+.. _Contributing Guidelines: https://github.com/linode/linode-cli/blob/main/CONTRIBUTING.md
