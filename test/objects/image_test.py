@@ -1,8 +1,18 @@
 from datetime import datetime
+from io import BytesIO
+from typing import Any, BinaryIO
+from unittest.mock import patch
 
 from test.base import ClientBaseCase
 
 from linode_api4.objects import Image
+
+
+# A minimal gzipped image that will be accepted by the API
+TEST_IMAGE_CONTENT = (
+    b"\x1F\x8B\x08\x08\xBD\x5C\x91\x60\x00\x03\x74\x65\x73\x74\x2E\x69"
+    b"\x6D\x67\x00\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+)
 
 
 class ImageTest(ClientBaseCase):
@@ -67,3 +77,24 @@ class ImageTest(ClientBaseCase):
         self.assertEqual(image.description, "very real image upload.")
 
         self.assertEqual(url, "https://linode.com/")
+
+    def test_image_upload(self):
+        """
+        Test that an image can be uploaded.
+        """
+
+        def put_mock(url: str, data: BinaryIO = None, **kwargs):
+            self.assertEqual(url, "https://linode.com/")
+            self.assertEqual(data.read(), TEST_IMAGE_CONTENT)
+
+        with patch("requests.put", put_mock), self.mock_post("/images/upload"):
+            image = self.client.image_upload(
+                "Realest Image Upload",
+                "us-southeast",
+                BytesIO(TEST_IMAGE_CONTENT),
+                description="very real image upload.",
+            )
+
+        self.assertEqual(image.id, "private/1337")
+        self.assertEqual(image.label, "Realest Image Upload")
+        self.assertEqual(image.description, "very real image upload.")
