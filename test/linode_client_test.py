@@ -1,4 +1,5 @@
 from datetime import datetime
+import pdb
 from unittest import TestCase
 from unittest.mock import MagicMock
 
@@ -232,6 +233,19 @@ class AccountGroupTest(ClientBaseCase):
         self.assertEqual(invoice.date, datetime(2015, 1, 1, 5, 1, 2))
         self.assertEqual(invoice.label, 'Invoice #123456')
         self.assertEqual(invoice.total, 9.51)
+
+    def test_payments(self):
+        """
+        Tests that payments can be retrieved
+        """
+        p = self.client.account.payments()
+
+        self.assertEqual(len(p), 1)
+        payment = p[0]
+
+        self.assertEqual(payment.id, 123456)
+        self.assertEqual(payment.date, datetime(2015, 1, 1, 5, 1, 2))
+        self.assertEqual(payment.usd, 1000)
 
 
 class LinodeGroupTest(ClientBaseCase):
