@@ -8,13 +8,16 @@
           "description": null,
           "deprecated": false,
           "status": "available",
+          "eol": "2026-07-01T04:00:00",
+          "expiry": "2026-08-01T04:00:00",
           "created_by": "linode",
           "id": "linode/debian9",
           "label": "Debian 9",
           "size": 1100,
           "is_public": true,
           "type": "manual",
-          "vendor": "Debian"
+          "vendor": "Debian",
+          "updated": "2020-07-01T04:00:00"
         },
         {
           "created": "2017-01-01T00:01:01",

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from test.base import ClientBaseCase
 
 from linode_api4.objects import Image
@@ -24,3 +26,15 @@ class ImageTest(ClientBaseCase):
         self.assertEqual(image.type, "manual")
         self.assertEqual(image.created_by, "linode")
         self.assertEqual(image.size, 1100)
+
+        self.assertEqual(image.eol, datetime(
+            year=2026, month=7, day=1, hour=4, minute=0, second=0
+        ))
+
+        self.assertEqual(image.expiry, datetime(
+            year=2026, month=8, day=1, hour=4, minute=0, second=0
+        ))
+
+        self.assertEqual(image.updated, datetime(
+            year=2020, month=7, day=1, hour=4, minute=0, second=0
+        ))
