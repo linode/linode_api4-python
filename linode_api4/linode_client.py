@@ -5,6 +5,7 @@ import logging
 import os
 import time
 from datetime import datetime
+from typing import Tuple
 
 import pkg_resources
 import requests
@@ -1617,6 +1618,39 @@ class LinodeClient:
                                           'Image from disk {}'.format(disk))
 
         return Image(self, result['id'], result)
+
+    def image_create_upload(self, label, region, description=None) -> Tuple[Image, str]:
+        """
+        Creates a new Image and returns the corresponding upload URL.
+        https://www.linode.com/docs/api/images/#image-upload
+
+        :param label: The label of the Image to create.
+        :type label: str
+        :param region: The region of the Image to create.
+        :param description: The description for the new Image.
+        :type description: str
+
+        :returns: A tuple containing the new image and the image upload URL.
+        :rtype: (Image, str)
+        """
+        params = {
+            "label": label,
+            "region": region
+        }
+
+        if description is not None:
+            params["description"] = description
+
+        result = self.post("/images/upload", data=params)
+
+        if "image" not in result:
+            raise UnexpectedResponseError('Unexpected response when creating an '
+                                          'Image upload URL')
+
+        result_image = result["image"]
+        result_url = result["upload_to"]
+
+        return Image(self, result_image["id"], result_image), result_url
 
     def domains(self, *filters):
         """

@@ -8,8 +8,6 @@
           "description": null,
           "deprecated": false,
           "status": "available",
-          "eol": "2026-07-01T04:00:00",
-          "expiry": "2026-08-01T04:00:00",
           "created_by": "linode",
           "id": "linode/debian9",
           "label": "Debian 9",
@@ -17,6 +15,8 @@
           "is_public": true,
           "type": "manual",
           "vendor": "Debian",
+          "eol": "2026-07-01T04:00:00",
+          "expiry": "2026-08-01T04:00:00",
           "updated": "2020-07-01T04:00:00"
         },
         {
@@ -30,7 +30,10 @@
           "size": 1500,
           "is_public": true,
           "type": "manual",
-          "vendor": "Ubuntu"
+          "vendor": "Ubuntu",
+          "eol": "2026-07-01T04:00:00",
+          "expiry": "2026-08-01T04:00:00",
+          "updated": "2020-07-01T04:00:00"
         },
         {
           "created": "2017-01-01T00:01:01",
@@ -43,7 +46,10 @@
           "size": 1500,
           "is_public": true,
           "type": "manual",
-          "vendor": "Fedora"
+          "vendor": "Fedora",
+          "eol": "2026-07-01T04:00:00",
+          "expiry": "2026-08-01T04:00:00",
+          "updated": "2020-07-01T04:00:00"
         },
         {
           "created": "2017-08-20T14:01:01",
@@ -56,7 +62,10 @@
           "size": 650,
           "is_public": false,
           "type": "manual",
-          "vendor": null
+          "vendor": null,
+          "eol": "2026-07-01T04:00:00",
+          "expiry": "2026-08-01T04:00:00",
+          "updated": "2020-07-01T04:00:00"
         }
     ]
 }
