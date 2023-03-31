@@ -38,3 +38,32 @@ class ImageTest(ClientBaseCase):
         self.assertEqual(image.updated, datetime(
             year=2020, month=7, day=1, hour=4, minute=0, second=0
         ))
+
+    def test_image_create_upload(self):
+        """
+        Test that an image upload URL can be created successfully.
+        """
+
+        with self.mock_post("/images/upload") as m:
+            image, url = self.client.image_create_upload(
+                "Realest Image Upload",
+                "us-southeast",
+                description="very real image upload.",
+            )
+
+            self.assertEqual(m.call_url, "/images/upload")
+            self.assertEqual(m.method, "post")
+            self.assertEqual(
+                m.call_data,
+                {
+                    "label": "Realest Image Upload",
+                    "region": "us-southeast",
+                    "description": "very real image upload."
+                }
+            )
+
+        self.assertEqual(image.id, "private/1337")
+        self.assertEqual(image.label, "Realest Image Upload")
+        self.assertEqual(image.description, "very real image upload.")
+
+        self.assertEqual(url, "https://linode.com/")

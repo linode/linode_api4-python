@@ -1626,7 +1626,7 @@ class LinodeClient:
 
         :param label: The label of the Image to create.
         :type label: str
-        :param region: The region of the Image to create.
+        :param region: The region to upload to. Once the image has been created, it can be used in any region.
         :param description: The description for the new Image.
         :type description: str
 
