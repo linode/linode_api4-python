@@ -326,6 +326,7 @@ class TypeTest(ClientBaseCase):
             self.assertIsNotNone(t.disk)
             self.assertIsNotNone(t.type_class)
             self.assertIsNotNone(t.gpus)
+            self.assertIsNone(t.successor)
 
     def test_get_type_by_id(self):
         """
