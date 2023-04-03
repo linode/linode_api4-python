@@ -115,6 +115,12 @@ class LinodeClientGeneralTest(ClientBaseCase):
         self.assertEqual(v[1].size, 100)
         self.assertEqual(v[2].size, 200)
         self.assertEqual(v[2].label, 'block3')
+        self.assertEqual(v[0].filesystem_path, 'this/is/a/file/path')
+        self.assertEqual(v[0].hardware_type, 'hdd')
+        self.assertEqual(v[1].filesystem_path, 'this/is/a/file/path')
+        self.assertEqual(v[1].linode_label, None)
+        self.assertEqual(v[2].filesystem_path, 'this/is/a/file/path')
+        self.assertEqual(v[2].hardware_type, 'nvme')
 
         assert v[0].tags == ["something"]
         assert v[1].tags == []

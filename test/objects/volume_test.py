@@ -27,6 +27,10 @@ class VolumeTest(ClientBaseCase):
 
         assert volume.tags == ["something"]
 
+        self.assertEqual(volume.filesystem_path, 'this/is/a/file/path')
+        self.assertEqual(volume.hardware_type, 'hdd')
+        self.assertEqual(volume.linode_label, None)
+
     def test_update_volume_tags(self):
         """
         Tests that updating tags on an entity send the correct request
