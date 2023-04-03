@@ -224,7 +224,7 @@ class Payment(Base):
     properties = {
         "id": Property(identifier=True),
         "date": Property(is_datetime=True),
-        "amount": Property(),
+        "usd": Property(),
     }
 
 
