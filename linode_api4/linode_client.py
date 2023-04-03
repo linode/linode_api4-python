@@ -379,8 +379,7 @@ class ProfileGroup(Group):
         result = self.client.post('/profile/tokens', data=kwargs)
 
         if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating Personal Access '
-                    'Token!', json=result)
+            raise UnexpectedResponseError('Unexpected response when creating Personal Access Token!', json=result)
 
         token = PersonalAccessToken(self.client, result['id'], result)
         return token
@@ -1613,8 +1612,7 @@ class LinodeClient:
         result = self.post('/images', data=params)
 
         if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating an '
-                                          'Image from disk {}'.format(disk))
+            raise UnexpectedResponseError('Unexpected response when creating an Image from disk {}'.format(disk))
 
         return Image(self, result['id'], result)
 
