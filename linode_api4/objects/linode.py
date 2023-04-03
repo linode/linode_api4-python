@@ -144,6 +144,7 @@ class Type(Base):
         'transfer': Property(filterable=True),
         'vcpus': Property(filterable=True),
         'gpus': Property(filterable=True),
+        'successor': Property(),
         # type_class is populated from the 'class' attribute of the returned JSON
     }
 
