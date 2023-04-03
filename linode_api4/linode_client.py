@@ -586,8 +586,7 @@ class LongviewGroup(Group):
         })
 
         if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating Longivew '
-                'Client!', json=result)
+            raise UnexpectedResponseError('Unexpected response when creating Longview Client!', json=result)
 
         c = LongviewClient(self.client, result['id'], result)
         return c
