@@ -105,7 +105,7 @@ class LKECluster(Base):
         if not hasattr(self, "_api_endpoints"):
             results = self._client.get("{}/api-endpoints".format(LKECluster.api_endpoint), model=self)
 
-            self._api_endpoints = [MappedObject(**c) for c in results["data"]] # pylint: disable=attribute-defined-outside-init
+            self._api_endpoints = [MappedObject(**c) for c in results["data"]]
 
         return self._api_endpoints
 
@@ -133,7 +133,7 @@ class LKECluster(Base):
         if not hasattr(self, "_kubeconfig"):
             result = self._client.get("{}/kubeconfig".format(LKECluster.api_endpoint), model=self)
 
-            self._kubeconfig = result["kubeconfig"] # pylint: disable=attribute-defined-outside-init
+            self._kubeconfig = result["kubeconfig"]
 
 
         return self._kubeconfig

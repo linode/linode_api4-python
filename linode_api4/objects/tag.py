@@ -38,7 +38,7 @@ class Tag(Base):
 
             # I want to cache this to avoid making duplicate requests, but I don't
             # want it in the __init__
-            self._raw_objects = result # pylint: disable=attribute-defined-outside-init
+            self._raw_objects = result
 
         return self._raw_objects
 

@@ -124,11 +124,11 @@ class NodeBalancerConfig(DerivedBase):
         # through linode.objects.Base, and pylint isn't privy
         if os.path.isfile(os.path.expanduser(cert_file)):
             with open(os.path.expanduser(cert_file)) as f:
-                self.ssl_cert = f.read() # pylint: disable=attribute-defined-outside-init
+                self.ssl_cert = f.read()
 
         if os.path.isfile(os.path.expanduser(key_file)):
             with open(os.path.expanduser(key_file)) as f:
-                self.ssl_key = f.read() # pylint: disable=attribute-defined-outside-init
+                self.ssl_key = f.read()
 
 
 class NodeBalancer(Base):
