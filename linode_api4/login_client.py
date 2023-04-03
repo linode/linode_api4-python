@@ -265,8 +265,8 @@ class OAuthScopes:
 
         # special all-scope case
         if scopes == '*':
-            return [ getattr(OAuthScopes._scope_families[s], 'all')
-                    for s in OAuthScopes._scope_families ] # pylint: disable=consider-using-dict-items
+            return [ getattr(scope, 'all')
+                    for scope in OAuthScopes._scope_families.values() ]
 
         for scope in scopes.split(','):
             resource = access = None
