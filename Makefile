@@ -30,3 +30,4 @@ lint:
 	isort --check-only linode_api4 test
 	autoflake --check linode_api4 test
 	black --check --verbose linode_api4 test
+	pylint linode_api4
