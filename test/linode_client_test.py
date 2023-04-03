@@ -115,6 +115,12 @@ class LinodeClientGeneralTest(ClientBaseCase):
         self.assertEqual(v[1].size, 100)
         self.assertEqual(v[2].size, 200)
         self.assertEqual(v[2].label, 'block3')
+        self.assertEqual(v[0].filesystem_path, 'this/is/a/file/path')
+        self.assertEqual(v[0].hardware_type, 'hdd')
+        self.assertEqual(v[1].filesystem_path, 'this/is/a/file/path')
+        self.assertEqual(v[1].linode_label, None)
+        self.assertEqual(v[2].filesystem_path, 'this/is/a/file/path')
+        self.assertEqual(v[2].hardware_type, 'nvme')
 
         assert v[0].tags == ["something"]
         assert v[1].tags == []
@@ -232,6 +238,19 @@ class AccountGroupTest(ClientBaseCase):
         self.assertEqual(invoice.date, datetime(2015, 1, 1, 5, 1, 2))
         self.assertEqual(invoice.label, 'Invoice #123456')
         self.assertEqual(invoice.total, 9.51)
+
+    def test_payments(self):
+        """
+        Tests that payments can be retrieved
+        """
+        p = self.client.account.payments()
+
+        self.assertEqual(len(p), 1)
+        payment = p[0]
+
+        self.assertEqual(payment.id, 123456)
+        self.assertEqual(payment.date, datetime(2015, 1, 1, 5, 1, 2))
+        self.assertEqual(payment.usd, 1000)
 
 
 class LinodeGroupTest(ClientBaseCase):

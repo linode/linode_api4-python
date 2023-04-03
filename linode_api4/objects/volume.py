@@ -15,6 +15,9 @@ class Volume(Base):
         'status': Property(filterable=True),
         'region': Property(slug_relationship=Region),
         'tags': Property(mutable=True),
+        'filesystem_path': Property(),
+        'hardware_type': Property(),
+        'linode_label': Property(),
     }
 
     def attach(self, to_linode, config=None):
