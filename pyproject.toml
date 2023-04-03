@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.isort]
+profile = "black"
+line_length = 80
+
+[tool.black]
+line-length = 80
+target-version = ["py37", "py38", "py39", "py310", "py311"]
+
+[tool.autoflake]
+expand-star-imports = false
+ignore-init-module-imports = true
+ignore-pass-after-docstring = true
+in-place = true
+recursive = true
+remove-all-unused-imports = false
+remove-duplicate-keys = false

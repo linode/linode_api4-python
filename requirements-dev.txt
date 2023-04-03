@@ -1,0 +1,3 @@
+black>=23.1.0
+isort>=5.12.0
+autoflake>=2.0.1

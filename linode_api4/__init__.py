@@ -1,3 +1,4 @@
+# isort: skip_file
 from linode_api4.objects import *
 from linode_api4.errors import ApiError, UnexpectedResponseError
 from linode_api4.linode_client import LinodeClient
