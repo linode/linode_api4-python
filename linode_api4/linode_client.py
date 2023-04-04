@@ -16,6 +16,7 @@ from linode_api4.objects.filtering import Filter
 
 from .common import SSH_KEY_TYPES, load_and_validate_keys
 from .paginated_list import PaginatedList
+from .util import drop_null_keys
 
 package_version = pkg_resources.require("linode_api4")[0].version
 
@@ -1636,13 +1637,11 @@ class LinodeClient:
         """
         params = {
             "label": label,
-            "region": region
+            "region": region,
+            "description": description
         }
 
-        if description is not None:
-            params["description"] = description
-
-        result = self.post("/images/upload", data=params)
+        result = self.post("/images/upload", data=drop_null_keys(params))
 
         if "image" not in result:
             raise UnexpectedResponseError('Unexpected response when creating an '
