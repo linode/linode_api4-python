@@ -35,6 +35,7 @@ class Backup(DerivedBase):
         'configs': Property(),
         'disks': Property(),
         'region': Property(slug_relationship=Region),
+        'available': Property()
     }
 
     def restore_to(self, linode, **kwargs):
@@ -66,13 +67,10 @@ class Disk(DerivedBase):
 
 
     def duplicate(self):
-        result = self._client.post(Disk.api_endpoint, model=self, data={})
+        d = self._client.post('{}/clone'.format(Disk.api_endpoint), model=self)
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response duplicating disk!', json=result)
-
-        d = Disk(self._client, result['id'], self.linode_id, result)
-        return d
+        if not 'id' in d:
+            raise UnexpectedResponseError('Unexpected response duplicating disk!', json=d)
 
 
     def reset_root_password(self, root_password=None):
@@ -84,15 +82,8 @@ class Disk(DerivedBase):
             'password': rpass,
         }
 
-        result = self._client.post(Disk.api_endpoint, model=self, data=params)
+        self._client.post('{}/password'.format(Disk.api_endpoint), model=self, data=params)
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response duplicating disk!', json=result)
-
-        self._populate(result)
-        if not root_password:
-            return True, rpass
-        return True
 
     def resize(self, new_size):
         """
@@ -128,6 +119,8 @@ class Kernel(Base):
         "version": Property(filterable=True),
         "architecture": Property(filterable=True),
         "xen": Property(filterable=True),
+        "built": Property(),
+        "pvops": Property(filterable=True)
     }
 
 
@@ -223,6 +216,7 @@ class Config(DerivedBase):
         "virt_mode": Property(mutable=True, filterable=True),
         "memory_limit": Property(mutable=True, filterable=True),
         "interfaces": Property(mutable=True), # gets setup in _populate below
+        "helpers": Property(mutable=True)
     }
 
     def _populate(self, json):
@@ -298,6 +292,8 @@ class Instance(Base):
         'hypervisor': Property(),
         'specs': Property(),
         'tags': Property(mutable=True),
+        'host_uuid': Property(),
+        'watchdog_enabled': Property(),
     }
 
     @property
@@ -327,20 +323,24 @@ class Instance(Base):
                 i = IPAddress(self._client, c['address'], c)
                 shared_ips.append(i)
 
+            reserved = []
+            for c in result['ipv4']['reserved']:
+                i = IPAddress(self._client, c['address'], c)
+                reserved.append(i)
+
             slaac = IPAddress(self._client, result['ipv6']['slaac']['address'],
                               result['ipv6']['slaac'])
             link_local = IPAddress(self._client, result['ipv6']['link_local']['address'],
                                    result['ipv6']['link_local'])
 
-            pools = []
-            for p in result['ipv6']['global']:
-                pools.append(IPv6Pool(self._client, p['range']))
+            pools = [IPv6Pool(self._client, result['ipv6']['global']['range'])]
 
             ips = MappedObject(**{
                 "ipv4": {
                     "public": v4pub,
                     "private": v4pri,
                     "shared": shared_ips,
+                    "reserved": reserved,
                 },
                 "ipv6": {
                     "slaac": slaac,
@@ -388,6 +388,26 @@ class Instance(Base):
             }))
 
         return self._avail_backups
+    
+    def reset_instance_root_password(self, root_password=None):
+        rpass = root_password
+        if not rpass:
+            rpass = Instance.generate_root_password()
+
+        params = {
+            'password': rpass,
+        }
+        
+        self._client.post('{}/password'.format(Instance.api_endpoint), model=self, data=params)
+
+    
+    def transfer_year_month(self, year, month):
+        """
+        Upgrades this Instance to the latest generation type
+        """
+
+        self._client.get('{}/transfer/{}/{}'.format(Instance.api_endpoint, year, month), model=self)
+
 
     @property
     def transfer(self):
@@ -765,20 +785,48 @@ class Instance(Base):
 
         return True
 
-    def mutate(self):
+    def mutate(self, allow_auto_disk_resize=True):
         """
         Upgrades this Instance to the latest generation type
         """
-        self._client.post('{}/mutate'.format(Instance.api_endpoint), model=self)
+
+        params = {
+            "allow_auto_disk_resize": allow_auto_disk_resize
+        }
+
+        self._client.post('{}/mutate'.format(Instance.api_endpoint), model=self, data=params)
 
         return True
 
-    def initiate_migration(self):
+    def initiate_migration(self, region=None, upgrade=None):
         """
         Initiates a pending migration that is already scheduled for this Linode
         Instance
         """
-        self._client.post('{}/migrate'.format(Instance.api_endpoint), model=self)
+        params = {
+            "region": region.id if issubclass(type(region), Base) else region,
+            "upgrade": upgrade
+        }
+
+        self._client.post('{}/migrate'.format(Instance.api_endpoint), model=self, data=params)
+
+    def firewalls(self):
+        """
+        View Firewall information for Firewalls associated with this Linode.
+        """
+        self._client.get('{}/firewalls'.format(Instance.api_endpoint), model=self)
+
+    def nodebalancers(self):
+        """
+        View a list of NodeBalancers that are assigned to this Linode and readable by the requesting User.
+        """
+        self._client.get('{}/nodebalancers'.format(Instance.api_endpoint), model=self)
+
+    def volumes(self):
+        """
+        View Block Storage Volumes attached to this Linode.
+        """
+        self._client.get('{}/volumes'.format(Instance.api_endpoint), model=self)
 
     def clone(self, to_linode=None, region=None, service=None, configs=[], disks=[],
             label=None, group=None, with_backups=None):

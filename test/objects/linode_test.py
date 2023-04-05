@@ -2,8 +2,6 @@ from datetime import datetime
 from test.base import ClientBaseCase
 
 from linode_api4.objects import Config, Disk, Image, Instance, Type
-from linode_api4.objects.base import MappedObject
-
 
 class LinodeTest(ClientBaseCase):
     """
@@ -21,6 +19,8 @@ class LinodeTest(ClientBaseCase):
 
         self.assertTrue(isinstance(linode.image, Image))
         self.assertEqual(linode.image.label, "Ubuntu 17.04")
+        self.assertEqual(linode.host_uuid, "3a3ddd59d9a78bb8de041391075df44de62bfec8")
+        self.assertEqual(linode.watchdog_enabled, True)
 
         json = linode._raw_json
         self.assertIsNotNone(json)
@@ -95,6 +95,7 @@ class LinodeTest(ClientBaseCase):
         self.assertEqual(b.region.id, 'us-east-1a')
         self.assertEqual(b.label, None)
         self.assertEqual(b.message, None)
+        self.assertEqual(b.available, True)
 
         self.assertEqual(len(b.disks), 2)
         self.assertEqual(b.disks[0].size, 1024)
@@ -226,6 +227,97 @@ class LinodeTest(ClientBaseCase):
         with self.mock_post(result) as m:
             linode.mutate()
             self.assertEqual(m.call_url, '/linode/instances/123/mutate')
+            self.assertEqual(m.call_data["allow_auto_disk_resize"], True)
+
+    def test_firewalls(self):
+        """
+        Tests that you can submit a correct firewalls api request
+        """
+        linode = Instance(self.client, 123)
+
+        with self.mock_get('/linode/instances/123/firewalls') as m:
+            linode.firewalls()
+            self.assertEqual(m.call_url, '/linode/instances/123/firewalls')
+
+    def test_volumes(self):
+        """
+        Tests that you can submit a correct volumes api request
+        """
+        linode = Instance(self.client, 123)
+
+        with self.mock_get('/linode/instances/123/volumes') as m:
+            linode.volumes()
+            self.assertEqual(m.call_url, '/linode/instances/123/volumes')
+
+    def test_nodebalancers(self):
+        """
+        Tests that you can submit a correct nodebalancers api request
+        """
+        linode = Instance(self.client, 123)
+
+        with self.mock_get('/linode/instances/123/nodebalancers') as m:
+            linode.nodebalancers()
+            self.assertEqual(m.call_url, '/linode/instances/123/nodebalancers')
+
+    def test_transfer_year_month(self):
+        """
+        Tests that you can submit a correct transfer api request
+        """
+        linode = Instance(self.client, 123)
+
+        with self.mock_get('/linode/instances/123/transfer/2023/4') as m:
+            linode.transfer_year_month(2023, 4)
+            self.assertEqual(m.call_url, '/linode/instances/123/transfer/2023/4')
+
+    def test_duplicate(self):
+        """
+        Tests that you can submit a correct disk clone api request
+        """
+        disk = Disk(self.client, 12345, 123)
+
+        with self.mock_post("/linode/instances/123/disks/12345/clone") as m:
+            disk.duplicate()
+            self.assertEqual(m.call_url, '/linode/instances/123/disks/12345/clone')
+
+    def test_disk_password(self):
+        """
+        Tests that you can submit a correct disk password reset api request
+        """
+        disk = Disk(self.client, 12345, 123)
+
+        with self.mock_post({}) as m:
+            disk.reset_root_password()
+            self.assertEqual(m.call_url, '/linode/instances/123/disks/12345/password')
+
+    def test_instance_password(self):
+        """
+        Tests that you can submit a correct instance password reset api request
+        """
+        instance = Instance(self.client, 123)
+
+        with self.mock_post({}) as m:
+            instance.reset_instance_root_password()
+            self.assertEqual(m.call_url, '/linode/instances/123/password')
+
+    def test_ips(self):
+        """
+        Tests that you can submit a correct ips api request
+        """
+        linode = Instance(self.client, 123)
+
+        ips = linode.ips
+
+        self.assertIsNotNone(ips.ipv4)
+        self.assertIsNotNone(ips.ipv6)
+        self.assertIsNotNone(ips.ipv4.public)
+        self.assertIsNotNone(ips.ipv4.private)
+        self.assertIsNotNone(ips.ipv4.shared)
+        self.assertIsNotNone(ips.ipv4.reserved)
+        self.assertIsNotNone(ips.ipv6.slaac)
+        self.assertIsNotNone(ips.ipv6.link_local)
+        self.assertIsNotNone(ips.ipv6.pools)
+
+        
 
     def test_initiate_migration(self):
         """
@@ -310,6 +402,23 @@ class ConfigTest(ClientBaseCase):
             self.assertEqual(m.call_url, '/linode/instances/123/configs/456789')
             self.assertEqual(m.call_data.get('interfaces'), new_interfaces)
 
+    def test_get_config(self):
+        json = self.client.get('/linode/instances/123/configs/456789')
+        config = Config(self.client, 456789, 123, json=json)
+
+        self.assertEqual(config.root_device, "/dev/sda")
+        self.assertEqual(config.comments, "")
+        self.assertIsNotNone(config.helpers)
+        self.assertEqual(config.label, "My Ubuntu 17.04 LTS Profile")
+        self.assertEqual(config.created, datetime(year=2014, month=10, day=7, hour=20,
+                                             minute=4, second=0))
+        self.assertEqual(config.memory_limit, 0)
+        self.assertEqual(config.id, 456789)
+        self.assertIsNotNone(config.interfaces)
+        self.assertEqual(config.run_level, "default")
+        self.assertIsNone(config.initrd)
+        self.assertEqual(config.virt_mode, "paravirt")
+        self.assertIsNotNone(config.devices)
 
 class TypeTest(ClientBaseCase):
     def test_get_types(self):
