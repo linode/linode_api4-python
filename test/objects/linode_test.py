@@ -350,3 +350,47 @@ class TypeTest(ClientBaseCase):
 
         self.assertEqual(t.gpus, 1)
         self.assertEqual(t._populated, True)
+
+    def test_save_noforce(self):
+        """
+        Tests that a client will only save if changes are detected
+        """
+        linode = Instance(self.client, 123)
+        self.assertEqual(linode._populated, False)
+
+        self.assertEqual(linode.label, "linode123")
+        self.assertEqual(linode.group, "test")
+
+        assert not linode._changed
+
+        with self.mock_put("linode/instances") as m:
+            linode.save(force=False)
+            assert not m.called
+
+        linode.label = "blah"
+        assert linode._changed
+
+        with self.mock_put("linode/instances") as m:
+            linode.save(force=False)
+            assert m.called
+            assert m.call_url == "/linode/instances/123"
+            assert m.call_data["label"] == "blah"
+
+        assert not linode._changed
+
+    def test_save_force(self):
+        """
+        Tests that a client will forcibly save by default
+        """
+        linode = Instance(self.client, 123)
+        self.assertEqual(linode._populated, False)
+
+        self.assertEqual(linode.label, "linode123")
+        self.assertEqual(linode.group, "test")
+
+        assert not linode._changed
+
+        with self.mock_put("linode/instances") as m:
+            linode.save()
+            assert m.called
+

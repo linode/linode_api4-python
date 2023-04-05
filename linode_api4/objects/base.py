@@ -82,6 +82,7 @@ class Base(object, metaclass=FilterableMetaclass):
         self._set('_populated', False)
         self._set('_last_updated', datetime.min)
         self._set('_client', client)
+        self._set('_changed', False)
 
         #: self._raw_json is a copy of the json received from the API on population,
         #: and cannot be relied upon to be current.  Local changes to mutable fields
@@ -144,20 +145,36 @@ class Base(object, metaclass=FilterableMetaclass):
         """
         Enforces allowing editing of only Properties defined as mutable
         """
-        if name in type(self).properties.keys() and not type(self).properties[name].mutable:
-            raise AttributeError("'{}' is not a mutable field of '{}'"
-                .format(name, type(self).__name__))
+        if name in type(self).properties.keys():
+            if not type(self).properties[name].mutable:
+                raise AttributeError("'{}' is not a mutable field of '{}'"
+                    .format(name, type(self).__name__))
+
+            self._changed = True
+
         self._set(name, value)
 
-    def save(self):
+    def save(self, force=True) -> bool:
         """
-        Send this object's mutable values to the server in a PUT request
+        Send this object's mutable values to the server in a PUT request.
+
+        :param force: If true, this method will always send a PUT request regardless of
+                      whether the field has been explicitly updated. For optimization
+                      purposes, this field should be set to false for typical update
+                      operations. (Defaults to True)
+        :type force: bool
         """
+        if not force and not self._changed:
+            return False
+
         resp = self._client.put(type(self).api_endpoint, model=self,
             data=self._serialize())
 
         if 'error' in resp:
             return False
+
+        self._set('_changed', False)
+
         return True
 
     def delete(self):
@@ -216,6 +233,7 @@ class Base(object, metaclass=FilterableMetaclass):
 
         # hide the raw JSON away in case someone needs it
         self._set('_raw_json', json)
+        self._set('_updated', False)
 
         for key in json:
             if key in (k for k in type(self).properties.keys()

@@ -98,7 +98,6 @@ class MethodMock:
         """
         return self.mock.call_args[1]['data']
 
-
     @property
     def call_url(self):
         """
@@ -125,6 +124,12 @@ class MethodMock:
         """
         return self.mock.call_args[1]['headers']
 
+    @property
+    def called(self):
+        """
+        A shortcut to check whether the mock function was called.
+        """
+        return self.mock.called
 
 class ClientBaseCase(TestCase):
     def setUp(self):
