@@ -49,7 +49,7 @@ The following code sample can help you quickly get started using this package.
 
     # Create a new Linode
     new_linode, root_pass = client.linode.instance_create(
-        type="g6-nanode-1",
+        ltype="g6-nanode-1",
         region="us-southeast",
         image="linode/ubuntu22.04",
         label="my-ubuntu-linode"
