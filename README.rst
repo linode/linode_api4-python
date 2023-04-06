@@ -35,7 +35,7 @@ Usage
 Quick Start
 -----------
 
-In order to authenticate the with the Linode API, you will first need to create a
+In order to authenticate with the Linode API, you will first need to create a
 `Linode Personal Access Token`_ with your desired account permissions.
 
 The following code sample can help you quickly get started using this package.
