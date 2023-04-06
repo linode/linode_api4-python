@@ -45,12 +45,12 @@ The following code sample can help you quickly get started using this package.
     from linode_api4 import LinodeClient, Instance
 
     # Create a Linode API client
-    client = LinodeClient("MYPERSONALACCESSTOKEN")
+    client = LinodeClient("MY_PERSONAL_ACCESS_TOKEN")
 
     # Create a new Linode
     new_linode, root_pass = client.linode.instance_create(
-        "g6-nanode-1",
-        "us-southeast",
+        type="g6-nanode-1",
+        region="us-southeast",
         image="linode/ubuntu22.04",
         label="my-ubuntu-linode"
     )
