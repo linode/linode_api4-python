@@ -236,8 +236,9 @@ class LinodeTest(ClientBaseCase):
         linode = Instance(self.client, 123)
 
         with self.mock_get('/linode/instances/123/firewalls') as m:
-            linode.firewalls()
+            result = linode.firewalls()
             self.assertEqual(m.call_url, '/linode/instances/123/firewalls')
+            self.assertEquals(len(result), 1)
 
     def test_volumes(self):
         """
@@ -246,8 +247,9 @@ class LinodeTest(ClientBaseCase):
         linode = Instance(self.client, 123)
 
         with self.mock_get('/linode/instances/123/volumes') as m:
-            linode.volumes()
+            result = linode.volumes()
             self.assertEqual(m.call_url, '/linode/instances/123/volumes')
+            self.assertEquals(len(result), 1)
 
     def test_nodebalancers(self):
         """
@@ -256,8 +258,9 @@ class LinodeTest(ClientBaseCase):
         linode = Instance(self.client, 123)
 
         with self.mock_get('/linode/instances/123/nodebalancers') as m:
-            linode.nodebalancers()
+            result = linode.nodebalancers()
             self.assertEqual(m.call_url, '/linode/instances/123/nodebalancers')
+            self.assertEquals(len(result), 1)
 
     def test_transfer_year_month(self):
         """

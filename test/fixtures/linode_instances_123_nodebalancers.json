@@ -1,4 +1,4 @@
-{
+[{
     "client_conn_throttle": 0,
     "created": "2018-01-01T00:01:01",
     "hostname": "192.0.2.1.ip.linodeusercontent.com",
@@ -17,5 +17,5 @@
       "total": 32.46078109741211
     },
     "updated": "2018-03-01T00:01:01"
-  }
+  }]
   

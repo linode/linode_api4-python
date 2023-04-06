@@ -1,4 +1,4 @@
-{
+[{
     "created": "2018-01-01T00:01:01",
     "id": 123,
     "label": "firewall123",
@@ -46,5 +46,5 @@
       "another example"
     ],
     "updated": "2018-01-02T00:01:01"
-  }
+  }]
   

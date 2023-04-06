@@ -1,4 +1,4 @@
-{
+[{
     "created": "2018-01-01T00:01:01",
     "filesystem_path": "/dev/disk/by-id/scsi-0Linode_Volume_my-volume",
     "hardware_type": "nvme",
@@ -14,5 +14,5 @@
       "another example"
     ],
     "updated": "2018-01-01T00:01:01"
-  }
+  }]
   

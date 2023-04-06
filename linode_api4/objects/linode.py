@@ -5,6 +5,7 @@ from enum import Enum
 from os import urandom
 from random import randint
 
+from linode_api4 import util
 from linode_api4.common import load_and_validate_keys
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import Base, DerivedBase, Image, Property, Region
@@ -71,6 +72,8 @@ class Disk(DerivedBase):
 
         if not 'id' in d:
             raise UnexpectedResponseError('Unexpected response duplicating disk!', json=d)
+        
+        return Disk(self._client, d["id"], self.linode_id)
 
 
     def reset_root_password(self, root_password=None):
@@ -403,10 +406,12 @@ class Instance(Base):
     
     def transfer_year_month(self, year, month):
         """
-        Upgrades this Instance to the latest generation type
+        Get per-linode transfer for specified month
         """
 
-        self._client.get('{}/transfer/{}/{}'.format(Instance.api_endpoint, year, month), model=self)
+        result = self._client.get('{}/transfer/{}/{}'.format(Instance.api_endpoint, year, month), model=self)
+
+        return MappedObject(**result)
 
 
     @property
@@ -808,25 +813,52 @@ class Instance(Base):
             "upgrade": upgrade
         }
 
+        util.drop_null_keys(params)
+
         self._client.post('{}/migrate'.format(Instance.api_endpoint), model=self, data=params)
 
     def firewalls(self):
         """
         View Firewall information for Firewalls associated with this Linode.
         """
-        self._client.get('{}/firewalls'.format(Instance.api_endpoint), model=self)
+        from linode_api4.objects import Firewall # pylint: disable=import-outside-toplevel
+
+        result = self._client.get('{}/firewalls'.format(Instance.api_endpoint), model=self)
+
+        firewalls = []
+        for firewall in result:
+            firewalls.append(Firewall(self._client, firewall["id"]))
+
+        return firewalls
+
 
     def nodebalancers(self):
         """
         View a list of NodeBalancers that are assigned to this Linode and readable by the requesting User.
         """
-        self._client.get('{}/nodebalancers'.format(Instance.api_endpoint), model=self)
+        from linode_api4.objects import NodeBalancer # pylint: disable=import-outside-toplevel
+
+        result = self._client.get('{}/nodebalancers'.format(Instance.api_endpoint), model=self)
+
+        nodebalancers = []
+        for nodebalancer in result:
+            nodebalancers.append(NodeBalancer(self._client, nodebalancer["id"]))
+
+        return nodebalancers
 
     def volumes(self):
         """
         View Block Storage Volumes attached to this Linode.
         """
-        self._client.get('{}/volumes'.format(Instance.api_endpoint), model=self)
+        from linode_api4.objects import Volume # pylint: disable=import-outside-toplevel
+
+        result = self._client.get('{}/volumes'.format(Instance.api_endpoint), model=self)
+
+        volumes = []
+        for volume in result:
+            volumes.append(Volume(self._client, volume["id"]))
+
+        return volumes
 
     def clone(self, to_linode=None, region=None, service=None, configs=[], disks=[],
             label=None, group=None, with_backups=None):
