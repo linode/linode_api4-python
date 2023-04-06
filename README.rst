@@ -30,11 +30,60 @@ To build and install this package:
 - ``./setup.py install``
 
 Usage
------
+=====
 
-Check out the `Getting Started guide`_ to start using this library, or read
-`the docs`_ for extensive documentation.
+Quick Start
+-----------
 
+In order to authenticate the with the Linode API, you will first need to create a
+`Linode Personal Access Token`_ with your desired account permissions.
+
+The following code sample can help you quickly get started using this package.
+
+.. code-block:: python
+
+    from linode_api4 import LinodeClient, Instance
+
+    # Create a Linode API client
+    client = LinodeClient("MYPERSONALACCESSTOKEN")
+
+    # Create a new Linode
+    new_linode, root_pass = client.linode.instance_create(
+        "g6-nanode-1",
+        "us-southeast",
+        image="linode/ubuntu22.04",
+        label="my-ubuntu-linode"
+    )
+
+    # Print info about the Linode
+    print("Linode IP:", new_linode.ipv4[0])
+    print("Linode Root Password:", root_pass)
+
+    # List all Linodes on the account
+    my_linodes = client.linode.instances()
+
+    # Print the Label of every Linode on the account
+    print("All Instances:")
+    for instance in my_linodes:
+        print(instance.label)
+
+    # List Linodes in the us-southeast region
+    specific_linodes = client.linode.instances(
+        Instance.region == "us-southeast"
+    )
+
+    # Print the label of each Linode in us-southeast
+    print("Instances in us-southeast:")
+    for instance in specific_linodes:
+        print(instance.label)
+
+    # Delete the new instance
+    new_linode.delete()
+
+Check out the `Getting Started guide`_ for more details on getting started
+with this library, or read `the docs`_ for more extensive documentation.
+
+.. _Linode Personal Access Token: https://www.linode.com/docs/products/tools/api/guides/manage-api-tokens/
 .. _Getting Started guide: http://linode_api4.readthedocs.io/en/latest/guides/getting_started.html
 .. _the docs: http://linode_api4.readthedocs.io/en/latest/index.html
 
