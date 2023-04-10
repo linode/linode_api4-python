@@ -825,7 +825,7 @@ class Instance(Base):
 
         result = self._client.get('{}/firewalls'.format(Instance.api_endpoint), model=self)
 
-        return [Firewall(self._client, firewall["id"]) for firewall in result]
+        return [Firewall(self._client, firewall["id"]) for firewall in result["data"]]
 
 
     def nodebalancers(self):
@@ -836,7 +836,7 @@ class Instance(Base):
 
         result = self._client.get('{}/nodebalancers'.format(Instance.api_endpoint), model=self)
 
-        return [NodeBalancer(self._client, nodebalancer["id"]) for nodebalancer in result]
+        return [NodeBalancer(self._client, nodebalancer["id"]) for nodebalancer in result["data"]]
 
     def volumes(self):
         """
@@ -846,7 +846,7 @@ class Instance(Base):
 
         result = self._client.get('{}/volumes'.format(Instance.api_endpoint), model=self)
 
-        return [Volume(self._client, volume["id"]) for volume in result]
+        return [Volume(self._client, volume["id"]) for volume in result["data"]]
 
     def clone(self, to_linode=None, region=None, service=None, configs=[], disks=[],
             label=None, group=None, with_backups=None):
