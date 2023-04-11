@@ -19,3 +19,7 @@ release: build
 
 install: clean
 	python3 setup.py install
+
+
+requirements:
+	pip install -r requirements.txt -r requirements-dev.txt
