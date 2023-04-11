@@ -1755,7 +1755,7 @@ class LinodeClient:
 
         if "image" not in result:
             raise UnexpectedResponseError(
-                "Unexpected response when creating an " "Image upload URL"
+                "Unexpected response when creating an Image upload URL"
             )
 
         result_image = result["image"]
