@@ -1,0 +1,87 @@
+{
+    "ipv4": {
+      "private": [
+        {
+          "address": "192.168.133.234",
+          "gateway": null,
+          "linode_id": 123,
+          "prefix": 17,
+          "public": false,
+          "rdns": null,
+          "region": "us-east",
+          "subnet_mask": "255.255.128.0",
+          "type": "ipv4"
+        }
+      ],
+      "public": [
+        {
+          "address": "97.107.143.141",
+          "gateway": "97.107.143.1",
+          "linode_id": 123,
+          "prefix": 24,
+          "public": true,
+          "rdns": "test.example.org",
+          "region": "us-east",
+          "subnet_mask": "255.255.255.0",
+          "type": "ipv4"
+        }
+      ],
+      "reserved": [
+        {
+          "address": "97.107.143.141",
+          "gateway": "97.107.143.1",
+          "linode_id": 123,
+          "prefix": 24,
+          "public": true,
+          "rdns": "test.example.org",
+          "region": "us-east",
+          "subnet_mask": "255.255.255.0",
+          "type": "ipv4"
+        }
+      ],
+      "shared": [
+        {
+          "address": "97.107.143.141",
+          "gateway": "97.107.143.1",
+          "linode_id": 123,
+          "prefix": 24,
+          "public": true,
+          "rdns": "test.example.org",
+          "region": "us-east",
+          "subnet_mask": "255.255.255.0",
+          "type": "ipv4"
+        }
+      ]
+    },
+    "ipv6": {
+      "global": {
+        "prefix": 124,
+        "range": "2600:3c01::2:5000:0",
+        "region": "us-east",
+        "route_target": "2600:3c01::2:5000:f"
+      },
+      "link_local": {
+        "address": "fe80::f03c:91ff:fe24:3a2f",
+        "gateway": "fe80::1",
+        "linode_id": 123,
+        "prefix": 64,
+        "public": false,
+        "rdns": null,
+        "region": "us-east",
+        "subnet_mask": "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+        "type": "ipv6"
+      },
+      "slaac": {
+        "address": "2600:3c03::f03c:91ff:fe24:3a2f",
+        "gateway": "fe80::1",
+        "linode_id": 123,
+        "prefix": 64,
+        "public": true,
+        "rdns": null,
+        "region": "us-east",
+        "subnet_mask": "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff",
+        "type": "ipv6"
+      }
+    }
+  }
+  
