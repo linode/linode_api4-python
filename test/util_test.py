@@ -18,16 +18,10 @@ class UtilTest(unittest.TestCase):
             "cool": {
                 "test": "bar",
                 "cool": None,
-            }
+            },
         }
 
-        expected_output = {
-            "foo": "bar",
-            "cool": {
-                "test": "bar",
-                "cool": None
-            }
-        }
+        expected_output = {"foo": "bar", "cool": {"test": "bar", "cool": None}}
 
         assert drop_null_keys(value, recursive=False) == expected_output
 
@@ -42,13 +36,8 @@ class UtilTest(unittest.TestCase):
             "cool": {
                 "test": "bar",
                 "cool": None,
-                "list": [
-                    {
-                        "foo": "bar",
-                        "test": None
-                    }
-                ]
-            }
+                "list": [{"foo": "bar", "test": None}],
+            },
         }
 
         expected_output = {
@@ -59,8 +48,8 @@ class UtilTest(unittest.TestCase):
                     {
                         "foo": "bar",
                     }
-                ]
-            }
+                ],
+            },
         }
 
         assert drop_null_keys(value) == expected_output

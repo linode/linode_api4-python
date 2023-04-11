@@ -9,6 +9,7 @@ from .fixtures import TestFixtures
 
 FIXTURES = TestFixtures()
 
+
 class MockResponse:
     def __init__(self, status_code, json, headers={}):
         self.status_code = status_code
@@ -30,7 +31,7 @@ def load_json(url):
     """
     formatted_url = url
 
-    while formatted_url.startswith('/'):
+    while formatted_url.startswith("/"):
         formatted_url = formatted_url[1:]
 
     return FIXTURES.get_fixture(formatted_url)
@@ -50,6 +51,7 @@ class MethodMock:
     This class is used to mock methods on requests and store the parameters
     and headers it was called with.
     """
+
     def __init__(self, method, return_dct):
         """
         Creates and initiates a new MethodMock with the given details
@@ -64,16 +66,18 @@ class MethodMock:
         elif isinstance(return_dct, str):
             self.return_dct = load_json(return_dct)
         else:
-            raise TypeError('return_dct must be a dict or a URL from which the '
-                            'JSON could be loaded')
+            raise TypeError(
+                "return_dct must be a dict or a URL from which the "
+                "JSON could be loaded"
+            )
 
     def __enter__(self):
         """
         Begins the method mocking
         """
         self.patch = patch(
-            'linode_api4.linode_client.requests.Session.'+self.method,
-            return_value=MockResponse(200, self.return_dct)
+            "linode_api4.linode_client.requests.Session." + self.method,
+            return_value=MockResponse(200, self.return_dct),
         )
         self.mock = self.patch.start()
         return self
@@ -96,7 +100,7 @@ class MethodMock:
         """
         A shortcut to access the raw call data, not parsed as JSON
         """
-        return self.mock.call_args[1]['data']
+        return self.mock.call_args[1]["data"]
 
     @property
     def call_url(self):
@@ -113,16 +117,16 @@ class MethodMock:
         A shortcut to getting the data param this was called with.  Removes all
         keys whose values are None
         """
-        data = json.loads(self.mock.call_args[1]['data'])
+        data = json.loads(self.mock.call_args[1]["data"])
 
-        return { k: v for k, v in data.items() if v is not None }
+        return {k: v for k, v in data.items() if v is not None}
 
     @property
     def call_headers(self):
         """
         A shortcut to getting the headers param this was called with
         """
-        return self.mock.call_args[1]['headers']
+        return self.mock.call_args[1]["headers"]
 
     @property
     def called(self):
@@ -131,17 +135,19 @@ class MethodMock:
         """
         return self.mock.called
 
+
 class ClientBaseCase(TestCase):
     def setUp(self):
-        self.client = LinodeClient('testing', base_url='/')
+        self.client = LinodeClient("testing", base_url="/")
 
-        self.get_patch = patch('linode_api4.linode_client.requests.Session.get',
-                side_effect=mock_get)
+        self.get_patch = patch(
+            "linode_api4.linode_client.requests.Session.get",
+            side_effect=mock_get,
+        )
         self.get_patch.start()
 
     def tearDown(self):
         self.get_patch.stop()
-
 
     def mock_get(self, return_dct):
         """
@@ -153,7 +159,7 @@ class ClientBaseCase(TestCase):
         :returns: A MethodMock object who will capture the parameters of the
             mocked requests
         """
-        return MethodMock('get', return_dct)
+        return MethodMock("get", return_dct)
 
     def mock_post(self, return_dct):
         """
@@ -165,7 +171,7 @@ class ClientBaseCase(TestCase):
         :returns: A MethodMock object who will capture the parameters of the
             mocked requests
         """
-        return MethodMock('post', return_dct)
+        return MethodMock("post", return_dct)
 
     def mock_put(self, return_dct):
         """
@@ -177,7 +183,7 @@ class ClientBaseCase(TestCase):
         :returns: A MethodMock object who will capture the parameters of the
             mocked requests
         """
-        return MethodMock('put', return_dct)
+        return MethodMock("put", return_dct)
 
     def mock_delete(self):
         """
@@ -189,4 +195,4 @@ class ClientBaseCase(TestCase):
         :returns: A MethodMock object who will capture the parameters of the
             mocked requests
         """
-        return MethodMock('delete', {})
+        return MethodMock("delete", {})
