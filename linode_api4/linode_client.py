@@ -5,6 +5,7 @@ import logging
 import os
 import time
 from datetime import datetime
+from typing import Tuple, BinaryIO
 
 import pkg_resources
 import requests
@@ -15,6 +16,7 @@ from linode_api4.objects.filtering import Filter
 
 from .common import SSH_KEY_TYPES, load_and_validate_keys
 from .paginated_list import PaginatedList
+from .util import drop_null_keys
 
 package_version = pkg_resources.require("linode_api4")[0].version
 
@@ -1614,6 +1616,67 @@ class LinodeClient:
             raise UnexpectedResponseError('Unexpected response when creating an Image from disk {}'.format(disk))
 
         return Image(self, result['id'], result)
+
+    def image_create_upload(self, label: str, region: str, description: str=None) -> Tuple[Image, str]:
+        """
+        Creates a new Image and returns the corresponding upload URL.
+        https://www.linode.com/docs/api/images/#image-upload
+
+        :param label: The label of the Image to create.
+        :type label: str
+        :param region: The region to upload to. Once the image has been created, it can be used in any region.
+        :type region: str
+        :param description: The description for the new Image.
+        :type description: str
+
+        :returns: A tuple containing the new image and the image upload URL.
+        :rtype: (Image, str)
+        """
+        params = {
+            "label": label,
+            "region": region,
+            "description": description
+        }
+
+        result = self.post("/images/upload", data=drop_null_keys(params))
+
+        if "image" not in result:
+            raise UnexpectedResponseError('Unexpected response when creating an '
+                                          'Image upload URL')
+
+        result_image = result["image"]
+        result_url = result["upload_to"]
+
+        return Image(self, result_image["id"], result_image), result_url
+
+    def image_upload(self, label: str, region: str, file: BinaryIO, description: str=None) -> Image:
+        """
+        Creates and uploads a new image.
+        https://www.linode.com/docs/api/images/#image-upload
+
+        :param label: The label of the Image to create.
+        :type label: str
+        :param region: The region to upload to. Once the image has been created, it can be used in any region.
+        :type region: str
+        :param file: The BinaryIO object to upload to the image. This is generally obtained from open("myfile", "rb").
+        :param description: The description for the new Image.
+        :type description: str
+
+        :returns: The resulting image.
+        :rtype: Image
+        """
+
+        image, url = self.image_create_upload(label, region, description=description)
+
+        requests.put(
+            url,
+            headers={"Content-Type": "application/octet-stream"},
+            data=file,
+        )
+
+        image._api_get()
+
+        return image
 
     def domains(self, *filters):
         """

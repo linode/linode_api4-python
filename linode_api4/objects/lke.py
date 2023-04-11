@@ -53,13 +53,15 @@ class LKENodePool(DerivedBase):
         "disks": Property(),
         "count": Property(mutable=True),
         "nodes": Property(volatile=True), # this is formatted in _populate below
+        "autoscaler": Property(),
+        "tags": Property(mutable=True),
     }
 
     def _populate(self, json):
         """
         Parse Nodes into more useful LKENodePoolNode objects
         """
-        if json is not None:
+        if json != {}:
             new_nodes = [
                 LKENodePoolNode(self._client, c) for c in json["nodes"]
             ]
@@ -92,6 +94,7 @@ class LKECluster(Base):
       "region": Property(slug_relationship=Region),
       "k8s_version": Property(slug_relationship=KubeVersion),
       "pools": Property(derived_class=LKENodePool),
+      "control_plane": Property(),
     }
 
     @property
@@ -165,3 +168,63 @@ class LKECluster(Base):
             raise UnexpectedResponseError('Unexpected response creating node pool!', json=result)
 
         return LKENodePool(self._client, result["id"], self.id, result)
+    
+    def cluster_dashboard_url_view(self):
+        """
+        Get a Kubernetes Dashboard access URL for this Cluster.
+        """
+
+        result = self._client.get('{}/dashboard'.format(LKECluster.api_endpoint), model=self)
+
+        return result["url"]
+    
+    def kubeconfig_delete(self):
+        """
+        Delete and regenerate the Kubeconfig file for a Cluster.
+        """
+
+        self._client.delete('{}/kubeconfig'.format(LKECluster.api_endpoint), model=self)
+
+    def node_view(self, nodeId):
+        """
+        Get a specific Node Pool by ID.
+        """
+
+        node = self._client.get('{}/nodes/{}'.format(LKECluster.api_endpoint, nodeId), model=self)
+
+        return LKENodePoolNode(self._client, node)
+
+    def node_delete(self, nodeId):
+        """
+        Delete a specific Node from a Node Pool.
+        """
+
+        self._client.delete('{}/nodes/{}'.format(LKECluster.api_endpoint, nodeId), model=self)
+
+    def node_recycle(self, nodeId):
+        """
+        Recycle a specific Node from an LKE cluster.
+        """
+
+        self._client.post('{}/nodes/{}/recycle'.format(LKECluster.api_endpoint, nodeId), model=self)
+
+    def cluster_nodes_recycle(self):
+        """
+        Recycles all nodes in all pools of a designated Kubernetes Cluster.
+        """
+
+        self._client.post('{}/recycle'.format(LKECluster.api_endpoint), model=self)
+
+    def cluster_regenerate(self):
+        """
+        Regenerate the Kubeconfig file and/or the service account token for a Cluster.
+        """
+
+        self._client.post('{}/regenerate'.format(LKECluster.api_endpoint), model=self)
+
+    def service_token_delete(self):
+        """
+        Delete and regenerate the service account token for a Cluster.
+        """
+
+        self._client.delete('{}/servicetoken'.format(LKECluster.api_endpoint), model=self)
