@@ -3,7 +3,8 @@ PYTHON ?= python3
 @PHONEY: clean
 clean:
 	mkdir -p dist
-	rm dist/*
+	rm -r dist
+	rm -f baked_version
 
 @PHONEY: build
 build: clean
@@ -14,3 +15,7 @@ build: clean
 @PHONEY: release
 release: build
 	twine upload dist/*
+
+
+install: clean
+	python3 setup.py install
