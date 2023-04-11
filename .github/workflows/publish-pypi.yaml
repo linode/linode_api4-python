@@ -30,8 +30,7 @@ jobs:
       - name: Build the package
         run: make build
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          LINODE_CLI_VERSION: ${{ github.event.release.tag_name }}
+          LINODE_SDK_VERSION: ${{ github.event.release.tag_name }}
 
       - name: Publish the release artifacts to PyPI
         uses: pypa/gh-action-pypi-publish@37f50c210e3d2f9450da2cd423303d6a14a6e29f # pin@release/v1
