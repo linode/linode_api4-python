@@ -1,6 +1,7 @@
 from test.base import ClientBaseCase
 
-from linode_api4.objects import IPv6Pool, IPv6Range, Firewall, IPAddress, Region
+from linode_api4.objects import Firewall, IPAddress, IPv6Pool, IPv6Range
+
 
 class NetworkingTest(ClientBaseCase):
     """
@@ -36,7 +37,9 @@ class NetworkingTest(ClientBaseCase):
         self.assertEqual(ranges[0].range, "2600:3c01::")
         self.assertEqual(ranges[0].prefix, 64)
         self.assertEqual(ranges[0].region.id, "us-east")
-        self.assertEqual(ranges[0].route_target, "2600:3c01::ffff:ffff:ffff:ffff")
+        self.assertEqual(
+            ranges[0].route_target, "2600:3c01::ffff:ffff:ffff:ffff"
+        )
 
     def test_get_rules(self):
         """
@@ -45,9 +48,9 @@ class NetworkingTest(ClientBaseCase):
 
         firewall = Firewall(self.client, 123)
 
-        with self.mock_get('/networking/firewalls/123/rules') as m:
+        with self.mock_get("/networking/firewalls/123/rules") as m:
             result = firewall.get_rules()
-            self.assertEqual(m.call_url, '/networking/firewalls/123/rules')
+            self.assertEqual(m.call_url, "/networking/firewalls/123/rules")
             self.assertEqual(result["inbound"], [])
             self.assertEqual(result["outbound"], [])
             self.assertEqual(result["inbound_policy"], "DROP")
@@ -62,21 +65,26 @@ class NetworkingTest(ClientBaseCase):
 
         with self.mock_post({}) as m:
             ip.ip_addresses_share(["192.0.2.1"], 123)
-            self.assertEqual(m.call_url, '/networking/ips/share')
+            self.assertEqual(m.call_url, "/networking/ips/share")
             self.assertEqual(m.call_data["ips"], ["192.0.2.1"])
             self.assertEqual(m.call_data["linode_id"], 123)
 
     def test_ip_addresses_assign(self):
         """
         Tests that you can submit a correct ip addresses assign api request.
-        """    
+        """
 
         ip = IPAddress(self.client, "192.0.2.1", {})
 
         with self.mock_post({}) as m:
-            ip.ip_addresses_assign([{"address": "192.0.2.1", "linode_id": 123}], "us-east")
-            self.assertEqual(m.call_url, '/networking/ips/assign')
-            self.assertEqual(m.call_data["assignments"], [{"address": "192.0.2.1", "linode_id": 123}])
+            ip.ip_addresses_assign(
+                [{"address": "192.0.2.1", "linode_id": 123}], "us-east"
+            )
+            self.assertEqual(m.call_url, "/networking/ips/assign")
+            self.assertEqual(
+                m.call_data["assignments"],
+                [{"address": "192.0.2.1", "linode_id": 123}],
+            )
             self.assertEqual(m.call_data["region"], "us-east")
 
     def test_ip_ranges_list(self):
@@ -87,9 +95,9 @@ class NetworkingTest(ClientBaseCase):
         ipv6Range = IPv6Range(self.client, "2600:3c01::")
         ipv6Range._api_get()
 
-        with self.mock_post('/networking/ipv6/ranges') as m:
+        with self.mock_post("/networking/ipv6/ranges") as m:
             result = ipv6Range.ip_ranges_list()
-            self.assertEqual(m.call_url, '/networking/ipv6/ranges')
+            self.assertEqual(m.call_url, "/networking/ipv6/ranges")
             self.assertEqual(len(result), 1)
 
     def test_ip_range_delete(self):
@@ -101,4 +109,4 @@ class NetworkingTest(ClientBaseCase):
 
         with self.mock_delete() as m:
             ipv6Range.ip_range_delete()
-            self.assertEqual(m.call_url, '/networking/ipv6/ranges/2600:3c01::')
+            self.assertEqual(m.call_url, "/networking/ipv6/ranges/2600:3c01::")

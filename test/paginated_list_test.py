@@ -10,28 +10,31 @@ class PaginationSlicingTest(TestCase):
         Creates sample mocked lists for use in the test cases
         """
         self.normal_list = list(range(25))
-        self.paginated_list = PaginatedList(None, None, page=self.normal_list,
-                total_items=25)
+        self.paginated_list = PaginatedList(
+            None, None, page=self.normal_list, total_items=25
+        )
 
     def test_slice_normal(self):
         """
         Tests that bounded, forward slices work as expected
         """
-        slices = ( (1, 10), (10, 20), (5, 25), (0, 10) )
+        slices = ((1, 10), (10, 20), (5, 25), (0, 10))
 
-        for (start, stop) in slices:
-            self.assertEqual(self.normal_list[start:stop],
-                    self.paginated_list[start:stop])
+        for start, stop in slices:
+            self.assertEqual(
+                self.normal_list[start:stop], self.paginated_list[start:stop]
+            )
 
     def test_slice_negative(self):
         """
         Tests that negative indexing works in slices
         """
-        slices = ( (-10,-5), (-20, 20), (3, -10) )
+        slices = ((-10, -5), (-20, 20), (3, -10))
 
-        for (start, stop) in slices:
-            self.assertEqual(self.normal_list[start:stop],
-                    self.paginated_list[start:stop])
+        for start, stop in slices:
+            self.assertEqual(
+                self.normal_list[start:stop], self.paginated_list[start:stop]
+            )
 
     def test_slice_no_lower_bound(self):
         """
@@ -68,7 +71,7 @@ class PaginationSlicingTest(TestCase):
         """
         Tests that steps outside of 1 raise a NotImplementedError
         """
-        for step in ( -1, 0, 2, 3 ):
+        for step in (-1, 0, 2, 3):
             with self.assertRaises(NotImplementedError):
                 self.paginated_list[::step]
 
@@ -79,11 +82,12 @@ class PaginationSlicingTest(TestCase):
         self.assertEqual(self.normal_list[10:5], self.paginated_list[10:5])
 
 
-class TestModel():
+class TestModel:
     """
     This is a test model class used to simulate an actual model that would be
     returned by the API
     """
+
     @classmethod
     def make_instance(*args, **kwargs):
         return TestModel()
@@ -97,7 +101,7 @@ class PageLoadingTest(TestCase):
 
         for i in (25, 100, 500):
             # these are the pages we're sending in to the mocked list
-            first_page = [ TestModel()  for x in range(i) ]
+            first_page = [TestModel() for x in range(i)]
             second_page = {
                 "data": [{"id": 1}],
                 "pages": 2,
@@ -110,11 +114,15 @@ class PageLoadingTest(TestCase):
             client.get = MagicMock(return_value=second_page)
 
             # let's do it!
-            p = PaginatedList(client, "/test", page=first_page, max_pages=2, total_items=i+1)
-            p[i] # load second page
+            p = PaginatedList(
+                client, "/test", page=first_page, max_pages=2, total_items=i + 1
+            )
+            p[i]  # load second page
 
             # and we called the next page URL with the correct page_size
-            assert client.get.call_args == call("//test?page=2&page_size={}".format(i), filters=None)
+            assert client.get.call_args == call(
+                "//test?page=2&page_size={}".format(i), filters=None
+            )
 
     def test_no_pages(self):
         """
@@ -125,4 +133,4 @@ class PageLoadingTest(TestCase):
 
         p = PaginatedList(client, "/test", page=[], max_pages=0, total_items=0)
 
-        assert(len(p) == 0)
+        assert len(p) == 0

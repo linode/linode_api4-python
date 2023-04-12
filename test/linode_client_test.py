@@ -1,21 +1,21 @@
 from datetime import datetime
+from test.base import ClientBaseCase
 from unittest import TestCase
 from unittest.mock import MagicMock
 
-from test.base import ClientBaseCase
-
-from linode_api4 import LongviewSubscription, LinodeClient, ApiError
+from linode_api4 import ApiError, LinodeClient, LongviewSubscription
 
 
 class LinodeClientGeneralTest(ClientBaseCase):
     """
     Tests methods of the LinodeClient class that do not live inside of a group.
     """
+
     def test_get_no_empty_body(self):
         """
         Tests that a valid JSON body is passed for a GET call
         """
-        with self.mock_get('linode/instances') as m:
+        with self.mock_get("linode/instances") as m:
             self.client.regions()
 
             self.assertEqual(m.call_data_raw, None)
@@ -24,20 +24,23 @@ class LinodeClientGeneralTest(ClientBaseCase):
         a = self.client.account()
         self.assertEqual(a._populated, True)
 
-        self.assertEqual(a.first_name, 'Test')
-        self.assertEqual(a.last_name, 'Guy')
-        self.assertEqual(a.email, 'support@linode.com')
-        self.assertEqual(a.phone, '123-456-7890')
-        self.assertEqual(a.company, 'Linode')
-        self.assertEqual(a.address_1, '3rd & Arch St')
-        self.assertEqual(a.address_2, '')
-        self.assertEqual(a.city, 'Philadelphia')
-        self.assertEqual(a.state, 'PA')
-        self.assertEqual(a.country, 'US')
-        self.assertEqual(a.zip, '19106')
-        self.assertEqual(a.tax_id, '')
+        self.assertEqual(a.first_name, "Test")
+        self.assertEqual(a.last_name, "Guy")
+        self.assertEqual(a.email, "support@linode.com")
+        self.assertEqual(a.phone, "123-456-7890")
+        self.assertEqual(a.company, "Linode")
+        self.assertEqual(a.address_1, "3rd & Arch St")
+        self.assertEqual(a.address_2, "")
+        self.assertEqual(a.city, "Philadelphia")
+        self.assertEqual(a.state, "PA")
+        self.assertEqual(a.country, "US")
+        self.assertEqual(a.zip, "19106")
+        self.assertEqual(a.tax_id, "")
         self.assertEqual(a.balance, 0)
-        self.assertEqual(a.capabilities, ["Linodes","NodeBalancers","Block Storage","Object Storage"])
+        self.assertEqual(
+            a.capabilities,
+            ["Linodes", "NodeBalancers", "Block Storage", "Object Storage"],
+        )
 
     def test_get_regions(self):
         r = self.client.regions()
@@ -47,10 +50,21 @@ class LinodeClientGeneralTest(ClientBaseCase):
             self.assertTrue(region._populated)
             self.assertIsNotNone(region.id)
             self.assertIsNotNone(region.country)
-            if region.id in ('us-east', 'eu-central', 'ap-south'):
-                self.assertEqual(region.capabilities, ["Linodes","NodeBalancers","Block Storage","Object Storage"])
+            if region.id in ("us-east", "eu-central", "ap-south"):
+                self.assertEqual(
+                    region.capabilities,
+                    [
+                        "Linodes",
+                        "NodeBalancers",
+                        "Block Storage",
+                        "Object Storage",
+                    ],
+                )
             else:
-                self.assertEqual(region.capabilities, ["Linodes","NodeBalancers","Block Storage"])
+                self.assertEqual(
+                    region.capabilities,
+                    ["Linodes", "NodeBalancers", "Block Storage"],
+                )
             self.assertEqual(region.status, "ok")
             self.assertIsNotNone(region.resolvers)
             self.assertIsNotNone(region.resolvers.ipv4)
@@ -73,54 +87,72 @@ class LinodeClientGeneralTest(ClientBaseCase):
         self.assertEqual(len(r), 1)
         domain = r.first()
 
-        self.assertEqual(domain.domain, 'example.org')
-        self.assertEqual(domain.type, 'master')
+        self.assertEqual(domain.domain, "example.org")
+        self.assertEqual(domain.type, "master")
         self.assertEqual(domain.id, 12345)
         self.assertEqual(domain.axfr_ips, [])
         self.assertEqual(domain.retry_sec, 0)
         self.assertEqual(domain.ttl_sec, 300)
-        self.assertEqual(domain.status, 'active')
-        self.assertEqual(domain.master_ips, [],)
-        self.assertEqual(domain.description, "",)
-        self.assertEqual(domain.group, "",)
-        self.assertEqual(domain.expire_sec, 0,)
-        self.assertEqual(domain.soa_email, "test@example.org",)
+        self.assertEqual(domain.status, "active")
+        self.assertEqual(
+            domain.master_ips,
+            [],
+        )
+        self.assertEqual(
+            domain.description,
+            "",
+        )
+        self.assertEqual(
+            domain.group,
+            "",
+        )
+        self.assertEqual(
+            domain.expire_sec,
+            0,
+        )
+        self.assertEqual(
+            domain.soa_email,
+            "test@example.org",
+        )
         self.assertEqual(domain.refresh_sec, 0)
 
     def test_image_create(self):
         """
         Tests that an Image can be created successfully
         """
-        with self.mock_post('images/private/123') as m:
-            i = self.client.image_create(654, 'Test-Image', 'This is a test')
+        with self.mock_post("images/private/123") as m:
+            i = self.client.image_create(654, "Test-Image", "This is a test")
 
             self.assertIsNotNone(i)
-            self.assertEqual(i.id, 'private/123')
+            self.assertEqual(i.id, "private/123")
 
-            self.assertEqual(m.call_url, '/images')
+            self.assertEqual(m.call_url, "/images")
 
-            self.assertEqual(m.call_data, {
-                "disk_id": 654,
-                "label": "Test-Image",
-                "description": "This is a test",
-            })
+            self.assertEqual(
+                m.call_data,
+                {
+                    "disk_id": 654,
+                    "label": "Test-Image",
+                    "description": "This is a test",
+                },
+            )
 
     def test_get_volumes(self):
         v = self.client.volumes()
 
         self.assertEqual(len(v), 3)
-        self.assertEqual(v[0].label, 'block1')
-        self.assertEqual(v[0].region.id, 'us-east-1a')
-        self.assertEqual(v[1].label, 'block2')
+        self.assertEqual(v[0].label, "block1")
+        self.assertEqual(v[0].region.id, "us-east-1a")
+        self.assertEqual(v[1].label, "block2")
         self.assertEqual(v[1].size, 100)
         self.assertEqual(v[2].size, 200)
-        self.assertEqual(v[2].label, 'block3')
-        self.assertEqual(v[0].filesystem_path, 'this/is/a/file/path')
-        self.assertEqual(v[0].hardware_type, 'hdd')
-        self.assertEqual(v[1].filesystem_path, 'this/is/a/file/path')
+        self.assertEqual(v[2].label, "block3")
+        self.assertEqual(v[0].filesystem_path, "this/is/a/file/path")
+        self.assertEqual(v[0].hardware_type, "hdd")
+        self.assertEqual(v[1].filesystem_path, "this/is/a/file/path")
         self.assertEqual(v[1].linode_label, None)
-        self.assertEqual(v[2].filesystem_path, 'this/is/a/file/path')
-        self.assertEqual(v[2].hardware_type, 'nvme')
+        self.assertEqual(v[2].filesystem_path, "this/is/a/file/path")
+        self.assertEqual(v[2].hardware_type, "nvme")
 
         assert v[0].tags == ["something"]
         assert v[1].tags == []
@@ -133,24 +165,27 @@ class LinodeClientGeneralTest(ClientBaseCase):
         t = self.client.tags()
 
         self.assertEqual(len(t), 2)
-        self.assertEqual(t[0].label, 'nothing')
-        self.assertEqual(t[1].label, 'something')
+        self.assertEqual(t[0].label, "nothing")
+        self.assertEqual(t[1].label, "something")
 
     def test_tag_create(self):
         """
         Tests that creating a tag works as expected
         """
         # tags don't work like a normal RESTful collection, so we have to do this
-        with self.mock_post({'label':'nothing'}) as m:
-            t = self.client.tag_create('nothing')
+        with self.mock_post({"label": "nothing"}) as m:
+            t = self.client.tag_create("nothing")
 
             self.assertIsNotNone(t)
-            self.assertEqual(t.label, 'nothing')
+            self.assertEqual(t.label, "nothing")
 
-            self.assertEqual(m.call_url, '/tags')
-            self.assertEqual(m.call_data, {
-                'label': 'nothing',
-            })
+            self.assertEqual(m.call_url, "/tags")
+            self.assertEqual(
+                m.call_data,
+                {
+                    "label": "nothing",
+                },
+            )
 
     def test_tag_create_with_ids(self):
         """
@@ -162,24 +197,29 @@ class LinodeClientGeneralTest(ClientBaseCase):
         volume1, volume2 = self.client.volumes()[:2]
 
         # tags don't work like a normal RESTful collection, so we have to do this
-        with self.mock_post({'label':'pytest'}) as m:
-            t = self.client.tag_create('pytest',
-                                       instances=[instance1.id, instance2],
-                                       nodebalancers=[nodebalancer1.id, nodebalancer2],
-                                       domains=[domain1.id],
-                                       volumes=[volume1.id, volume2])
+        with self.mock_post({"label": "pytest"}) as m:
+            t = self.client.tag_create(
+                "pytest",
+                instances=[instance1.id, instance2],
+                nodebalancers=[nodebalancer1.id, nodebalancer2],
+                domains=[domain1.id],
+                volumes=[volume1.id, volume2],
+            )
 
             self.assertIsNotNone(t)
-            self.assertEqual(t.label, 'pytest')
+            self.assertEqual(t.label, "pytest")
 
-            self.assertEqual(m.call_url, '/tags')
-            self.assertEqual(m.call_data, {
-                'label': 'pytest',
-                'linodes': [instance1.id, instance2.id],
-                'domains': [domain1.id],
-                'nodebalancers': [nodebalancer1.id, nodebalancer2.id],
-                'volumes': [volume1.id, volume2.id],
-            })
+            self.assertEqual(m.call_url, "/tags")
+            self.assertEqual(
+                m.call_data,
+                {
+                    "label": "pytest",
+                    "linodes": [instance1.id, instance2.id],
+                    "domains": [domain1.id],
+                    "nodebalancers": [nodebalancer1.id, nodebalancer2.id],
+                    "volumes": [volume1.id, volume2.id],
+                },
+            )
 
     def test_tag_create_with_entities(self):
         """
@@ -191,27 +231,33 @@ class LinodeClientGeneralTest(ClientBaseCase):
         volume = self.client.volumes().first()
 
         # tags don't work like a normal RESTful collection, so we have to do this
-        with self.mock_post({'label':'pytest'}) as m:
-            t = self.client.tag_create('pytest',
-                                       entities=[instance1, domain, nodebalancer, volume, instance2])
+        with self.mock_post({"label": "pytest"}) as m:
+            t = self.client.tag_create(
+                "pytest",
+                entities=[instance1, domain, nodebalancer, volume, instance2],
+            )
 
             self.assertIsNotNone(t)
-            self.assertEqual(t.label, 'pytest')
+            self.assertEqual(t.label, "pytest")
 
-            self.assertEqual(m.call_url, '/tags')
-            self.assertEqual(m.call_data, {
-                'label': 'pytest',
-                'linodes': [instance1.id, instance2.id],
-                'domains': [domain.id],
-                'nodebalancers': [nodebalancer.id],
-                'volumes': [volume.id],
-            })
+            self.assertEqual(m.call_url, "/tags")
+            self.assertEqual(
+                m.call_data,
+                {
+                    "label": "pytest",
+                    "linodes": [instance1.id, instance2.id],
+                    "domains": [domain.id],
+                    "nodebalancers": [nodebalancer.id],
+                    "volumes": [volume.id],
+                },
+            )
 
 
 class AccountGroupTest(ClientBaseCase):
     """
     Tests methods of the AccountGroup
     """
+
     def test_get_settings(self):
         """
         Tests that account settings can be retrieved.
@@ -222,7 +268,7 @@ class AccountGroupTest(ClientBaseCase):
         self.assertEqual(s.network_helper, False)
         self.assertEqual(s.managed, False)
         self.assertEqual(type(s.longview_subscription), LongviewSubscription)
-        self.assertEqual(s.longview_subscription.id, 'longview-100')
+        self.assertEqual(s.longview_subscription.id, "longview-100")
         self.assertEqual(s.object_storage, "active")
 
     def test_get_invoices(self):
@@ -236,7 +282,7 @@ class AccountGroupTest(ClientBaseCase):
 
         self.assertEqual(invoice.id, 123456)
         self.assertEqual(invoice.date, datetime(2015, 1, 1, 5, 1, 2))
-        self.assertEqual(invoice.label, 'Invoice #123456')
+        self.assertEqual(invoice.label, "Invoice #123456")
         self.assertEqual(invoice.total, 9.51)
 
     def test_payments(self):
@@ -257,47 +303,55 @@ class LinodeGroupTest(ClientBaseCase):
     """
     Tests methods of the LinodeGroup
     """
+
     def test_instance_create(self):
         """
         Tests that a Linode Instance can be created successfully
         """
-        with self.mock_post('linode/instances/123') as m:
-            l = self.client.linode.instance_create('g5-standard-1', 'us-east-1a')
+        with self.mock_post("linode/instances/123") as m:
+            l = self.client.linode.instance_create(
+                "g5-standard-1", "us-east-1a"
+            )
 
             self.assertIsNotNone(l)
             self.assertEqual(l.id, 123)
 
-            self.assertEqual(m.call_url, '/linode/instances')
+            self.assertEqual(m.call_url, "/linode/instances")
 
-            self.assertEqual(m.call_data, {
-                "region": "us-east-1a",
-                "type": "g5-standard-1"
-            })
+            self.assertEqual(
+                m.call_data, {"region": "us-east-1a", "type": "g5-standard-1"}
+            )
 
     def test_instance_create_with_image(self):
         """
         Tests that a Linode Instance can be created with an image, and a password generated
         """
-        with self.mock_post('linode/instances/123') as m:
+        with self.mock_post("linode/instances/123") as m:
             l, pw = self.client.linode.instance_create(
-                'g5-standard-1', 'us-east-1a', image='linode/debian9')
+                "g5-standard-1", "us-east-1a", image="linode/debian9"
+            )
 
             self.assertIsNotNone(l)
             self.assertEqual(l.id, 123)
 
-            self.assertEqual(m.call_url, '/linode/instances')
+            self.assertEqual(m.call_url, "/linode/instances")
 
-            self.assertEqual(m.call_data, {
-                "region": "us-east-1a",
-                "type": "g5-standard-1",
-                "image": "linode/debian9",
-                "root_pass": pw,
-            })
+            self.assertEqual(
+                m.call_data,
+                {
+                    "region": "us-east-1a",
+                    "type": "g5-standard-1",
+                    "image": "linode/debian9",
+                    "root_pass": pw,
+                },
+            )
+
 
 class LongviewGroupTest(ClientBaseCase):
     """
     Tests methods of the LongviewGroup
     """
+
     def test_get_clients(self):
         """
         Tests that a list of LongviewClients can be retrieved
@@ -314,28 +368,28 @@ class LongviewGroupTest(ClientBaseCase):
         """
         Tests that creating a client calls the api correctly
         """
-        with self.mock_post('longview/clients/5678') as m:
+        with self.mock_post("longview/clients/5678") as m:
             client = self.client.longview.client_create()
 
             self.assertIsNotNone(client)
             self.assertEqual(client.id, 5678)
-            self.assertEqual(client.label, 'longview5678')
+            self.assertEqual(client.label, "longview5678")
 
-            self.assertEqual(m.call_url, '/longview/clients')
+            self.assertEqual(m.call_url, "/longview/clients")
             self.assertEqual(m.call_data, {})
 
     def test_client_create_with_label(self):
         """
         Tests that creating a client with a label calls the api correctly
         """
-        with self.mock_post('longview/clients/1234') as m:
-            client = self.client.longview.client_create(label='test_client_1')
+        with self.mock_post("longview/clients/1234") as m:
+            client = self.client.longview.client_create(label="test_client_1")
 
             self.assertIsNotNone(client)
             self.assertEqual(client.id, 1234)
-            self.assertEqual(client.label, 'test_client_1')
+            self.assertEqual(client.label, "test_client_1")
 
-            self.assertEqual(m.call_url, '/longview/clients')
+            self.assertEqual(m.call_url, "/longview/clients")
             self.assertEqual(m.call_data, {"label": "test_client_1"})
 
     def test_get_subscriptions(self):
@@ -362,6 +416,7 @@ class LKEGroupTest(ClientBaseCase):
     """
     Tests methods of the LKEGroupTest
     """
+
     def test_kube_version(self):
         """
         Tests that KubeVersions can be retrieved
@@ -385,8 +440,9 @@ class LKEGroupTest(ClientBaseCase):
                 region, "example-cluster", node_pools, version
             )
             self.assertEqual(m.call_data["region"], "ap-west")
-            self.assertEqual(m.call_data["node_pools"],
-                             [{"type": "g5-nanode-1", "count": 3}])
+            self.assertEqual(
+                m.call_data["node_pools"], [{"type": "g5-nanode-1", "count": 3}]
+            )
             self.assertEqual(m.call_data["k8s_version"], "1.19")
 
         self.assertEqual(cluster.id, 18881)
@@ -399,12 +455,16 @@ class LKEGroupTest(ClientBaseCase):
         """
         with self.mock_post("lke/clusters") as m:
             cluster = self.client.lke.cluster_create(
-                "ap-west", "example-cluster",
-                {"type": "g6-standard-1", "count": 3}, "1.19"
+                "ap-west",
+                "example-cluster",
+                {"type": "g6-standard-1", "count": 3},
+                "1.19",
             )
             self.assertEqual(m.call_data["region"], "ap-west")
-            self.assertEqual(m.call_data["node_pools"],
-                             [{"type": "g6-standard-1", "count": 3}])
+            self.assertEqual(
+                m.call_data["node_pools"],
+                [{"type": "g6-standard-1", "count": 3}],
+            )
             self.assertEqual(m.call_data["k8s_version"], "1.19")
 
         self.assertEqual(cluster.id, 18881)
@@ -416,6 +476,7 @@ class ProfileGroupTest(ClientBaseCase):
     """
     Tests methods of the ProfileGroup
     """
+
     def test_get_sshkeys(self):
         """
         Tests that a list of SSH Keys can be retrieved
@@ -426,89 +487,99 @@ class ProfileGroupTest(ClientBaseCase):
 
         key1, key2 = r
 
-        self.assertEqual(key1.label, 'Home Ubuntu PC')
-        self.assertEqual(key1.created, datetime(year=2018, month=9, day=14, hour=13,
-                                                minute=0, second=0))
+        self.assertEqual(key1.label, "Home Ubuntu PC")
+        self.assertEqual(
+            key1.created,
+            datetime(year=2018, month=9, day=14, hour=13, minute=0, second=0),
+        )
         self.assertEqual(key1.id, 22)
         self.assertEqual(
-            key1.ssh_key, "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDe9NlKepJsI/S98"
-                          "ISBJmG+cpEARtM0T1Qa5uTOUB/vQFlHmfQW07ZfA++ybPses0vRCD"
-                          "eWyYPIuXcV5yFrf8YAW/Am0+/60MivT3jFY0tDfcrlvjdJAf1NpWO"
-                          "TVlzv0gpsHFO+XIZcfEj3V0K5+pOMw9QGVf6Qbg8qzHVDPFdYKu3i"
-                          "muc9KHY8F/b4DN/Wh17k3xAJpspCZEFkn0bdaYafJj0tPs0k78JRo"
-                          "F2buc3e3M6dlvHaoON1votmrri9lut65OIpglOgPwE3QU8toGyyoC"
-                          "MGaT4R7kIRjXy3WSyTMAi0KTAdxRK+IlDVMXWoE5TdLovd0a9L7qy"
-                          "nZungKhKZUgFma7r9aTFVHXKh29Tzb42neDTpQnZ/Et735sDC1vfz"
-                          "/YfgZNdgMUXFJ3+uA4M/36/Vy3Dpj2Larq3qY47RDFitmwSzwUlfz"
-                          "tUoyiQ7e1WvXHT4N4Z8K2FPlTvNMg5CSjXHdlzcfiRFPwPn13w36v"
-                          "TvAUxPvTa84P1eOLDp/JzykFbhHNh8Cb02yrU28zDeoTTyjwQs0eH"
-                          "d1wtgIXJ8wuUgcaE4LgcgLYWwiKTq4/FnX/9lfvuAiPFl6KLnh23b"
-                          "cKwnNA7YCWlb1NNLb2y+mCe91D8r88FGvbnhnOuVjd/SxQWDHtxCI"
-                          "CmhW7erNJNVxYjtzseGpBLmRRUTsT038w== dorthu@dorthu-command")
+            key1.ssh_key,
+            "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDe9NlKepJsI/S98"
+            "ISBJmG+cpEARtM0T1Qa5uTOUB/vQFlHmfQW07ZfA++ybPses0vRCD"
+            "eWyYPIuXcV5yFrf8YAW/Am0+/60MivT3jFY0tDfcrlvjdJAf1NpWO"
+            "TVlzv0gpsHFO+XIZcfEj3V0K5+pOMw9QGVf6Qbg8qzHVDPFdYKu3i"
+            "muc9KHY8F/b4DN/Wh17k3xAJpspCZEFkn0bdaYafJj0tPs0k78JRo"
+            "F2buc3e3M6dlvHaoON1votmrri9lut65OIpglOgPwE3QU8toGyyoC"
+            "MGaT4R7kIRjXy3WSyTMAi0KTAdxRK+IlDVMXWoE5TdLovd0a9L7qy"
+            "nZungKhKZUgFma7r9aTFVHXKh29Tzb42neDTpQnZ/Et735sDC1vfz"
+            "/YfgZNdgMUXFJ3+uA4M/36/Vy3Dpj2Larq3qY47RDFitmwSzwUlfz"
+            "tUoyiQ7e1WvXHT4N4Z8K2FPlTvNMg5CSjXHdlzcfiRFPwPn13w36v"
+            "TvAUxPvTa84P1eOLDp/JzykFbhHNh8Cb02yrU28zDeoTTyjwQs0eH"
+            "d1wtgIXJ8wuUgcaE4LgcgLYWwiKTq4/FnX/9lfvuAiPFl6KLnh23b"
+            "cKwnNA7YCWlb1NNLb2y+mCe91D8r88FGvbnhnOuVjd/SxQWDHtxCI"
+            "CmhW7erNJNVxYjtzseGpBLmRRUTsT038w== dorthu@dorthu-command",
+        )
 
     def test_client_create(self):
         """
         Tests that creating a client calls the api correctly
         """
-        with self.mock_post('longview/clients/5678') as m:
+        with self.mock_post("longview/clients/5678") as m:
             client = self.client.longview.client_create()
 
             self.assertIsNotNone(client)
             self.assertEqual(client.id, 5678)
-            self.assertEqual(client.label, 'longview5678')
+            self.assertEqual(client.label, "longview5678")
 
-            self.assertEqual(m.call_url, '/longview/clients')
+            self.assertEqual(m.call_url, "/longview/clients")
             self.assertEqual(m.call_data, {})
 
     def test_ssh_key_create(self):
         """
         Tests that creating an ssh key works as expected
         """
-        with self.mock_post('profile/sshkeys/72') as m:
+        with self.mock_post("profile/sshkeys/72") as m:
             key = self.client.profile.ssh_key_upload(
-                         "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDe9NlKepJsI/S98"
-                         "ISBJmG+cpEARtM0T1Qa5uTOUB/vQFlHmfQW07ZfA++ybPses0vRCD"
-                         "eWyYPIuXcV5yFrf8YAW/Am0+/60MivT3jFY0tDfcrlvjdJAf1NpWO"
-                         "TVlzv0gpsHFO+XIZcfEj3V0K5+pOMw9QGVf6Qbg8qzHVDPFdYKu3i"
-                         "muc9KHY8F/b4DN/Wh17k3xAJpspCZEFkn0bdaYafJj0tPs0k78JRo"
-                         "F2buc3e3M6dlvHaoON1votmrri9lut65OIpglOgPwE3QU8toGyyoC"
-                         "MGaT4R7kIRjXy3WSyTMAi0KTAdxRK+IlDVMXWoE5TdLovd0a9L7qy"
-                         "nZungKhKZUgFma7r9aTFVHXKh29Tzb42neDTpQnZ/Et735sDC1vfz"
-                         "/YfgZNdgMUXFJ3+uA4M/36/Vy3Dpj2Larq3qY47RDFitmwSzwUlfz"
-                         "tUoyiQ7e1WvXHT4N4Z8K2FPlTvNMg5CSjXHdlzcfiRFPwPn13w36v"
-                         "TvAUxPvTa84P1eOLDp/JzykFbhHNh8Cb02yrU28zDeoTTyjwQs0eH"
-                         "d1wtgIXJ8wuUgcaE4LgcgLYWwiKTq4/FnX/9lfvuAiPFl6KLnh23b"
-                         "cKwnNA7YCWlb1NNLb2y+mCe91D8r88FGvbnhnOuVjd/SxQWDHtxCI"
-                         "CmhW7erNJNVxYjtzseGpBLmRRUTsT038w==dorthu@dorthu-command",
-                         'Work Laptop')
+                "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDe9NlKepJsI/S98"
+                "ISBJmG+cpEARtM0T1Qa5uTOUB/vQFlHmfQW07ZfA++ybPses0vRCD"
+                "eWyYPIuXcV5yFrf8YAW/Am0+/60MivT3jFY0tDfcrlvjdJAf1NpWO"
+                "TVlzv0gpsHFO+XIZcfEj3V0K5+pOMw9QGVf6Qbg8qzHVDPFdYKu3i"
+                "muc9KHY8F/b4DN/Wh17k3xAJpspCZEFkn0bdaYafJj0tPs0k78JRo"
+                "F2buc3e3M6dlvHaoON1votmrri9lut65OIpglOgPwE3QU8toGyyoC"
+                "MGaT4R7kIRjXy3WSyTMAi0KTAdxRK+IlDVMXWoE5TdLovd0a9L7qy"
+                "nZungKhKZUgFma7r9aTFVHXKh29Tzb42neDTpQnZ/Et735sDC1vfz"
+                "/YfgZNdgMUXFJ3+uA4M/36/Vy3Dpj2Larq3qY47RDFitmwSzwUlfz"
+                "tUoyiQ7e1WvXHT4N4Z8K2FPlTvNMg5CSjXHdlzcfiRFPwPn13w36v"
+                "TvAUxPvTa84P1eOLDp/JzykFbhHNh8Cb02yrU28zDeoTTyjwQs0eH"
+                "d1wtgIXJ8wuUgcaE4LgcgLYWwiKTq4/FnX/9lfvuAiPFl6KLnh23b"
+                "cKwnNA7YCWlb1NNLb2y+mCe91D8r88FGvbnhnOuVjd/SxQWDHtxCI"
+                "CmhW7erNJNVxYjtzseGpBLmRRUTsT038w==dorthu@dorthu-command",
+                "Work Laptop",
+            )
 
             self.assertIsNotNone(key)
             self.assertEqual(key.id, 72)
-            self.assertEqual(key.label, 'Work Laptop')
+            self.assertEqual(key.label, "Work Laptop")
 
-            self.assertEqual(m.call_url, '/profile/sshkeys')
-            self.assertEqual(m.call_data, {
-                "ssh_key":  "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDe9NlKepJsI/S98"
-                            "ISBJmG+cpEARtM0T1Qa5uTOUB/vQFlHmfQW07ZfA++ybPses0vRCD"
-                            "eWyYPIuXcV5yFrf8YAW/Am0+/60MivT3jFY0tDfcrlvjdJAf1NpWO"
-                            "TVlzv0gpsHFO+XIZcfEj3V0K5+pOMw9QGVf6Qbg8qzHVDPFdYKu3i"
-                            "muc9KHY8F/b4DN/Wh17k3xAJpspCZEFkn0bdaYafJj0tPs0k78JRo"
-                            "F2buc3e3M6dlvHaoON1votmrri9lut65OIpglOgPwE3QU8toGyyoC"
-                            "MGaT4R7kIRjXy3WSyTMAi0KTAdxRK+IlDVMXWoE5TdLovd0a9L7qy"
-                            "nZungKhKZUgFma7r9aTFVHXKh29Tzb42neDTpQnZ/Et735sDC1vfz"
-                            "/YfgZNdgMUXFJ3+uA4M/36/Vy3Dpj2Larq3qY47RDFitmwSzwUlfz"
-                            "tUoyiQ7e1WvXHT4N4Z8K2FPlTvNMg5CSjXHdlzcfiRFPwPn13w36v"
-                            "TvAUxPvTa84P1eOLDp/JzykFbhHNh8Cb02yrU28zDeoTTyjwQs0eH"
-                            "d1wtgIXJ8wuUgcaE4LgcgLYWwiKTq4/FnX/9lfvuAiPFl6KLnh23b"
-                            "cKwnNA7YCWlb1NNLb2y+mCe91D8r88FGvbnhnOuVjd/SxQWDHtxCI"
-                            "CmhW7erNJNVxYjtzseGpBLmRRUTsT038w==dorthu@dorthu-command",
-                "label": "Work Laptop"
-            })
+            self.assertEqual(m.call_url, "/profile/sshkeys")
+            self.assertEqual(
+                m.call_data,
+                {
+                    "ssh_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDe9NlKepJsI/S98"
+                    "ISBJmG+cpEARtM0T1Qa5uTOUB/vQFlHmfQW07ZfA++ybPses0vRCD"
+                    "eWyYPIuXcV5yFrf8YAW/Am0+/60MivT3jFY0tDfcrlvjdJAf1NpWO"
+                    "TVlzv0gpsHFO+XIZcfEj3V0K5+pOMw9QGVf6Qbg8qzHVDPFdYKu3i"
+                    "muc9KHY8F/b4DN/Wh17k3xAJpspCZEFkn0bdaYafJj0tPs0k78JRo"
+                    "F2buc3e3M6dlvHaoON1votmrri9lut65OIpglOgPwE3QU8toGyyoC"
+                    "MGaT4R7kIRjXy3WSyTMAi0KTAdxRK+IlDVMXWoE5TdLovd0a9L7qy"
+                    "nZungKhKZUgFma7r9aTFVHXKh29Tzb42neDTpQnZ/Et735sDC1vfz"
+                    "/YfgZNdgMUXFJ3+uA4M/36/Vy3Dpj2Larq3qY47RDFitmwSzwUlfz"
+                    "tUoyiQ7e1WvXHT4N4Z8K2FPlTvNMg5CSjXHdlzcfiRFPwPn13w36v"
+                    "TvAUxPvTa84P1eOLDp/JzykFbhHNh8Cb02yrU28zDeoTTyjwQs0eH"
+                    "d1wtgIXJ8wuUgcaE4LgcgLYWwiKTq4/FnX/9lfvuAiPFl6KLnh23b"
+                    "cKwnNA7YCWlb1NNLb2y+mCe91D8r88FGvbnhnOuVjd/SxQWDHtxCI"
+                    "CmhW7erNJNVxYjtzseGpBLmRRUTsT038w==dorthu@dorthu-command",
+                    "label": "Work Laptop",
+                },
+            )
+
 
 class ObjectStorageGroupTest(ClientBaseCase):
     """
     Tests for the ObjectStorageGroup
     """
+
     def test_get_clusters(self):
         """
         Tests that Object Storage Clusters can be retrieved
@@ -518,10 +589,12 @@ class ObjectStorageGroupTest(ClientBaseCase):
         self.assertEqual(len(clusters), 1)
         cluster = clusters[0]
 
-        self.assertEqual(cluster.id, 'us-east-1')
-        self.assertEqual(cluster.region.id, 'us-east')
-        self.assertEqual(cluster.domain, 'us-east-1.linodeobjects.com')
-        self.assertEqual(cluster.static_site_domain, 'website-us-east-1.linodeobjects.com')
+        self.assertEqual(cluster.id, "us-east-1")
+        self.assertEqual(cluster.region.id, "us-east")
+        self.assertEqual(cluster.domain, "us-east-1.linodeobjects.com")
+        self.assertEqual(
+            cluster.static_site_domain, "website-us-east-1.linodeobjects.com"
+        )
 
     def test_get_keys(self):
         """
@@ -534,33 +607,37 @@ class ObjectStorageGroupTest(ClientBaseCase):
         key2 = keys[1]
 
         self.assertEqual(key1.id, 1)
-        self.assertEqual(key1.label, 'object-storage-key-1')
-        self.assertEqual(key1.access_key, 'testAccessKeyHere123')
-        self.assertEqual(key1.secret_key, '[REDACTED]')
+        self.assertEqual(key1.label, "object-storage-key-1")
+        self.assertEqual(key1.access_key, "testAccessKeyHere123")
+        self.assertEqual(key1.secret_key, "[REDACTED]")
 
         self.assertEqual(key2.id, 2)
-        self.assertEqual(key2.label, 'object-storage-key-2')
-        self.assertEqual(key2.access_key, 'testAccessKeyHere456')
-        self.assertEqual(key2.secret_key, '[REDACTED]')
+        self.assertEqual(key2.label, "object-storage-key-2")
+        self.assertEqual(key2.access_key, "testAccessKeyHere456")
+        self.assertEqual(key2.secret_key, "[REDACTED]")
 
     def test_keys_create(self):
         """
         Tests that you can create Object Storage Keys
         """
-        with self.mock_post('object-storage/keys/1') as m:
-            keys = self.client.object_storage.keys_create('object-storage-key-1')
+        with self.mock_post("object-storage/keys/1") as m:
+            keys = self.client.object_storage.keys_create(
+                "object-storage-key-1"
+            )
 
             self.assertIsNotNone(keys)
             self.assertEqual(keys.id, 1)
-            self.assertEqual(keys.label, 'object-storage-key-1')
+            self.assertEqual(keys.label, "object-storage-key-1")
 
-            self.assertEqual(m.call_url, '/object-storage/keys')
-            self.assertEqual(m.call_data, {"label":"object-storage-key-1"})
+            self.assertEqual(m.call_url, "/object-storage/keys")
+            self.assertEqual(m.call_data, {"label": "object-storage-key-1"})
+
 
 class NetworkingGroupTest(ClientBaseCase):
     """
     Tests for the NetworkingGroup
     """
+
     def test_get_vlans(self):
         """
         Tests that Object Storage Clusters can be retrieved
@@ -568,36 +645,40 @@ class NetworkingGroupTest(ClientBaseCase):
         vlans = self.client.networking.vlans()
 
         self.assertEqual(len(vlans), 1)
-        self.assertEqual(vlans[0].label, 'vlan-test')
-        self.assertEqual(vlans[0].region.id, 'us-southeast')
+        self.assertEqual(vlans[0].label, "vlan-test")
+        self.assertEqual(vlans[0].region.id, "us-southeast")
 
         self.assertEqual(len(vlans[0].linodes), 2)
         self.assertEqual(vlans[0].linodes[0], 111)
         self.assertEqual(vlans[0].linodes[1], 222)
 
     def test_firewall_create(self):
-        with self.mock_post('networking/firewalls/123') as m:
+        with self.mock_post("networking/firewalls/123") as m:
             rules = {
-                'outbound': [],
-                'outbound_policy': 'DROP',
-                'inbound': [],
-                'inbound_policy': 'DROP'
+                "outbound": [],
+                "outbound_policy": "DROP",
+                "inbound": [],
+                "inbound_policy": "DROP",
             }
 
-            f = self.client.networking.firewall_create('test-firewall-1', rules,
-                                            status='enabled')
+            f = self.client.networking.firewall_create(
+                "test-firewall-1", rules, status="enabled"
+            )
 
             self.assertIsNotNone(f)
 
-            self.assertEqual(m.call_url, '/networking/firewalls')
-            self.assertEqual(m.method, 'post')
+            self.assertEqual(m.call_url, "/networking/firewalls")
+            self.assertEqual(m.method, "post")
 
             self.assertEqual(f.id, 123)
-            self.assertEqual(m.call_data, {
-                'label': 'test-firewall-1',
-                'status': 'enabled',
-                'rules': rules
-            })
+            self.assertEqual(
+                m.call_data,
+                {
+                    "label": "test-firewall-1",
+                    "status": "enabled",
+                    "rules": rules,
+                },
+            )
 
     def test_get_firewalls(self):
         """
@@ -621,8 +702,11 @@ class LinodeClientRateLimitRetryTest(TestCase):
        pertain to the 429 retry logic, and make sure you mock the requests calls yourself
        (or else they will make real requests and those won't work).
     """
+
     def setUp(self):
-        self.client = LinodeClient("testing", base_url="/", retry_rate_limit_interval=1)
+        self.client = LinodeClient(
+            "testing", base_url="/", retry_rate_limit_interval=1
+        )
         # sidestep the validation to do immediate retries so tests aren't slow
         self.client.retry_rate_limit_interval = 0.1
 
@@ -641,6 +725,7 @@ class LinodeClientRateLimitRetryTest(TestCase):
         Tests that 429 responses are automatically retried
         """
         called = 0
+
         def test_method(*args, **kwargs):
             nonlocal called
             called += 1
@@ -648,7 +733,7 @@ class LinodeClientRateLimitRetryTest(TestCase):
                 return self._get_mock_response(429)
             return self._get_mock_response(200)
 
-        response = self.client._api_call('/test', method=test_method)
+        response = self.client._api_call("/test", method=test_method)
 
         # it retried once, got the empty object
         assert called == 2
@@ -659,13 +744,14 @@ class LinodeClientRateLimitRetryTest(TestCase):
         Tests that a request will fail after 5 429 responses in a row
         """
         called = 0
+
         def test_method(*args, **kwargs):
             nonlocal called
             called += 1
             return self._get_mock_response(429)
 
         try:
-            response = self.client._api_call('/test', method=test_method)
+            response = self.client._api_call("/test", method=test_method)
             assert False, "Unexpectedly did not raise ApiError!"
         except ApiError as e:
             assert e.status == 429
@@ -679,13 +765,14 @@ class LinodeClientRateLimitRetryTest(TestCase):
         enabled
         """
         called = 0
+
         def test_method(*args, **kwargs):
             nonlocal called
             called += 1
             return self._get_mock_response(400)
 
         try:
-            response = self.client._api_call('/test', method=test_method)
+            response = self.client._api_call("/test", method=test_method)
             assert False, "Unexpectedly did not raise ApiError!"
         except ApiError as e:
             assert e.status == 400
@@ -699,6 +786,7 @@ class LinodeClientRateLimitRetryTest(TestCase):
         response after a 429
         """
         called = 0
+
         def test_method(*args, **kwargs):
             nonlocal called
             called += 1
@@ -707,7 +795,7 @@ class LinodeClientRateLimitRetryTest(TestCase):
             return self._get_mock_response(400)
 
         try:
-            response = self.client._api_call('/test', method=test_method)
+            response = self.client._api_call("/test", method=test_method)
             assert False, "Unexpectedly did not raise ApiError!"
         except ApiError as e:
             assert e.status == 400
@@ -721,12 +809,13 @@ class LinodeClientRateLimitRetryTest(TestCase):
         try
         """
         called = 0
+
         def test_method(*args, **kwargs):
             nonlocal called
             called += 1
             return self._get_mock_response(200)
 
-        response = self.client._api_call('/test', method=test_method)
+        response = self.client._api_call("/test", method=test_method)
 
         # it tried 5 times
         assert called == 1

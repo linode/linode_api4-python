@@ -1,0 +1,24 @@
+{
+  "data": [
+    {
+      "created": "2018-01-01T00:01:01",
+      "filesystem_path": "/dev/disk/by-id/scsi-0Linode_Volume_my-volume",
+      "hardware_type": "nvme",
+      "id": 12345,
+      "label": "my-volume",
+      "linode_id": 12346,
+      "linode_label": "linode123",
+      "region": "us-east",
+      "size": 30,
+      "status": "active",
+      "tags": [
+        "example tag",
+        "another example"
+      ],
+      "updated": "2018-01-01T00:01:01"
+    }
+  ],
+  "page": 1,
+  "pages": 1,
+  "results": 1
+}

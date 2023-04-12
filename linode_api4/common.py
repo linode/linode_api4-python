@@ -1,8 +1,13 @@
 import os
 
-
-SSH_KEY_TYPES = ("ssh-dss", "ssh-rsa", "ssh-ed25519", "ecdsa-sha2-nistp256",
-                 "ecdsa-sha2-nistp384", "ecdsa-sha2-nistp521")
+SSH_KEY_TYPES = (
+    "ssh-dss",
+    "ssh-rsa",
+    "ssh-ed25519",
+    "ecdsa-sha2-nistp256",
+    "ecdsa-sha2-nistp384",
+    "ecdsa-sha2-nistp521",
+)
 
 
 def load_and_validate_keys(authorized_keys):
@@ -26,8 +31,15 @@ def load_and_validate_keys(authorized_keys):
     ret = []
 
     for k in authorized_keys:
-        accepted_types = ('ssh-dss', 'ssh-rsa', 'ecdsa-sha2-nistp', 'ssh-ed25519')
-        if any([ t for t in accepted_types if k.startswith(t) ]): # pylint: disable=use-a-generator
+        accepted_types = (
+            "ssh-dss",
+            "ssh-rsa",
+            "ecdsa-sha2-nistp",
+            "ssh-ed25519",
+        )
+        if any(
+            [t for t in accepted_types if k.startswith(t)]
+        ):  # pylint: disable=use-a-generator
             # this looks like a key, cool
             ret.append(k)
         else:
@@ -37,7 +49,11 @@ def load_and_validate_keys(authorized_keys):
                 with open(k) as f:
                     ret.append(f.read().rstrip())
             else:
-                raise ValueError("authorized_keys must either be paths "
-                                 "to the key files or a list of raw "
-                                 "public key of one of these types: {}".format(accepted_types))
+                raise ValueError(
+                    "authorized_keys must either be paths "
+                    "to the key files or a list of raw "
+                    "public key of one of these types: {}".format(
+                        accepted_types
+                    )
+                )
     return ret
