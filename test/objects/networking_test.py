@@ -69,6 +69,12 @@ class NetworkingTest(ClientBaseCase):
             self.assertEqual(m.call_data["ips"], ["192.0.2.1"])
             self.assertEqual(m.call_data["linode_id"], 123)
 
+        with self.mock_post({}) as m:
+            ip.ip_addresses_share([ip], 123)
+            self.assertEqual(m.call_url, "/networking/ips/share")
+            self.assertEqual(m.call_data["ips"], ["192.0.2.1"])
+            self.assertEqual(m.call_data["linode_id"], 123)
+
     def test_ip_addresses_assign(self):
         """
         Tests that you can submit a correct ip addresses assign api request.
