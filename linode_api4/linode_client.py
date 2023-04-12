@@ -869,6 +869,8 @@ class NetworkingGroup(Group):
                             :any:`IPAddress.to` for details on how to construct
                             assignments.
         :type assignments: dct
+
+        DEPRECATED: Use IPAddress.ip_addresses_assign() instead
         """
         for a in assignments:
             if not 'address' in a or not 'linode_id' in a:
@@ -918,6 +920,8 @@ class NetworkingGroup(Group):
         :type: linode: int or Instance
         :param ips: Any number of IPAddresses to share to the Instance.
         :type ips: str or IPAddress
+
+        DEPRECATED: Use IPAddress.ip_addresses_share() instead
         """
         if not isinstance(linode, Instance):
             # make this an object

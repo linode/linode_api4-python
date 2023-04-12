@@ -1,7 +1,6 @@
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import Base, DerivedBase, Property, Region
 
-
 class IPv6Pool(Base):
     api_endpoint = '/networking/ipv6/pools/{}'
     id_attribute = 'range'
@@ -9,20 +8,56 @@ class IPv6Pool(Base):
     properties = {
         'range': Property(identifier=True),
         'region': Property(slug_relationship=Region, filterable=True),
+        'prefix': Property(),
+        'route_target': Property()
     }
+
+    def _api_get(self):
+        """
+        A helper method to GET this object from the server
+        """
+        pools = self._client.networking.ipv6_pools()
+        pool = [p for p in pools if p.range == self.range][0]
+
+        if pool is not None:
+            self._populate(pool._raw_json)
+        else:
+            raise LookupError("Could not find IPv6 pool with proviced range.")
 
 
 class IPv6Range(Base):
-    api_endpoint = '/networking/ipv6/ranges/{}'
+    api_endpoint = '/networking/ipv6/ranges/{range}'
     id_attribute = 'range'
 
     properties = {
         'range': Property(identifier=True),
         'region': Property(slug_relationship=Region, filterable=True),
+        'prefix': Property(),
+        'route_target': Property()
     }
+
+    def ip_ranges_list(self):
+        """
+        Displays the IPv6 ranges on your Account.
+        """
+
+        result = self._client.post('/networking/ipv6/ranges', model=self)
+
+        return [IPv6Range(self._client, r["range"]) for r in result["data"]]
+    
+    def ip_range_delete(self):
+        """
+        Removes this IPv6 range from your account and disconnects the range from any assigned Linodes.
+        """
+
+        self._client.delete('{}'.format(self.api_endpoint), model=self)
 
 
 class IPAddress(Base):
+    """
+    note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+    """
+    
     api_endpoint = '/networking/ips/{address}'
     id_attribute = 'address'
 
@@ -55,6 +90,38 @@ class IPAddress(Base):
         if not isinstance(linode, Instance):
             raise ValueError("IP Address can only be assigned to a Linode!")
         return { "address": self.address, "linode_id": linode.id }
+    
+    def ip_addresses_share(self, ips, linode_id):
+        """
+        Configure shared IPs.
+        """
+
+        params = {
+            'ips': ips,
+            'linode_id': linode_id,
+        }
+
+        self._client.post('/networking/ips/share', model=self, data=params)
+    
+    def ip_addresses_assign(self, assignments, region):
+        """
+        Assign multiple IPv4 addresses and/or IPv6 ranges to multiple Linodes in one Region.
+        """
+
+        for a in assignments:
+            if not 'address' in a or not 'linode_id' in a:
+                raise ValueError("Invalid assignment: {}".format(a))
+            
+        if isinstance(region, Region):
+            region = region.id
+
+        params = {
+            'assignments': assignments,
+            'region': region
+        }
+
+        self._client.post('/networking/ips/assign', model=self, data=params)
+
 
 
 
@@ -110,6 +177,12 @@ class Firewall(Base):
         """
         self._client.put('{}/rules'.format(self.api_endpoint), model=self, data=rules)
         self.invalidate()
+
+    def get_rules(self):
+        """
+        Gets the JSON rules for this Firewall
+        """
+        return self._client.get('{}/rules'.format(self.api_endpoint), model=self)
 
     def device_create(self, id, type='linode', **kwargs):
         """
