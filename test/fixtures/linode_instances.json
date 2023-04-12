@@ -38,7 +38,9 @@
       ],
       "updated": "2017-01-01T00:00:00",
       "image": "linode/ubuntu17.04",
-      "tags": ["something"]
+      "tags": ["something"],
+      "host_uuid": "3a3ddd59d9a78bb8de041391075df44de62bfec8",
+      "watchdog_enabled": true
     },
     {
       "group": "test",
@@ -75,7 +77,9 @@
       ],
       "updated": "2017-01-01T00:00:00",
       "image": "linode/debian9",
-      "tags": []
+      "tags": [],
+      "host_uuid": "3a3ddd59d9a78bb8de041391075df44de62bfec8",
+      "watchdog_enabled": false
     }
   ]
 }

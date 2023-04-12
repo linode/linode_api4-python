@@ -2,7 +2,8 @@ import json
 import os
 import sys
 
-FIXTURES_DIR = sys.path[0] + '/test/fixtures'
+FIXTURES_DIR = sys.path[0] + "/test/fixtures"
+
 
 class TestFixtures:
     def __init__(self):
@@ -16,7 +17,7 @@ class TestFixtures:
         Returns the test fixture data loaded at the given URL
         """
         return self.fixtures[url]
-    
+
     def _load_fixtures(self):
         """
         Handles loading JSON files and parsing them into responses.  Also splits
@@ -25,20 +26,20 @@ class TestFixtures:
         self.fixtures = {}
 
         for json_file in os.listdir(FIXTURES_DIR):
-            if not json_file.endswith('.json'):
+            if not json_file.endswith(".json"):
                 continue
 
-            with open(FIXTURES_DIR + '/' + json_file) as f:
+            with open(FIXTURES_DIR + "/" + json_file) as f:
                 raw = f.read()
 
             data = json.loads(raw)
 
-            fixture_url = json_file.replace('_', '/')[:-5]
-            
+            fixture_url = json_file.replace("_", "/")[:-5]
+
             self.fixtures[fixture_url] = data
 
-            if 'results' in data:
+            if "results" in data:
                 # this is a paginated response
-                for obj in data['data']:
-                    if 'id' in obj: # tags don't have ids
-                        self.fixtures[fixture_url + '/' + str(obj['id'])] = obj
+                for obj in data["data"]:
+                    if "id" in obj:  # tags don't have ids
+                        self.fixtures[fixture_url + "/" + str(obj["id"])] = obj
