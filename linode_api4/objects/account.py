@@ -39,6 +39,11 @@ class Account(Base):
         "tax_id": Property(mutable=True),
         "capabilities": Property(),
         "credit_card": Property(),
+        "active_promotions": Property(),
+        "active_since": Property(),
+        "balance_uninvoiced": Property(),
+        "billing_source": Property(),
+        "euuid": Property(),
     }
 
 
@@ -53,6 +58,7 @@ class AccountSettings(Base):
             slug_relationship=LongviewSubscription
         ),
         "object_storage": Property(),
+        "backups_enabled": Property(mutable=True),
     }
 
 
@@ -72,6 +78,9 @@ class Event(Base):
         "time_remaining": Property(),
         "rate": Property(),
         "status": Property(),
+        "duration": Property(),
+        "secondary_entity": Property(),
+        "message": Property(),
     }
 
     @property
@@ -152,6 +161,9 @@ class Invoice(Base):
         "date": Property(is_datetime=True),
         "total": Property(),
         "items": Property(derived_class=InvoiceItem),
+        "tax": Property(),
+        "tax_summary": Property(),
+        "subtotal": Property(),
     }
 
 
@@ -164,7 +176,8 @@ class OAuthClient(Base):
         "secret": Property(),
         "redirect_uri": Property(mutable=True),
         "status": Property(),
-        "public": Property(),
+        "public": Property(mutable=True),
+        "thumbnail_url": Property(),
     }
 
     def reset_secret(self):
@@ -262,6 +275,8 @@ class User(Base):
         "email": Property(),
         "username": Property(identifier=True, mutable=True),
         "restricted": Property(mutable=True),
+        "ssh_keys": Property(),
+        "tfa_enabled": Property(),
     }
 
     @property
@@ -298,6 +313,10 @@ def get_obj_grants():
     """
     Returns Grant keys mapped to Object types.
     """
+    from linode_api4.objects import (  # pylint: disable=import-outside-toplevel
+        Database,
+    )
+
     return (
         ("linode", Instance),
         ("domain", Domain),
@@ -306,6 +325,7 @@ def get_obj_grants():
         ("volume", Volume),
         ("image", Image),
         ("longview", LongviewClient),
+        ("database", Database),
     )
 
 

@@ -1,7 +1,23 @@
 from datetime import datetime
 from test.base import ClientBaseCase
 
-from linode_api4.objects import Invoice
+from linode_api4.objects import (
+    Account,
+    AccountSettings,
+    Database,
+    Domain,
+    Event,
+    Image,
+    Instance,
+    Invoice,
+    LongviewClient,
+    NodeBalancer,
+    OAuthClient,
+    StackScript,
+    User,
+    Volume,
+    get_obj_grants,
+)
 
 
 class InvoiceTest(ClientBaseCase):
@@ -42,3 +58,100 @@ class InvoiceTest(ClientBaseCase):
             item.to_date,
             datetime(year=2015, month=1, day=1, hour=4, minute=59, second=59),
         )
+
+    def test_get_account(self):
+        account = Account(self.client, "support@linode.com", {})
+
+        self.assertEqual(account.email, "support@linode.com")
+        self.assertEqual(account.state, "PA")
+        self.assertEqual(account.city, "Philadelphia")
+        self.assertEqual(account.phone, "123-456-7890")
+        self.assertEqual(account.tax_id, "")
+        self.assertEqual(account.balance, 0)
+        self.assertEqual(account.company, "Linode")
+        self.assertEqual(account.address_1, "3rd & Arch St")
+        self.assertEqual(account.address_2, "")
+        self.assertEqual(account.zip, "19106")
+        self.assertEqual(account.first_name, "Test")
+        self.assertEqual(account.last_name, "Guy")
+        self.assertEqual(account.country, "US")
+        self.assertIsNotNone(account.capabilities)
+        self.assertIsNotNone(account.active_promotions)
+        self.assertEqual(account.balance_uninvoiced, 145)
+        self.assertEqual(account.billing_source, "akamai")
+        self.assertEqual(account.euuid, "E1AF5EEC-526F-487D-B317EBEB34C87D71")
+
+    def test_get_account_settings(self):
+        settings = AccountSettings(self.client, False, {})
+
+        self.assertEqual(settings.longview_subscription.id, "longview-100")
+        self.assertEqual(settings.managed, False)
+        self.assertEqual(settings.network_helper, False)
+        self.assertEqual(settings.object_storage, "active")
+        self.assertEqual(settings.backups_enabled, True)
+
+    def test_get_event(self):
+        event = Event(self.client, 123, {})
+
+        self.assertEqual(event.action, "ticket_create")
+        self.assertEqual(event.created, datetime(2018, 1, 1, 0, 1, 1))
+        self.assertEqual(event.duration, 300.56)
+        self.assertIsNotNone(event.entity)
+        self.assertEqual(event.id, 123)
+        self.assertEqual(event.message, "None")
+        self.assertIsNone(event.percent_complete)
+        self.assertIsNone(event.rate)
+        self.assertTrue(event.read)
+        self.assertIsNotNone(event.secondary_entity)
+        self.assertTrue(event.seen)
+        self.assertIsNone(event.status)
+        self.assertIsNone(event.time_remaining)
+        self.assertEqual(event.username, "exampleUser")
+
+    def test_get_invoice(self):
+        invoice = Invoice(self.client, 123, {})
+
+        self.assertEqual(invoice.date, datetime(2018, 1, 1, 0, 1, 1))
+        self.assertEqual(invoice.id, 123)
+        self.assertEqual(invoice.label, "Invoice")
+        self.assertEqual(invoice.subtotal, 120.25)
+        self.assertEqual(invoice.tax, 12.25)
+        self.assertEqual(invoice.total, 132.5)
+        self.assertIsNotNone(invoice.tax_summary)
+
+    def test_get_oauth_client(self):
+        client = OAuthClient(self.client, "2737bf16b39ab5d7b4a1", {})
+
+        self.assertEqual(client.id, "2737bf16b39ab5d7b4a1")
+        self.assertEqual(client.label, "Test_Client_1")
+        self.assertFalse(client.public)
+        self.assertEqual(
+            client.redirect_uri, "https://example.org/oauth/callback"
+        )
+        self.assertEqual(client.secret, "<REDACTED>")
+        self.assertEqual(client.status, "active")
+        self.assertEqual(
+            client.thumbnail_url,
+            "https://api.linode.com/v4/account/clients/2737bf16b39ab5d7b4a1/thumbnail",
+        )
+
+    def test_get_user(self):
+        user = User(self.client, "test-user", {})
+
+        self.assertEqual(user.username, "test-user")
+        self.assertEqual(user.email, "test-user@linode.com")
+        self.assertTrue(user.restricted)
+        self.assertTrue(user.tfa_enabled)
+        self.assertIsNotNone(user.ssh_keys)
+
+    def test_get_user_grant(self):
+        grants = get_obj_grants()
+
+        self.assertTrue(grants.count(("linode", Instance)) > 0)
+        self.assertTrue(grants.count(("domain", Domain)) > 0)
+        self.assertTrue(grants.count(("stackscript", StackScript)) > 0)
+        self.assertTrue(grants.count(("nodebalancer", NodeBalancer)) > 0)
+        self.assertTrue(grants.count(("volume", Volume)) > 0)
+        self.assertTrue(grants.count(("image", Image)) > 0)
+        self.assertTrue(grants.count(("longview", LongviewClient)) > 0)
+        self.assertTrue(grants.count(("database", Database)) > 0)

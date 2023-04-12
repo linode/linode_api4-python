@@ -1,0 +1,10 @@
+{
+    "email": "test-user@linode.com",
+    "restricted": true,
+    "ssh_keys": [
+      "home-pc",
+      "laptop"
+    ],
+    "tfa_enabled": true,
+    "username": "test-user"
+  }
