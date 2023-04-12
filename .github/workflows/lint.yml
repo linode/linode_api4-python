@@ -1,0 +1,24 @@
+name: Linting Actions
+on:
+  pull_request: null
+  push:
+    branches:
+      - master
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v3
+
+      - name: setup python 3
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: install dependencies
+        run: pip3 install -r requirements-dev.txt -r requirements.txt
+
+      - name: run linter
+        run: make lint

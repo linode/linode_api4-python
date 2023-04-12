@@ -1,0 +1,10 @@
+{
+    "size": 25088,
+    "status": "ready",
+    "filesystem": "ext4",
+    "id": 12345,
+    "updated": "2017-01-01T00:00:00",
+    "label": "Ubuntu 17.04 Disk",
+    "created": "2017-01-01T00:00:00"
+  }
+  
