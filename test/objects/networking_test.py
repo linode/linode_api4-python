@@ -84,12 +84,13 @@ class NetworkingTest(ClientBaseCase):
 
         with self.mock_post({}) as m:
             ip.ip_addresses_assign(
-                [{"address": "192.0.2.1", "linode_id": 123}], "us-east"
+                {"assignments": [{"address": "192.0.2.1", "linode_id": 123}]},
+                "us-east",
             )
             self.assertEqual(m.call_url, "/networking/ips/assign")
             self.assertEqual(
                 m.call_data["assignments"],
-                [{"address": "192.0.2.1", "linode_id": 123}],
+                {"assignments": [{"address": "192.0.2.1", "linode_id": 123}]},
             )
             self.assertEqual(m.call_data["region"], "us-east")
 

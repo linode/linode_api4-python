@@ -114,7 +114,7 @@ class IPAddress(Base):
         Assign multiple IPv4 addresses and/or IPv6 ranges to multiple Linodes in one Region.
         """
 
-        for a in assignments:
+        for a in assignments["assignments"]:
             if not "address" in a or not "linode_id" in a:
                 raise ValueError("Invalid assignment: {}".format(a))
 
