@@ -101,7 +101,9 @@ class IPAddress(Base):
         """
 
         params = {
-            "ips": ips if not isinstance(ips[0], IPAddress) else [ip.address for ip in ips],
+            "ips": ips
+            if not isinstance(ips[0], IPAddress)
+            else [ip.address for ip in ips],
             "linode_id": linode_id,
         }
 
