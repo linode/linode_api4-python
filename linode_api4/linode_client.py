@@ -48,6 +48,8 @@ class LinodeGroup(Group):
 
            standard_types = client.linode.types(Type.class == "standard")
 
+        API documentation: https://www.linode.com/docs/api/linode-types/#types-list
+
         :param filters: Any number of filters to apply to the query.
 
         :returns: A list of types that match the query.
@@ -61,6 +63,8 @@ class LinodeGroup(Group):
         this query to return only Linodes that match specific criteria::
 
            prod_linodes = client.linode.instances(Instance.group == "prod")
+
+        API Documentation: https://www.linode.com/docs/api/linode-instances/#linodes-list
 
         :param filters: Any number of filters to apply to this query.
 
@@ -77,6 +81,8 @@ class LinodeGroup(Group):
         also request only your own private :any:`StackScripts<StackScript>`::
 
            my_stackscripts = client.linode.stackscripts(mine_only=True)
+
+        API Documentation: https://www.linode.com/docs/api/stackscripts/#stackscripts-list
 
         :param filters: Any number of filters to apply to this query.
         :param mine_only: If True, returns only private StackScripts
@@ -110,6 +116,8 @@ class LinodeGroup(Group):
         """
         Returns a list of available :any:`Kernels<Kernel>`.  Kernels are used
         when creating or updating :any:`LinodeConfigs,LinodeConfig>`.
+
+        API Documentation: https://www.linode.com/docs/api/linode-instances/#kernels-list
 
         :param filters: Any number of filters to apply to this query.
 
@@ -196,6 +204,8 @@ class LinodeGroup(Group):
         When created this way, the Instance will not be booted and cannot boot
         successfully until disks and configs are created, or it is otherwise
         configured.
+
+        API Documentation: https://www.linode.com/docs/api/linode-instances/#linode-create
 
         :param ltype: The Instance Type we are creating
         :type ltype: str or Type
@@ -298,6 +308,8 @@ class LinodeGroup(Group):
         """
         Creates a new :any:`StackScript` on your account.
 
+        API Documentation: https://www.linode.com/docs/api/stackscripts/#stackscript-create
+
         :param label: The label for this StackScript.
         :type label: str
         :param script: The script to run when an :any:`Instance` is deployed with
@@ -375,6 +387,8 @@ class ProfileGroup(Group):
 
            profile = client.profile()
 
+        API Documentation: https://www.linode.com/docs/api/profile/#profile-view
+
         :returns: The acting user's profile.
         :rtype: Profile
         """
@@ -390,13 +404,30 @@ class ProfileGroup(Group):
 
     def tokens(self, *filters):
         """
-        Returns the Person Access Tokens active for this user
+        Returns the Person Access Tokens active for this user.
+
+        API Documentation: https://www.linode.com/docs/api/profile/#personal-access-tokens-list
+
+        :returns: A list of tokens that matches the query.
+        :rtype: PaginatedList of PersonalAccessToken
         """
         return self.client._get_and_filter(PersonalAccessToken, *filters)
 
     def token_create(self, label=None, expiry=None, scopes=None, **kwargs):
         """
-        Creates and returns a new Personal Access Token
+        Creates and returns a new Personal Access Token.
+
+        API Documentation: https://www.linode.com/docs/api/profile/#personal-access-token-create
+
+        :param label: The label of the new Personal Access Token.
+        :type label: str
+        :param expiry: When the new Personal Accses Token will expire.
+        :type expiry: datetime or str
+        :param scopes: A space-separated list of OAuth scopes for this token.
+        :type scopes: str
+
+        :returns: The new Personal Access Token.
+        :rtype: PersonalAccessToken
         """
         if label:
             kwargs["label"] = label
@@ -421,12 +452,22 @@ class ProfileGroup(Group):
     def apps(self, *filters):
         """
         Returns the Authorized Applications for this user
+
+        API Documentation: https://www.linode.com/docs/api/profile/#authorized-apps-list
+
+        :returns: A list of Authorized Applications for this user
+        :rtype: PaginatedList of AuthorizedApp
         """
         return self.client._get_and_filter(AuthorizedApp, *filters)
 
     def ssh_keys(self, *filters):
         """
-        Returns the SSH Public Keys uploaded to your profile
+        Returns the SSH Public Keys uploaded to your profile.
+
+        API Documentation: https://www.linode.com/docs/api/profile/#ssh-keys-list
+
+        :returns: A list of SSH Keys for this profile.
+        :rtype: PaginatedList of SSHKey
         """
         return self.client._get_and_filter(SSHKey, *filters)
 
@@ -434,6 +475,8 @@ class ProfileGroup(Group):
         """
         Uploads a new SSH Public Key to your profile  This key can be used in
         later Linode deployments.
+
+        API Documentation: https://www.linode.com/docs/api/profile/#ssh-key-add
 
         :param key: The ssh key, or a path to the ssh key.  If a path is provided,
                     the file at the path must exist and be readable or an exception
@@ -489,6 +532,8 @@ class LKEGroup(Group):
         Returns a :any:`PaginatedList` of :any:`KubeVersion` objects that can be
         used when creating an LKE Cluster.
 
+        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubernetes-versions-list
+
         :param filters: Any number of filters to apply to the query.
 
         :returns: A Paginated List of kube versions that match the query.
@@ -500,6 +545,8 @@ class LKEGroup(Group):
         """
         Returns a :any:`PaginagtedList` of :any:`LKECluster` objects that belong
         to this account.
+
+        https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubernetes-clusters-list
 
         :param filters: Any number of filters to apply to the query.
 
@@ -528,6 +575,8 @@ class LKEGroup(Group):
                [client.lke.node_pool(node_type, 3), client.lke.node_pool(node_type_2, 3)],
                kube_version
             )
+
+        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubernetes-cluster-create
 
         :param region: The Region to create this LKE Cluster in.
         :type region: Region or str
@@ -604,12 +653,19 @@ class LongviewGroup(Group):
         """
         Requests and returns a paginated list of LongviewClients on your
         account.
+
+        API Documentation: https://www.linode.com/docs/api/longview/#longview-clients-list
+
+        :returns: A list of Longview Clients matching the given filters.
+        :rtype: PaginatedList of LongviewClient
         """
         return self.client._get_and_filter(LongviewClient, *filters)
 
     def client_create(self, label=None):
         """
         Creates a new LongviewClient, optionally with a given label.
+
+        API Documentation: https://www.linode.com/docs/api/longview/#longview-client-create
 
         :param label: The label for the new client.  If None, a default label based
             on the new client's ID will be used.
@@ -634,6 +690,11 @@ class LongviewGroup(Group):
     def subscriptions(self, *filters):
         """
         Requests and returns a paginated list of LongviewSubscriptions available
+
+        API Documentation: https://www.linode.com/docs/api/longview/#longview-subscriptions-list
+
+        :returns: A list of Longview Subscriptions matching the given filters.
+        :rtype: PaginatedList of LongviewSubscription
         """
         return self.client._get_and_filter(LongviewSubscription, *filters)
 
@@ -646,6 +707,8 @@ class AccountGroup(Group):
         class, like this::
 
            account = client.account()
+
+        API Documentation: https://www.linode.com/docs/api/account/#account-view
 
         :returns: Returns the acting user's account information.
         :rtype: Account
@@ -660,12 +723,26 @@ class AccountGroup(Group):
         return Account(self.client, result["email"], result)
 
     def events(self, *filters):
+        """
+        Lists events on the current account matching the given filters.
+
+        API Documentation: https://www.linode.com/docs/api/account/#events-list
+
+        :returns: A list of events on the current account matching the given filters.
+        :rtype: PaginatedList of Event
+        """
+
         return self.client._get_and_filter(Event, *filters)
 
     def events_mark_seen(self, event):
         """
         Marks event as the last event we have seen.  If event is an int, it is treated
         as an event_id, otherwise it should be an event object whose id will be used.
+
+        API Documentation: https://www.linode.com/docs/api/account/#event-mark-as-seen
+
+        :param event: The Linode event to mark as seen.
+        :type event: Event or int
         """
         last_seen = event if isinstance(event, int) else event.id
         self.client.post(
