@@ -655,6 +655,10 @@ class LKEGroup(Group):
 
 
 class LongviewGroup(Group):
+    """
+    Collections related to Linode Longview.
+    """
+
     def clients(self, *filters):
         """
         Requests and returns a paginated list of LongviewClients on your
@@ -710,6 +714,9 @@ class LongviewGroup(Group):
 
 
 class AccountGroup(Group):
+    """
+    Collections related to your account.
+    """
     def __call__(self):
         """
         Retrieves information about the acting user's account, such as billing
@@ -928,6 +935,10 @@ class AccountGroup(Group):
 
 
 class NetworkingGroup(Group):
+    """
+    Collections related to Linode Networking.
+    """
+
     def firewalls(self, *filters):
         """
         Retrieves the Firewalls your user has access to.
@@ -1181,6 +1192,10 @@ class NetworkingGroup(Group):
 
 
 class SupportGroup(Group):
+    """
+    Collections related to support tickets.
+    """
+
     def tickets(self, *filters):
         """
         Returns a list of support tickets on this account.
