@@ -717,6 +717,7 @@ class AccountGroup(Group):
     """
     Collections related to your account.
     """
+
     def __call__(self):
         """
         Retrieves information about the acting user's account, such as billing
@@ -1210,7 +1211,14 @@ class SupportGroup(Group):
 
         return self.client._get_and_filter(SupportTicket, *filters)
 
-    def ticket_open(self, summary, description, managed_issue=False, regarding=None, **kwargs):
+    def ticket_open(
+        self,
+        summary,
+        description,
+        managed_issue=False,
+        regarding=None,
+        **kwargs,
+    ):
         """
         Opens a support ticket on this account.
 
@@ -1231,7 +1239,7 @@ class SupportGroup(Group):
         params = {
             "summary": summary,
             "description": description,
-            "managed_issue": managed_issue
+            "managed_issue": managed_issue,
         }
 
         type_to_id = {
