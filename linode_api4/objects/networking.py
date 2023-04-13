@@ -23,7 +23,7 @@ class IPv6Pool(Base):
         if pool is not None:
             self._populate(pool._raw_json)
         else:
-            raise LookupError("Could not find IPv6 pool with proviced range.")
+            raise LookupError("Could not find IPv6 pool with provided range.")
 
 
 class IPv6Range(Base):
