@@ -12,7 +12,7 @@ from linode_api4.objects import (
     Instance,
     Property,
     StackScript,
-    Volume,
+    Volume
 )
 from linode_api4.objects.longview import LongviewClient, LongviewSubscription
 from linode_api4.objects.nodebalancer import NodeBalancer
@@ -45,6 +45,158 @@ class Account(Base):
         "billing_source": Property(),
         "euuid": Property(),
     }
+
+    def event_seen(self, event_id):
+        """
+        Marks all Events up to and including this Event by ID as seen.
+        """
+
+        self._client.post("{}/events/{}/seen".format(self.api_endpoint, event_id), model=self)
+
+    def list_logins(self):
+        """
+        Returns a collection of successful logins for all users on the account during the last 90 days.
+        """
+
+        result = self._client.get("{}/logins".format(self.api_endpoint), model=self)
+
+        return result["data"]
+    
+    def view_login(self, login_id):
+        """
+        Returns a Login object that displays information about a successful login.
+        """
+
+        result = self._client.get("{}/logins/{}".format(self.api_endpoint, login_id), model=self)
+
+        return result
+    
+    def maintenance_list(self):
+        """
+        Returns a collection of Maintenance objects for any entity a user has permissions to view. Cancelled Maintenance objects are not returned.
+        """
+
+        result = self._client.get("{}/maintenance".format(self.api_endpoint), model=self)
+
+        return result["data"]
+    
+    def notification_list(self):
+        """
+        Returns a collection of Notification objects representing important, often time-sensitive items related to your Account.
+        """
+
+        result = self._client.get("{}/notifications".format(self.api_endpoint), model=self)
+
+        return result["data"]
+    
+    def payment_methods_list(self):
+        """
+        Returns a  list of Payment Methods for this Account.
+        """
+
+        result = self._client.get("{}/payment-methods".format(self.api_endpoint), model=self)
+
+        return result["data"]
+    
+    def add_payment_method(self, data, is_default, type):
+        """
+        Adds a Payment Method to your Account with the option to set it as the default method.
+        """
+
+        if type != "credit_card":
+            raise ValueError("Unknown Payment Method type: {}".format(type))
+        
+        if "card_number" not in data["data"] or "expiry_month" not in data["data"] or "expiry_year" not in data["data"] or "cvv" not in data["data"] or not data["data"]:
+            raise ValueError("Invalid credit card info provided")
+        
+        params = {
+            "data": data,
+            "type": type,
+            "is_default": is_default
+        }
+
+        self._client.post("{}/payment-methods".format(self.api_endpoint), model=self, data=params)
+
+    def payment_method_view(self, paymentMethodId):
+        """
+        View the details of the specified Payment Method.
+        """
+
+        return self._client.get("{}/payment-methods/{}".format(self.api_endpoint, paymentMethodId), model=self)
+    
+    def payment_method_make_default(self, paymentMethodId):
+        """
+        Make the specified Payment Method the default method for automatically processing payments.
+        """
+
+        self._client.post("{}/payment-methods/{}/make-default".format(self.api_endpoint, paymentMethodId), model=self)
+
+    def add_promo_code(self, promo_code):
+        """
+        Adds an expiring Promo Credit to your account.
+        """
+        
+        params = {
+            "promo_code": promo_code,
+        }
+
+        self._client.post("{}/promo-codes".format(self.api_endpoint), model=self, data=params)
+
+    def service_transfers_list(self):
+        """
+        Returns a collection of all created and accepted Service Transfers for this account, regardless of the user that created or accepted the transfer.
+        """
+
+        result = self._client.get("{}/service-transfers".format(self.api_endpoint), model=self)
+
+        return result["data"]
+    
+    def service_transfer_create(self, entities):
+        """
+        Creates a transfer request for the specified services.
+        """
+
+        if not entities["entities"] or "linodes" not in entities["entities"]:
+            raise ValueError("Invalid entities provided: {}".format(entities))
+        
+
+        params = {
+            "entities": entities
+        }
+
+        self._client.post("{}/service-transfers".format(self.api_endpoint), model=self, data=params)
+
+    def service_transfer_view(self, token):
+        """
+        Returns the details of the Service Transfer for the provided token.
+        """
+
+        params = {
+            "token": token
+        }
+
+        return self._client.get("{}/service-transfers/{}".format(self.api_endpoint, token), model=self, data=params)
+
+    def service_transfer_accept(self, token):
+        """
+        Accept a Service Transfer for the provided token to receive the services included in the transfer to your account.
+        """
+                
+        params = {
+            "token": token
+        }
+
+        self._client.post("{}/service-transfers/{}/accept".format(self.api_endpoint, token), model=self, data=params)
+    
+    def linode_managed_enable(self):
+        """
+        Enables Linode Managed for the entire account and sends a welcome email to the account’s associated email address.
+        """
+
+        self._client.post("{}/settings/managed-enable".format(self.api_endpoint), model=self)
+
+    
+
 
 
 class AccountSettings(Base):

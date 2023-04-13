@@ -155,3 +155,147 @@ class InvoiceTest(ClientBaseCase):
         self.assertTrue(grants.count(("image", Image)) > 0)
         self.assertTrue(grants.count(("longview", LongviewClient)) > 0)
         self.assertTrue(grants.count(("database", Database)) > 0)
+
+    def test_event_seen(self):
+        account = Account(self.client, "support@linode.com", {})
+
+        with self.mock_post({}) as m:
+            account.event_seen(123)
+            self.assertEqual(m.call_url, "/account/events/123/seen")
+
+    def test_list_logins(self):
+        account = Account(self.client, "support@linode.com", {})
+
+        with self.mock_get("/account/logins") as m:
+            result = account.list_logins()
+            self.assertEqual(m.call_url, "/account/logins")
+            self.assertEqual(len(result), 1)
+
+    def test_view_login(self):
+        account = Account(self.client, "support@linode.com", {})
+
+        with self.mock_get("/account/logins/123") as m:
+            result = account.view_login(123)
+            self.assertEqual(m.call_url, "/account/logins/123")
+            self.assertEqual(result["id"], 123)
+            self.assertEqual(result["ip"], "192.0.2.0")
+            self.assertTrue(result["restricted"])
+            self.assertEqual(result["status"], "successful")
+            self.assertEqual(result["username"], "test-user")
+
+    def test_maintenance_list(self):
+        account = Account(self.client, "support@linode.com", {})
+
+        with self.mock_get("/account/maintenance") as m:
+            result = account.maintenance_list()
+            self.assertEqual(m.call_url, "/account/maintenance")
+            self.assertEqual(len(result), 1)
+
+    def test_notification_list(self):
+        account = Account(self.client, "support@linode.com", {})
+
+        with self.mock_get("/account/notifications") as m:
+            result = account.notification_list()
+            self.assertEqual(m.call_url, "/account/notifications")
+            self.assertEqual(len(result), 1)
+
+    def test_payment_methods_list(self):
+        account = Account(self.client, "support@linode.com", {})
+
+        with self.mock_get("/account/payment-methods") as m:
+            result = account.payment_methods_list()
+            self.assertEqual(m.call_url, "/account/payment-methods")
+            self.assertEqual(len(result), 1)
+
+    def test_add_payment_method(self):
+        account = Account(self.client, "support@linode.com", {})
+
+        with self.mock_post({}) as m:
+            account.add_payment_method({"data": {"card_number": "123456789100", "expiry_month": 1, "expiry_year": 2028, "cvv": 111}}, True, "credit_card")
+            self.assertEqual(m.call_url, "/account/payment-methods")
+            self.assertEqual(m.call_data["type"], "credit_card")
+            self.assertTrue(m.call_data["is_default"])
+            self.assertIsNotNone(m.call_data["data"])
+
+    def test_payment_method_view(self):
+        account = Account(self.client, "support@linode.com", {})
+
+        with self.mock_get("/account/payment-methods/123") as m:
+            result = account.payment_method_view(123)
+            self.assertEqual(m.call_url, "/account/payment-methods/123")
+            self.assertEqual(result["id"], 123)
+            self.assertIsNotNone(result["data"])
+            self.assertTrue(result["is_default"])
+            self.assertEqual(result["type"], "credit_card")
+
+    def test_payment_method_make_default(self):
+        account = Account(self.client, "support@linode.com", {})
+
+        with self.mock_post({}) as m:
+            account.payment_method_make_default(123)
+            self.assertEqual(m.call_url, "/account/payment-methods/123/make-default")
+
+    def test_add_promo_code(self):
+        account = Account(self.client, "support@linode.com", {})
+
+        with self.mock_post("/account/promo-codes") as m:
+            account.add_promo_code("123promo456")
+            self.assertEqual(m.call_url, "/account/promo-codes")
+            self.assertEqual(m.call_data["promo_code"], "123promo456")
+
+    def test_service_transfers_list(self):
+        account = Account(self.client, "support@linode.com", {})
+
+        with self.mock_get("/account/service-transfers") as m:
+            result = account.service_transfers_list()
+            self.assertEqual(m.call_url, "/account/service-transfers")
+            self.assertEqual(len(result), 1)
+
+    def test_service_transfer_create(self):
+        account = Account(self.client, "support@linode.com", {})
+
+        data = {"entities": {"linodes": [111,222]}}
+        response = {
+                        "created": "2021-02-11T16:37:03",
+                        "entities": {
+                            "linodes": [
+                            111,
+                            222
+                            ]
+                        },
+                        "expiry": "2021-02-12T16:37:03",
+                        "is_sender": True,
+                        "status": "pending",
+                        "token": "123E4567-E89B-12D3-A456-426614174000",
+                        "updated": "2021-02-11T16:37:03"
+                    }
+
+        with self.mock_post(response) as m:
+            account.service_transfer_create(data)
+            self.assertEqual(m.call_url, "/account/service-transfers")
+
+    def test_service_transfer_view(self):
+        account = Account(self.client, "support@linode.com", {})
+
+        with self.mock_get("/account/service-transfers/12345") as m:
+            result = account.service_transfer_view(12345)
+            self.assertEqual(m.call_url, "/account/service-transfers/12345")
+            self.assertEqual(m.call_data["token"], 12345)
+            self.assertEqual(result["token"], "12345")
+            self.assertEqual(result["status"], "pending")
+            self.assertTrue(result["is_sender"])
+            self.assertIsNotNone(result["entities"])
+
+    def test_service_transfer_accept(self):
+        account = Account(self.client, "support@linode.com", {})
+
+        with self.mock_post({}) as m:
+            account.service_transfer_accept(123)
+            self.assertEqual(m.call_url, "/account/service-transfers/123/accept")
+
+    def test_linode_managed_enable(self):
+        account = Account(self.client, "support@linode.com", {})
+
+        with self.mock_post({}) as m:
+            account.linode_managed_enable()
+            self.assertEqual(m.call_url, "/account/settings/managed-enable")
