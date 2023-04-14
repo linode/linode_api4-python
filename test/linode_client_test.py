@@ -1,10 +1,10 @@
 from datetime import datetime
-from linode_api4.objects.networking import IPAddress
 from test.base import ClientBaseCase
 from unittest import TestCase
 from unittest.mock import MagicMock
 
 from linode_api4 import ApiError, LinodeClient, LongviewSubscription
+from linode_api4.objects.networking import IPAddress
 
 
 class LinodeClientGeneralTest(ClientBaseCase):

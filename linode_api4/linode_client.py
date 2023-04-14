@@ -870,9 +870,8 @@ class NetworkingGroup(Group):
 
     def ipv6_ranges(self, *filters):
         return self.client._get_and_filter(IPv6Range, *filters)
-    
-    def ip_ranges_list(self):
 
+    def ip_ranges_list(self):
         result = self.client.post("/networking/ipv6/ranges", model=self)
 
         return [IPv6Range(self.client, r["range"]) for r in result["data"]]

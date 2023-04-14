@@ -37,6 +37,7 @@ class IPv6Range(Base):
         "route_target": Property(),
     }
 
+
 class IPAddress(Base):
     """
     note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
@@ -77,6 +78,7 @@ class IPAddress(Base):
             raise ValueError("IP Address can only be assigned to a Linode!")
 
         return {"address": self.address, "linode_id": linode.id}
+
 
 class VLAN(Base):
     """
