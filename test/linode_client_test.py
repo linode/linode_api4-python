@@ -1,4 +1,5 @@
 from datetime import datetime
+from linode_api4.objects.networking import IPAddress
 from test.base import ClientBaseCase
 from unittest import TestCase
 from unittest.mock import MagicMock
@@ -690,6 +691,52 @@ class NetworkingGroupTest(ClientBaseCase):
         firewall = f[0]
 
         self.assertEqual(firewall.id, 123)
+
+    def test_ip_addresses_share(self):
+        """
+        Tests that you can submit a correct ip addresses share api request.
+        """
+
+        ip = IPAddress(self.client, "192.0.2.1", {})
+
+        with self.mock_post({}) as m:
+            self.client.networking.ip_addresses_share(["192.0.2.1"], 123)
+            self.assertEqual(m.call_url, "/networking/ips/share")
+            self.assertEqual(m.call_data["ips"], ["192.0.2.1"])
+            self.assertEqual(m.call_data["linode_id"], 123)
+
+        with self.mock_post({}) as m:
+            self.client.networking.ip_addresses_share([ip], 123)
+            self.assertEqual(m.call_url, "/networking/ips/share")
+            self.assertEqual(m.call_data["ips"], ["192.0.2.1"])
+            self.assertEqual(m.call_data["linode_id"], 123)
+
+    def test_ip_addresses_assign(self):
+        """
+        Tests that you can submit a correct ip addresses assign api request.
+        """
+
+        with self.mock_post({}) as m:
+            self.client.networking.ip_addresses_assign(
+                {"assignments": [{"address": "192.0.2.1", "linode_id": 123}]},
+                "us-east",
+            )
+            self.assertEqual(m.call_url, "/networking/ips/assign")
+            self.assertEqual(
+                m.call_data["assignments"],
+                {"assignments": [{"address": "192.0.2.1", "linode_id": 123}]},
+            )
+            self.assertEqual(m.call_data["region"], "us-east")
+
+    def test_ip_ranges_list(self):
+        """
+        Tests that you can submit a correct ip ranges list api request.
+        """
+
+        with self.mock_post("/networking/ipv6/ranges") as m:
+            result = self.client.networking.ip_ranges_list()
+            self.assertEqual(m.call_url, "/networking/ipv6/ranges")
+            self.assertEqual(len(result), 1)
 
 
 class LinodeClientRateLimitRetryTest(TestCase):

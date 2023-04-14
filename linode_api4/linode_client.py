@@ -870,6 +870,12 @@ class NetworkingGroup(Group):
 
     def ipv6_ranges(self, *filters):
         return self.client._get_and_filter(IPv6Range, *filters)
+    
+    def ip_ranges_list(self):
+
+        result = self.client.post("/networking/ipv6/ranges", model=self)
+
+        return [IPv6Range(self.client, r["range"]) for r in result["data"]]
 
     def ipv6_pools(self, *filters):
         return self.client._get_and_filter(IPv6Pool, *filters)
@@ -922,7 +928,7 @@ class NetworkingGroup(Group):
                             assignments.
         :type assignments: dct
 
-        DEPRECATED: Use IPAddress.ip_addresses_assign() instead
+        DEPRECATED: Use ip_addresses_assign() instead
         """
         for a in assignments:
             if not "address" in a or not "linode_id" in a:
@@ -980,7 +986,7 @@ class NetworkingGroup(Group):
         :param ips: Any number of IPAddresses to share to the Instance.
         :type ips: str or IPAddress
 
-        DEPRECATED: Use IPAddress.ip_addresses_share() instead
+        DEPRECATED: Use ip_addresses_share() instead
         """
         if not isinstance(linode, Instance):
             # make this an object
@@ -1004,6 +1010,36 @@ class NetworkingGroup(Group):
         )
 
         linode.invalidate()  # clear the Instance's shared IPs
+
+    def ip_addresses_share(self, ips, linode_id):
+        """
+        Configure shared IPs.
+        """
+
+        params = {
+            "ips": ips
+            if not isinstance(ips[0], IPAddress)
+            else [ip.address for ip in ips],
+            "linode_id": linode_id,
+        }
+
+        self.client.post("/networking/ips/share", model=self, data=params)
+
+    def ip_addresses_assign(self, assignments, region):
+        """
+        Assign multiple IPv4 addresses and/or IPv6 ranges to multiple Linodes in one Region.
+        """
+
+        for a in assignments["assignments"]:
+            if not "address" in a or not "linode_id" in a:
+                raise ValueError("Invalid assignment: {}".format(a))
+
+        if isinstance(region, Region):
+            region = region.id
+
+        params = {"assignments": assignments, "region": region}
+
+        self.client.post("/networking/ips/assign", model=self, data=params)
 
 
 class SupportGroup(Group):

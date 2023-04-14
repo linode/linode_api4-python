@@ -37,23 +37,6 @@ class IPv6Range(Base):
         "route_target": Property(),
     }
 
-    def ip_ranges_list(self):
-        """
-        Displays the IPv6 ranges on your Account.
-        """
-
-        result = self._client.post("/networking/ipv6/ranges", model=self)
-
-        return [IPv6Range(self._client, r["range"]) for r in result["data"]]
-
-    def ip_range_delete(self):
-        """
-        Removes this IPv6 range from your account and disconnects the range from any assigned Linodes.
-        """
-
-        self._client.delete("{}".format(self.api_endpoint), model=self)
-
-
 class IPAddress(Base):
     """
     note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
@@ -94,37 +77,6 @@ class IPAddress(Base):
             raise ValueError("IP Address can only be assigned to a Linode!")
 
         return {"address": self.address, "linode_id": linode.id}
-
-    def ip_addresses_share(self, ips, linode_id):
-        """
-        Configure shared IPs.
-        """
-
-        params = {
-            "ips": ips
-            if not isinstance(ips[0], IPAddress)
-            else [ip.address for ip in ips],
-            "linode_id": linode_id,
-        }
-
-        self._client.post("/networking/ips/share", model=self, data=params)
-
-    def ip_addresses_assign(self, assignments, region):
-        """
-        Assign multiple IPv4 addresses and/or IPv6 ranges to multiple Linodes in one Region.
-        """
-
-        for a in assignments["assignments"]:
-            if not "address" in a or not "linode_id" in a:
-                raise ValueError("Invalid assignment: {}".format(a))
-
-        if isinstance(region, Region):
-            region = region.id
-
-        params = {"assignments": assignments, "region": region}
-
-        self._client.post("/networking/ips/assign", model=self, data=params)
-
 
 class VLAN(Base):
     """
