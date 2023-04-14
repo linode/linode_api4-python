@@ -256,7 +256,7 @@ class Base(object, metaclass=FilterableMetaclass):
             elif isinstance(v, MappedObject):
                 result[k] = v.dict
 
-        return result
+        return {k: v for k, v in result.items() if v}
 
     def _api_get(self):
         """
