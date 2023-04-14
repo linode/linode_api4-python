@@ -23,7 +23,8 @@
       "id": 12345,
       "status": "successful",
       "created": "2018-01-09T00:01:01",
-      "type": "auto"
+      "type": "auto",
+      "available": true
     },
     {
       "region": "us-east-1a",
@@ -48,7 +49,8 @@
       "id": 12456,
       "status": "successful",
       "created": "2018-01-01T00:01:01",
-      "type": "auto"
+      "type": "auto",
+      "available": true
     },
     {
       "region": "us-east-1a",
@@ -73,7 +75,8 @@
       "id": 12567,
       "status": "successful",
       "created": "2018-01-07T00:01:01",
-      "type": "auto"
+      "type": "auto",
+      "available": false
     }
   ],
   "snapshot": {

@@ -1,0 +1,13 @@
+{
+    "id": 18881, 
+    "status": "ready", 
+    "created": "2021-02-10T23:54:21", 
+    "updated": "2021-02-10T23:54:21",
+    "label": "example-cluster",
+    "region": "ap-west",
+    "k8s_version": "1.19",
+    "tags": [],
+    "control_plane": {
+        "high_availability": true
+    }
+}

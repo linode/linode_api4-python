@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import json
 import logging
-from datetime import datetime
 import os
 import time
+from datetime import datetime
+from typing import BinaryIO, Tuple
 
 import pkg_resources
 import requests
@@ -11,8 +14,9 @@ from linode_api4.errors import ApiError, UnexpectedResponseError
 from linode_api4.objects import *
 from linode_api4.objects.filtering import Filter
 
-from .common import load_and_validate_keys, SSH_KEY_TYPES
+from .common import SSH_KEY_TYPES, load_and_validate_keys
 from .paginated_list import PaginatedList
+from .util import drop_null_keys
 
 package_version = pkg_resources.require("linode_api4")[0].version
 
@@ -20,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 class Group:
-    def __init__(self, client):
+    def __init__(self, client: LinodeClient):
         self.client = client
 
 
@@ -35,6 +39,7 @@ class LinodeGroup(Group):
 
     This group contains all features beneath the `/linode` group in the API v4.
     """
+
     def types(self, *filters):
         """
         Returns a list of Linode Instance types.  These may be used to create
@@ -81,19 +86,23 @@ class LinodeGroup(Group):
         :rtype: PaginatedList of StackScript
         """
         # python2 can't handle *args and a single keyword argument, so this is a workaround
-        if 'mine_only' in kwargs:
-            if kwargs['mine_only']:
-                new_filter = Filter({"mine":True})
+        if "mine_only" in kwargs:
+            if kwargs["mine_only"]:
+                new_filter = Filter({"mine": True})
                 if filters:
                     filters = list(filters)
                     filters[0] = filters[0] & new_filter
                 else:
                     filters = [new_filter]
 
-            del kwargs['mine_only']
+            del kwargs["mine_only"]
 
         if kwargs:
-            raise TypeError("stackscripts() got unexpected keyword argument '{}'".format(kwargs.popitem()[0]))
+            raise TypeError(
+                "stackscripts() got unexpected keyword argument '{}'".format(
+                    kwargs.popitem()[0]
+                )
+            )
 
         return self.client._get_and_filter(StackScript, *filters)
 
@@ -110,8 +119,9 @@ class LinodeGroup(Group):
         return self.client._get_and_filter(Kernel, *filters)
 
     # create things
-    def instance_create(self, ltype, region, image=None,
-            authorized_keys=None, **kwargs):
+    def instance_create(
+        self, ltype, region, image=None, authorized_keys=None, **kwargs
+    ):
         """
         Creates a new Linode Instance. This function has several modes of operation:
 
@@ -236,43 +246,55 @@ class LinodeGroup(Group):
                                          an outdated library.
         """
         ret_pass = None
-        if image and not 'root_pass' in kwargs:
+        if image and not "root_pass" in kwargs:
             ret_pass = Instance.generate_root_password()
-            kwargs['root_pass'] = ret_pass
+            kwargs["root_pass"] = ret_pass
 
         authorized_keys = load_and_validate_keys(authorized_keys)
 
         if "stackscript" in kwargs:
             # translate stackscripts
-            kwargs["stackscript_id"] = (kwargs["stackscript"].id if issubclass(type(kwargs["stackscript"]), Base)
-                                        else kwargs["stackscript"])
+            kwargs["stackscript_id"] = (
+                kwargs["stackscript"].id
+                if issubclass(type(kwargs["stackscript"]), Base)
+                else kwargs["stackscript"]
+            )
             del kwargs["stackscript"]
 
         if "backup" in kwargs:
             # translate backups
-            kwargs["backup_id"] = (kwargs["backup"].id if issubclass(type(kwargs["backup"]), Base)
-                                   else kwargs["backup"])
+            kwargs["backup_id"] = (
+                kwargs["backup"].id
+                if issubclass(type(kwargs["backup"]), Base)
+                else kwargs["backup"]
+            )
             del kwargs["backup"]
 
         params = {
-             'type': ltype.id if issubclass(type(ltype), Base) else ltype,
-             'region': region.id if issubclass(type(region), Base) else region,
-             'image': (image.id if issubclass(type(image), Base) else image) if image else None,
-             'authorized_keys': authorized_keys,
-         }
+            "type": ltype.id if issubclass(type(ltype), Base) else ltype,
+            "region": region.id if issubclass(type(region), Base) else region,
+            "image": (image.id if issubclass(type(image), Base) else image)
+            if image
+            else None,
+            "authorized_keys": authorized_keys,
+        }
         params.update(kwargs)
 
-        result = self.client.post('/linode/instances', data=params)
+        result = self.client.post("/linode/instances", data=params)
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating linode!', json=result)
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating linode!", json=result
+            )
 
-        l = Instance(self.client, result['id'], result)
+        l = Instance(self.client, result["id"], result)
         if not ret_pass:
             return l
         return l, ret_pass
 
-    def stackscript_create(self, label, script, images, desc=None, public=False, **kwargs):
+    def stackscript_create(
+        self, label, script, images, desc=None, public=False, **kwargs
+    ):
         """
         Creates a new :any:`StackScript` on your account.
 
@@ -297,13 +319,17 @@ class LinodeGroup(Group):
         """
         image_list = None
         if type(images) is list or type(images) is PaginatedList:
-            image_list = [d.id if issubclass(type(d), Base) else d for d in images ]
+            image_list = [
+                d.id if issubclass(type(d), Base) else d for d in images
+            ]
         elif type(images) is Image:
             image_list = [images.id]
         elif type(images) is str:
             image_list = [images]
         else:
-            raise ValueError('images must be a list of Images or a single Image')
+            raise ValueError(
+                "images must be a list of Images or a single Image"
+            )
 
         script_body = script
         if not script.startswith("#!"):
@@ -312,23 +338,27 @@ class LinodeGroup(Group):
                 with open(script) as f:
                     script_body = f.read()
             else:
-                raise ValueError("script must be the script text or a path to a file")
+                raise ValueError(
+                    "script must be the script text or a path to a file"
+                )
 
         params = {
             "label": label,
             "images": image_list,
             "is_public": public,
             "script": script_body,
-            "description": desc if desc else '',
+            "description": desc if desc else "",
         }
         params.update(kwargs)
 
-        result = self.client.post('/linode/stackscripts', data=params)
+        result = self.client.post("/linode/stackscripts", data=params)
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating StackScript!', json=result)
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating StackScript!", json=result
+            )
 
-        s = StackScript(self.client, result['id'], result)
+        s = StackScript(self.client, result["id"], result)
         return s
 
 
@@ -336,6 +366,7 @@ class ProfileGroup(Group):
     """
     Collections related to your user.
     """
+
     def __call__(self):
         """
         Retrieve the acting user's Profile, containing information about the
@@ -347,12 +378,14 @@ class ProfileGroup(Group):
         :returns: The acting user's profile.
         :rtype: Profile
         """
-        result = self.client.get('/profile')
+        result = self.client.get("/profile")
 
-        if not 'username' in result:
-            raise UnexpectedResponseError('Unexpected response when getting profile!', json=result)
+        if not "username" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when getting profile!", json=result
+            )
 
-        p = Profile(self.client, result['username'], result)
+        p = Profile(self.client, result["username"], result)
         return p
 
     def tokens(self, *filters):
@@ -366,21 +399,23 @@ class ProfileGroup(Group):
         Creates and returns a new Personal Access Token
         """
         if label:
-            kwargs['label'] = label
+            kwargs["label"] = label
         if expiry:
             if isinstance(expiry, datetime):
                 expiry = datetime.strftime(expiry, "%Y-%m-%dT%H:%M:%S")
-            kwargs['expiry'] = expiry
+            kwargs["expiry"] = expiry
         if scopes:
-            kwargs['scopes'] = scopes
+            kwargs["scopes"] = scopes
 
-        result = self.client.post('/profile/tokens', data=kwargs)
+        result = self.client.post("/profile/tokens", data=kwargs)
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating Personal Access '
-                    'Token!', json=result)
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating Personal Access Token!",
+                json=result,
+            )
 
-        token = PersonalAccessToken(self.client, result['id'], result)
+        token = PersonalAccessToken(self.client, result["id"], result)
         return token
 
     def apps(self, *filters):
@@ -419,20 +454,21 @@ class ProfileGroup(Group):
                 with open(path) as f:
                     key = f.read().strip()
             if not key.startswith(SSH_KEY_TYPES):
-                raise ValueError('Invalid SSH Public Key')
+                raise ValueError("Invalid SSH Public Key")
 
         params = {
-            'ssh_key': key,
-            'label': label,
+            "ssh_key": key,
+            "label": label,
         }
 
-        result = self.client.post('/profile/sshkeys', data=params)
+        result = self.client.post("/profile/sshkeys", data=params)
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when uploading SSH Key!',
-                                          json=result)
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when uploading SSH Key!", json=result
+            )
 
-        ssh_key = SSHKey(self.client, result['id'], result)
+        ssh_key = SSHKey(self.client, result["id"], result)
         return ssh_key
 
 
@@ -447,6 +483,7 @@ class LKEGroup(Group):
 
     This group contains all features beneath the `/lke` group in the API v4.
     """
+
     def versions(self, *filters):
         """
         Returns a :any:`PaginatedList` of :any:`KubeVersion` objects that can be
@@ -533,12 +570,14 @@ class LKEGroup(Group):
         }
         params.update(kwargs)
 
-        result = self.client.post('/lke/clusters', data=params)
+        result = self.client.post("/lke/clusters", data=params)
 
-        if 'id' not in result:
-            raise UnexpectedResponseError('Unexpected response when creating LKE cluster!', json=result)
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating LKE cluster!", json=result
+            )
 
-        return LKECluster(self.client, result['id'], result)
+        return LKECluster(self.client, result["id"], result)
 
     def node_pool(self, node_type, node_count):
         """
@@ -558,6 +597,7 @@ class LKEGroup(Group):
             "type": node_type,
             "count": node_count,
         }
+
 
 class LongviewGroup(Group):
     def clients(self, *filters):
@@ -580,15 +620,15 @@ class LongviewGroup(Group):
         :raises UnexpectedResponseError: If the returned data from the api does
             not look as expected.
         """
-        result = self.client.post('/longview/clients', data={
-            "label": label
-        })
+        result = self.client.post("/longview/clients", data={"label": label})
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating Longivew '
-                'Client!', json=result)
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating Longview Client!",
+                json=result,
+            )
 
-        c = LongviewClient(self.client, result['id'], result)
+        c = LongviewClient(self.client, result["id"], result)
         return c
 
     def subscriptions(self, *filters):
@@ -610,13 +650,14 @@ class AccountGroup(Group):
         :returns: Returns the acting user's account information.
         :rtype: Account
         """
-        result = self.client.get('/account')
+        result = self.client.get("/account")
 
-        if not 'email' in result:
-            raise UnexpectedResponseError('Unexpected response when getting account!', json=result)
+        if not "email" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when getting account!", json=result
+            )
 
-        return Account(self.client, result['email'], result)
-
+        return Account(self.client, result["email"], result)
 
     def events(self, *filters):
         return self.client._get_and_filter(Event, *filters)
@@ -627,20 +668,25 @@ class AccountGroup(Group):
         as an event_id, otherwise it should be an event object whose id will be used.
         """
         last_seen = event if isinstance(event, int) else event.id
-        self.client.post('{}/seen'.format(Event.api_endpoint), model=Event(self.client, last_seen))
+        self.client.post(
+            "{}/seen".format(Event.api_endpoint),
+            model=Event(self.client, last_seen),
+        )
 
     def settings(self):
         """
         Resturns the account settings data for this acocunt.  This is not  a
         listing endpoint.
         """
-        result = self.client.get('/account/settings')
+        result = self.client.get("/account/settings")
 
-        if not 'managed' in result:
-            raise UnexpectedResponseError('Unexpected response when getting account settings!',
-                    json=result)
+        if not "managed" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when getting account settings!",
+                json=result,
+            )
 
-        s = AccountSettings(self.client, result['managed'], result)
+        s = AccountSettings(self.client, result["managed"], result)
         return s
 
     def invoices(self):
@@ -671,13 +717,14 @@ class AccountGroup(Group):
         }
         params.update(kwargs)
 
-        result = self.client.post('/account/oauth-clients', data=params)
+        result = self.client.post("/account/oauth-clients", data=params)
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating OAuth Client!',
-                    json=result)
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating OAuth Client!", json=result
+            )
 
-        c = OAuthClient(self.client, result['id'], result)
+        c = OAuthClient(self.client, result["id"], result)
         return c
 
     def users(self, *filters):
@@ -690,10 +737,12 @@ class AccountGroup(Group):
         """
         Returns a MappedObject containing the account's transfer pool data
         """
-        result = self.client.get('/account/transfer')
+        result = self.client.get("/account/transfer")
 
-        if not 'used' in result:
-            raise UnexpectedResponseError('Unexpected response when getting Transfer Pool!')
+        if not "used" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when getting Transfer Pool!"
+            )
 
         return MappedObject(**result)
 
@@ -728,13 +777,18 @@ class AccountGroup(Group):
             "username": username,
             "restricted": restricted,
         }
-        result = self.client.post('/account/users', data=params)
+        result = self.client.post("/account/users", data=params)
 
-        if not all([c in result for c in ('email', 'restricted', 'username')]): # pylint: disable=use-a-generator
-            raise UnexpectedResponseError('Unexpected response when creating user!', json=result)
+        if not all(
+            [c in result for c in ("email", "restricted", "username")]
+        ):  # pylint: disable=use-a-generator
+            raise UnexpectedResponseError(
+                "Unexpected response when creating user!", json=result
+            )
 
-        u = User(self.client, result['username'], result)
+        u = User(self.client, result["username"], result)
         return u
+
 
 class NetworkingGroup(Group):
     def firewalls(self, *filters):
@@ -796,17 +850,19 @@ class NetworkingGroup(Group):
         """
 
         params = {
-            'label': label,
-            'rules': rules,
+            "label": label,
+            "rules": rules,
         }
         params.update(kwargs)
 
-        result = self.client.post('/networking/firewalls', data=params)
+        result = self.client.post("/networking/firewalls", data=params)
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating Firewall!', json=result)
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating Firewall!", json=result
+            )
 
-        f = Firewall(self.client, result['id'], result)
+        f = Firewall(self.client, result["id"], result)
         return f
 
     def ips(self, *filters):
@@ -822,7 +878,7 @@ class NetworkingGroup(Group):
         """
         .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
         Returns a list of VLANs on your account.
-        
+
         :returns: A Paginated List of VLANs on your account.
         :rtype: PaginatedList of VLAN
         """
@@ -867,15 +923,18 @@ class NetworkingGroup(Group):
         :type assignments: dct
         """
         for a in assignments:
-            if not 'address' in a or not 'linode_id' in a:
+            if not "address" in a or not "linode_id" in a:
                 raise ValueError("Invalid assignment: {}".format(a))
         if isinstance(region, Region):
             region = region.id
 
-        self.client.post('/networking/ipv4/assign', data={
-            "region": region,
-            "assignments": assignments,
-        })
+        self.client.post(
+            "/networking/ipv4/assign",
+            data={
+                "region": region,
+                "assignments": assignments,
+            },
+        )
 
     def ip_allocate(self, linode, public=True):
         """
@@ -890,17 +949,21 @@ class NetworkingGroup(Group):
         :returns: The new IPAddress
         :rtype: IPAddress
         """
-        result = self.client.post('/networking/ips/', data={
-            "linode_id": linode.id if isinstance(linode, Base) else linode,
-            "type": "ipv4",
-            "public": public,
-        })
+        result = self.client.post(
+            "/networking/ips/",
+            data={
+                "linode_id": linode.id if isinstance(linode, Base) else linode,
+                "type": "ipv4",
+                "public": public,
+            },
+        )
 
-        if not 'address' in result:
-            raise UnexpectedResponseError('Unexpected response when adding IPv4 address!',
-                    json=result)
+        if not "address" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when adding IPv4 address!", json=result
+            )
 
-        ip = IPAddress(self.client, result['address'], result)
+        ip = IPAddress(self.client, result["address"], result)
         return ip
 
     def ips_share(self, linode, *ips):
@@ -926,16 +989,17 @@ class NetworkingGroup(Group):
             elif isinstance(ip, IPAddress):
                 params.append(ip.address)
             else:
-                params.append(str(ip)) # and hope that works
+                params.append(str(ip))  # and hope that works
 
-        params = {
-            "ips": params
-        }
+        params = {"ips": params}
 
-        self.client.post('{}/networking/ipv4/share'.format(Instance.api_endpoint),
-                         model=linode, data=params)
+        self.client.post(
+            "{}/networking/ipv4/share".format(Instance.api_endpoint),
+            model=linode,
+            data=params,
+        )
 
-        linode.invalidate() # clear the Instance's shared IPs
+        linode.invalidate()  # clear the Instance's shared IPs
 
 
 class SupportGroup(Group):
@@ -943,9 +1007,7 @@ class SupportGroup(Group):
         return self.client._get_and_filter(SupportTicket, *filters)
 
     def ticket_open(self, summary, description, regarding=None):
-        """
-
-        """
+        """ """
         params = {
             "summary": summary,
             "description": description,
@@ -953,24 +1015,28 @@ class SupportGroup(Group):
 
         if regarding:
             if isinstance(regarding, Instance):
-                params['linode_id'] = regarding.id
+                params["linode_id"] = regarding.id
             elif isinstance(regarding, Domain):
-                params['domain_id'] = regarding.id
+                params["domain_id"] = regarding.id
             elif isinstance(regarding, NodeBalancer):
-                params['nodebalancer_id'] = regarding.id
+                params["nodebalancer_id"] = regarding.id
             elif isinstance(regarding, Volume):
-                params['volume_id'] = regarding.id
+                params["volume_id"] = regarding.id
             else:
-                raise ValueError('Cannot open ticket regarding type {}!'.format(type(regarding)))
+                raise ValueError(
+                    "Cannot open ticket regarding type {}!".format(
+                        type(regarding)
+                    )
+                )
 
+        result = self.client.post("/support/tickets", data=params)
 
-        result = self.client.post('/support/tickets', data=params)
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating ticket!", json=result
+            )
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating ticket!',
-                    json=result)
-
-        t = SupportTicket(self.client, result['id'], result)
+        t = SupportTicket(self.client, result["id"], result)
         return t
 
 
@@ -979,6 +1045,7 @@ class ObjectStorageGroup(Group):
     This group encapsulates all endpoints under /object-storage, including viewing
     available clusters and managing keys.
     """
+
     def clusters(self, *filters):
         """
         Returns a list of available Object Storage Clusters.  You may filter
@@ -1054,9 +1121,7 @@ class ObjectStorageGroup(Group):
         :returns: The new keypair, with the secret key populated.
         :rtype: ObjectStorageKeys
         """
-        params = {
-            "label": label
-        }
+        params = {"label": label}
 
         if bucket_access is not None:
             if not isinstance(bucket_access, list):
@@ -1066,18 +1131,24 @@ class ObjectStorageGroup(Group):
                 {
                     "permissions": c.get("permissions"),
                     "bucket_name": c.get("bucket_name"),
-                    "cluster": c.id if "cluster" in c and issubclass(type(c["cluster"]), Base) else c.get("cluster"),
-                } for c in bucket_access
+                    "cluster": c.id
+                    if "cluster" in c and issubclass(type(c["cluster"]), Base)
+                    else c.get("cluster"),
+                }
+                for c in bucket_access
             ]
 
-            params['bucket_access'] = ba
+            params["bucket_access"] = ba
 
-        result = self.client.post('/object-storage/keys', data=params)
+        result = self.client.post("/object-storage/keys", data=params)
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating Object Storage Keys!', json=result)
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating Object Storage Keys!",
+                json=result,
+            )
 
-        ret = ObjectStorageKeys(self.client, result['id'], result)
+        ret = ObjectStorageKeys(self.client, result["id"], result)
         return ret
 
     def bucket_access(self, cluster, bucket_name, permissions):
@@ -1110,7 +1181,7 @@ class ObjectStorageGroup(Group):
         cancelled, you will no longer receive the transfer for or be billed for
         Object Storage, and all keys will be invalidated.
         """
-        self.client.post('/object-storage/cancel', data={})
+        self.client.post("/object-storage/cancel", data={})
         return True
 
 
@@ -1211,19 +1282,21 @@ class DatabaseGroup(Group):
         """
 
         params = {
-            'label': label,
-            'region': region.id if issubclass(type(region), Base) else region,
-            'engine': engine.id if issubclass(type(engine), Base) else engine,
-            'type': ltype.id if issubclass(type(ltype), Base) else ltype,
+            "label": label,
+            "region": region.id if issubclass(type(region), Base) else region,
+            "engine": engine.id if issubclass(type(engine), Base) else engine,
+            "type": ltype.id if issubclass(type(ltype), Base) else ltype,
         }
         params.update(kwargs)
 
-        result = self.client.post('/databases/mysql/instances', data=params)
+        result = self.client.post("/databases/mysql/instances", data=params)
 
-        if 'id' not in result:
-            raise UnexpectedResponseError('Unexpected response when creating MySQL Database', json=result)
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating MySQL Database", json=result
+            )
 
-        d = MySQLDatabase(self.client, result['id'], result)
+        d = MySQLDatabase(self.client, result["id"], result)
         return d
 
     def postgresql_instances(self, *filters):
@@ -1268,19 +1341,24 @@ class DatabaseGroup(Group):
         """
 
         params = {
-            'label': label,
-            'region': region.id if issubclass(type(region), Base) else region,
-            'engine': engine.id if issubclass(type(engine), Base) else engine,
-            'type': ltype.id if issubclass(type(ltype), Base) else ltype,
+            "label": label,
+            "region": region.id if issubclass(type(region), Base) else region,
+            "engine": engine.id if issubclass(type(engine), Base) else engine,
+            "type": ltype.id if issubclass(type(ltype), Base) else ltype,
         }
         params.update(kwargs)
 
-        result = self.client.post('/databases/postgresql/instances', data=params)
+        result = self.client.post(
+            "/databases/postgresql/instances", data=params
+        )
 
-        if 'id' not in result:
-            raise UnexpectedResponseError('Unexpected response when creating PostgreSQL Database', json=result)
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating PostgreSQL Database",
+                json=result,
+            )
 
-        d = PostgreSQLDatabase(self.client, result['id'], result)
+        d = PostgreSQLDatabase(self.client, result["id"], result)
         return d
 
     def mongodb_instances(self, *filters):
@@ -1325,24 +1403,34 @@ class DatabaseGroup(Group):
         """
 
         params = {
-            'label': label,
-            'region': region.id if issubclass(type(region), Base) else region,
-            'engine': engine.id if issubclass(type(engine), Base) else engine,
-            'type': ltype.id if issubclass(type(ltype), Base) else ltype,
+            "label": label,
+            "region": region.id if issubclass(type(region), Base) else region,
+            "engine": engine.id if issubclass(type(engine), Base) else engine,
+            "type": ltype.id if issubclass(type(ltype), Base) else ltype,
         }
         params.update(kwargs)
 
-        result = self.client.post('/databases/mongodb/instances', data=params)
+        result = self.client.post("/databases/mongodb/instances", data=params)
 
-        if 'id' not in result:
-            raise UnexpectedResponseError('Unexpected response when creating MongoDB Database', json=result)
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating MongoDB Database",
+                json=result,
+            )
 
-        d = MongoDBDatabase(self.client, result['id'], result)
+        d = MongoDBDatabase(self.client, result["id"], result)
         return d
 
 
 class LinodeClient:
-    def __init__(self, token, base_url="https://api.linode.com/v4", user_agent=None, page_size=None, retry_rate_limit_interval=None):
+    def __init__(
+        self,
+        token,
+        base_url="https://api.linode.com/v4",
+        user_agent=None,
+        page_size=None,
+        retry_rate_limit_interval=None,
+    ):
         """
         The main interface to the Linode API.
 
@@ -1380,7 +1468,9 @@ class LinodeClient:
             if not isinstance(self.retry_rate_limit_interval, int):
                 raise ValueError("retry_rate_limit_interval must be an int")
             if self.retry_rate_limit_interval < 1:
-                raise ValueError("retry_rate_limit_interval must not be less than 1")
+                raise ValueError(
+                    "retry_rate_limit_interval must not be less than 1"
+                )
 
         #: Access methods related to Linodes - see :any:`LinodeGroup` for
         #: more information
@@ -1418,10 +1508,10 @@ class LinodeClient:
 
     @property
     def _user_agent(self):
-        return '{}python-linode_api4/{} {}'.format(
-                '{} '.format(self._add_user_agent) if self._add_user_agent else '',
-                package_version,
-                requests.utils.default_user_agent()
+        return "{}python-linode_api4/{} {}".format(
+            "{} ".format(self._add_user_agent) if self._add_user_agent else "",
+            package_version,
+            requests.utils.default_user_agent(),
         )
 
     def load(self, target_type, target_id, target_parent_id=None):
@@ -1452,12 +1542,16 @@ class LinodeClient:
         :rtype: target_type
         :raise ApiError: if the requested object could not be loaded.
         """
-        result = target_type.make_instance(target_id, self, parent_id=target_parent_id)
+        result = target_type.make_instance(
+            target_id, self, parent_id=target_parent_id
+        )
         result._api_get()
 
         return result
 
-    def _api_call(self, endpoint, model=None, method=None, data=None, filters=None):
+    def _api_call(
+        self, endpoint, model=None, method=None, data=None, filters=None
+    ):
         """
         Makes a call to the linode api.  Data should only be given if the method is
         POST or PUT, and should be a dictionary
@@ -1470,15 +1564,15 @@ class LinodeClient:
 
         if model:
             endpoint = endpoint.format(**vars(model))
-        url = '{}{}'.format(self.base_url, endpoint)
+        url = "{}{}".format(self.base_url, endpoint)
         headers = {
-            'Authorization': "Bearer {}".format(self.token),
-            'Content-Type': 'application/json',
-            'User-Agent': self._user_agent,
+            "Authorization": "Bearer {}".format(self.token),
+            "Content-Type": "application/json",
+            "User-Agent": self._user_agent,
         }
 
         if filters:
-            headers['X-Filter'] = json.dumps(filters)
+            headers["X-Filter"] = json.dumps(filters)
 
         body = None
         if data is not None:
@@ -1489,28 +1583,37 @@ class LinodeClient:
         for attempt in range(max_retries):
             response = method(url, headers=headers, data=body)
 
-            warning = response.headers.get('Warning', None)
+            warning = response.headers.get("Warning", None)
             if warning:
-                logger.warning('Received warning from server: {}'.format(warning))
+                logger.warning(
+                    "Received warning from server: {}".format(warning)
+                )
 
             # if we were configured to retry 429s, and we got a 429, sleep briefly and then retry
             if self.retry_rate_limit_interval and response.status_code == 429:
-                logger.warning("Received 429 response; waiting {} seconds and retrying request (attempt {}/{})".format(
-                    self.retry_rate_limit_interval, attempt, max_retries,
-                ))
+                logger.warning(
+                    "Received 429 response; waiting {} seconds and retrying request (attempt {}/{})".format(
+                        self.retry_rate_limit_interval,
+                        attempt,
+                        max_retries,
+                    )
+                )
                 time.sleep(self.retry_rate_limit_interval)
             else:
                 break
 
         if 399 < response.status_code < 600:
             j = None
-            error_msg = '{}: '.format(response.status_code)
+            error_msg = "{}: ".format(response.status_code)
             try:
                 j = response.json()
-                if 'errors' in j.keys():
-                    for e in j['errors']:
-                        error_msg += '{}; '.format(e['reason']) \
-                                if 'reason' in e.keys() else ''
+                if "errors" in j.keys():
+                    for e in j["errors"]:
+                        error_msg += (
+                            "{}; ".format(e["reason"])
+                            if "reason" in e.keys()
+                            else ""
+                        )
             except:
                 pass
             raise ApiError(error_msg, status=response.status_code, json=j)
@@ -1518,11 +1621,13 @@ class LinodeClient:
         if response.status_code != 204:
             j = response.json()
         else:
-            j = None # handle no response body
+            j = None  # handle no response body
 
         return j
 
-    def _get_objects(self, endpoint, cls, model=None, parent_id=None, filters=None):
+    def _get_objects(
+        self, endpoint, cls, model=None, parent_id=None, filters=None
+    ):
         # handle non-default page sizes
         call_endpoint = endpoint
         if self.page_size is not None:
@@ -1531,17 +1636,25 @@ class LinodeClient:
         response_json = self.get(call_endpoint, model=model, filters=filters)
 
         if not "data" in response_json:
-            raise UnexpectedResponseError("Problem with response!", json=response_json)
+            raise UnexpectedResponseError(
+                "Problem with response!", json=response_json
+            )
 
-        if 'pages' in response_json:
+        if "pages" in response_json:
             formatted_endpoint = endpoint
             if model:
                 formatted_endpoint = formatted_endpoint.format(**vars(model))
-            return PaginatedList.make_paginated_list(response_json, self, cls,
-                    parent_id=parent_id, page_url=formatted_endpoint[1:],
-                    filters=filters)
-        return PaginatedList.make_list(response_json["data"], self, cls,
-                parent_id=parent_id)
+            return PaginatedList.make_paginated_list(
+                response_json,
+                self,
+                cls,
+                parent_id=parent_id,
+                page_url=formatted_endpoint[1:],
+                filters=filters,
+            )
+        return PaginatedList.make_list(
+            response_json["data"], self, cls, parent_id=parent_id
+        )
 
     def get(self, *args, **kwargs):
         return self._api_call(*args, method=self.session.get, **kwargs)
@@ -1608,13 +1721,80 @@ class LinodeClient:
         if description is not None:
             params["description"] = description
 
-        result = self.post('/images', data=params)
+        result = self.post("/images", data=params)
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating an '
-                                          'Image from disk {}'.format(disk))
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating an Image from disk {}".format(
+                    disk
+                )
+            )
 
-        return Image(self, result['id'], result)
+        return Image(self, result["id"], result)
+
+    def image_create_upload(
+        self, label: str, region: str, description: str = None
+    ) -> Tuple[Image, str]:
+        """
+        Creates a new Image and returns the corresponding upload URL.
+        https://www.linode.com/docs/api/images/#image-upload
+
+        :param label: The label of the Image to create.
+        :type label: str
+        :param region: The region to upload to. Once the image has been created, it can be used in any region.
+        :type region: str
+        :param description: The description for the new Image.
+        :type description: str
+
+        :returns: A tuple containing the new image and the image upload URL.
+        :rtype: (Image, str)
+        """
+        params = {"label": label, "region": region, "description": description}
+
+        result = self.post("/images/upload", data=drop_null_keys(params))
+
+        if "image" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating an Image upload URL"
+            )
+
+        result_image = result["image"]
+        result_url = result["upload_to"]
+
+        return Image(self, result_image["id"], result_image), result_url
+
+    def image_upload(
+        self, label: str, region: str, file: BinaryIO, description: str = None
+    ) -> Image:
+        """
+        Creates and uploads a new image.
+        https://www.linode.com/docs/api/images/#image-upload
+
+        :param label: The label of the Image to create.
+        :type label: str
+        :param region: The region to upload to. Once the image has been created, it can be used in any region.
+        :type region: str
+        :param file: The BinaryIO object to upload to the image. This is generally obtained from open("myfile", "rb").
+        :param description: The description for the new Image.
+        :type description: str
+
+        :returns: The resulting image.
+        :rtype: Image
+        """
+
+        image, url = self.image_create_upload(
+            label, region, description=description
+        )
+
+        requests.put(
+            url,
+            headers={"Content-Type": "application/octet-stream"},
+            data=file,
+        )
+
+        image._api_get()
+
+        return image
 
     def domains(self, *filters):
         """
@@ -1653,12 +1833,14 @@ class LinodeClient:
         }
         params.update(kwargs)
 
-        result = self.post('/nodebalancers', data=params)
+        result = self.post("/nodebalancers", data=params)
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating Nodebalaner!', json=result)
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating Nodebalaner!", json=result
+            )
 
-        n = NodeBalancer(self, result['id'], result)
+        n = NodeBalancer(self, result["id"], result)
         return n
 
     def domain_create(self, domain, master=True, **kwargs):
@@ -1680,17 +1862,19 @@ class LinodeClient:
         :rtype: Domain
         """
         params = {
-            'domain': domain,
-            'type': 'master' if master else 'slave',
+            "domain": domain,
+            "type": "master" if master else "slave",
         }
         params.update(kwargs)
 
-        result = self.post('/domains', data=params)
+        result = self.post("/domains", data=params)
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating Domain!', json=result)
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating Domain!", json=result
+            )
 
-        d = Domain(self, result['id'], result)
+        d = Domain(self, result["id"], result)
         return d
 
     def tags(self, *filters):
@@ -1705,8 +1889,15 @@ class LinodeClient:
         """
         return self._get_and_filter(Tag, *filters)
 
-    def tag_create(self, label, instances=None, domains=None, nodebalancers=None,
-                   volumes=None, entities=[]):
+    def tag_create(
+        self,
+        label,
+        instances=None,
+        domains=None,
+        nodebalancers=None,
+        volumes=None,
+        entities=[],
+    ):
         """
         Creates a new Tag and optionally applies it to the given entities.
 
@@ -1739,8 +1930,10 @@ class LinodeClient:
         linode_ids, nodebalancer_ids, domain_ids, volume_ids = [], [], [], []
 
         # filter input into lists of ids
-        sorter = zip((linode_ids, nodebalancer_ids, domain_ids, volume_ids),
-                     (instances, nodebalancers, domains, volumes))
+        sorter = zip(
+            (linode_ids, nodebalancer_ids, domain_ids, volume_ids),
+            (instances, nodebalancers, domains, volumes),
+        )
 
         for id_list, input_list in sorter:
             # if we got something, we need to find its ID
@@ -1763,23 +1956,25 @@ class LinodeClient:
             if type(e) in type_map:
                 type_map[type(e)].append(e.id)
             else:
-                raise ValueError('Unsupported entity type {}'.format(type(e)))
+                raise ValueError("Unsupported entity type {}".format(type(e)))
 
         # finally, omit all id lists that are empty
         params = {
-            'label': label,
-            'linodes': linode_ids or None,
-            'nodebalancers': nodebalancer_ids or None,
-            'domains': domain_ids or None,
-            'volumes': volume_ids or None,
+            "label": label,
+            "linodes": linode_ids or None,
+            "nodebalancers": nodebalancer_ids or None,
+            "domains": domain_ids or None,
+            "volumes": volume_ids or None,
         }
 
-        result = self.post('/tags', data=params)
+        result = self.post("/tags", data=params)
 
-        if not 'label' in result:
-            raise UnexpectedResponseError('Unexpected response when creating Tag!', json=result)
+        if not "label" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating Tag!", json=result
+            )
 
-        t = Tag(self, result['label'], result)
+        t = Tag(self, result["label"], result)
         return t
 
     def volumes(self, *filters):
@@ -1817,31 +2012,39 @@ class LinodeClient:
         :rtype: Volume
         """
         if not (region or linode):
-            raise ValueError('region or linode required!')
+            raise ValueError("region or linode required!")
 
         params = {
             "label": label,
             "size": size,
             "region": region.id if issubclass(type(region), Base) else region,
-            "linode_id": linode.id if issubclass(type(linode), Base) else linode,
+            "linode_id": linode.id
+            if issubclass(type(linode), Base)
+            else linode,
         }
         params.update(kwargs)
 
-        result = self.post('/volumes', data=params)
+        result = self.post("/volumes", data=params)
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating volume!', json=result)
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating volume!", json=result
+            )
 
-        v = Volume(self, result['id'], result)
+        v = Volume(self, result["id"], result)
         return v
 
     # helper functions
     def _get_and_filter(self, obj_type, *filters):
         parsed_filters = None
         if filters:
-            if(len(filters) > 1):
-                parsed_filters = and_(*filters).dct # pylint: disable=no-value-for-parameter
+            if len(filters) > 1:
+                parsed_filters = and_(
+                    *filters
+                ).dct  # pylint: disable=no-value-for-parameter
             else:
                 parsed_filters = filters[0].dct
 
-        return self._get_objects(obj_type.api_list(), obj_type, filters=parsed_filters)
+        return self._get_objects(
+            obj_type.api_list(), obj_type, filters=parsed_filters
+        )

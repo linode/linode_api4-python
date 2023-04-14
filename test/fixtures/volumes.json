@@ -9,7 +9,10 @@
       "size": 40,
       "updated": "2017-08-04T04:00:00",
       "status": "active",
-      "tags": ["something"]
+      "tags": ["something"],
+      "filesystem_path": "this/is/a/file/path",
+      "hardware_type": "hdd",
+      "linode_label": null
     },
     {
       "id": 2,
@@ -20,7 +23,10 @@
       "size": 100,
       "updated": "2017-08-07T04:00:00",
       "status": "active",
-      "tags": []
+      "tags": [],
+      "filesystem_path": "this/is/a/file/path",
+      "hardware_type": "nvme",
+      "linode_label": null
     },
     {
       "id": 3,
@@ -31,7 +37,10 @@
       "size": 200,
       "updated": "2017-08-07T04:00:00",
       "status": "active",
-      "tags": ["attached"]
+      "tags": ["attached"],
+      "filesystem_path": "this/is/a/file/path",
+      "hardware_type": "nvme",
+      "linode_label": "some_label"
     }
   ],
   "results": 3,
