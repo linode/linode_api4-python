@@ -1,0 +1,45 @@
+{
+  "data": [
+    {
+      "class": "nanode",
+      "deprecated": false,
+      "disk": 25600,
+      "engines": {
+        "mongodb": [
+          {
+            "price": {
+              "hourly": 0.03,
+              "monthly": 20
+            },
+            "quantity": 1
+          }
+        ],
+        "mysql": [
+          {
+            "price": {
+              "hourly": 0.03,
+              "monthly": 20
+            },
+            "quantity": 1
+          }
+        ],
+        "postgresql": [
+          {
+            "price": {
+              "hourly": 0.03,
+              "monthly": 20
+            },
+            "quantity": 1
+          }
+        ]
+      },
+      "id": "g6-nanode-1",
+      "label": "DBaaS - Nanode 1GB",
+      "memory": 1024,
+      "vcpus": 1
+    }
+  ],
+  "page": 1,
+  "pages": 1,
+  "results": 1
+}
