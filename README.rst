@@ -138,7 +138,12 @@ Documentation
 
 This library is documented with Sphinx_.  Docs live in the ``docs`` directory.
 The easiest way to build the docs is to run ``sphinx-autobuild`` in that
-folder.
+folder::
+
+    sphinx-autobuild docs docs/build
+
+After running this command, ``sphinx-autobuild`` will host a local web server
+with the rendered documentation.
 
 Classes and functions inside the library should be annotated with sphinx-compliant
 docstrings which will be used to automatically generate documentation for the
