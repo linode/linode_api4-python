@@ -1,3 +1,4 @@
+# isort: skip_file
 from .base import Base, Property, MappedObject, DATE_FORMAT
 from .dbase import DerivedBase
 from .filtering import and_, or_

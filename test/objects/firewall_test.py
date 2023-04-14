@@ -2,10 +2,12 @@ from test.base import ClientBaseCase
 
 from linode_api4.objects import Firewall, FirewallDevice
 
+
 class FirewallTest(ClientBaseCase):
     """
     Tests methods of the Firewall class
     """
+
     def test_get_rules(self):
         """
         Test that the rules can be retrieved from a Firewall
@@ -14,9 +16,9 @@ class FirewallTest(ClientBaseCase):
         rules = firewall.rules
 
         self.assertEqual(len(rules.inbound), 0)
-        self.assertEqual(rules.inbound_policy, 'DROP')
+        self.assertEqual(rules.inbound_policy, "DROP")
         self.assertEqual(len(rules.outbound), 0)
-        self.assertEqual(rules.outbound_policy, 'DROP')
+        self.assertEqual(rules.outbound_policy, "DROP")
 
     def test_update_rules(self):
         """
@@ -25,34 +27,30 @@ class FirewallTest(ClientBaseCase):
 
         firewall = Firewall(self.client, 123)
 
-        with self.mock_put('networking/firewalls/123/rules') as m:
+        with self.mock_put("networking/firewalls/123/rules") as m:
             new_rules = {
-                'inbound': [
+                "inbound": [
                     {
-                        'action': 'ACCEPT',
-                        'addresses': {
-                            'ipv4': [
-                                '0.0.0.0/0'
-                            ],
-                            'ipv6': [
-                                "ff00::/8"
-                            ]
+                        "action": "ACCEPT",
+                        "addresses": {
+                            "ipv4": ["0.0.0.0/0"],
+                            "ipv6": ["ff00::/8"],
                         },
-                        'description': 'A really cool firewall rule.',
-                        'label': 'really-cool-firewall-rule',
-                        'ports': '80',
-                        'protocol': 'TCP'
+                        "description": "A really cool firewall rule.",
+                        "label": "really-cool-firewall-rule",
+                        "ports": "80",
+                        "protocol": "TCP",
                     }
                 ],
-                'inbound_policy': 'ALLOW',
-                'outbound': [],
-                'outbound_policy': 'ALLOW'
+                "inbound_policy": "ALLOW",
+                "outbound": [],
+                "outbound_policy": "ALLOW",
             }
 
             firewall.update_rules(new_rules)
 
-            self.assertEqual(m.method, 'put')
-            self.assertEqual(m.call_url, '/networking/firewalls/123/rules')
+            self.assertEqual(m.method, "put")
+            self.assertEqual(m.call_url, "/networking/firewalls/123/rules")
 
             self.assertEqual(m.call_data, new_rules)
 
@@ -61,6 +59,7 @@ class FirewallDevicesTest(ClientBaseCase):
     """
     Tests methods of Firewall devices
     """
+
     def test_get_devices(self):
         """
         Tests that devices can be pulled from a firewall
@@ -77,8 +76,8 @@ class FirewallDevicesTest(ClientBaseCase):
 
         self.assertEqual(device.id, 123)
         self.assertEqual(device.entity.id, 123)
-        self.assertEqual(device.entity.label, 'my-linode')
-        self.assertEqual(device.entity.type, 'linode')
-        self.assertEqual(device.entity.url, '/v4/linode/instances/123')
+        self.assertEqual(device.entity.label, "my-linode")
+        self.assertEqual(device.entity.type, "linode")
+        self.assertEqual(device.entity.url, "/v4/linode/instances/123")
 
         self.assertEqual(device._populated, True)

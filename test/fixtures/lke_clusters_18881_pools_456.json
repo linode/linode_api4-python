@@ -1,0 +1,27 @@
+{
+    "autoscaler": {
+      "enabled": true,
+      "max": 12,
+      "min": 3
+    },
+    "count": 6,
+    "disks": [
+      {
+        "size": 1024,
+        "type": "ext-4"
+      }
+    ],
+    "id": 456,
+    "nodes": [
+      {
+        "id": "123456",
+        "instance_id": 123458,
+        "status": "ready"
+      }
+    ],
+    "tags": [
+      "example tag",
+      "another example"
+    ],
+    "type": "g6-standard-4"
+  }
