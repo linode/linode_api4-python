@@ -733,6 +733,127 @@ class AccountGroup(Group):
         """
         return self.client._get_and_filter(User, *filters)
 
+    def list_logins(self):
+        """
+        Returns a collection of successful logins for all users on the account during the last 90 days.
+        """
+
+        result = self.client.get(
+            "{}/logins".format(Account.api_endpoint), model=self
+        )
+
+        return result["data"]
+
+    def maintenance_list(self):
+        """
+        Returns a collection of Maintenance objects for any entity a user has permissions to view. Cancelled Maintenance objects are not returned.
+        """
+
+        result = self.client.get(
+            "{}/maintenance".format(Account.api_endpoint), model=self
+        )
+
+        return result["data"]
+
+    def payment_methods_list(self):
+        """
+        Returns a  list of Payment Methods for this Account.
+        """
+
+        result = self.client.get(
+            "{}/payment-methods".format(Account.api_endpoint), model=self
+        )
+
+        return result["data"]
+
+    def add_payment_method(self, data, is_default, type):
+        """
+        Adds a Payment Method to your Account with the option to set it as the default method.
+        """
+
+        if type != "credit_card":
+            raise ValueError("Unknown Payment Method type: {}".format(type))
+
+        if (
+            "card_number" not in data["data"]
+            or "expiry_month" not in data["data"]
+            or "expiry_year" not in data["data"]
+            or "cvv" not in data["data"]
+            or not data["data"]
+        ):
+            raise ValueError("Invalid credit card info provided")
+
+        params = {"data": data, "type": type, "is_default": is_default}
+
+        self.client.post(
+            "{}/payment-methods".format(Account.api_endpoint),
+            model=self,
+            data=params,
+        )
+
+    def notification_list(self):
+        """
+        Returns a collection of Notification objects representing important, often time-sensitive items related to your Account.
+        """
+
+        result = self.client.get(
+            "{}/notifications".format(Account.api_endpoint), model=self
+        )
+
+        return result["data"]
+
+    def linode_managed_enable(self):
+        """
+        Enables Linode Managed for the entire account and sends a welcome email to the account’s associated email address.
+        """
+
+        self.client.post(
+            "{}/settings/managed-enable".format(Account.api_endpoint),
+            model=self,
+        )
+
+    def add_promo_code(self, promo_code):
+        """
+        Adds an expiring Promo Credit to your account.
+        """
+
+        params = {
+            "promo_code": promo_code,
+        }
+
+        self.client.post(
+            "{}/promo-codes".format(Account.api_endpoint),
+            model=self,
+            data=params,
+        )
+
+    def service_transfers_list(self):
+        """
+        Returns a collection of all created and accepted Service Transfers for this account, regardless of the user that created or accepted the transfer.
+        """
+
+        result = self.client.get(
+            "{}/service-transfers".format(Account.api_endpoint), model=self
+        )
+
+        return result["data"]
+
+    def service_transfer_create(self, entities):
+        """
+        Creates a transfer request for the specified services.
+        """
+
+        if not entities["entities"] or "linodes" not in entities["entities"]:
+            raise ValueError("Invalid entities provided: {}".format(entities))
+
+        params = {"entities": entities}
+
+        self.client.post(
+            "{}/service-transfers".format(Account.api_endpoint),
+            model=self,
+            data=params,
+        )
+
     def transfer(self):
         """
         Returns a MappedObject containing the account's transfer pool data

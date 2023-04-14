@@ -285,6 +285,82 @@ class AccountGroupTest(ClientBaseCase):
         self.assertEqual(invoice.label, "Invoice #123456")
         self.assertEqual(invoice.total, 9.51)
 
+    def test_list_logins(self):
+        with self.mock_get("/account/logins") as m:
+            result = self.client.account.list_logins()
+            self.assertEqual(m.call_url, "/account/logins")
+            self.assertEqual(len(result), 1)
+
+    def test_maintenance_list(self):
+        with self.mock_get("/account/maintenance") as m:
+            result = self.client.account.maintenance_list()
+            self.assertEqual(m.call_url, "/account/maintenance")
+            self.assertEqual(len(result), 1)
+
+    def test_notification_list(self):
+        with self.mock_get("/account/notifications") as m:
+            result = self.client.account.notification_list()
+            self.assertEqual(m.call_url, "/account/notifications")
+            self.assertEqual(len(result), 1)
+
+    def test_payment_methods_list(self):
+        with self.mock_get("/account/payment-methods") as m:
+            result = self.client.account.payment_methods_list()
+            self.assertEqual(m.call_url, "/account/payment-methods")
+            self.assertEqual(len(result), 1)
+
+    def test_add_payment_method(self):
+        with self.mock_post({}) as m:
+            self.client.account.add_payment_method(
+                {
+                    "data": {
+                        "card_number": "123456789100",
+                        "expiry_month": 1,
+                        "expiry_year": 2028,
+                        "cvv": 111,
+                    }
+                },
+                True,
+                "credit_card",
+            )
+            self.assertEqual(m.call_url, "/account/payment-methods")
+            self.assertEqual(m.call_data["type"], "credit_card")
+            self.assertTrue(m.call_data["is_default"])
+            self.assertIsNotNone(m.call_data["data"])
+
+    def test_add_promo_code(self):
+        with self.mock_post("/account/promo-codes") as m:
+            self.client.account.add_promo_code("123promo456")
+            self.assertEqual(m.call_url, "/account/promo-codes")
+            self.assertEqual(m.call_data["promo_code"], "123promo456")
+
+    def test_service_transfers_list(self):
+        with self.mock_get("/account/service-transfers") as m:
+            result = self.client.account.service_transfers_list()
+            self.assertEqual(m.call_url, "/account/service-transfers")
+            self.assertEqual(len(result), 1)
+
+    def test_linode_managed_enable(self):
+        with self.mock_post({}) as m:
+            self.client.account.linode_managed_enable()
+            self.assertEqual(m.call_url, "/account/settings/managed-enable")
+
+    def test_service_transfer_create(self):
+        data = {"entities": {"linodes": [111, 222]}}
+        response = {
+            "created": "2021-02-11T16:37:03",
+            "entities": {"linodes": [111, 222]},
+            "expiry": "2021-02-12T16:37:03",
+            "is_sender": True,
+            "status": "pending",
+            "token": "123E4567-E89B-12D3-A456-426614174000",
+            "updated": "2021-02-11T16:37:03",
+        }
+
+        with self.mock_post(response) as m:
+            self.client.account.service_transfer_create(data)
+            self.assertEqual(m.call_url, "/account/service-transfers")
+
     def test_payments(self):
         """
         Tests that payments can be retrieved
