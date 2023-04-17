@@ -1007,12 +1007,12 @@ class NetworkingGroup(Group):
 
     def ip_addresses_share(self, ips, linode_id):
         """
-        Configure shared IPs. P sharing allows IP address reassignment 
-        (also referred to as IP failover) from one Linode to another if the 
-        primary Linode becomes unresponsive. This means that requests to the primary Linode’s 
+        Configure shared IPs. P sharing allows IP address reassignment
+        (also referred to as IP failover) from one Linode to another if the
+        primary Linode becomes unresponsive. This means that requests to the primary Linode’s
         IP address can be automatically rerouted to secondary Linodes at the configured shared IP addresses.
 
-        :param linode_id: The id of the Instance to share the IPAddresses with.  
+        :param linode_id: The id of the Instance to share the IPAddresses with.
                        This Instance will be able to bring up the given addresses.
         :type: linode_id: int
         :param ips: Any number of IPAddresses to share to the Instance.
@@ -1030,7 +1030,7 @@ class NetworkingGroup(Group):
 
     def ip_addresses_assign(self, assignments, region):
         """
-        Assign multiple IPv4 addresses and/or IPv6 ranges to multiple Linodes in one Region. 
+        Assign multiple IPv4 addresses and/or IPv6 ranges to multiple Linodes in one Region.
         This allows swapping, shuffling, or otherwise reorganizing IPs to your Linodes.
 
         The following restrictions apply:

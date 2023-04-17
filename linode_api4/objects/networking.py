@@ -26,6 +26,7 @@ class IPv6Pool(Base):
         else:
             raise LookupError("Could not find IPv6 pool with provided range.")
 
+
 class IPv6Range(Base):
     api_endpoint = "/networking/ipv6/ranges/{range}"
     id_attribute = "range"
