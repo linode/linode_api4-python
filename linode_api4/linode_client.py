@@ -733,18 +733,14 @@ class AccountGroup(Group):
         """
         return self.client._get_and_filter(User, *filters)
 
-    def list_logins(self):
+    def logins(self):
         """
         Returns a collection of successful logins for all users on the account during the last 90 days.
         """
 
-        result = self.client.get(
-            "{}/logins".format(Account.api_endpoint), model=self
-        )
+        return self.client._get_and_filter(Login)
 
-        return result["data"]
-
-    def maintenance_list(self):
+    def maintenance(self):
         """
         Returns a collection of Maintenance objects for any entity a user has permissions to view. Cancelled Maintenance objects are not returned.
         """
@@ -753,18 +749,14 @@ class AccountGroup(Group):
             "{}/maintenance".format(Account.api_endpoint), model=self
         )
 
-        return result["data"]
+        return [MappedObject(**r) for r in result["data"]]
 
-    def payment_methods_list(self):
+    def payment_methods(self):
         """
         Returns a  list of Payment Methods for this Account.
         """
 
-        result = self.client.get(
-            "{}/payment-methods".format(Account.api_endpoint), model=self
-        )
-
-        return result["data"]
+        return self.client._get_and_filter(PaymentMethod)
 
     def add_payment_method(self, data, is_default, type):
         """
@@ -791,7 +783,7 @@ class AccountGroup(Group):
             data=params,
         )
 
-    def notification_list(self):
+    def notifications(self):
         """
         Returns a collection of Notification objects representing important, often time-sensitive items related to your Account.
         """
@@ -800,7 +792,7 @@ class AccountGroup(Group):
             "{}/notifications".format(Account.api_endpoint), model=self
         )
 
-        return result["data"]
+        return [MappedObject(**r) for r in result["data"]]
 
     def linode_managed_enable(self):
         """
@@ -827,16 +819,12 @@ class AccountGroup(Group):
             data=params,
         )
 
-    def service_transfers_list(self):
+    def service_transfers(self):
         """
         Returns a collection of all created and accepted Service Transfers for this account, regardless of the user that created or accepted the transfer.
         """
 
-        result = self.client.get(
-            "{}/service-transfers".format(Account.api_endpoint), model=self
-        )
-
-        return result["data"]
+        return self.client._get_and_filter(ServiceTransfer)
 
     def service_transfer_create(self, entities):
         """

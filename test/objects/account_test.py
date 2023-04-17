@@ -10,9 +10,12 @@ from linode_api4.objects import (
     Image,
     Instance,
     Invoice,
+    Login,
     LongviewClient,
     NodeBalancer,
     OAuthClient,
+    PaymentMethod,
+    ServiceTransfer,
     StackScript,
     User,
     Volume,
@@ -81,6 +84,15 @@ class InvoiceTest(ClientBaseCase):
         self.assertEqual(account.billing_source, "akamai")
         self.assertEqual(account.euuid, "E1AF5EEC-526F-487D-B317EBEB34C87D71")
 
+    def test_get_login(self):
+        login = Login(self.client, 123)
+
+        self.assertEqual(login.id, 123)
+        self.assertEqual(login.ip, "192.0.2.0")
+        self.assertEqual(login.restricted, True)
+        self.assertEqual(login.status, "successful")
+        self.assertEqual(login.username, "test-user")
+
     def test_get_account_settings(self):
         settings = AccountSettings(self.client, False, {})
 
@@ -144,6 +156,20 @@ class InvoiceTest(ClientBaseCase):
         self.assertTrue(user.tfa_enabled)
         self.assertIsNotNone(user.ssh_keys)
 
+    def test_get_service_transfer(self):
+        serviceTransfer = ServiceTransfer(self.client, "12345")
+
+        self.assertEqual(serviceTransfer.token, "12345")
+        self.assertTrue(serviceTransfer.is_sender)
+        self.assertEqual(serviceTransfer.status, "pending")
+
+    def test_get_payment_method(self):
+        paymentMethod = PaymentMethod(self.client, 123)
+
+        self.assertEqual(paymentMethod.id, 123)
+        self.assertTrue(paymentMethod.is_default)
+        self.assertEqual(paymentMethod.type, "credit_card")
+
     def test_get_user_grant(self):
         grants = get_obj_grants()
 
@@ -156,55 +182,20 @@ class InvoiceTest(ClientBaseCase):
         self.assertTrue(grants.count(("longview", LongviewClient)) > 0)
         self.assertTrue(grants.count(("database", Database)) > 0)
 
-    def test_view_login(self):
-        account = Account(self.client, "support@linode.com", {})
-
-        with self.mock_get("/account/logins/123") as m:
-            result = account.view_login(123)
-            self.assertEqual(m.call_url, "/account/logins/123")
-            self.assertEqual(result["id"], 123)
-            self.assertEqual(result["ip"], "192.0.2.0")
-            self.assertTrue(result["restricted"])
-            self.assertEqual(result["status"], "successful")
-            self.assertEqual(result["username"], "test-user")
-
-    def test_payment_method_view(self):
-        account = Account(self.client, "support@linode.com", {})
-
-        with self.mock_get("/account/payment-methods/123") as m:
-            result = account.payment_method_view(123)
-            self.assertEqual(m.call_url, "/account/payment-methods/123")
-            self.assertEqual(result["id"], 123)
-            self.assertIsNotNone(result["data"])
-            self.assertTrue(result["is_default"])
-            self.assertEqual(result["type"], "credit_card")
-
     def test_payment_method_make_default(self):
-        account = Account(self.client, "support@linode.com", {})
+        paymentMethod = PaymentMethod(self.client, 123)
 
         with self.mock_post({}) as m:
-            account.payment_method_make_default(123)
+            paymentMethod.payment_method_make_default()
             self.assertEqual(
                 m.call_url, "/account/payment-methods/123/make-default"
             )
 
-    def test_service_transfer_view(self):
-        account = Account(self.client, "support@linode.com", {})
-
-        with self.mock_get("/account/service-transfers/12345") as m:
-            result = account.service_transfer_view(12345)
-            self.assertEqual(m.call_url, "/account/service-transfers/12345")
-            self.assertEqual(m.call_data["token"], 12345)
-            self.assertEqual(result["token"], "12345")
-            self.assertEqual(result["status"], "pending")
-            self.assertTrue(result["is_sender"])
-            self.assertIsNotNone(result["entities"])
-
     def test_service_transfer_accept(self):
-        account = Account(self.client, "support@linode.com", {})
+        serviceTransfer = ServiceTransfer(self.client, "12345")
 
         with self.mock_post({}) as m:
-            account.service_transfer_accept(123)
+            serviceTransfer.service_transfer_accept()
             self.assertEqual(
-                m.call_url, "/account/service-transfers/123/accept"
+                m.call_url, "/account/service-transfers/12345/accept"
             )

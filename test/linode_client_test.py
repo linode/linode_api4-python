@@ -285,29 +285,34 @@ class AccountGroupTest(ClientBaseCase):
         self.assertEqual(invoice.label, "Invoice #123456")
         self.assertEqual(invoice.total, 9.51)
 
-    def test_list_logins(self):
-        with self.mock_get("/account/logins") as m:
-            result = self.client.account.list_logins()
-            self.assertEqual(m.call_url, "/account/logins")
-            self.assertEqual(len(result), 1)
+    def test_logins(self):
+        logins = self.client.account.logins()
+        self.assertEqual(len(logins), 1)
+        self.assertEqual(logins[0].id, 1234)
 
-    def test_maintenance_list(self):
+    def test_maintenance(self):
         with self.mock_get("/account/maintenance") as m:
-            result = self.client.account.maintenance_list()
+            result = self.client.account.maintenance()
             self.assertEqual(m.call_url, "/account/maintenance")
             self.assertEqual(len(result), 1)
+            self.assertEqual(
+                result[0].reason,
+                "This maintenance will allow us to update the BIOS on the host's motherboard.",
+            )
 
-    def test_notification_list(self):
+    def test_notifications(self):
         with self.mock_get("/account/notifications") as m:
-            result = self.client.account.notification_list()
+            result = self.client.account.notifications()
             self.assertEqual(m.call_url, "/account/notifications")
             self.assertEqual(len(result), 1)
+            self.assertEqual(
+                result[0].label, "You have an important ticket open!"
+            )
 
-    def test_payment_methods_list(self):
-        with self.mock_get("/account/payment-methods") as m:
-            result = self.client.account.payment_methods_list()
-            self.assertEqual(m.call_url, "/account/payment-methods")
-            self.assertEqual(len(result), 1)
+    def test_payment_methods(self):
+        paymentMethods = self.client.account.payment_methods()
+        self.assertEqual(len(paymentMethods), 1)
+        self.assertEqual(paymentMethods[0].id, 123)
 
     def test_add_payment_method(self):
         with self.mock_post({}) as m:
@@ -334,11 +339,12 @@ class AccountGroupTest(ClientBaseCase):
             self.assertEqual(m.call_url, "/account/promo-codes")
             self.assertEqual(m.call_data["promo_code"], "123promo456")
 
-    def test_service_transfers_list(self):
-        with self.mock_get("/account/service-transfers") as m:
-            result = self.client.account.service_transfers_list()
-            self.assertEqual(m.call_url, "/account/service-transfers")
-            self.assertEqual(len(result), 1)
+    def test_service_transfers(self):
+        serviceTransfers = self.client.account.service_transfers()
+        self.assertEqual(len(serviceTransfers), 1)
+        self.assertEqual(
+            serviceTransfers[0].token, "123E4567-E89B-12D3-A456-426614174000"
+        )
 
     def test_linode_managed_enable(self):
         with self.mock_post({}) as m:

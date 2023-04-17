@@ -46,39 +46,6 @@ class Account(Base):
         "euuid": Property(),
     }
 
-    def view_login(self, login_id):
-        """
-        Returns a Login object that displays information about a successful login.
-        """
-
-        result = self._client.get(
-            "{}/logins/{}".format(self.api_endpoint, login_id), model=self
-        )
-
-        return result
-
-    def payment_method_view(self, paymentMethodId):
-        """
-        View the details of the specified Payment Method.
-        """
-
-        return self._client.get(
-            "{}/payment-methods/{}".format(self.api_endpoint, paymentMethodId),
-            model=self,
-        )
-
-    def payment_method_make_default(self, paymentMethodId):
-        """
-        Make the specified Payment Method the default method for automatically processing payments.
-        """
-
-        self._client.post(
-            "{}/payment-methods/{}/make-default".format(
-                self.api_endpoint, paymentMethodId
-            ),
-            model=self,
-        )
-
     def add_promo_code(self, promo_code):
         """
         Adds an expiring Promo Credit to your account.
@@ -92,58 +59,62 @@ class Account(Base):
             "{}/promo-codes".format(self.api_endpoint), model=self, data=params
         )
 
-    def service_transfers_list(self):
-        """
-        Returns a collection of all created and accepted Service Transfers for this account, regardless of the user that created or accepted the transfer.
-        """
 
-        result = self._client.get(
-            "{}/service-transfers".format(self.api_endpoint), model=self
-        )
+class ServiceTransfer(Base):
+    api_endpoint = "/account/service-transfers/{token}"
+    id_attribute = "token"
+    properties = {
+        "token": Property(identifier=True),
+        "created": Property(is_datetime=True),
+        "updated": Property(is_datetime=True),
+        "is_sender": Property(),
+        "expiry": Property(),
+        "status": Property(),
+        "entities": Property(),
+    }
 
-        return result["data"]
-
-    def service_transfer_create(self, entities):
-        """
-        Creates a transfer request for the specified services.
-        """
-
-        if not entities["entities"] or "linodes" not in entities["entities"]:
-            raise ValueError("Invalid entities provided: {}".format(entities))
-
-        params = {"entities": entities}
-
-        self._client.post(
-            "{}/service-transfers".format(self.api_endpoint),
-            model=self,
-            data=params,
-        )
-
-    def service_transfer_view(self, token):
-        """
-        Returns the details of the Service Transfer for the provided token.
-        """
-
-        params = {"token": token}
-
-        return self._client.get(
-            "{}/service-transfers/{}".format(self.api_endpoint, token),
-            model=self,
-            data=params,
-        )
-
-    def service_transfer_accept(self, token):
+    def service_transfer_accept(self):
         """
         Accept a Service Transfer for the provided token to receive the services included in the transfer to your account.
         """
 
-        params = {"token": token}
+        self._client.post(
+            "{}/accept".format(self.api_endpoint),
+            model=self,
+        )
+
+
+class PaymentMethod(Base):
+    api_endpoint = "/account/payment-methods/{id}"
+    properties = {
+        "id": Property(identifier=True),
+        "created": Property(is_datetime=True),
+        "is_default": Property(),
+        "type": Property(),
+        "data": Property(),
+    }
+
+    def payment_method_make_default(self):
+        """
+        Make this Payment Method the default method for automatically processing payments.
+        """
 
         self._client.post(
-            "{}/service-transfers/{}/accept".format(self.api_endpoint, token),
+            "{}/make-default".format(self.api_endpoint),
             model=self,
-            data=params,
         )
+
+
+class Login(Base):
+    api_endpoint = "/account/logins/{id}"
+    properties = {
+        "id": Property(identifier=True),
+        "datetime": Property(is_datetime=True),
+        "ip": Property(),
+        "restricted": Property(),
+        "status": Property(),
+        "username": Property(),
+    }
 
 
 class AccountSettings(Base):
