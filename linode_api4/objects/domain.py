@@ -71,10 +71,8 @@ class Domain(Base):
 
         return result["zone_file"]
 
-    def domain_clone(self, domain):
-        params = {
-            "domain": domain.domain if isinstance(domain, Domain) else domain
-        }
+    def domain_clone(self, domain: str):
+        params = {"domain": domain}
 
         self._client.post(
             "{}/clone".format(self.api_endpoint), model=self, data=params

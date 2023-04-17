@@ -39,11 +39,6 @@ class DomainGeneralTest(ClientBaseCase):
             self.assertEqual(m.call_url, "/domains/12345/clone")
             self.assertEqual(m.call_data["domain"], "example.org")
 
-        with self.mock_post("/domains/12345/clone") as m:
-            domain.domain_clone(domain)
-            self.assertEqual(m.call_url, "/domains/12345/clone")
-            self.assertEqual(m.call_data["domain"], "example.org")
-
     def test_domain_import(self):
         domain = Domain(self.client, 12345)
 
