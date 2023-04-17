@@ -31,15 +31,15 @@ class DomainGeneralTest(ClientBaseCase):
             self.assertEqual(m.call_url, "/domains/12345/zone-file")
             self.assertIsNotNone(result)
 
-    def test_domain_clone(self):
+    def test_clone(self):
         domain = Domain(self.client, 12345)
 
         with self.mock_post("/domains/12345/clone") as m:
-            domain.domain_clone("example.org")
+            domain.clone("example.org")
             self.assertEqual(m.call_url, "/domains/12345/clone")
             self.assertEqual(m.call_data["domain"], "example.org")
 
-    def test_domain_import(self):
+    def test_import(self):
         domain = Domain(self.client, 12345)
 
         with self.mock_post("/domains/import") as m:

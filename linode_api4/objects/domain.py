@@ -71,7 +71,7 @@ class Domain(Base):
 
         return result["zone_file"]
 
-    def domain_clone(self, domain: str):
+    def clone(self, domain: str):
         params = {"domain": domain}
 
         self._client.post(
