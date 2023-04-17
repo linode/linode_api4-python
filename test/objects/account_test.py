@@ -156,13 +156,6 @@ class InvoiceTest(ClientBaseCase):
         self.assertTrue(grants.count(("longview", LongviewClient)) > 0)
         self.assertTrue(grants.count(("database", Database)) > 0)
 
-    def test_event_seen(self):
-        account = Account(self.client, "support@linode.com", {})
-
-        with self.mock_post({}) as m:
-            account.event_seen(123)
-            self.assertEqual(m.call_url, "/account/events/123/seen")
-
     def test_view_login(self):
         account = Account(self.client, "support@linode.com", {})
 

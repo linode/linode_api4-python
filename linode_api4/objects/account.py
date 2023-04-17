@@ -46,15 +46,6 @@ class Account(Base):
         "euuid": Property(),
     }
 
-    def event_seen(self, event_id):
-        """
-        Marks all Events up to and including this Event by ID as seen.
-        """
-
-        self._client.post(
-            "{}/events/{}/seen".format(self.api_endpoint, event_id), model=self
-        )
-
     def view_login(self, login_id):
         """
         Returns a Login object that displays information about a successful login.
