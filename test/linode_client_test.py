@@ -728,15 +728,13 @@ class NetworkingGroupTest(ClientBaseCase):
             )
             self.assertEqual(m.call_data["region"], "us-east")
 
-    def test_ip_ranges_list(self):
+    def test_ipv6_ranges(self):
         """
-        Tests that you can submit a correct ip ranges list api request.
+        Tests that IPRanges can be retrieved
         """
-
-        with self.mock_post("/networking/ipv6/ranges") as m:
-            result = self.client.networking.ip_ranges_list()
-            self.assertEqual(m.call_url, "/networking/ipv6/ranges")
-            self.assertEqual(len(result), 1)
+        ranges = self.client.networking.ipv6_ranges()
+        self.assertEqual(len(ranges), 1)
+        self.assertEqual(ranges[0].range, "2600:3c01::")
 
 
 class LinodeClientRateLimitRetryTest(TestCase):
