@@ -5,8 +5,8 @@ The official python library for the `Linode API v4`_ in python.
 
 .. _Linode API v4: https://developers.linode.com/api/v4/
 
-.. image:: https://travis-ci.com/linode/linode_api4-python.svg?branch=master
-    :target: https://travis-ci.com/linode/linode_api4-python
+.. image:: https://img.shields.io/github/actions/workflow/status/linode/linode_api4-python/main.yml?label=tests
+    :target: https://img.shields.io/github/actions/workflow/status/linode/linode_api4-python/main.yml?label=tests
 
 .. image:: https://badge.fury.io/py/linode-api4.svg
    :target: https://badge.fury.io/py/linode-api4
