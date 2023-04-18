@@ -746,6 +746,209 @@ class ObjectStorageGroupTest(ClientBaseCase):
             self.assertEqual(m.call_data, {"label": "object-storage-key-1"})
 
 
+    def test_transfer(self):
+        """
+        Test that you can get the amount of outbound data transfer 
+        used by your account’s Object Storage buckets
+        """
+        object_storage_transfer_url = "/object-storage/transfer"
+
+        with self.mock_get(object_storage_transfer_url) as m:
+            result = self.client.object_storage.transfer()
+            self.assertEqual(result.used, 12956600198)
+            self.assertEqual(m.call_url, object_storage_transfer_url)
+
+    def test_buckets(self):
+        """
+        Test that Object Storage Buckets can be reterived
+        """
+        object_storage_buckets_url = "/object-storage/buckets"
+
+        with self.mock_get(object_storage_buckets_url) as m:
+            buckets = self.client.object_storage.buckets()
+            self.assertIsNotNone(buckets)
+            bucket = buckets[0]
+
+            self.assertEqual(m.call_url, object_storage_buckets_url)
+            self.assertEqual(bucket.cluster, "us-east-1")
+            self.assertEqual(bucket.created, datetime(year=2019, month=1, day=1, hour=1, minute=23, second=45))
+            self.assertEqual(bucket.hostname, "example-bucket.us-east-1.linodeobjects.com")
+            self.assertEqual(bucket.label, "example-bucket")
+            self.assertEqual(bucket.objects, 4)
+            self.assertEqual(bucket.size, 188318981)
+
+    def test_bucket_create(self):
+        """
+        Test that you can create a Object Storage Bucket
+        """
+        # buckets don't work like a normal RESTful collection, so we have to do this
+        with self.mock_post({'label':'example-bucket'}) as m:
+            b = self.client.object_storage.bucket_create("us-east-1", "example-bucket", "private", True)
+            self.assertIsNotNone(b)
+            self.assertEqual(m.call_url, "/object-storage/buckets")
+            self.assertEqual(m.call_data, {
+                "label": "example-bucket",
+                "cluster": "us-east-1",
+                "cors_enabled": True,
+                "acl": "private",
+            })
+
+    def test_buckets_in_cluster(self):
+        """
+        Test that Object Storage Buckets in a specified cluster can be reterived
+        """
+        buckets_in_cluster_url = "/object-storage/buckets/us-east-1"
+        with self.mock_get(buckets_in_cluster_url) as m:
+            buckets = self.client.object_storage.buckets_in_cluster("us-east-1")
+            self.assertIsNotNone(buckets)
+            bucket = buckets[0]
+            
+            self.assertEqual(m.call_url, buckets_in_cluster_url)
+            self.assertEqual(bucket.cluster, "us-east-1")
+            self.assertEqual(bucket.created, datetime(year=2019, month=1, day=1, hour=1, minute=23, second=45))
+            self.assertEqual(bucket.hostname, "example-bucket.us-east-1.linodeobjects.com")
+            self.assertEqual(bucket.label, "example-bucket")
+            self.assertEqual(bucket.objects, 4)
+            self.assertEqual(bucket.size, 188318981)
+
+    def test_bucket_delete(self):
+        """
+        Test that you can delete a Object Storage Bucket
+        """
+        object_storage_bucket_delete_url = "/object-storage/buckets/us-east-1/example-bucket"
+        with self.mock_delete() as m:
+            self.client.object_storage.bucket_delete("us-east-1", "example-bucket")
+            self.assertEqual(m.call_url, object_storage_bucket_delete_url)
+
+    def test_bucket_access_modify(self):
+        """
+        Test that you can modify bucket access settings.
+        """
+        bucket_access_modify_url = "/object-storage/buckets/us-east-1/example-bucket/access"
+        with self.mock_post({}) as m:
+            self.client.object_storage.bucket_access_modify("us-east-1", "example-bucket", "private", True)
+            self.assertEqual(m.call_data, {
+                "acl": "private",
+                "cors_enabled": True,
+            })
+            self.assertEqual(m.call_url, bucket_access_modify_url)
+    
+    def test_bucket_access_update(self):
+        """
+        Test that you can update bucket access settings.
+        """
+        bucket_access_update_url = "/object-storage/buckets/us-east-1/example-bucket/access"
+        with self.mock_put({}) as m:
+            self.client.object_storage.bucket_access_update("us-east-1", "example-bucket", "private", True)
+            self.assertEqual(m.call_data, {
+                "acl": "private",
+                "cors_enabled": True,
+            })
+            self.assertEqual(m.call_url, bucket_access_update_url)
+
+    def test_object_acl_config(self):
+        """
+        Test that you can view an Object’s configured Access Control List (ACL) in this Object Storage bucket.
+        """
+        object_acl_config_url = "/object-storage/buckets/us-east-1/example-bucket/object-acl"
+        with self.mock_get(object_acl_config_url) as m:
+            acl = self.client.object_storage.object_acl_config("us-east-1", "example-bucket", "example")
+            self.assertEqual(m.call_url, object_acl_config_url)
+            self.assertEqual(acl.acl, "public-read")
+            self.assertEqual(acl.acl_xml, "<AccessControlPolicy>...</AccessControlPolicy>")
+            self.assertEqual(m.call_data, {
+                "name": "example",
+            })
+
+    def test_object_acl_config_update(self):
+        """
+        Test that you can update an Object’s configured Access Control List (ACL) in this Object Storage bucket.
+        """
+        object_acl_config_update_url = "/object-storage/buckets/us-east-1/example-bucket/object-acl"
+        with self.mock_put(object_acl_config_update_url) as m:
+            acl = self.client.object_storage.object_acl_config_update("us-east-1", "example-bucket", "public-read", "example")
+            self.assertEqual(m.call_url, object_acl_config_update_url)
+            self.assertEqual(acl.acl, "public-read")
+            self.assertEqual(acl.acl_xml, "<AccessControlPolicy>...</AccessControlPolicy>")
+            self.assertEqual(m.call_data, {
+                "acl": "public-read",
+                "name": "example",
+            })
+
+    def test_bucket_contents(self):
+        """
+        Test that you can get the contents of a bucket.
+        """
+        bucket_contents_url = "/object-storage/buckets/us-east-1/example-bucket/object-list"
+        with self.mock_get(bucket_contents_url) as m:
+            contents = self.client.object_storage.bucket_contents("us-east-1", "example-bucket")
+            self.assertIsNotNone(contents)
+            content = contents[0]
+
+            self.assertEqual(m.call_url, bucket_contents_url)
+            self.assertEqual(content.etag, "9f254c71e28e033bf9e0e5262e3e72ab")
+            self.assertEqual(content.is_truncated, True)
+            self.assertEqual(content.last_modified, "2019-01-01T01:23:45")
+            self.assertEqual(content.name, "example")
+            self.assertEqual(content.next_marker, "bd021c21-e734-4823-97a4-58b41c2cd4c8.892602.184")
+            self.assertEqual(content.owner, "bfc70ab2-e3d4-42a4-ad55-83921822270c")
+            self.assertEqual(content.size, 123)
+            self.assertEqual(m.call_data, {
+                "page_size": 100,
+            })
+
+    def test_object_url_create(self):
+        """
+        Test that you can create pre-signed URL to access a single Object in a bucket.
+        """
+        object_url_create_url = "/object-storage/buckets/us-east-1/example-bucket/object-url"
+        with self.mock_post(object_url_create_url) as m:
+            result = self.client.object_storage.object_url_create("us-east-1", "example-bucket", "GET", "example")
+            self.assertIsNotNone(result)
+            self.assertEqual(m.call_url, object_url_create_url)
+            self.assertEqual(result.url, "https://us-east-1.linodeobjects.com/example-bucket/example?Signature=qr98TEucCntPgEG%2BsZQGDsJg93c%3D&Expires=1567609905&AWSAccessKeyId=G4YAF81XWY61DQM94SE0")
+            self.assertEqual(m.call_data, {
+                "method": "GET",
+                "name": "example",
+                "expires_in": 3600,
+            })
+
+    def test_ssl_cert_delete(self):
+        """
+        Test that you can delete the TLS/SSL certificate and private key of a bucket.
+        """
+        ssl_cert_delete_url = "/object-storage/buckets/us-east-1/example-bucket/ssl"
+        with self.mock_delete() as m:
+            self.client.object_storage.ssl_cert_delete("us-east-1", "example-bucket")
+            self.assertEqual(m.call_url, ssl_cert_delete_url)
+
+    def test_ssl_cert(self):
+        """
+        Test tha you can get a boolean value indicating if this bucket 
+        has a corresponding TLS/SSL certificate.
+        """
+        ssl_cert_url = "/object-storage/buckets/us-east-1/example-bucket/ssl"
+        with self.mock_get(ssl_cert_url) as m:
+            result = self.client.object_storage.ssl_cert("us-east-1", "example-bucket")
+            self.assertIsNotNone(result)
+            self.assertEqual(m.call_url, ssl_cert_url)
+            self.assertEqual(result.ssl, True)
+
+    def test_ssl_cert_upload(self):
+        """
+        Test that you can upload a TLS/SSL cert.
+        """
+        ssl_cert_upload_url = "/object-storage/buckets/us-east-1/example-bucket/ssl"
+        with self.mock_post(ssl_cert_upload_url) as m:
+            result = self.client.object_storage.ssl_cert_upload("us-east-1", "example-bucket", "-----BEGIN CERTIFICATE-----\nCERTIFICATE_INFORMATION\n-----END CERTIFICATE-----", "-----BEGIN PRIVATE KEY-----\nPRIVATE_KEY_INFORMATION\n-----END PRIVATE KEY-----")
+            self.assertIsNotNone(result)
+            self.assertEqual(m.call_url, ssl_cert_upload_url)
+            self.assertEqual(result.ssl, True)
+            self.assertEqual(m.call_data, {
+                "certificate": "-----BEGIN CERTIFICATE-----\nCERTIFICATE_INFORMATION\n-----END CERTIFICATE-----",
+                "private_key": "-----BEGIN PRIVATE KEY-----\nPRIVATE_KEY_INFORMATION\n-----END PRIVATE KEY-----",
+            })
+
 class NetworkingGroupTest(ClientBaseCase):
     """
     Tests for the NetworkingGroup
