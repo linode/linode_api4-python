@@ -258,7 +258,8 @@ class ObjectStorageGroup(Group):
 
         if not "label" in result:
             raise UnexpectedResponseError(
-                "Unexpected response when creating Object Storage Bucket!", json=result
+                "Unexpected response when creating Object Storage Bucket!",
+                json=result,
             )
 
         return ObjectStorageBucket(self.client, result["label"], result)
@@ -303,7 +304,9 @@ class ObjectStorageGroup(Group):
         :type bucket: str
         """
         resp = self.client.delete(
-            ObjectStorageBucket.api_endpoint.format(cluster=cluster_id, label=bucket),
+            ObjectStorageBucket.api_endpoint.format(
+                cluster=cluster_id, label=bucket
+            ),
             model=self,
         )
 
@@ -314,7 +317,9 @@ class ObjectStorageGroup(Group):
             )
         return True
 
-    def bucket_access_modify(self, cluster_id, bucket, acl=None, cors_enabled=None):
+    def bucket_access_modify(
+        self, cluster_id, bucket, acl=None, cors_enabled=None
+    ):
         """
         Allows changing basic Cross-origin Resource Sharing (CORS) and Access Control 
         Level (ACL) settings. Only allows enabling/disabling CORS for all origins, 
@@ -351,7 +356,9 @@ class ObjectStorageGroup(Group):
             return False
         return True
 
-    def bucket_access_update(self, cluster_id, bucket, acl=None, cors_enabled=None):
+    def bucket_access_update(
+        self, cluster_id, bucket, acl=None, cors_enabled=None
+    ):
         """
         Allows changing basic Cross-origin Resource Sharing (CORS) and Access Control 
         Level (ACL) settings. Only allows enabling/disabling CORS for all origins, 
@@ -421,13 +428,16 @@ class ObjectStorageGroup(Group):
             "name": name,
         }
         result = self.client.get(
-            "/object-storage/buckets/{}/{}/object-acl".format(cluster_id, bucket),
+            "/object-storage/buckets/{}/{}/object-acl".format(
+                cluster_id, bucket
+            ),
             data=drop_null_keys(params),
         )
 
         if "errors" in result:
             raise UnexpectedResponseError(
-                "Unexpected response when viewing Object’s configured ACL!", json=result
+                "Unexpected response when viewing Object’s configured ACL!",
+                json=result,
             )
 
         return MappedObject(**result)
@@ -473,7 +483,9 @@ class ObjectStorageGroup(Group):
         }
 
         result = self.client.put(
-            "/object-storage/buckets/{}/{}/object-acl".format(cluster_id, bucket),
+            "/object-storage/buckets/{}/{}/object-acl".format(
+                cluster_id, bucket
+            ),
             data=params,
         )
 
@@ -565,7 +577,9 @@ class ObjectStorageGroup(Group):
             "page_size": page_size,
         }
         result = self.client.get(
-            "/object-storage/buckets/{}/{}/object-list".format(cluster_id, bucket),
+            "/object-storage/buckets/{}/{}/object-list".format(
+                cluster_id, bucket
+            ),
             data=drop_null_keys(params),
         )
 
@@ -578,7 +592,13 @@ class ObjectStorageGroup(Group):
         return [MappedObject(**c) for c in result["data"]]
 
     def object_url_create(
-        self, cluster_id, bucket, method, name, content_type=None, expires_in=3600
+        self,
+        cluster_id,
+        bucket,
+        method,
+        name,
+        content_type=None,
+        expires_in=3600,
     ):
         """
         Creates a pre-signed URL to access a single Object in a bucket.
@@ -619,7 +639,9 @@ class ObjectStorageGroup(Group):
         :rtype: str
         """
         if method not in ("GET", "DELETE") and content_type is None:
-            raise ValueError("Content-type header is missing for the current method!")
+            raise ValueError(
+                "Content-type header is missing for the current method!"
+            )
         params = {
             'method': method,
             'name': name,
@@ -627,8 +649,13 @@ class ObjectStorageGroup(Group):
             'content_type': content_type,
         }
 
-        result = self.client.post("/object-storage/buckets/{}/{}/object-url".format(cluster_id, bucket), data=drop_null_keys(params))
-        
+        result = self.client.post(
+            "/object-storage/buckets/{}/{}/object-url".format(
+                cluster_id, bucket
+            ),
+            data=drop_null_keys(params),
+        )
+
         if "errors" in result:
             raise UnexpectedResponseError(
                 "Unexpected response when creating the access url of an object!",
@@ -716,7 +743,10 @@ class ObjectStorageGroup(Group):
             "certificate": certificate,
             "private_key": private_key,
         }
-        result = self.client.post("/object-storage/buckets/{}/{}/ssl".format(cluster_id, bucket), data=params)
+        result = self.client.post(
+            "/object-storage/buckets/{}/{}/ssl".format(cluster_id, bucket),
+            data=params,
+        )
 
         if "errors" in result:
             raise UnexpectedResponseError(
@@ -907,7 +937,9 @@ class LinodeClient:
 
             warning = response.headers.get("Warning", None)
             if warning:
-                logger.warning('Received warning from server: {}'.format(warning))
+                logger.warning(
+                    "Received warning from server: {}".format(warning)
+                )
 
             # if we were configured to retry 429s, and we got a 429, sleep briefly and then retry
             if self.retry_rate_limit_interval and response.status_code == 429:

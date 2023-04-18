@@ -733,15 +733,17 @@ class ObjectStorageGroupTest(ClientBaseCase):
         """
         Tests that you can create Object Storage Keys
         """
-        with self.mock_post('object-storage/keys/1') as m:
-            keys = self.client.object_storage.keys_create('object-storage-key-1')
+        with self.mock_post("object-storage/keys/1") as m:
+            keys = self.client.object_storage.keys_create(
+                "object-storage-key-1"
+            )
 
             self.assertIsNotNone(keys)
             self.assertEqual(keys.id, 1)
             self.assertEqual(keys.label, "object-storage-key-1")
 
-            self.assertEqual(m.call_url, '/object-storage/keys')
-            self.assertEqual(m.call_data, {"label":"object-storage-key-1"})
+            self.assertEqual(m.call_url, "/object-storage/keys")
+            self.assertEqual(m.call_data, {"label": "object-storage-key-1"})
 
     def test_transfer(self):
         """
@@ -770,7 +772,9 @@ class ObjectStorageGroupTest(ClientBaseCase):
             self.assertEqual(bucket.cluster, "us-east-1")
             self.assertEqual(
                 bucket.created,
-                datetime(year=2019, month=1, day=1, hour=1, minute=23, second=45),
+                datetime(
+                    year=2019, month=1, day=1, hour=1, minute=23, second=45
+                ),
             )
             self.assertEqual(
                 bucket.hostname, "example-bucket.us-east-1.linodeobjects.com"
@@ -814,7 +818,9 @@ class ObjectStorageGroupTest(ClientBaseCase):
             self.assertEqual(bucket.cluster, "us-east-1")
             self.assertEqual(
                 bucket.created,
-                datetime(year=2019, month=1, day=1, hour=1, minute=23, second=45),
+                datetime(
+                    year=2019, month=1, day=1, hour=1, minute=23, second=45
+                ),
             )
             self.assertEqual(
                 bucket.hostname, "example-bucket.us-east-1.linodeobjects.com"
@@ -831,7 +837,9 @@ class ObjectStorageGroupTest(ClientBaseCase):
             "/object-storage/buckets/us-east-1/example-bucket"
         )
         with self.mock_delete() as m:
-            self.client.object_storage.bucket_delete("us-east-1", "example-bucket")
+            self.client.object_storage.bucket_delete(
+                "us-east-1", "example-bucket"
+            )
             self.assertEqual(m.call_url, object_storage_bucket_delete_url)
 
     def test_bucket_access_modify(self):
@@ -941,9 +949,12 @@ class ObjectStorageGroupTest(ClientBaseCase):
             self.assertEqual(content.last_modified, "2019-01-01T01:23:45")
             self.assertEqual(content.name, "example")
             self.assertEqual(
-                content.next_marker, "bd021c21-e734-4823-97a4-58b41c2cd4c8.892602.184"
+                content.next_marker,
+                "bd021c21-e734-4823-97a4-58b41c2cd4c8.892602.184",
             )
-            self.assertEqual(content.owner, "bfc70ab2-e3d4-42a4-ad55-83921822270c")
+            self.assertEqual(
+                content.owner, "bfc70ab2-e3d4-42a4-ad55-83921822270c"
+            )
             self.assertEqual(content.size, 123)
             self.assertEqual(
                 m.call_data,
@@ -982,9 +993,13 @@ class ObjectStorageGroupTest(ClientBaseCase):
         """
         Test that you can delete the TLS/SSL certificate and private key of a bucket.
         """
-        ssl_cert_delete_url = "/object-storage/buckets/us-east-1/example-bucket/ssl"
+        ssl_cert_delete_url = (
+            "/object-storage/buckets/us-east-1/example-bucket/ssl"
+        )
         with self.mock_delete() as m:
-            self.client.object_storage.ssl_cert_delete("us-east-1", "example-bucket")
+            self.client.object_storage.ssl_cert_delete(
+                "us-east-1", "example-bucket"
+            )
             self.assertEqual(m.call_url, ssl_cert_delete_url)
 
     def test_ssl_cert(self):
@@ -994,7 +1009,9 @@ class ObjectStorageGroupTest(ClientBaseCase):
         """
         ssl_cert_url = "/object-storage/buckets/us-east-1/example-bucket/ssl"
         with self.mock_get(ssl_cert_url) as m:
-            result = self.client.object_storage.ssl_cert("us-east-1", "example-bucket")
+            result = self.client.object_storage.ssl_cert(
+                "us-east-1", "example-bucket"
+            )
             self.assertIsNotNone(result)
             self.assertEqual(m.call_url, ssl_cert_url)
             self.assertEqual(result.ssl, True)
@@ -1003,7 +1020,9 @@ class ObjectStorageGroupTest(ClientBaseCase):
         """
         Test that you can upload a TLS/SSL cert.
         """
-        ssl_cert_upload_url = "/object-storage/buckets/us-east-1/example-bucket/ssl"
+        ssl_cert_upload_url = (
+            "/object-storage/buckets/us-east-1/example-bucket/ssl"
+        )
         with self.mock_post(ssl_cert_upload_url) as m:
             result = self.client.object_storage.ssl_cert_upload(
                 "us-east-1",
