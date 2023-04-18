@@ -56,6 +56,9 @@ class Profile(Base):
         "authorized_keys": Property(mutable=True),
         "two_factor_auth": Property(),
         "restricted": Property(),
+        "authentication_type": Property(),
+        "authorized_keys": Property(),
+        "verified_phone_number": Property(),
     }
 
     def enable_tfa(self):
@@ -145,4 +148,36 @@ class SSHKey(Base):
         "label": Property(mutable=True),
         "ssh_key": Property(),
         "created": Property(is_datetime=True),
+    }
+
+
+class TrustedDevice(Base):
+    api_endpoint = "/profile/devices/{id}"
+
+    properties = {
+        "id": Property(identifier=True),
+        "created": Property(is_datetime=True),
+        "expiry": Property(is_datetime=True),
+        "last_authenticated": Property(is_datetime=True),
+        "last_remote_addr": Property(),
+        "user_agent": Property(),
+    }
+
+    def revoke(self):
+        """
+        Revoke an active TrustedDevice for your User.
+        """
+        self._client.post(self.api_endpoint, model=self)
+
+
+class ProfileLogin(Base):
+    api_endpoint = "profile/logins/{id}"
+
+    properties = {
+        "id": Property(identifier=True),
+        "datetime": Property(is_datetime=True),
+        "ip": Property(),
+        "restricted": Property(),
+        "status": Property(),
+        "username": Property(),
     }

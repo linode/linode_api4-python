@@ -477,6 +477,86 @@ class ProfileGroupTest(ClientBaseCase):
     Tests methods of the ProfileGroup
     """
 
+    def test_trusted_devices(self):
+        devices = self.client.profile.trusted_devices()
+        self.assertEqual(len(devices), 1)
+        self.assertEqual(devices[0].id, 123)
+
+    def test_logins(self):
+        logins = self.client.profile.logins()
+        self.assertEqual(len(logins), 1)
+        self.assertEqual(logins[0].id, 123)
+
+    def test_phone_number_delete(self):
+        with self.mock_delete() as m:
+            self.client.profile.phone_number_delete()
+            self.assertEqual(m.call_url, "/profile/phone-number")
+
+    def test_phone_number_verify(self):
+        with self.mock_post({}) as m:
+            self.client.profile.phone_number_verify("123456")
+            self.assertEqual(m.call_url, "/profile/phone-number/verify")
+            self.assertEqual(m.call_data["otp_code"], "123456")
+
+    def test_phone_number_verification_code_send(self):
+        with self.mock_post({}) as m:
+            self.client.profile.phone_number_verification_code_send(
+                "us", "1234567890"
+            )
+            self.assertEqual(m.call_url, "/profile/phone-number")
+            self.assertEqual(m.call_data["iso_code"], "us")
+            self.assertEqual(m.call_data["phone_number"], "1234567890")
+
+    def test_user_preferences(self):
+        with self.mock_get("/profile/preferences") as m:
+            result = self.client.profile.user_preferences()
+            self.assertEqual(m.call_url, "/profile/preferences")
+            self.assertEqual(result.key1, "value1")
+            self.assertEqual(result.key2, "value2")
+
+    def test_user_preferences_update(self):
+        with self.mock_put("/profile/preferences") as m:
+            self.client.profile.user_preferences_update(
+                key1="value3", key2="value4"
+            )
+            self.assertEqual(m.call_url, "/profile/preferences")
+            self.assertEqual(m.call_data["key1"], "value3")
+            self.assertEqual(m.call_data["key2"], "value4")
+
+    def test_security_questions(self):
+        with self.mock_get("/profile/security-questions") as m:
+            result = self.client.profile.security_questions()
+            self.assertEqual(m.call_url, "/profile/security-questions")
+            self.assertEqual(result.security_questions[0].id, 1)
+            self.assertEqual(
+                result.security_questions[0].question,
+                "In what city were you born?",
+            )
+            self.assertEqual(
+                result.security_questions[0].response, "Gotham City"
+            )
+
+    def test_security_questions_answer(self):
+        with self.mock_post("/profile/security-questions") as m:
+            self.client.profile.security_questions_answer(
+                [
+                    {"question_id": 1, "response": "secret answer 1"},
+                    {"question_id": 2, "response": "secret answer 2"},
+                    {"question_id": 3, "response": "secret answer 3"},
+                ]
+            )
+            self.assertEqual(m.call_url, "/profile/security-questions")
+
+            self.assertEqual(
+                m.call_data["security_questions"][0]["question_id"], 1
+            )
+            self.assertEqual(
+                m.call_data["security_questions"][1]["question_id"], 2
+            )
+            self.assertEqual(
+                m.call_data["security_questions"][2]["question_id"], 3
+            )
+
     def test_get_sshkeys(self):
         """
         Tests that a list of SSH Keys can be retrieved

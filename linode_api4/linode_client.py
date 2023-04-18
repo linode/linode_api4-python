@@ -402,6 +402,127 @@ class ProfileGroup(Group):
         p = Profile(self.client, result["username"], result)
         return p
 
+    def trusted_devices(self):
+        """
+        Returns the Trusted Devices on your profile.
+
+        API Documentation: https://www.linode.com/docs/api/profile/#trusted-devices-list
+
+        :returns: A list of Trusted Devices for this profile.
+        :rtype: PaginatedList of TrustedDevice
+        """
+        return self.client._get_and_filter(TrustedDevice)
+
+    def user_preferences(self):
+        """
+        View a list of user preferences tied to the OAuth client that generated the token making the request.
+        """
+
+        result = self.client.get(
+            "{}/preferences".format(Profile.api_endpoint), model=self
+        )
+
+        return MappedObject(**result)
+
+    def security_questions(self):
+        """
+        Returns a collection of security questions and their responses, if any, for your User Profile.
+        """
+
+        result = self.client.get(
+            "{}/security-questions".format(Profile.api_endpoint), model=self
+        )
+
+        return MappedObject(**result)
+
+    def security_questions_answer(self, questions):
+        """
+        Adds security question responses for your User. Requires exactly three unique questions.
+        Previous responses are overwritten if answered or reset to null if unanswered.
+        """
+
+        if len(questions) != 3:
+            raise ValueError("Exactly 3 security questions are required.")
+
+        params = {"security_questions": questions}
+
+        result = self.client.post(
+            "{}/security-questions".format(Profile.api_endpoint),
+            model=self,
+            data=params,
+        )
+
+        return MappedObject(**result)
+
+    def user_preferences_update(self, **preferences):
+        """
+        Updates a user’s preferences.
+        """
+
+        result = self.client.put(
+            "{}/preferences".format(Profile.api_endpoint),
+            model=self,
+            data=preferences,
+        )
+
+        return MappedObject(**result)
+
+    def phone_number_delete(self):
+        """
+        Delete the verified phone number for the User making this request.
+        """
+
+        self.client.delete(
+            "{}/phone-number".format(Profile.api_endpoint), model=self
+        )
+
+    def phone_number_verify(self, otp_code):
+        """
+        Verify a phone number by confirming the one-time code received via SMS message
+        after accessing the Phone Verification Code Send (POST /profile/phone-number) command.
+        """
+
+        if not otp_code:
+            raise ValueError("OTP Code required to verify phone number.")
+
+        params = {"otp_code": otp_code}
+
+        self.client.post(
+            "{}/phone-number/verify".format(Profile.api_endpoint),
+            model=self,
+            data=params,
+        )
+
+    def phone_number_verification_code_send(self, iso_code, phone_number):
+        """
+        Send a one-time verification code via SMS message to the submitted phone number.
+        """
+
+        if not iso_code:
+            raise ValueError("ISO Code required to send verification code.")
+
+        if not phone_number:
+            raise ValueError("Phone Number required to send verification code.")
+
+        params = {"iso_code": iso_code, "phone_number": phone_number}
+
+        self.client.post(
+            "{}/phone-number".format(Profile.api_endpoint),
+            model=self,
+            data=params,
+        )
+
+    def logins(self):
+        """
+        Returns the logins on your profile.
+
+        API Documentation: https://www.linode.com/docs/api/profile/#logins-list
+
+        :returns: A list of logins for this profile.
+        :rtype: PaginatedList of ProfileLogin
+        """
+        return self.client._get_and_filter(ProfileLogin)
+
     def tokens(self, *filters):
         """
         Returns the Person Access Tokens active for this user.
