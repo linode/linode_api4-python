@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 class ObjectStorageGroup(Group):
     """
     This group encapsulates all endpoints under /object-storage, including viewing
-    available clusters and managing keys.
+    available clusters, buckets, and managing keys and TLS/SSL cert.
     """
 
     def clusters(self, *filters):
@@ -180,6 +180,8 @@ class ObjectStorageGroup(Group):
         in bytes, for the current month’s billing cycle. Object Storage adds 1 terabyte
         of outbound data transfer to your data transfer pool.
 
+        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-transfer-view
+
         :returns: The amount of outbound data transfer used by your account’s Object 
                   Storage buckets, in bytes, for the current month’s billing cycle.
         :rtype: integer
@@ -199,6 +201,8 @@ class ObjectStorageGroup(Group):
         This endpoint is available for convenience.
         It is recommended that instead you use the more fully-featured S3 API directly.
 
+        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-buckets-list
+
         :returns: A list of Object Storage Buckets that matched the query.
         :rtype: PaginatedList of ObjectStorageBucket
         """
@@ -213,6 +217,8 @@ class ObjectStorageGroup(Group):
         
         This endpoint is available for convenience.
         It is recommended that instead you use the more fully-featured S3 API directly.
+
+        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-bucket-create
 
         :param acl: The Access Control Level of the bucket using a canned ACL string.
                     For more fine-grained control of ACLs, use the S3 API directly.
@@ -271,6 +277,8 @@ class ObjectStorageGroup(Group):
         This endpoint is available for convenience.
         It is recommended that instead you use the more fully-featured S3 API directly.
 
+        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-buckets-in-cluster-list
+
         :param cluster_id: The ID of the cluster this bucket exists in.
         :type cluster_id: str
 
@@ -296,6 +304,8 @@ class ObjectStorageGroup(Group):
 
         This endpoint is available for convenience.
         It is recommended that instead you use the more fully-featured S3 API directly.
+
+        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-bucket-remove
 
         :param cluster_id: The ID of the cluster this bucket exists in.
         :type cluster_id: str
@@ -325,6 +335,8 @@ class ObjectStorageGroup(Group):
         Level (ACL) settings. Only allows enabling/disabling CORS for all origins, 
         and/or setting canned ACLs. For more fine-grained control of both systems, 
         please use the more fully-featured S3 API directly.
+
+        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-bucket-access-modify
 
         :param cluster_id: The ID of the cluster this bucket exists in.
         :type cluster_id: str
@@ -365,6 +377,8 @@ class ObjectStorageGroup(Group):
         and/or setting canned ACLs. For more fine-grained control of both systems, 
         please use the more fully-featured S3 API directly.
 
+        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-bucket-access-update
+
         :param cluster_id: The ID of the cluster this bucket exists in.
         :type cluster_id: str
 
@@ -403,6 +417,8 @@ class ObjectStorageGroup(Group):
 
         This endpoint is available for convenience.
         It is recommended that instead you use the more fully-featured S3 API directly.
+
+        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-object-acl-config-view
 
         :param cluster_id: The ID of the cluster this bucket exists in.
         :type cluster_id: str
@@ -450,6 +466,8 @@ class ObjectStorageGroup(Group):
 
         This endpoint is available for convenience.
         It is recommended that instead you use the more fully-featured S3 API directly.
+
+        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-object-acl-config-update
 
         :param cluster_id: The ID of the cluster this bucket exists in.
         :type cluster_id: str
@@ -514,6 +532,8 @@ class ObjectStorageGroup(Group):
 
         This endpoint is available for convenience.
         It is recommended that instead you use the more fully-featured S3 API directly.
+
+        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-bucket-contents-list
 
         :param cluster_id: The ID of the cluster this bucket exists in.
         :type cluster_id: str
@@ -608,6 +628,8 @@ class ObjectStorageGroup(Group):
         This endpoint is available for convenience.
         It is recommended that instead you use the more fully-featured S3 API directly.
 
+        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-object-url-create
+
         :param cluster_id: The ID of the cluster this bucket exists in.
         :type cluster_id: str
 
@@ -669,6 +691,8 @@ class ObjectStorageGroup(Group):
         Deletes this Object Storage bucket’s user uploaded TLS/SSL certificate 
         and private key.
 
+        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-tlsssl-cert-delete
+
         :param cluster_id: The ID of the cluster this bucket exists in.
         :type cluster_id: str
 
@@ -689,6 +713,8 @@ class ObjectStorageGroup(Group):
         """
         Returns a boolean value indicating if this bucket has a corresponding 
         TLS/SSL certificate that was uploaded by an Account user.
+
+        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-tlsssl-cert-view
 
         :param cluster_id: The ID of the cluster this bucket exists in.
         :type cluster_id: str
@@ -718,7 +744,9 @@ class ObjectStorageGroup(Group):
 
         To replace an expired certificate, delete your current certificate and 
         upload a new one.
-        
+
+        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-tlsssl-cert-upload
+
         :param cluster_id: The ID of the cluster this bucket exists in.
         :type cluster_id: str
 
