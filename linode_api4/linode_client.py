@@ -174,6 +174,557 @@ class ObjectStorageGroup(Group):
         self.client.post("/object-storage/cancel", data={})
         return True
 
+    def transfer(self):
+        """
+        The amount of outbound data transfer used by your account’s Object Storage buckets,
+        in bytes, for the current month’s billing cycle. Object Storage adds 1 terabyte
+        of outbound data transfer to your data transfer pool.
+
+        :returns: The amount of outbound data transfer used by your account’s Object 
+                  Storage buckets, in bytes, for the current month’s billing cycle.
+        :rtype: integer
+        """
+        result = self.client.get("/object-storage/transfer")
+
+        if not "used" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when getting Transfer Pool!"
+            )
+
+        return MappedObject(**result)
+
+    def buckets(self, *filters):
+        """
+        Returns a paginated list of all Object Storage Buckets that you own.
+        This endpoint is available for convenience.
+        It is recommended that instead you use the more fully-featured S3 API directly.
+
+        :returns: A list of Object Storage Buckets that matched the query.
+        :rtype: PaginatedList of ObjectStorageBucket
+        """
+        return self.client._get_and_filter(ObjectStorageBucket, *filters)
+
+    def bucket_create(self, cluster, label, acl="private", cors_enabled=False):
+        """
+        Creates an Object Storage Bucket in the specified cluster. Accounts with 
+        negative balances cannot access this command. If the bucket already exists 
+        and is owned by you, this endpoint returns a 200 response with that bucket 
+        as if it had just been created.
+        
+        This endpoint is available for convenience.
+        It is recommended that instead you use the more fully-featured S3 API directly.
+
+        :param acl: The Access Control Level of the bucket using a canned ACL string.
+                    For more fine-grained control of ACLs, use the S3 API directly.
+        :type acl: str
+                    Enum: private,public-read,authenticated-read,public-read-write
+
+        :param cluster: The ID of the Object Storage Cluster where this bucket 
+                        should be created.
+        :type cluster: str
+
+        :param cors_enabled: If true, the bucket will be created with CORS enabled for 
+                             all origins. For more fine-grained controls of CORS, use 
+                             the S3 API directly.
+        :type cors_enabled: boolean
+
+        :param label: The name for this bucket. Must be unique in the cluster you are 
+                      creating the bucket in, or an error will be returned. Labels will 
+                      be reserved only for the cluster that active buckets are created 
+                      and stored in. If you want to reserve this bucket’s label in 
+                      another cluster, you must create a new bucket with the same label 
+                      in the new cluster.
+        :type label: str
+
+        :returns: A Object Storage Buckets that created by user.
+        :rtype: ObjectStorageBucket
+        """
+        if acl not in (
+            "private",
+            "public-read",
+            "authenticated-read",
+            "public-read-write",
+        ):
+            raise ValueError("Invalid ACL value: {}".format(acl))
+
+        params = {
+            "cluster": cluster,
+            "label": label,
+            "acl": acl,
+            "cors_enabled": cors_enabled,
+        }
+
+        result = self.client.post("/object-storage/buckets", data=params)
+
+        if not "label" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating Object Storage Bucket!", json=result
+            )
+
+        return ObjectStorageBucket(self.client, result["label"], result)
+
+    def buckets_in_cluster(self, cluster_id, *filters):
+        """
+        Returns a list of Buckets in this cluster belonging to this Account.
+
+        This endpoint is available for convenience.
+        It is recommended that instead you use the more fully-featured S3 API directly.
+
+        :param cluster_id: The ID of the cluster this bucket exists in.
+        :type cluster_id: str
+
+        :returns: A list of Object Storage Buckets that in the requested cluster.
+        :rtype: PaginatedList of ObjectStorageBucket
+        """
+
+        return self.client._get_and_filter(
+            ObjectStorageBucket,
+            *filters,
+            endpoint="/object-storage/buckets/{}".format(cluster_id),
+        )
+
+    def bucket_delete(self, cluster_id, bucket):
+        """
+        Delete a single bucket.
+
+        Bucket objects must be removed prior to removing the bucket. While buckets 
+        containing objects may be deleted using the s3cmd command-line tool, such 
+        operations can fail if the bucket contains too many objects. The recommended 
+        way to empty large buckets is to use the S3 API to configure lifecycle 
+        policies that remove all objects, then delete the bucket.
+
+        This endpoint is available for convenience.
+        It is recommended that instead you use the more fully-featured S3 API directly.
+
+        :param cluster_id: The ID of the cluster this bucket exists in.
+        :type cluster_id: str
+
+        :param bucket: The bucket name.
+        :type bucket: str
+        """
+        resp = self.client.delete(
+            ObjectStorageBucket.api_endpoint.format(cluster=cluster_id, label=bucket),
+            model=self,
+        )
+
+        if "errors" in resp:
+            raise UnexpectedResponseError(
+                "Unexpected response when deleting a bucket!",
+                json=resp,
+            )
+        return True
+
+    def bucket_access_modify(self, cluster_id, bucket, acl=None, cors_enabled=None):
+        """
+        Allows changing basic Cross-origin Resource Sharing (CORS) and Access Control 
+        Level (ACL) settings. Only allows enabling/disabling CORS for all origins, 
+        and/or setting canned ACLs. For more fine-grained control of both systems, 
+        please use the more fully-featured S3 API directly.
+
+        :param cluster_id: The ID of the cluster this bucket exists in.
+        :type cluster_id: str
+
+        :param bucket: The bucket name.
+        :type bucket: str
+
+        :param acl: The Access Control Level of the bucket using a canned ACL string.
+                    For more fine-grained control of ACLs, use the S3 API directly.
+        :type acl: str
+                    Enum: private,public-read,authenticated-read,public-read-write
+
+        :param cors_enabled: If true, the bucket will be created with CORS enabled for 
+                             all origins. For more fine-grained controls of CORS, use 
+                             the S3 API directly.
+        :type cors_enabled: boolean
+        """
+        params = {
+            "acl": acl,
+            "cors_enabled": cors_enabled,
+        }
+
+        resp = self.client.post(
+            "/object-storage/buckets/{}/{}/access".format(cluster_id, bucket),
+            data=drop_null_keys(params),
+        )
+
+        if "errors" in resp:
+            return False
+        return True
+
+    def bucket_access_update(self, cluster_id, bucket, acl=None, cors_enabled=None):
+        """
+        Allows changing basic Cross-origin Resource Sharing (CORS) and Access Control 
+        Level (ACL) settings. Only allows enabling/disabling CORS for all origins, 
+        and/or setting canned ACLs. For more fine-grained control of both systems, 
+        please use the more fully-featured S3 API directly.
+
+        :param cluster_id: The ID of the cluster this bucket exists in.
+        :type cluster_id: str
+
+        :param bucket: The bucket name.
+        :type bucket: str
+
+        :param acl: The Access Control Level of the bucket using a canned ACL string.
+                    For more fine-grained control of ACLs, use the S3 API directly.
+        :type acl: str
+                    Enum: private,public-read,authenticated-read,public-read-write
+
+        :param cors_enabled: If true, the bucket will be created with CORS enabled for 
+                             all origins. For more fine-grained controls of CORS, 
+                             use the S3 API directly.
+        :type cors_enabled: boolean
+        """
+        params = {
+            "acl": acl,
+            "cors_enabled": cors_enabled,
+        }
+
+        resp = self.client.put(
+            "/object-storage/buckets/{}/{}/access".format(cluster_id, bucket),
+            data=drop_null_keys(params),
+        )
+
+        if "errors" in resp:
+            return False
+        return True
+
+    def object_acl_config(self, cluster_id, bucket, name=None):
+        """
+        View an Object’s configured Access Control List (ACL) in this Object Storage 
+        bucket. ACLs define who can access your buckets and objects and specify the 
+        level of access granted to those users.
+
+        This endpoint is available for convenience.
+        It is recommended that instead you use the more fully-featured S3 API directly.
+
+        :param cluster_id: The ID of the cluster this bucket exists in.
+        :type cluster_id: str
+
+        :param bucket: The bucket name.
+        :type bucket: str
+
+        :param name: The name of the object for which to retrieve its Access Control 
+                     List (ACL). Use the Object Storage Bucket Contents List endpoint 
+                     to access all object names in a bucket.
+        :type name: str
+
+        :returns: The Object's canned ACL and policy.
+        :rtype: dict {acl: str, acl_xml: str}
+            :acl:
+                Enum: private public-read authenticated-read public-read-write custom
+                The Access Control Level of the bucket, as a canned ACL string.
+                For more fine-grained control of ACLs, use the S3 API directly.
+            :acl_xml:
+                The full XML of the object’s ACL policy.
+        """
+        params = {
+            "name": name,
+        }
+        result = self.client.get(
+            "/object-storage/buckets/{}/{}/object-acl".format(cluster_id, bucket),
+            data=drop_null_keys(params),
+        )
+
+        if "errors" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when viewing Object’s configured ACL!", json=result
+            )
+
+        return MappedObject(**result)
+
+    def object_acl_config_update(self, cluster_id, bucket, acl, name):
+        """
+        Update an Object’s configured Access Control List (ACL) in this Object Storage 
+        bucket. ACLs define who can access your buckets and objects and specify the 
+        level of access granted to those users.
+
+        This endpoint is available for convenience.
+        It is recommended that instead you use the more fully-featured S3 API directly.
+
+        :param cluster_id: The ID of the cluster this bucket exists in.
+        :type cluster_id: str
+
+        :param bucket: The bucket name.
+        :type bucket: str
+
+        :param acl:
+            Enum: private public-read authenticated-read public-read-write custom
+            The Access Control Level of the bucket, as a canned ACL string.
+            For more fine-grained control of ACLs, use the S3 API directly.
+        :type acl: str
+
+        :param name: The name of the object for which to retrieve its Access Control 
+                     List (ACL). Use the Object Storage Bucket Contents List endpoint 
+                     to access all object names in a bucket.
+        :type name: str
+
+        :returns: The Object's canned ACL and policy.
+        :rtype: dict {acl: str, acl_xml: str}
+            :acl:
+                Enum: private public-read authenticated-read public-read-write custom
+                The Access Control Level of the bucket, as a canned ACL string.
+                For more fine-grained control of ACLs, use the S3 API directly.
+            :acl_xml:
+                The full XML of the object’s ACL policy.
+        """
+        params = {
+            "acl": acl,
+            "name": name,
+        }
+
+        result = self.client.put(
+            "/object-storage/buckets/{}/{}/object-acl".format(cluster_id, bucket),
+            data=params,
+        )
+
+        if "errors" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when updating Object’s configured ACL!",
+                json=result,
+            )
+
+        return MappedObject(**result)
+
+    def bucket_contents(
+        self,
+        cluster_id,
+        bucket,
+        marker=None,
+        delimiter=None,
+        prefix=None,
+        page_size=100,
+    ):
+        """
+        Returns the contents of a bucket.
+        The contents are paginated using a marker, which is the name of the last object 
+        on the previous page. Objects may be filtered by prefix and delimiter as well; 
+        see Query Parameters for more information.
+
+        This endpoint is available for convenience.
+        It is recommended that instead you use the more fully-featured S3 API directly.
+
+        :param cluster_id: The ID of the cluster this bucket exists in.
+        :type cluster_id: str
+
+        :param bucket: The bucket name.
+        :type bucket: str
+
+        :param marker: The “marker” for this request, which can be used to paginate 
+                       through large buckets. Its value should be the value of the 
+                       next_marker property returned with the last page. Listing 
+                       bucket contents does not support arbitrary page access. See the 
+                       next_marker property in the responses section for more details.
+        :type marker: str
+
+        :param delimiter: The delimiter for object names; if given, object names will 
+                          be returned up to the first occurrence of this character. 
+                          This is most commonly used with the / character to allow 
+                          bucket transversal in a manner similar to a filesystem, 
+                          however any delimiter may be used. Use in conjunction with 
+                          prefix to see object names past the first occurrence of 
+                          the delimiter.
+        :type delimiter: str
+
+        :param prefix: Filters objects returned to only those whose name start with 
+                       the given prefix. Commonly used in conjunction with delimiter 
+                       to allow transversal of bucket contents in a manner similar to 
+                       a filesystem.
+        :type perfix: str
+
+        :param page_size: The number of items to return per page. Defaults to 100.
+        :type page_size: integer 25..500
+
+        :returns: One page of the requested bucket's contents.
+        :rtype:
+            [{
+                etag: str,
+                is_truncated: boolean,
+                last_modified: string<date-time>,
+                name: str,
+                next_marker: str,
+                owner: str,
+                size: integer,
+            }]
+            :etag: An MD-5 hash of the object. null if this object represents a prefix.
+            :is_truncated: Designates if there is another page of bucket objects.
+            :last_modified: The date and time this object was last modified. 
+                            null if this object represents a prefix.
+            :name: The name of this object or prefix.
+            :next_marker: Returns the value you should pass to the marker query 
+                          parameter to get the next page of objects. 
+                          If there is no next page, null will be returned.
+            :owner: The owner of this object, as a UUID. null if this object 
+                    represents a prefix.
+            :size: The size of this object, in bytes. null if this object represents 
+                   a prefix.
+        """
+        params = {
+            "marker": marker,
+            "delimiter": delimiter,
+            "prefix": prefix,
+            "page_size": page_size,
+        }
+        result = self.client.get(
+            "/object-storage/buckets/{}/{}/object-list".format(cluster_id, bucket),
+            data=drop_null_keys(params),
+        )
+
+        if "errors" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when getting the contents of a bucket!",
+                json=result,
+            )
+
+        return [MappedObject(**c) for c in result["data"]]
+
+    def object_url_create(
+        self, cluster_id, bucket, method, name, content_type=None, expires_in=3600
+    ):
+        """
+        Creates a pre-signed URL to access a single Object in a bucket.
+        This can be used to share objects, and also to create/delete objects by using 
+        the appropriate HTTP method in your request body’s method parameter.
+
+        This endpoint is available for convenience.
+        It is recommended that instead you use the more fully-featured S3 API directly.
+
+        :param cluster_id: The ID of the cluster this bucket exists in.
+        :type cluster_id: str
+
+        :param bucket: The bucket name.
+        :type bucket: str
+
+        :param content_type: The expected Content-type header of the request this 
+                             signed URL will be valid for. If provided, the 
+                             Content-type header must be sent with the request when 
+                             this URL is used, and must be the same as it was when 
+                             the signed URL was created. 
+                             Required for all methods except “GET” or “DELETE”.
+        :type content_type: str
+
+        :param expires_in: How long this signed URL will be valid for, in seconds. 
+                           If omitted, the URL will be valid for 3600 seconds (1 hour). Defaults to 3600.
+        :type expires_in: integer 360..86400
+
+        :param method: The HTTP method allowed to be used with the pre-signed URL.
+        :type method: str
+
+        :param name: The name of the object that will be accessed with the pre-signed 
+                     URL. This object need not exist, and no error will be returned 
+                     if it doesn’t. This behavior is useful for generating pre-signed 
+                     URLs to upload new objects to by setting the method to “PUT”.
+        :type name: str
+
+        :returns: The signed URL to perform the request at.
+        :rtype: str
+        """
+        if method not in ("GET", "DELETE") and content_type is None:
+            raise ValueError("Content-type header is missing for the current method!")
+        params = {
+            'method': method,
+            'name': name,
+            'expires_in': expires_in,
+            'content_type': content_type,
+        }
+
+        result = self.client.post("/object-storage/buckets/{}/{}/object-url".format(cluster_id, bucket), data=drop_null_keys(params))
+        
+        if "errors" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating the access url of an object!",
+                json=result,
+            )
+        
+        return MappedObject(**result)
+
+    def ssl_cert_delete(self, cluster_id, bucket):
+        """
+        Deletes this Object Storage bucket’s user uploaded TLS/SSL certificate 
+        and private key.
+
+        :param cluster_id: The ID of the cluster this bucket exists in.
+        :type cluster_id: str
+
+        :param bucket: The bucket name.
+        :type bucket: str
+        """
+
+        resp = self.client.delete("/object-storage/buckets/{}/{}/ssl".format(cluster_id, bucket))
+
+        if "errors" in resp:
+            raise UnexpectedResponseError(
+                "Unexpected response when deleting a bucket!",
+                json=resp,
+            )
+        return True
+
+    def ssl_cert(self, cluster_id, bucket):
+        """
+        Returns a boolean value indicating if this bucket has a corresponding 
+        TLS/SSL certificate that was uploaded by an Account user.
+
+        :param cluster_id: The ID of the cluster this bucket exists in.
+        :type cluster_id: str
+
+        :param bucket: The bucket name.
+        :type bucket: str
+
+        :returns: A boolean indicating if this Bucket has a corresponding 
+                  TLS/SSL certificate that was uploaded by an Account user.
+        :rtype: boolean
+        """
+        result = self.client.get("/object-storage/buckets/{}/{}/ssl".format(cluster_id, bucket))
+
+        if "errors" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when getting the TLS/SSL certs indicator of a bucket!",
+                json=result,
+            )
+
+        return MappedObject(**result)
+
+    def ssl_cert_upload(self, cluster_id, bucket, certificate, private_key):
+        """
+        Upload a TLS/SSL certificate and private key to be served when you 
+        visit your Object Storage bucket via HTTPS. Your TLS/SSL certificate and 
+        private key are stored encrypted at rest.
+
+        To replace an expired certificate, delete your current certificate and 
+        upload a new one.
+        
+        :param cluster_id: The ID of the cluster this bucket exists in.
+        :type cluster_id: str
+
+        :param bucket: The bucket name.
+        :type bucket: str
+
+        :param certificate: Your Base64 encoded and PEM formatted SSL certificate.
+                            Line breaks must be represented as “\n” in the string 
+                            for requests (but not when using the Linode CLI)
+        :type certificate: str
+
+        :param private_key: The private key associated with this TLS/SSL certificate.
+                            Line breaks must be represented as “\n” in the string 
+                            for requests (but not when using the Linode CLI)
+        :type private_key: str
+
+        :returns: A boolean indicating if this Bucket has a corresponding 
+                  TLS/SSL certificate that was uploaded by an Account user.
+        :rtype: boolean
+        """
+        params ={
+            "certificate": certificate,
+            "private_key": private_key,
+        }
+        result = self.client.post("/object-storage/buckets/{}/{}/ssl".format(cluster_id, bucket), data=params)
+
+        if "errors" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when uploading TLS/SSL certs!",
+                json=result,
+            )
+
+        return MappedObject(**result)
 
 class LinodeClient:
     def __init__(
