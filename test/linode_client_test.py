@@ -396,7 +396,10 @@ class LongviewGroupTest(ClientBaseCase):
         """
         Tests that Longview subscriptions can be retrieved
         """
-        r = self.client.longview.subscriptions()
+
+        with self.mock_get("longview/subscriptions") as m:
+            r = self.client.longview.subscriptions()
+            self.assertEqual(m.call_url, "/longview/subscriptions")
 
         self.assertEqual(len(r), 4)
 
