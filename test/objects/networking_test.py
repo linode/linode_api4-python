@@ -8,18 +8,6 @@ class NetworkingTest(ClientBaseCase):
     Tests methods of the Networking class
     """
 
-    def test_get_ipv6_pool(self):
-        """
-        Tests that the IPv6Pool object is properly generated.
-        """
-
-        pool = IPv6Pool(self.client, "2600:3c01::2:5000:0")
-
-        self.assertEqual(pool.range, "2600:3c01::2:5000:0")
-        self.assertEqual(pool.prefix, 124)
-        self.assertEqual(pool.region.id, "us-east")
-        self.assertEqual(pool.route_target, "2600:3c01::2:5000:f")
-
     def test_get_ipv6_range(self):
         """
         Tests that the IPv6Range object is properly generated.

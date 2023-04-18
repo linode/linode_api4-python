@@ -3,28 +3,17 @@ from linode_api4.objects import Base, DerivedBase, Property, Region
 
 
 class IPv6Pool(Base):
+    """
+    DEPRECATED
+    """
+
     api_endpoint = "/networking/ipv6/pools/{}"
     id_attribute = "range"
 
     properties = {
         "range": Property(identifier=True),
         "region": Property(slug_relationship=Region, filterable=True),
-        "prefix": Property(),
-        "route_target": Property(),
     }
-
-    def _api_get(self):
-        """
-        A helper method to GET this object from the server
-        """
-        pools = self._client.networking.ipv6_pools()
-        pool = [p for p in pools if p.range == self.range]
-
-        if pool:
-            pool = pool[0]
-            self._populate(pool._raw_json)
-        else:
-            raise LookupError("Could not find IPv6 pool with provided range.")
 
 
 class IPv6Range(Base):
