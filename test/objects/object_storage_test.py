@@ -1,3 +1,4 @@
+from datetime import datetime
 from test.base import ClientBaseCase
 
 from linode_api4.objects import ObjectStorageBucket
@@ -16,8 +17,20 @@ class ObjectStorageTest(ClientBaseCase):
             object_storage_bucket = ObjectStorageBucket(
                 self.client, "example-bucket", "us-east-1"
             )
-            object_storage_bucket._api_get()
             self.assertEqual(object_storage_bucket.cluster, "us-east-1")
+            self.assertEqual(object_storage_bucket.label, "example-bucket")
+            self.assertEqual(
+                object_storage_bucket.created,
+                datetime(
+                    year=2019, month=1, day=1, hour=1, minute=23, second=45
+                ),
+            )
+            self.assertEqual(
+                object_storage_bucket.hostname,
+                "example-bucket.us-east-1.linodeobjects.com",
+            )
+            self.assertEqual(object_storage_bucket.objects, 4)
+            self.assertEqual(object_storage_bucket.size, 188318981)
             self.assertEqual(m.call_url, object_storage_bucket_api_get_url)
 
     def test_object_storage_bucket_delete(self):
