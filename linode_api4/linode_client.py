@@ -1689,6 +1689,407 @@ class DatabaseGroup(Group):
         return d
 
 
+class NodeBalancerGroup(Group):
+    def nodebalancers(self, *filters):
+        """
+        Retrieves all of the NodeBalancers the acting user has access to.
+
+        API Documentation: https://www.linode.com/docs/api/nodebalancers/#nodebalancers-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of NodeBalancers the acting user can access.
+        :rtype: PaginatedList of NodeBalancers
+        """
+        return self.client._get_and_filter(NodeBalancer, *filters)
+
+    def nodebalancer_create(self, region, **kwargs):
+        """
+        Creates a new NodeBalancer in the given Region.
+
+        API Documentation: https://www.linode.com/docs/api/nodebalancers/#nodebalancer-create
+
+        :param region: The Region in which to create the NodeBalancer.
+        :type region: Region or str
+
+        :returns: The new NodeBalancer
+        :rtype: NodeBalancer
+        """
+        params = {
+            "region": region.id if isinstance(region, Base) else region,
+        }
+        params.update(kwargs)
+
+        result = self.client.post("/nodebalancers", data=params)
+
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating Nodebalaner!", json=result
+            )
+
+        n = NodeBalancer(self.client, result["id"], result)
+        return n
+
+
+class DomainGroup(Group):
+    def domains(self, *filters):
+        """
+        Retrieves all of the Domains the acting user has access to.
+
+        API Documentation: https://www.linode.com/docs/api/domains/#domains-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of Domains the acting user can access.
+        :rtype: PaginatedList of Domain
+        """
+        return self.client._get_and_filter(Domain, *filters)
+
+    def domain_create(self, domain, master=True, **kwargs):
+        """
+        Registers a new Domain on the acting user's account.  Make sure to point
+        your registrar to Linode's nameservers so that Linode's DNS manager will
+        correctly serve your domain.
+
+        API Documentation: https://www.linode.com/docs/api/domains/#domain-create
+
+        :param domain: The domain to register to Linode's DNS manager.
+        :type domain: str
+        :param master: Whether this is a master (defaults to true)
+        :type master: bool
+        :param tags: A list of tags to apply to the new domain.  If any of the
+                     tags included do not exist, they will be created as part of
+                     this operation.
+        :type tags: list[str]
+
+        :returns: The new Domain object.
+        :rtype: Domain
+        """
+        params = {
+            "domain": domain,
+            "type": "master" if master else "slave",
+        }
+        params.update(kwargs)
+
+        result = self.client.post("/domains", data=params)
+
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating Domain!", json=result
+            )
+
+        d = Domain(self.client, result["id"], result)
+        return d
+
+
+class TagGroup(Group):
+    def tags(self, *filters):
+        """
+        Retrieves the Tags on your account.  This may only be attempted by
+        unrestricted users.
+
+        API Documentation: https://www.linode.com/docs/api/domains/#domain-create
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of Tags on the account.
+        :rtype: PaginatedList of Tag
+        """
+        return self.client._get_and_filter(Tag, *filters)
+
+    def tag_create(
+        self,
+        label,
+        instances=None,
+        domains=None,
+        nodebalancers=None,
+        volumes=None,
+        entities=[],
+    ):
+        """
+        Creates a new Tag and optionally applies it to the given entities.
+
+        API Documentation: https://www.linode.com/docs/api/tags/#tags-list
+
+        :param label: The label for the new Tag
+        :type label: str
+        :param entities: A list of objects to apply this Tag to upon creation.
+                         May only be taggable types (Linode Instances, Domains,
+                         NodeBalancers, or Volumes).  These are applied *in addition
+                         to* any IDs specified with ``instances``, ``domains``,
+                         ``nodebalancers``, or ``volumes``, and is a convenience
+                         for sending multiple entity types without sorting them
+                         yourself.
+        :type entities: list of Instance, Domain, NodeBalancer, and/or Volume
+        :param instances: A list of Linode Instances to apply this Tag to upon
+                        creation
+        :type instances: list of Instance or list of int
+        :param domains: A list of Domains to apply this Tag to upon
+                        creation
+        :type domains: list of Domain or list of int
+        :param nodebalancers: A list of NodeBalancers to apply this Tag to upon
+                        creation
+        :type nodebalancers: list of NodeBalancer or list of int
+        :param volumes: A list of Volumes to apply this Tag to upon
+                        creation
+        :type volumes: list of Volumes or list of int
+
+        :returns: The new Tag
+        :rtype: Tag
+        """
+        linode_ids, nodebalancer_ids, domain_ids, volume_ids = [], [], [], []
+
+        # filter input into lists of ids
+        sorter = zip(
+            (linode_ids, nodebalancer_ids, domain_ids, volume_ids),
+            (instances, nodebalancers, domains, volumes),
+        )
+
+        for id_list, input_list in sorter:
+            # if we got something, we need to find its ID
+            if input_list is not None:
+                for cur in input_list:
+                    if isinstance(cur, int):
+                        id_list.append(cur)
+                    else:
+                        id_list.append(cur.id)
+
+        # filter entities into id lists too
+        type_map = {
+            Instance: linode_ids,
+            NodeBalancer: nodebalancer_ids,
+            Domain: domain_ids,
+            Volume: volume_ids,
+        }
+
+        for e in entities:
+            if type(e) in type_map:
+                type_map[type(e)].append(e.id)
+            else:
+                raise ValueError("Unsupported entity type {}".format(type(e)))
+
+        # finally, omit all id lists that are empty
+        params = {
+            "label": label,
+            "linodes": linode_ids or None,
+            "nodebalancers": nodebalancer_ids or None,
+            "domains": domain_ids or None,
+            "volumes": volume_ids or None,
+        }
+
+        result = self.client.post("/tags", data=params)
+
+        if not "label" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating Tag!", json=result
+            )
+
+        t = Tag(self.client, result["label"], result)
+        return t
+
+
+class VolumeGroup(Group):
+    def volumes(self, *filters):
+        """
+        Retrieves the Block Storage Volumes your user has access to.
+
+        API Documentation: https://www.linode.com/docs/api/volumes/#volumes-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of Volumes the acting user can access.
+        :rtype: PaginatedList of Volume
+        """
+        return self.client._get_and_filter(Volume, *filters)
+
+    def volume_create(self, label, region=None, linode=None, size=20, **kwargs):
+        """
+        Creates a new Block Storage Volume, either in the given Region or
+        attached to the given Instance.
+
+        API Documentation: https://www.linode.com/docs/api/volumes/#volumes-list
+
+        :param label: The label for the new Volume.
+        :type label: str
+        :param region: The Region to create this Volume in.  Not required if
+                       `linode` is provided.
+        :type region: Region or str
+        :param linode: The Instance to attach this Volume to.  If not given, the
+                       new Volume will not be attached to anything.
+        :type linode: Instance or int
+        :param size: The size, in GB, of the new Volume.  Defaults to 20.
+        :type size: int
+        :param tags: A list of tags to apply to the new volume.  If any of the
+                     tags included do not exist, they will be created as part of
+                     this operation.
+        :type tags: list[str]
+
+        :returns: The new Volume.
+        :rtype: Volume
+        """
+        if not (region or linode):
+            raise ValueError("region or linode required!")
+
+        params = {
+            "label": label,
+            "size": size,
+            "region": region.id if issubclass(type(region), Base) else region,
+            "linode_id": linode.id
+            if issubclass(type(linode), Base)
+            else linode,
+        }
+        params.update(kwargs)
+
+        result = self.client.post("/volumes", data=params)
+
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating volume!", json=result
+            )
+
+        v = Volume(self.client, result["id"], result)
+        return v
+
+
+class RegionGroup(Group):
+    def regions(self, *filters):
+        """
+        Returns the available Regions for Linode products.
+
+        API Documentation: https://www.linode.com/docs/api/regions/#regions-list
+
+        :param filters: Any number of filters to apply to the query.
+
+        :returns: A list of available Regions.
+        :rtype: PaginatedList of Region
+        """
+        return self.client._get_and_filter(Region, *filters)
+
+
+class ImageGroup(Group):
+    def images(self, *filters):
+        """
+        Retrieves a list of available Images, including public and private
+        Images available to the acting user.  You can filter this query to
+        retrieve only Images relevant to a specific query, for example::
+
+           debian_images = client.images(
+               Image.vendor == "debain")
+
+        API Documentation: https://www.linode.com/docs/api/images/#images-list
+
+        :param filters: Any number of filters to apply to the query.
+
+        :returns: A list of available Images.
+        :rtype: PaginatedList of Image
+        """
+        return self.client._get_and_filter(Image, *filters)
+
+    def image_create(self, disk, label=None, description=None):
+        """
+        Creates a new Image from a disk you own.
+
+        API Documentation: https://www.linode.com/docs/api/images/#image-create
+
+        :param disk: The Disk to imagize.
+        :type disk: Disk or int
+        :param label: The label for the resulting Image (defaults to the disk's
+                      label.
+        :type label: str
+        :param description: The description for the new Image.
+        :type description: str
+
+        :returns: The new Image.
+        :rtype: Image
+        """
+        params = {
+            "disk_id": disk.id if issubclass(type(disk), Base) else disk,
+        }
+
+        if label is not None:
+            params["label"] = label
+
+        if description is not None:
+            params["description"] = description
+
+        result = self.client.post("/images", data=params)
+
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating an Image from disk {}".format(
+                    disk
+                )
+            )
+
+        return Image(self.client, result["id"], result)
+
+    def image_create_upload(
+        self, label: str, region: str, description: str = None
+    ) -> Tuple[Image, str]:
+        """
+        Creates a new Image and returns the corresponding upload URL.
+
+        API Documentation: https://www.linode.com/docs/api/images/#image-upload
+
+        :param label: The label of the Image to create.
+        :type label: str
+        :param region: The region to upload to. Once the image has been created, it can be used in any region.
+        :type region: str
+        :param description: The description for the new Image.
+        :type description: str
+
+        :returns: A tuple containing the new image and the image upload URL.
+        :rtype: (Image, str)
+        """
+        params = {"label": label, "region": region, "description": description}
+
+        result = self.client.post("/images/upload", data=drop_null_keys(params))
+
+        if "image" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating an Image upload URL"
+            )
+
+        result_image = result["image"]
+        result_url = result["upload_to"]
+
+        return Image(self.client, result_image["id"], result_image), result_url
+
+    def image_upload(
+        self, label: str, region: str, file: BinaryIO, description: str = None
+    ) -> Image:
+        """
+        Creates and uploads a new image.
+
+        API Documentation: https://www.linode.com/docs/api/images/#image-upload
+
+        :param label: The label of the Image to create.
+        :type label: str
+        :param region: The region to upload to. Once the image has been created, it can be used in any region.
+        :type region: str
+        :param file: The BinaryIO object to upload to the image. This is generally obtained from open("myfile", "rb").
+        :param description: The description for the new Image.
+        :type description: str
+
+        :returns: The resulting image.
+        :rtype: Image
+        """
+
+        image, url = self.image_create_upload(
+            label, region, description=description
+        )
+
+        requests.put(
+            url,
+            headers={"Content-Type": "application/octet-stream"},
+            data=file,
+        )
+
+        image._api_get()
+
+        return image
+
+
 class LinodeClient:
     def __init__(
         self,
@@ -1772,6 +2173,24 @@ class LinodeClient:
 
         #: Access methods related to Managed Databases - see :any:`DatabaseGroup` for more information.
         self.database = DatabaseGroup(self)
+
+        #: Access methods related to NodeBalancers - see :any:`NodeBalancerGroup` for more information.
+        self.nodebalancer = NodeBalancerGroup(self)
+
+        #: Access methods related to Domains - see :any:`DomainGroup` for more information.
+        self.domain = DomainGroup(self)
+
+        #: Access methods related to Tags - See :any:`TagGroup` for more information.
+        self.tag = TagGroup(self)
+
+        #: Access methods related to Volumes - See :any:`VolumeGroup` for more information.
+        self.volume = VolumeGroup(self)
+
+        #: Access methods related to Regions - See :any:`RegionGroup` for more information.
+        self.region = RegionGroup(self)
+
+        #: Access methods related to Images - See :any:`ImageGroup` for more information.
+        self.image = ImageGroup(self)
 
     @property
     def _user_agent(self):
@@ -1940,241 +2359,84 @@ class LinodeClient:
     # ungrouped list functions
     def regions(self, *filters):
         """
-        Returns the available Regions for Linode products.
-
-        API Documentation: https://www.linode.com/docs/api/regions/#regions-list
-
-        :param filters: Any number of filters to apply to the query.
-
-        :returns: A list of available Regions.
-        :rtype: PaginatedList of Region
+        .. note:: This method is an alias to maintain backwards compatibility.
+                  Please use :meth:`LinodeClient.region.regions(...) <.RegionGroup.regions>` for all new logic.
         """
-        return self._get_and_filter(Region, *filters)
+        return self.region.regions(*filters)
 
     def images(self, *filters):
         """
-        Retrieves a list of available Images, including public and private
-        Images available to the acting user.  You can filter this query to
-        retrieve only Images relevant to a specific query, for example::
-
-           debian_images = client.images(
-               Image.vendor == "debain")
-
-        API Documentation: https://www.linode.com/docs/api/images/#images-list
-
-        :param filters: Any number of filters to apply to the query.
-
-        :returns: A list of available Images.
-        :rtype: PaginatedList of Image
+        .. note:: This method is an alias to maintain backwards compatibility.
+                  Please use :meth:`LinodeClient.image.images(...) <.ImageGroup.images>` for all new logic.
         """
-        return self._get_and_filter(Image, *filters)
+        return self.image.images(*filters)
 
     def image_create(self, disk, label=None, description=None):
         """
-        Creates a new Image from a disk you own.
-
-        API Documentation: https://www.linode.com/docs/api/images/#image-create
-
-        :param disk: The Disk to imagize.
-        :type disk: Disk or int
-        :param label: The label for the resulting Image (defaults to the disk's
-                      label.
-        :type label: str
-        :param description: The description for the new Image.
-        :type description: str
-
-        :returns: The new Image.
-        :rtype: Image
+        .. note:: This method is an alias to maintain backwards compatibility.
+                  Please use :meth:`LinodeClient.image.image_create(...) <.ImageGroup.image_create>` for all new logic.
         """
-        params = {
-            "disk_id": disk.id if issubclass(type(disk), Base) else disk,
-        }
-
-        if label is not None:
-            params["label"] = label
-
-        if description is not None:
-            params["description"] = description
-
-        result = self.post("/images", data=params)
-
-        if not "id" in result:
-            raise UnexpectedResponseError(
-                "Unexpected response when creating an Image from disk {}".format(
-                    disk
-                )
-            )
-
-        return Image(self, result["id"], result)
+        return self.image.image_create(disk, label=label, description=description)
 
     def image_create_upload(
         self, label: str, region: str, description: str = None
     ) -> Tuple[Image, str]:
         """
-        Creates a new Image and returns the corresponding upload URL.
-
-        API Documentation: https://www.linode.com/docs/api/images/#image-upload
-
-        :param label: The label of the Image to create.
-        :type label: str
-        :param region: The region to upload to. Once the image has been created, it can be used in any region.
-        :type region: str
-        :param description: The description for the new Image.
-        :type description: str
-
-        :returns: A tuple containing the new image and the image upload URL.
-        :rtype: (Image, str)
+        .. note:: This method is an alias to maintain backwards compatibility.
+                  Please use :meth:`LinodeClient.image.image_create_upload(...) <.ImageGroup.image_create_upload>`
+                  for all new logic.
         """
-        params = {"label": label, "region": region, "description": description}
 
-        result = self.post("/images/upload", data=drop_null_keys(params))
-
-        if "image" not in result:
-            raise UnexpectedResponseError(
-                "Unexpected response when creating an Image upload URL"
-            )
-
-        result_image = result["image"]
-        result_url = result["upload_to"]
-
-        return Image(self, result_image["id"], result_image), result_url
+        return self.image.image_create_upload(label, region, description=description)
 
     def image_upload(
         self, label: str, region: str, file: BinaryIO, description: str = None
     ) -> Image:
         """
-        Creates and uploads a new image.
-
-        API Documentation: https://www.linode.com/docs/api/images/#image-upload
-
-        :param label: The label of the Image to create.
-        :type label: str
-        :param region: The region to upload to. Once the image has been created, it can be used in any region.
-        :type region: str
-        :param file: The BinaryIO object to upload to the image. This is generally obtained from open("myfile", "rb").
-        :param description: The description for the new Image.
-        :type description: str
-
-        :returns: The resulting image.
-        :rtype: Image
+        .. note:: This method is an alias to maintain backwards compatibility.
+                  Please use :meth:`LinodeClient.image.image_upload(...) <.ImageGroup.image_upload>` for all new logic.
         """
-
-        image, url = self.image_create_upload(
-            label, region, description=description
-        )
-
-        requests.put(
-            url,
-            headers={"Content-Type": "application/octet-stream"},
-            data=file,
-        )
-
-        image._api_get()
-
-        return image
-
-    def domains(self, *filters):
-        """
-        Retrieves all of the Domains the acting user has access to.
-
-        API Documentation: https://www.linode.com/docs/api/domains/#domains-list
-
-        :param filters: Any number of filters to apply to this query.
-
-        :returns: A list of Domains the acting user can access.
-        :rtype: PaginatedList of Domain
-        """
-        return self._get_and_filter(Domain, *filters)
+        return self.image.image_upload(label, region, file, description=description)
 
     def nodebalancers(self, *filters):
         """
-        Retrieves all of the NodeBalancers the acting user has access to.
-
-        API Documentation: https://www.linode.com/docs/api/nodebalancers/#nodebalancers-list
-
-        :param filters: Any number of filters to apply to this query.
-
-        :returns: A list of NodeBalancers the acting user can access.
-        :rtype: PaginatedList of NodeBalancers
+        .. note:: This method is an alias to maintain backwards compatibility.
+                  Please use
+                  :meth:`LinodeClient.nodebalancer.nodebalancers(...) <.NodeBalancerGroup.nodebalancer_create>`
+                  for all new logic.
         """
-        return self._get_and_filter(NodeBalancer, *filters)
+        return self.nodebalancer.nodebalancers(*filters)
 
     def nodebalancer_create(self, region, **kwargs):
         """
-        Creates a new NodeBalancer in the given Region.
-
-        API Documentation: https://www.linode.com/docs/api/nodebalancers/#nodebalancer-create
-
-        :param region: The Region in which to create the NodeBalancer.
-        :type region: Region or str
-
-        :returns: The new NodeBalancer
-        :rtype: NodeBalancer
+        .. note:: This method is an alias to maintain backwards compatibility.
+                  Please use
+                  :meth:`LinodeClient.nodebalancer.nodebalancer_create(...) <.NodeBalancerGroup.nodebalancer_create>`
+                  for all new logic.
         """
-        params = {
-            "region": region.id if isinstance(region, Base) else region,
-        }
-        params.update(kwargs)
+        return self.nodebalancer.nodebalancer_create(region, **kwargs)
 
-        result = self.post("/nodebalancers", data=params)
-
-        if not "id" in result:
-            raise UnexpectedResponseError(
-                "Unexpected response when creating Nodebalaner!", json=result
-            )
-
-        n = NodeBalancer(self, result["id"], result)
-        return n
+    def domains(self, *filters):
+        """
+        .. note:: This method is an alias to maintain backwards compatibility.
+                  Please use :meth:`LinodeClient.domain.domains(...) <.DomainGroup.domains>` for all new logic.
+        """
+        return self.domain.domains(*filters)
 
     def domain_create(self, domain, master=True, **kwargs):
         """
-        Registers a new Domain on the acting user's account.  Make sure to point
-        your registrar to Linode's nameservers so that Linode's DNS manager will
-        correctly serve your domain.
-
-        API Documentation: https://www.linode.com/docs/api/domains/#domain-create
-
-        :param domain: The domain to register to Linode's DNS manager.
-        :type domain: str
-        :param master: Whether this is a master (defaults to true)
-        :type master: bool
-        :param tags: A list of tags to apply to the new domain.  If any of the
-                     tags included do not exist, they will be created as part of
-                     this operation.
-        :type tags: list[str]
-
-        :returns: The new Domain object.
-        :rtype: Domain
+        .. note:: This method is an alias to maintain backwards compatibility.
+                  Please use :meth:`LinodeClient.domain.domain_create(...) <.DomainGroup.domain_create>` for all
+                  new logic.
         """
-        params = {
-            "domain": domain,
-            "type": "master" if master else "slave",
-        }
-        params.update(kwargs)
-
-        result = self.post("/domains", data=params)
-
-        if not "id" in result:
-            raise UnexpectedResponseError(
-                "Unexpected response when creating Domain!", json=result
-            )
-
-        d = Domain(self, result["id"], result)
-        return d
+        return self.domain.domain_create(domain, master=master, **kwargs)
 
     def tags(self, *filters):
         """
-        Retrieves the Tags on your account.  This may only be attempted by
-        unrestricted users.
-
-        API Documentation: https://www.linode.com/docs/api/domains/#domain-create
-
-        :param filters: Any number of filters to apply to this query.
-
-        :returns: A list of Tags on the account.
-        :rtype: PaginatedList of Tag
+        .. note:: This method is an alias to maintain backwards compatibility.
+                  Please use :meth:`LinodeClient.tag.tags(...) <.TagGroup.tags>` for all new logic.
         """
-        return self._get_and_filter(Tag, *filters)
+        return self.tag.tags(*filters)
 
     def tag_create(
         self,
@@ -2186,146 +2448,33 @@ class LinodeClient:
         entities=[],
     ):
         """
-        Creates a new Tag and optionally applies it to the given entities.
-
-        API Documentation: https://www.linode.com/docs/api/tags/#tags-list
-
-        :param label: The label for the new Tag
-        :type label: str
-        :param entities: A list of objects to apply this Tag to upon creation.
-                         May only be taggable types (Linode Instances, Domains,
-                         NodeBalancers, or Volumes).  These are applied *in addition
-                         to* any IDs specified with ``instances``, ``domains``,
-                         ``nodebalancers``, or ``volumes``, and is a convenience
-                         for sending multiple entity types without sorting them
-                         yourself.
-        :type entities: list of Instance, Domain, NodeBalancer, and/or Volume
-        :param instances: A list of Linode Instances to apply this Tag to upon
-                        creation
-        :type instances: list of Instance or list of int
-        :param domains: A list of Domains to apply this Tag to upon
-                        creation
-        :type domains: list of Domain or list of int
-        :param nodebalancers: A list of NodeBalancers to apply this Tag to upon
-                        creation
-        :type nodebalancers: list of NodeBalancer or list of int
-        :param volumes: A list of Volumes to apply this Tag to upon
-                        creation
-        :type volumes: list of Volumes or list of int
-
-        :returns: The new Tag
-        :rtype: Tag
+        .. note:: This method is an alias to maintain backwards compatibility.
+                  Please use :meth:`LinodeClient.tag.tag_create(...) <.TagGroup.tag_create>` for all new logic.
         """
-        linode_ids, nodebalancer_ids, domain_ids, volume_ids = [], [], [], []
-
-        # filter input into lists of ids
-        sorter = zip(
-            (linode_ids, nodebalancer_ids, domain_ids, volume_ids),
-            (instances, nodebalancers, domains, volumes),
+        return self.tag.tag_create(
+            label,
+            instances=instances,
+            domains=domains,
+            nodebalancers=nodebalancers,
+            volumes=volumes,
+            entities=entities,
         )
-
-        for id_list, input_list in sorter:
-            # if we got something, we need to find its ID
-            if input_list is not None:
-                for cur in input_list:
-                    if isinstance(cur, int):
-                        id_list.append(cur)
-                    else:
-                        id_list.append(cur.id)
-
-        # filter entities into id lists too
-        type_map = {
-            Instance: linode_ids,
-            NodeBalancer: nodebalancer_ids,
-            Domain: domain_ids,
-            Volume: volume_ids,
-        }
-
-        for e in entities:
-            if type(e) in type_map:
-                type_map[type(e)].append(e.id)
-            else:
-                raise ValueError("Unsupported entity type {}".format(type(e)))
-
-        # finally, omit all id lists that are empty
-        params = {
-            "label": label,
-            "linodes": linode_ids or None,
-            "nodebalancers": nodebalancer_ids or None,
-            "domains": domain_ids or None,
-            "volumes": volume_ids or None,
-        }
-
-        result = self.post("/tags", data=params)
-
-        if not "label" in result:
-            raise UnexpectedResponseError(
-                "Unexpected response when creating Tag!", json=result
-            )
-
-        t = Tag(self, result["label"], result)
-        return t
 
     def volumes(self, *filters):
         """
-        Retrieves the Block Storage Volumes your user has access to.
-
-        API Documentation: https://www.linode.com/docs/api/volumes/#volumes-list
-
-        :param filters: Any number of filters to apply to this query.
-
-        :returns: A list of Volumes the acting user can access.
-        :rtype: PaginatedList of Volume
+        .. note:: This method is an alias to maintain backwards compatibility.
+                  Please use :meth:`LinodeClient.volume.volumes(...) <.VolumeGroup.volumes>` for all new logic.
         """
-        return self._get_and_filter(Volume, *filters)
+        return self.volume.volumes(*filters)
 
     def volume_create(self, label, region=None, linode=None, size=20, **kwargs):
         """
-        Creates a new Block Storage Volume, either in the given Region or
-        attached to the given Instance.
-
-        API Documentation: https://www.linode.com/docs/api/volumes/#volumes-list
-
-        :param label: The label for the new Volume.
-        :type label: str
-        :param region: The Region to create this Volume in.  Not required if
-                       `linode` is provided.
-        :type region: Region or str
-        :param linode: The Instance to attach this Volume to.  If not given, the
-                       new Volume will not be attached to anything.
-        :type linode: Instance or int
-        :param size: The size, in GB, of the new Volume.  Defaults to 20.
-        :type size: int
-        :param tags: A list of tags to apply to the new volume.  If any of the
-                     tags included do not exist, they will be created as part of
-                     this operation.
-        :type tags: list[str]
-
-        :returns: The new Volume.
-        :rtype: Volume
+        .. note:: This method is an alias to maintain backwards compatibility.
+                  Please use :meth:`LinodeClient.volume.volume_create(...) <.VolumeGroup.volume_create>` for all new logic.
         """
-        if not (region or linode):
-            raise ValueError("region or linode required!")
-
-        params = {
-            "label": label,
-            "size": size,
-            "region": region.id if issubclass(type(region), Base) else region,
-            "linode_id": linode.id
-            if issubclass(type(linode), Base)
-            else linode,
-        }
-        params.update(kwargs)
-
-        result = self.post("/volumes", data=params)
-
-        if not "id" in result:
-            raise UnexpectedResponseError(
-                "Unexpected response when creating volume!", json=result
-            )
-
-        v = Volume(self, result["id"], result)
-        return v
+        return self.volume.volume_create(
+            label, region=region, linode=linode, size=size, **kwargs
+        )
 
     # helper functions
     def _get_and_filter(self, obj_type, *filters):

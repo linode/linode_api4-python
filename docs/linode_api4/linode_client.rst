@@ -52,6 +52,38 @@ example::
 See :any:`LinodeClient` for more information on the naming of these groups,
 although generally they are named the same as the first word of the group.
 
+AccountGroup
+^^^^^^^^^^^^
+
+Includes methods for managing your account.
+
+.. autoclass:: linode_api4.linode_client.AccountGroup
+   :members:
+
+DatabaseGroup
+^^^^^^^^^^^^^
+
+Includes methods for managing Linode Managed Databases.
+
+.. autoclass:: linode_api4.linode_client.DatabaseGroup
+   :members:
+
+DomainGroup
+^^^^^^^^^^^
+
+Includes methods for managing Linode Domains.
+
+.. autoclass:: linode_api4.linode_client.DomainGroup
+   :members:
+
+ImageGroup
+^^^^^^^^^^
+
+Includes methods for managing Linode Images.
+
+.. autoclass:: linode_api4.linode_client.ImageGroup
+   :members:
+
 LinodeGroup
 ^^^^^^^^^^^
 
@@ -61,20 +93,20 @@ accessing and working with associated features.
 .. autoclass:: linode_api4.linode_client.LinodeGroup
    :members:
 
-AccountGroup
-^^^^^^^^^^^^
+LKE Group
+^^^^^^^^^
 
-Includes methods for managing your account.
+Includes methods for interacting with Linode Kubernetes Engine.
 
-.. autoclass:: linode_api4.linode_client.AccountGroup
+.. autoclass:: linode_api4.linode_client.LKEGroup
    :members:
 
-ProfileGroup
-^^^^^^^^^^^^
+LongviewGroup
+^^^^^^^^^^^^^
 
-Includes methods for managing your user.
+Includes methods for interacting with our Longview service.
 
-.. autoclass:: linode_api4.linode_client.ProfileGroup
+.. autoclass:: linode_api4.linode_client.LongviewGroup
    :members:
 
 NetworkingGroup
@@ -85,12 +117,12 @@ Includes methods for managing your networking systems.
 .. autoclass:: linode_api4.linode_client.NetworkingGroup
    :members:
 
-LongviewGroup
-^^^^^^^^^^^^^
+NodeBalancerGroup
+^^^^^^^^^^^^^^^^^
 
-Includes methods for interacting with our Longview service.
+Includes methods for managing Linode NodeBalancers.
 
-.. autoclass:: linode_api4.linode_client.LongviewGroup
+.. autoclass:: linode_api4.linode_client.NodeBalancerGroup
    :members:
 
 ObjectStorageGroup
@@ -104,12 +136,20 @@ with buckets and objects, use the s3 API directly with a library like `boto3`_.
 
 .. _boto3: https://github.com/boto/boto3
 
-LKE Group
-^^^^^^^^^
+ProfileGroup
+^^^^^^^^^^^^
 
-Includes methods for interacting with Linode Kubernetes Engine.
+Includes methods for managing your user.
 
-.. autoclass:: linode_api4.linode_client.LKEGroup
+.. autoclass:: linode_api4.linode_client.ProfileGroup
+   :members:
+
+RegionGroup
+^^^^^^^^^^^
+
+Includes methods for accessing information about Linode Regions.
+
+.. autoclass:: linode_api4.linode_client.RegionGroup
    :members:
 
 SupportGroup
@@ -118,4 +158,20 @@ SupportGroup
 Includes methods for viewing and opening tickets with our support department.
 
 .. autoclass:: linode_api4.linode_client.SupportGroup
+   :members:
+
+TagGroup
+^^^^^^^^
+
+Includes methods for managing Linode Tags.
+
+.. autoclass:: linode_api4.linode_client.TagGroup
+   :members:
+
+VolumeGroup
+^^^^^^^^^^^
+
+Includes methods for managing Linode Volumes.
+
+.. autoclass:: linode_api4.linode_client.VolumeGroup
    :members:
