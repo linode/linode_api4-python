@@ -84,8 +84,8 @@ Check out the `Getting Started guide`_ for more details on getting started
 with this library, or read `the docs`_ for more extensive documentation.
 
 .. _Linode Personal Access Token: https://www.linode.com/docs/products/tools/api/guides/manage-api-tokens/
-.. _Getting Started guide: http://linode_api4.readthedocs.io/en/latest/guides/getting_started.html
-.. _the docs: http://linode_api4.readthedocs.io/en/latest/index.html
+.. _Getting Started guide: http://linode-api4.readthedocs.io/en/latest/guides/getting_started.html
+.. _the docs: http://linode-api4.readthedocs.io/en/latest/index.html
 
 Examples
 --------
