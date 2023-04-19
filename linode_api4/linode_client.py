@@ -2357,25 +2357,10 @@ class LinodeClient:
     def delete(self, *args, **kwargs):
         return self._api_call(*args, method=self.session.delete, **kwargs)
 
-    # ungrouped list functions
-    def regions(self, *filters):
-        """
-        .. note:: This method is an alias to maintain backwards compatibility.
-                  Please use :meth:`LinodeClient.region.regions(...) <.RegionGroup.regions>` for all new logic.
-        """
-        return self.regions(*filters)
-
-    def images(self, *filters):
-        """
-        .. note:: This method is an alias to maintain backwards compatibility.
-                  Please use :meth:`LinodeClient.image.images(...) <.ImageGroup.images>` for all new logic.
-        """
-        return self.images(*filters)
-
     def image_create(self, disk, label=None, description=None):
         """
         .. note:: This method is an alias to maintain backwards compatibility.
-                  Please use :meth:`LinodeClient.image.image_create(...) <.ImageGroup.image_create>` for all new logic.
+                  Please use :meth:`LinodeClient.images.create(...) <.ImageGroup.create>` for all new logic.
         """
         return self.images.create(
             disk, label=label, description=description
@@ -2386,7 +2371,7 @@ class LinodeClient:
     ) -> Tuple[Image, str]:
         """
         .. note:: This method is an alias to maintain backwards compatibility.
-                  Please use :meth:`LinodeClient.image.image_create_upload(...) <.ImageGroup.image_create_upload>`
+                  Please use :meth:`LinodeClient.images.create_upload(...) <.ImageGroup.create_upload>`
                   for all new logic.
         """
 
@@ -2399,51 +2384,28 @@ class LinodeClient:
     ) -> Image:
         """
         .. note:: This method is an alias to maintain backwards compatibility.
-                  Please use :meth:`LinodeClient.image.image_upload(...) <.ImageGroup.image_upload>` for all new logic.
+                  Please use :meth:`LinodeClient.images.upload(...) <.ImageGroup.upload>` for all new logic.
         """
         return self.images.upload(
             label, region, file, description=description
         )
 
-    def nodebalancers(self, *filters):
-        """
-        .. note:: This method is an alias to maintain backwards compatibility.
-                  Please use
-                  :meth:`LinodeClient.nodebalancer.nodebalancers(...) <.NodeBalancerGroup.nodebalancer_create>`
-                  for all new logic.
-        """
-        return self.nodebalancers(*filters)
-
     def nodebalancer_create(self, region, **kwargs):
         """
         .. note:: This method is an alias to maintain backwards compatibility.
                   Please use
-                  :meth:`LinodeClient.nodebalancer.nodebalancer_create(...) <.NodeBalancerGroup.nodebalancer_create>`
+                  :meth:`LinodeClient.nodebalancers.create(...) <.NodeBalancerGroup.create>`
                   for all new logic.
         """
         return self.nodebalancers.create(region, **kwargs)
 
-    def domains(self, *filters):
-        """
-        .. note:: This method is an alias to maintain backwards compatibility.
-                  Please use :meth:`LinodeClient.domain.domains(...) <.DomainGroup.domains>` for all new logic.
-        """
-        return self.domains(*filters)
-
     def domain_create(self, domain, master=True, **kwargs):
         """
         .. note:: This method is an alias to maintain backwards compatibility.
-                  Please use :meth:`LinodeClient.domain.domain_create(...) <.DomainGroup.domain_create>` for all
+                  Please use :meth:`LinodeClient.domains.create(...) <.DomainGroup.create>` for all
                   new logic.
         """
         return self.domain.create(domain, master=master, **kwargs)
-
-    def tags(self, *filters):
-        """
-        .. note:: This method is an alias to maintain backwards compatibility.
-                  Please use :meth:`LinodeClient.tag.tags(...) <.TagGroup.tags>` for all new logic.
-        """
-        return self.tags(*filters)
 
     def tag_create(
         self,
@@ -2456,7 +2418,7 @@ class LinodeClient:
     ):
         """
         .. note:: This method is an alias to maintain backwards compatibility.
-                  Please use :meth:`LinodeClient.tag.tag_create(...) <.TagGroup.tag_create>` for all new logic.
+                  Please use :meth:`LinodeClient.tags.create(...) <.TagGroup.create>` for all new logic.
         """
         return self.tags.create(
             label,
@@ -2467,17 +2429,10 @@ class LinodeClient:
             entities=entities,
         )
 
-    def volumes(self, *filters):
-        """
-        .. note:: This method is an alias to maintain backwards compatibility.
-                  Please use :meth:`LinodeClient.volume(...) <.VolumeGroup.>` for all new logic.
-        """
-        return self.volumes(*filters)
-
     def volume_create(self, label, region=None, linode=None, size=20, **kwargs):
         """
         .. note:: This method is an alias to maintain backwards compatibility.
-                  Please use :meth:`LinodeClient.volume.volume_create(...) <.VolumeGroup.volume_create>` for all new logic.
+                  Please use :meth:`LinodeClient.volumes.create(...) <.VolumeGroup.create>` for all new logic.
         """
         return self.volumes.create(
             label, region=region, linode=linode, size=size, **kwargs
