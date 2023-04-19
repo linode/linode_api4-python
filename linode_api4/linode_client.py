@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from enum import StrEnum
 import json
 import logging
 import time
@@ -25,7 +26,7 @@ logger = logging.getLogger(__name__)
 class ObjectStorageGroup(Group):
     """
     This group encapsulates all endpoints under /object-storage, including viewing
-    available clusters, buckets, and managing keys and TLS/SSL cert.
+    available clusters, buckets, and managing keys and TLS/SSL certs, etc.
     """
 
     def clusters(self, *filters):
@@ -190,7 +191,8 @@ class ObjectStorageGroup(Group):
 
         if not "used" in result:
             raise UnexpectedResponseError(
-                "Unexpected response when getting Transfer Pool!"
+                "Unexpected response when getting Transfer Pool!",
+                json = result,
             )
 
         return MappedObject(**result)
@@ -208,7 +210,7 @@ class ObjectStorageGroup(Group):
         """
         return self.client._get_and_filter(ObjectStorageBucket, *filters)
 
-    def bucket_create(self, cluster, label, acl="private", cors_enabled=False):
+    def bucket_create(self, cluster, label, acl : BucketACL = BucketACL.PRIVATE, cors_enabled=False):
         """
         Creates an Object Storage Bucket in the specified cluster. Accounts with 
         negative balances cannot access this command. If the bucket already exists 
@@ -222,8 +224,7 @@ class ObjectStorageGroup(Group):
 
         :param acl: The Access Control Level of the bucket using a canned ACL string.
                     For more fine-grained control of ACLs, use the S3 API directly.
-        :type acl: str
-                    Enum: private,public-read,authenticated-read,public-read-write
+        :type acl: BucketACL
 
         :param cluster: The ID of the Object Storage Cluster where this bucket 
                         should be created.
@@ -245,16 +246,11 @@ class ObjectStorageGroup(Group):
         :returns: A Object Storage Buckets that created by user.
         :rtype: ObjectStorageBucket
         """
-        if acl not in (
-            "private",
-            "public-read",
-            "authenticated-read",
-            "public-read-write",
-        ):
-            raise ValueError("Invalid ACL value: {}".format(acl))
+
+        cluster_id = cluster.id if isinstance(cluster, ObjectStorageCluster) else cluster
 
         params = {
-            "cluster": cluster,
+            "cluster": cluster_id,
             "label": label,
             "acl": acl,
             "cors_enabled": cors_enabled,
@@ -262,13 +258,13 @@ class ObjectStorageGroup(Group):
 
         result = self.client.post("/object-storage/buckets", data=params)
 
-        if not "label" in result:
+        if not "label" in result or not "cluster" in result:
             raise UnexpectedResponseError(
                 "Unexpected response when creating Object Storage Bucket!",
                 json=result,
             )
 
-        return ObjectStorageBucket(self.client, result["label"], result)
+        return ObjectStorageBucket(self.client, result["label"], result["cluster"], result)
 
     def buckets_in_cluster(self, cluster_id, *filters):
         """
@@ -327,88 +323,6 @@ class ObjectStorageGroup(Group):
             )
         return True
 
-    def bucket_access_modify(
-        self, cluster_id, bucket, acl=None, cors_enabled=None
-    ):
-        """
-        Allows changing basic Cross-origin Resource Sharing (CORS) and Access Control 
-        Level (ACL) settings. Only allows enabling/disabling CORS for all origins, 
-        and/or setting canned ACLs. For more fine-grained control of both systems, 
-        please use the more fully-featured S3 API directly.
-
-        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-bucket-access-modify
-
-        :param cluster_id: The ID of the cluster this bucket exists in.
-        :type cluster_id: str
-
-        :param bucket: The bucket name.
-        :type bucket: str
-
-        :param acl: The Access Control Level of the bucket using a canned ACL string.
-                    For more fine-grained control of ACLs, use the S3 API directly.
-        :type acl: str
-                    Enum: private,public-read,authenticated-read,public-read-write
-
-        :param cors_enabled: If true, the bucket will be created with CORS enabled for 
-                             all origins. For more fine-grained controls of CORS, use 
-                             the S3 API directly.
-        :type cors_enabled: boolean
-        """
-        params = {
-            "acl": acl,
-            "cors_enabled": cors_enabled,
-        }
-
-        resp = self.client.post(
-            "/object-storage/buckets/{}/{}/access".format(cluster_id, bucket),
-            data=drop_null_keys(params),
-        )
-
-        if "errors" in resp:
-            return False
-        return True
-
-    def bucket_access_update(
-        self, cluster_id, bucket, acl=None, cors_enabled=None
-    ):
-        """
-        Allows changing basic Cross-origin Resource Sharing (CORS) and Access Control 
-        Level (ACL) settings. Only allows enabling/disabling CORS for all origins, 
-        and/or setting canned ACLs. For more fine-grained control of both systems, 
-        please use the more fully-featured S3 API directly.
-
-        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-bucket-access-update
-
-        :param cluster_id: The ID of the cluster this bucket exists in.
-        :type cluster_id: str
-
-        :param bucket: The bucket name.
-        :type bucket: str
-
-        :param acl: The Access Control Level of the bucket using a canned ACL string.
-                    For more fine-grained control of ACLs, use the S3 API directly.
-        :type acl: str
-                    Enum: private,public-read,authenticated-read,public-read-write
-
-        :param cors_enabled: If true, the bucket will be created with CORS enabled for 
-                             all origins. For more fine-grained controls of CORS, 
-                             use the S3 API directly.
-        :type cors_enabled: boolean
-        """
-        params = {
-            "acl": acl,
-            "cors_enabled": cors_enabled,
-        }
-
-        resp = self.client.put(
-            "/object-storage/buckets/{}/{}/access".format(cluster_id, bucket),
-            data=drop_null_keys(params),
-        )
-
-        if "errors" in resp:
-            return False
-        return True
-
     def object_acl_config(self, cluster_id, bucket, name=None):
         """
         View an Object’s configured Access Control List (ACL) in this Object Storage 
@@ -432,10 +346,9 @@ class ObjectStorageGroup(Group):
         :type name: str
 
         :returns: The Object's canned ACL and policy.
-        :rtype: dict {acl: str, acl_xml: str}
+        :rtype: dict { acl: ObjectACL, acl_xml: str }
             :acl:
-                Enum: private public-read authenticated-read public-read-write custom
-                The Access Control Level of the bucket, as a canned ACL string.
+                The Access Control Level of the object, as a canned ACL string.
                 For more fine-grained control of ACLs, use the S3 API directly.
             :acl_xml:
                 The full XML of the object’s ACL policy.
@@ -458,7 +371,7 @@ class ObjectStorageGroup(Group):
 
         return MappedObject(**result)
 
-    def object_acl_config_update(self, cluster_id, bucket, acl, name):
+    def object_acl_config_update(self, cluster_id, bucket, acl : ObjectACL, name):
         """
         Update an Object’s configured Access Control List (ACL) in this Object Storage 
         bucket. ACLs define who can access your buckets and objects and specify the 
@@ -475,11 +388,9 @@ class ObjectStorageGroup(Group):
         :param bucket: The bucket name.
         :type bucket: str
 
-        :param acl:
-            Enum: private public-read authenticated-read public-read-write custom
-            The Access Control Level of the bucket, as a canned ACL string.
-            For more fine-grained control of ACLs, use the S3 API directly.
-        :type acl: str
+        :param acl: The Access Control Level of the bucket, as a canned ACL string.
+                    For more fine-grained control of ACLs, use the S3 API directly.
+        :type acl: ObjectACL
 
         :param name: The name of the object for which to retrieve its Access Control 
                      List (ACL). Use the Object Storage Bucket Contents List endpoint 
@@ -487,10 +398,9 @@ class ObjectStorageGroup(Group):
         :type name: str
 
         :returns: The Object's canned ACL and policy.
-        :rtype: dict {acl: str, acl_xml: str}
+        :rtype: dict { acl: ObjectACL, acl_xml: str }
             :acl:
-                Enum: private public-read authenticated-read public-read-write custom
-                The Access Control Level of the bucket, as a canned ACL string.
+                The Access Control Level of the object, as a canned ACL string.
                 For more fine-grained control of ACLs, use the S3 API directly.
             :acl_xml:
                 The full XML of the object’s ACL policy.
@@ -662,7 +572,7 @@ class ObjectStorageGroup(Group):
         """
         if method not in ("GET", "DELETE") and content_type is None:
             raise ValueError(
-                "Content-type header is missing for the current method!"
+                "Content-type header is missing for the current method! It's required for all methods except GET or DELETE."
             )
         params = {
             'method': method,

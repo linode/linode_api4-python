@@ -1,6 +1,18 @@
+from enum import StrEnum
+
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import Base, DerivedBase, Property, Region
+from linode_api4.util import drop_null_keys
 
+
+class BucketACL(StrEnum):
+    """
+    BucketACL StrEnum represents the access control level of a object storage bucket.
+    """
+    PRIVATE = "private"
+    PUBLIC_READ = "public-read"
+    AUTHENTICAED_READ = "authenticated-read"
+    PUBLIC_READ_WRITE = "public-read-write"
 
 class ObjectStorageBucket(DerivedBase):
     """
@@ -46,6 +58,91 @@ class ObjectStorageBucket(DerivedBase):
                 "Unexpected json response when making a new Object Storage Bucket instance."
             )
 
+    def access_modify(
+        self, cluster_id, bucket, acl : BucketACL = None, cors_enabled=None
+    ):
+        """
+        Allows changing basic Cross-origin Resource Sharing (CORS) and Access Control
+        Level (ACL) settings. Only allows enabling/disabling CORS for all origins,
+        and/or setting canned ACLs. For more fine-grained control of both systems,
+        please use the more fully-featured S3 API directly.
+
+        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-bucket-access-modify
+
+        :param cluster_id: The ID of the cluster this bucket exists in.
+        :type cluster_id: str
+
+        :param bucket: The bucket name.
+        :type bucket: str
+
+        :param acl: The Access Control Level of the bucket using a canned ACL string.
+                    For more fine-grained control of ACLs, use the S3 API directly.
+        :type acl: BucketACL
+
+        :param cors_enabled: If true, the bucket will be created with CORS enabled for
+                             all origins. For more fine-grained controls of CORS, use
+                             the S3 API directly.
+        :type cors_enabled: boolean
+        """
+        params = {
+            "acl": acl,
+            "cors_enabled": cors_enabled,
+        }
+
+        resp = self._client.post(
+            "/object-storage/buckets/{}/{}/access".format(cluster_id, bucket),
+            data=drop_null_keys(params),
+        )
+
+        if "errors" in resp:
+            raise UnexpectedResponseError(
+                "Unexpected response when modifying the access to a bucket!",
+                json=resp,
+            )
+        return True
+
+    def access_update(
+        self, cluster_id, bucket, acl : BucketACL = None, cors_enabled=None
+    ):
+        """
+        Allows changing basic Cross-origin Resource Sharing (CORS) and Access Control
+        Level (ACL) settings. Only allows enabling/disabling CORS for all origins,
+        and/or setting canned ACLs. For more fine-grained control of both systems,
+        please use the more fully-featured S3 API directly.
+
+        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-bucket-access-update
+
+        :param cluster_id: The ID of the cluster this bucket exists in.
+        :type cluster_id: str
+
+        :param bucket: The bucket name.
+        :type bucket: str
+
+        :param acl: The Access Control Level of the bucket using a canned ACL string.
+                    For more fine-grained control of ACLs, use the S3 API directly.
+        :type acl: BucketACL
+
+        :param cors_enabled: If true, the bucket will be created with CORS enabled for
+                             all origins. For more fine-grained controls of CORS,
+                             use the S3 API directly.
+        :type cors_enabled: boolean
+        """
+        params = {
+            "acl": acl,
+            "cors_enabled": cors_enabled,
+        }
+
+        resp = self._client.put(
+            "/object-storage/buckets/{}/{}/access".format(cluster_id, bucket),
+            data=drop_null_keys(params),
+        )
+
+        if "errors" in resp:
+            raise UnexpectedResponseError(
+                "Unexpected response when updating the access to a bucket!",
+                json=resp,
+            )
+        return True
 
 class ObjectStorageCluster(Base):
     """

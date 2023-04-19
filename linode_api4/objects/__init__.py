@@ -14,10 +14,6 @@ from .support import *
 from .profile import *
 from .longview import *
 from .tag import Tag
-from .object_storage import (
-    ObjectStorageCluster,
-    ObjectStorageKeys,
-    ObjectStorageBucket,
-)
+from .object_storage import *
 from .lke import *
 from .database import *

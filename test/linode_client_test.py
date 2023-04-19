@@ -788,9 +788,29 @@ class ObjectStorageGroupTest(ClientBaseCase):
         Test that you can create a Object Storage Bucket
         """
         # buckets don't work like a normal RESTful collection, so we have to do this
-        with self.mock_post({"label": "example-bucket"}) as m:
+        with self.mock_post({"label": "example-bucket", "cluster": "us-east-1"}) as m:
             b = self.client.object_storage.bucket_create(
-                "us-east-1", "example-bucket", "private", True
+                "us-east-1", "example-bucket", BucketACL.PRIVATE, True
+            )
+            self.assertIsNotNone(b)
+            self.assertEqual(m.call_url, "/object-storage/buckets")
+            self.assertEqual(
+                m.call_data,
+                {
+                    "label": "example-bucket",
+                    "cluster": "us-east-1",
+                    "cors_enabled": True,
+                    "acl": "private",
+                },
+            )
+
+        """
+        Test that you can create a Object Storage Bucket passing a Cluster object
+        """
+        with self.mock_post({"label": "example-bucket", "cluster": "us-east-1"}) as m:
+            cluster = ObjectStorageCluster(self.client, "us-east-1")
+            b = self.client.object_storage.bucket_create(
+                cluster, "example-bucket", BucketACL.PRIVATE, True
             )
             self.assertIsNotNone(b)
             self.assertEqual(m.call_url, "/object-storage/buckets")
@@ -842,46 +862,6 @@ class ObjectStorageGroupTest(ClientBaseCase):
             )
             self.assertEqual(m.call_url, object_storage_bucket_delete_url)
 
-    def test_bucket_access_modify(self):
-        """
-        Test that you can modify bucket access settings.
-        """
-        bucket_access_modify_url = (
-            "/object-storage/buckets/us-east-1/example-bucket/access"
-        )
-        with self.mock_post({}) as m:
-            self.client.object_storage.bucket_access_modify(
-                "us-east-1", "example-bucket", "private", True
-            )
-            self.assertEqual(
-                m.call_data,
-                {
-                    "acl": "private",
-                    "cors_enabled": True,
-                },
-            )
-            self.assertEqual(m.call_url, bucket_access_modify_url)
-
-    def test_bucket_access_update(self):
-        """
-        Test that you can update bucket access settings.
-        """
-        bucket_access_update_url = (
-            "/object-storage/buckets/us-east-1/example-bucket/access"
-        )
-        with self.mock_put({}) as m:
-            self.client.object_storage.bucket_access_update(
-                "us-east-1", "example-bucket", "private", True
-            )
-            self.assertEqual(
-                m.call_data,
-                {
-                    "acl": "private",
-                    "cors_enabled": True,
-                },
-            )
-            self.assertEqual(m.call_url, bucket_access_update_url)
-
     def test_object_acl_config(self):
         """
         Test that you can view an Object’s configured Access Control List (ACL) in this Object Storage bucket.
@@ -894,7 +874,7 @@ class ObjectStorageGroupTest(ClientBaseCase):
                 "us-east-1", "example-bucket", "example"
             )
             self.assertEqual(m.call_url, object_acl_config_url)
-            self.assertEqual(acl.acl, "public-read")
+            self.assertEqual(acl.acl, ObjectACL.PUBLIC_READ)
             self.assertEqual(
                 acl.acl_xml, "<AccessControlPolicy>...</AccessControlPolicy>"
             )
@@ -914,7 +894,7 @@ class ObjectStorageGroupTest(ClientBaseCase):
         )
         with self.mock_put(object_acl_config_update_url) as m:
             acl = self.client.object_storage.object_acl_config_update(
-                "us-east-1", "example-bucket", "public-read", "example"
+                "us-east-1", "example-bucket", ObjectACL.PUBLIC_READ, "example"
             )
             self.assertEqual(m.call_url, object_acl_config_update_url)
             self.assertEqual(acl.acl, "public-read")
