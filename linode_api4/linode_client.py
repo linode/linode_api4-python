@@ -1876,10 +1876,12 @@ class LinodeClient:
                 j = response.json()
                 if "errors" in j.keys():
                     for e in j["errors"]:
-                        error_msg += (
-                            "{}; ".format(e["reason"])
-                            if "reason" in e.keys()
-                            else ""
+                        msg = e.get("reason", "")
+                        field = e.get("field", None)
+
+                        error_msg += "{}{}; ".format(
+                            f"[{field}] " if field is not None else "",
+                            msg,
                         )
             except:
                 pass
