@@ -2422,7 +2422,7 @@ class LinodeClient:
                   Please use :meth:`LinodeClient.domains.create(...) <.DomainGroup.create>` for all
                   new logic.
         """
-        return self.domain.create(domain, master=master, **kwargs)
+        return self.domains.create(domain, master=master, **kwargs)
 
     def tag_create(
         self,
