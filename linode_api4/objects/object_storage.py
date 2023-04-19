@@ -41,7 +41,7 @@ class ObjectStorageBucket(DerivedBase):
             parent_id = json["cluster"]
 
         if parent_id:
-            return Base.make(id, client, cls, parent_id=parent_id, json=json)
+            return super().make(id, client, cls, parent_id=parent_id, json=json)
         else:
             raise UnexpectedResponseError(
                 "Unexpected json response when making a new Object Storage Bucket instance."
