@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from enum import StrEnum
 import json
 import logging
 import time
@@ -192,7 +191,7 @@ class ObjectStorageGroup(Group):
         if not "used" in result:
             raise UnexpectedResponseError(
                 "Unexpected response when getting Transfer Pool!",
-                json = result,
+                json=result,
             )
 
         return MappedObject(**result)
@@ -210,7 +209,7 @@ class ObjectStorageGroup(Group):
         """
         return self.client._get_and_filter(ObjectStorageBucket, *filters)
 
-    def bucket_create(self, cluster, label, acl : BucketACL = BucketACL.PRIVATE, cors_enabled=False):
+    def bucket_create(self, cluster, label, acl="private", cors_enabled=False):
         """
         Creates an Object Storage Bucket in the specified cluster. Accounts with 
         negative balances cannot access this command. If the bucket already exists 
@@ -224,7 +223,8 @@ class ObjectStorageGroup(Group):
 
         :param acl: The Access Control Level of the bucket using a canned ACL string.
                     For more fine-grained control of ACLs, use the S3 API directly.
-        :type acl: BucketACL
+        :type acl: str
+                   Enum: private,public-read,authenticated-read,public-read-write
 
         :param cluster: The ID of the Object Storage Cluster where this bucket 
                         should be created.
@@ -246,8 +246,12 @@ class ObjectStorageGroup(Group):
         :returns: A Object Storage Buckets that created by user.
         :rtype: ObjectStorageBucket
         """
+        if not ObjectStorageBucket.is_valid_bucket_acl(self, acl):
+            raise ValueError("Invalid ACL value: {}".format(acl))
 
-        cluster_id = cluster.id if isinstance(cluster, ObjectStorageCluster) else cluster
+        cluster_id = (
+            cluster.id if isinstance(cluster, ObjectStorageCluster) else cluster
+        )
 
         params = {
             "cluster": cluster_id,
@@ -264,7 +268,9 @@ class ObjectStorageGroup(Group):
                 json=result,
             )
 
-        return ObjectStorageBucket(self.client, result["label"], result["cluster"], result)
+        return ObjectStorageBucket(
+            self.client, result["label"], result["cluster"], result
+        )
 
     def buckets_in_cluster(self, cluster_id, *filters):
         """
@@ -346,10 +352,11 @@ class ObjectStorageGroup(Group):
         :type name: str
 
         :returns: The Object's canned ACL and policy.
-        :rtype: dict { acl: ObjectACL, acl_xml: str }
+        :rtype: dict { acl: str, acl_xml: str }
             :acl:
                 The Access Control Level of the object, as a canned ACL string.
                 For more fine-grained control of ACLs, use the S3 API directly.
+                Enum: private,public-read,authenticated-read,public-read-write,custom
             :acl_xml:
                 The full XML of the object’s ACL policy.
         """
@@ -371,7 +378,7 @@ class ObjectStorageGroup(Group):
 
         return MappedObject(**result)
 
-    def object_acl_config_update(self, cluster_id, bucket, acl : ObjectACL, name):
+    def object_acl_config_update(self, cluster_id, bucket, acl, name):
         """
         Update an Object’s configured Access Control List (ACL) in this Object Storage 
         bucket. ACLs define who can access your buckets and objects and specify the 
@@ -390,7 +397,8 @@ class ObjectStorageGroup(Group):
 
         :param acl: The Access Control Level of the bucket, as a canned ACL string.
                     For more fine-grained control of ACLs, use the S3 API directly.
-        :type acl: ObjectACL
+        :type acl: str
+                   Enum: private,public-read,authenticated-read,public-read-write,custom
 
         :param name: The name of the object for which to retrieve its Access Control 
                      List (ACL). Use the Object Storage Bucket Contents List endpoint 
@@ -398,13 +406,17 @@ class ObjectStorageGroup(Group):
         :type name: str
 
         :returns: The Object's canned ACL and policy.
-        :rtype: dict { acl: ObjectACL, acl_xml: str }
+        :rtype: dict { acl: str, acl_xml: str }
             :acl:
                 The Access Control Level of the object, as a canned ACL string.
                 For more fine-grained control of ACLs, use the S3 API directly.
+                Enum: private,public-read,authenticated-read,public-read-write,custom
             :acl_xml:
                 The full XML of the object’s ACL policy.
         """
+        if not self.client.is_valid_object_acl(acl):
+            raise ValueError("Invalid ACL value: {}".format(acl))
+
         params = {
             "acl": acl,
             "name": name,
@@ -1053,3 +1065,12 @@ class LinodeClient:
             return self._get_objects(
                 obj_type.api_list(), obj_type, filters=parsed_filters
             )
+
+    def is_valid_object_acl(self, acl):
+        return acl in (
+            "private",
+            "public-read",
+            "authenticated-read",
+            "public-read-write",
+            "custom",
+        )

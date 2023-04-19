@@ -1,7 +1,7 @@
 from datetime import datetime
 from test.base import ClientBaseCase
 
-from linode_api4.objects import ObjectStorageBucket, BucketACL
+from linode_api4.objects import ObjectStorageBucket
 
 
 class ObjectStorageTest(ClientBaseCase):
@@ -56,7 +56,7 @@ class ObjectStorageTest(ClientBaseCase):
                 self.client, "example-bucket", "us-east-1"
             )
             object_storage_bucket.access_modify(
-                "us-east-1", "example-bucket", BucketACL.PRIVATE, True
+                "us-east-1", "example-bucket", "private", True
             )
             self.assertEqual(
                 m.call_data,
@@ -79,7 +79,7 @@ class ObjectStorageTest(ClientBaseCase):
                 self.client, "example-bucket", "us-east-1"
             )
             object_storage_bucket.access_update(
-                "us-east-1", "example-bucket", BucketACL.PRIVATE, True
+                "us-east-1", "example-bucket", "private", True
             )
             self.assertEqual(
                 m.call_data,

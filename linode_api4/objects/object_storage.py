@@ -1,18 +1,7 @@
-from enum import StrEnum
-
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import Base, DerivedBase, Property, Region
 from linode_api4.util import drop_null_keys
 
-
-class BucketACL(StrEnum):
-    """
-    BucketACL StrEnum represents the access control level of a object storage bucket.
-    """
-    PRIVATE = "private"
-    PUBLIC_READ = "public-read"
-    AUTHENTICAED_READ = "authenticated-read"
-    PUBLIC_READ_WRITE = "public-read-write"
 
 class ObjectStorageBucket(DerivedBase):
     """
@@ -58,9 +47,15 @@ class ObjectStorageBucket(DerivedBase):
                 "Unexpected json response when making a new Object Storage Bucket instance."
             )
 
-    def access_modify(
-        self, cluster_id, bucket, acl : BucketACL = None, cors_enabled=None
-    ):
+    def is_valid_bucket_acl(self, acl):
+        return acl in (
+            "private",
+            "public-read",
+            "authenticated-read",
+            "public-read-write",
+        )
+
+    def access_modify(self, cluster_id, bucket, acl=None, cors_enabled=None):
         """
         Allows changing basic Cross-origin Resource Sharing (CORS) and Access Control
         Level (ACL) settings. Only allows enabling/disabling CORS for all origins,
@@ -77,13 +72,17 @@ class ObjectStorageBucket(DerivedBase):
 
         :param acl: The Access Control Level of the bucket using a canned ACL string.
                     For more fine-grained control of ACLs, use the S3 API directly.
-        :type acl: BucketACL
+        :type acl: str
+                   Enum: private,public-read,authenticated-read,public-read-write
 
         :param cors_enabled: If true, the bucket will be created with CORS enabled for
                              all origins. For more fine-grained controls of CORS, use
                              the S3 API directly.
         :type cors_enabled: boolean
         """
+        if acl and not self.is_valid_bucket_acl(acl):
+            raise ValueError("Invalid ACL value: {}".format(acl))
+
         params = {
             "acl": acl,
             "cors_enabled": cors_enabled,
@@ -101,9 +100,7 @@ class ObjectStorageBucket(DerivedBase):
             )
         return True
 
-    def access_update(
-        self, cluster_id, bucket, acl : BucketACL = None, cors_enabled=None
-    ):
+    def access_update(self, cluster_id, bucket, acl=None, cors_enabled=None):
         """
         Allows changing basic Cross-origin Resource Sharing (CORS) and Access Control
         Level (ACL) settings. Only allows enabling/disabling CORS for all origins,
@@ -120,13 +117,17 @@ class ObjectStorageBucket(DerivedBase):
 
         :param acl: The Access Control Level of the bucket using a canned ACL string.
                     For more fine-grained control of ACLs, use the S3 API directly.
-        :type acl: BucketACL
+        :type acl: str
+                   Enum: private,public-read,authenticated-read,public-read-write
 
         :param cors_enabled: If true, the bucket will be created with CORS enabled for
                              all origins. For more fine-grained controls of CORS,
                              use the S3 API directly.
         :type cors_enabled: boolean
         """
+        if acl and not self.is_valid_bucket_acl(acl):
+            raise ValueError("Invalid ACL value: {}".format(acl))
+
         params = {
             "acl": acl,
             "cors_enabled": cors_enabled,
@@ -143,6 +144,7 @@ class ObjectStorageBucket(DerivedBase):
                 json=resp,
             )
         return True
+
 
 class ObjectStorageCluster(Base):
     """

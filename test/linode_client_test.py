@@ -788,9 +788,11 @@ class ObjectStorageGroupTest(ClientBaseCase):
         Test that you can create a Object Storage Bucket
         """
         # buckets don't work like a normal RESTful collection, so we have to do this
-        with self.mock_post({"label": "example-bucket", "cluster": "us-east-1"}) as m:
+        with self.mock_post(
+            {"label": "example-bucket", "cluster": "us-east-1"}
+        ) as m:
             b = self.client.object_storage.bucket_create(
-                "us-east-1", "example-bucket", BucketACL.PRIVATE, True
+                "us-east-1", "example-bucket", "private", True
             )
             self.assertIsNotNone(b)
             self.assertEqual(m.call_url, "/object-storage/buckets")
@@ -807,10 +809,12 @@ class ObjectStorageGroupTest(ClientBaseCase):
         """
         Test that you can create a Object Storage Bucket passing a Cluster object
         """
-        with self.mock_post({"label": "example-bucket", "cluster": "us-east-1"}) as m:
+        with self.mock_post(
+            {"label": "example-bucket", "cluster": "us-east-1"}
+        ) as m:
             cluster = ObjectStorageCluster(self.client, "us-east-1")
             b = self.client.object_storage.bucket_create(
-                cluster, "example-bucket", BucketACL.PRIVATE, True
+                cluster, "example-bucket", "private", True
             )
             self.assertIsNotNone(b)
             self.assertEqual(m.call_url, "/object-storage/buckets")
@@ -874,7 +878,7 @@ class ObjectStorageGroupTest(ClientBaseCase):
                 "us-east-1", "example-bucket", "example"
             )
             self.assertEqual(m.call_url, object_acl_config_url)
-            self.assertEqual(acl.acl, ObjectACL.PUBLIC_READ)
+            self.assertEqual(acl.acl, "public-read")
             self.assertEqual(
                 acl.acl_xml, "<AccessControlPolicy>...</AccessControlPolicy>"
             )
@@ -894,7 +898,7 @@ class ObjectStorageGroupTest(ClientBaseCase):
         )
         with self.mock_put(object_acl_config_update_url) as m:
             acl = self.client.object_storage.object_acl_config_update(
-                "us-east-1", "example-bucket", ObjectACL.PUBLIC_READ, "example"
+                "us-east-1", "example-bucket", "public-read", "example"
             )
             self.assertEqual(m.call_url, object_acl_config_update_url)
             self.assertEqual(acl.acl, "public-read")
