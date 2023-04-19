@@ -48,6 +48,8 @@ class LinodeGroup(Group):
 
            standard_types = client.linode.types(Type.class == "standard")
 
+        API documentation: https://www.linode.com/docs/api/linode-types/#types-list
+
         :param filters: Any number of filters to apply to the query.
 
         :returns: A list of types that match the query.
@@ -61,6 +63,8 @@ class LinodeGroup(Group):
         this query to return only Linodes that match specific criteria::
 
            prod_linodes = client.linode.instances(Instance.group == "prod")
+
+        API Documentation: https://www.linode.com/docs/api/linode-instances/#linodes-list
 
         :param filters: Any number of filters to apply to this query.
 
@@ -77,6 +81,8 @@ class LinodeGroup(Group):
         also request only your own private :any:`StackScripts<StackScript>`::
 
            my_stackscripts = client.linode.stackscripts(mine_only=True)
+
+        API Documentation: https://www.linode.com/docs/api/stackscripts/#stackscripts-list
 
         :param filters: Any number of filters to apply to this query.
         :param mine_only: If True, returns only private StackScripts
@@ -110,6 +116,8 @@ class LinodeGroup(Group):
         """
         Returns a list of available :any:`Kernels<Kernel>`.  Kernels are used
         when creating or updating :any:`LinodeConfigs,LinodeConfig>`.
+
+        API Documentation: https://www.linode.com/docs/api/linode-instances/#kernels-list
 
         :param filters: Any number of filters to apply to this query.
 
@@ -196,6 +204,8 @@ class LinodeGroup(Group):
         When created this way, the Instance will not be booted and cannot boot
         successfully until disks and configs are created, or it is otherwise
         configured.
+
+        API Documentation: https://www.linode.com/docs/api/linode-instances/#linode-create
 
         :param ltype: The Instance Type we are creating
         :type ltype: str or Type
@@ -298,6 +308,8 @@ class LinodeGroup(Group):
         """
         Creates a new :any:`StackScript` on your account.
 
+        API Documentation: https://www.linode.com/docs/api/stackscripts/#stackscript-create
+
         :param label: The label for this StackScript.
         :type label: str
         :param script: The script to run when an :any:`Instance` is deployed with
@@ -375,6 +387,8 @@ class ProfileGroup(Group):
 
            profile = client.profile()
 
+        API Documentation: https://www.linode.com/docs/api/profile/#profile-view
+
         :returns: The acting user's profile.
         :rtype: Profile
         """
@@ -390,13 +404,32 @@ class ProfileGroup(Group):
 
     def tokens(self, *filters):
         """
-        Returns the Person Access Tokens active for this user
+        Returns the Person Access Tokens active for this user.
+
+        API Documentation: https://www.linode.com/docs/api/profile/#personal-access-tokens-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of tokens that matches the query.
+        :rtype: PaginatedList of PersonalAccessToken
         """
         return self.client._get_and_filter(PersonalAccessToken, *filters)
 
     def token_create(self, label=None, expiry=None, scopes=None, **kwargs):
         """
-        Creates and returns a new Personal Access Token
+        Creates and returns a new Personal Access Token.
+
+        API Documentation: https://www.linode.com/docs/api/profile/#personal-access-token-create
+
+        :param label: The label of the new Personal Access Token.
+        :type label: str
+        :param expiry: When the new Personal Accses Token will expire.
+        :type expiry: datetime or str
+        :param scopes: A space-separated list of OAuth scopes for this token.
+        :type scopes: str
+
+        :returns: The new Personal Access Token.
+        :rtype: PersonalAccessToken
         """
         if label:
             kwargs["label"] = label
@@ -421,12 +454,26 @@ class ProfileGroup(Group):
     def apps(self, *filters):
         """
         Returns the Authorized Applications for this user
+
+        API Documentation: https://www.linode.com/docs/api/profile/#authorized-apps-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of Authorized Applications for this user
+        :rtype: PaginatedList of AuthorizedApp
         """
         return self.client._get_and_filter(AuthorizedApp, *filters)
 
     def ssh_keys(self, *filters):
         """
-        Returns the SSH Public Keys uploaded to your profile
+        Returns the SSH Public Keys uploaded to your profile.
+
+        API Documentation: https://www.linode.com/docs/api/profile/#ssh-keys-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of SSH Keys for this profile.
+        :rtype: PaginatedList of SSHKey
         """
         return self.client._get_and_filter(SSHKey, *filters)
 
@@ -434,6 +481,8 @@ class ProfileGroup(Group):
         """
         Uploads a new SSH Public Key to your profile  This key can be used in
         later Linode deployments.
+
+        API Documentation: https://www.linode.com/docs/api/profile/#ssh-key-add
 
         :param key: The ssh key, or a path to the ssh key.  If a path is provided,
                     the file at the path must exist and be readable or an exception
@@ -489,6 +538,8 @@ class LKEGroup(Group):
         Returns a :any:`PaginatedList` of :any:`KubeVersion` objects that can be
         used when creating an LKE Cluster.
 
+        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubernetes-versions-list
+
         :param filters: Any number of filters to apply to the query.
 
         :returns: A Paginated List of kube versions that match the query.
@@ -500,6 +551,8 @@ class LKEGroup(Group):
         """
         Returns a :any:`PaginagtedList` of :any:`LKECluster` objects that belong
         to this account.
+
+        https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubernetes-clusters-list
 
         :param filters: Any number of filters to apply to the query.
 
@@ -528,6 +581,8 @@ class LKEGroup(Group):
                [client.lke.node_pool(node_type, 3), client.lke.node_pool(node_type_2, 3)],
                kube_version
             )
+
+        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubernetes-cluster-create
 
         :param region: The Region to create this LKE Cluster in.
         :type region: Region or str
@@ -600,16 +655,29 @@ class LKEGroup(Group):
 
 
 class LongviewGroup(Group):
+    """
+    Collections related to Linode Longview.
+    """
+
     def clients(self, *filters):
         """
         Requests and returns a paginated list of LongviewClients on your
         account.
+
+        API Documentation: https://www.linode.com/docs/api/longview/#longview-clients-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of Longview Clients matching the given filters.
+        :rtype: PaginatedList of LongviewClient
         """
         return self.client._get_and_filter(LongviewClient, *filters)
 
     def client_create(self, label=None):
         """
         Creates a new LongviewClient, optionally with a given label.
+
+        API Documentation: https://www.linode.com/docs/api/longview/#longview-client-create
 
         :param label: The label for the new client.  If None, a default label based
             on the new client's ID will be used.
@@ -634,11 +702,22 @@ class LongviewGroup(Group):
     def subscriptions(self, *filters):
         """
         Requests and returns a paginated list of LongviewSubscriptions available
+
+        API Documentation: https://www.linode.com/docs/api/longview/#longview-subscriptions-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of Longview Subscriptions matching the given filters.
+        :rtype: PaginatedList of LongviewSubscription
         """
         return self.client._get_and_filter(LongviewSubscription, *filters)
 
 
 class AccountGroup(Group):
+    """
+    Collections related to your account.
+    """
+
     def __call__(self):
         """
         Retrieves information about the acting user's account, such as billing
@@ -646,6 +725,8 @@ class AccountGroup(Group):
         class, like this::
 
            account = client.account()
+
+        API Documentation: https://www.linode.com/docs/api/account/#account-view
 
         :returns: Returns the acting user's account information.
         :rtype: Account
@@ -661,15 +742,27 @@ class AccountGroup(Group):
 
     def events(self, *filters):
         """
-        Returns a collection of Event objects representing actions taken on your Account
-        from the last 90 days. The Events returned depend on your grants.
+        Lists events on the current account matching the given filters.
+
+        API Documentation: https://www.linode.com/docs/api/account/#events-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of events on the current account matching the given filters.
+        :rtype: PaginatedList of Event
         """
+
         return self.client._get_and_filter(Event, *filters)
 
     def events_mark_seen(self, event):
         """
         Marks event as the last event we have seen.  If event is an int, it is treated
         as an event_id, otherwise it should be an event object whose id will be used.
+
+        API Documentation: https://www.linode.com/docs/api/account/#event-mark-as-seen
+
+        :param event: The Linode event to mark as seen.
+        :type event: Event or int
         """
         last_seen = event if isinstance(event, int) else event.id
         self.client.post(
@@ -679,8 +772,13 @@ class AccountGroup(Group):
 
     def settings(self):
         """
-        Resturns the account settings data for this acocunt.  This is not  a
+        Returns the account settings data for this acocunt.  This is not  a
         listing endpoint.
+
+        API Documentation: https://www.linode.com/docs/api/account/#account-settings-view
+
+        :returns: The account settings data for this account.
+        :rtype: AccountSettings
         """
         result = self.client.get("/account/settings")
 
@@ -695,25 +793,54 @@ class AccountGroup(Group):
 
     def invoices(self):
         """
-        Returns Invoices issued to this account
+        Returns Invoices issued to this account.
+
+        API Documentation: https://www.linode.com/docs/api/account/#invoices-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: Invoices issued to this account.
+        :rtype: PaginatedList of Invoice
         """
         return self.client._get_and_filter(Invoice)
 
     def payments(self):
         """
-        Returns a list of Payments made to this account
+        Returns a list of Payments made on this account.
+
+        API Documentation: https://www.linode.com/docs/api/account/#payments-list
+
+        :returns: A list of payments made on this account.
+        :rtype: PaginatedList of Payment
         """
         return self.client._get_and_filter(Payment)
 
     def oauth_clients(self, *filters):
         """
-        Returns the OAuth Clients associated to this account
+        Returns the OAuth Clients associated with this account.
+
+        API Documentation: https://www.linode.com/docs/api/account/#oauth-clients-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of OAuth Clients associated with this account.
+        :rtype: PaginatedList of OAuthClient
         """
         return self.client._get_and_filter(OAuthClient, *filters)
 
     def oauth_client_create(self, name, redirect_uri, **kwargs):
         """
-        Make a new OAuth Client and return it
+        Creates a new OAuth client.
+
+        API Documentation: https://www.linode.com/docs/api/account/#oauth-client-create
+
+        :param name: The name of this application.
+        :type name: str
+        :param redirect_uri: The location a successful log in from https://login.linode.com should be redirected to for this client.
+        :type redirect_uri: str
+
+        :returns: The created OAuth Client.
+        :rtype: OAuthClient
         """
         params = {
             "label": name,
@@ -733,7 +860,14 @@ class AccountGroup(Group):
 
     def users(self, *filters):
         """
-        Returns a list of users on this account
+        Returns a list of users on this account.
+
+        API Documentation: https://www.linode.com/docs/api/account/#users-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of users on this account.
+        :rtype: PaginatedList of User
         """
         return self.client._get_and_filter(User, *filters)
 
@@ -946,7 +1080,12 @@ class AccountGroup(Group):
 
     def transfer(self):
         """
-        Returns a MappedObject containing the account's transfer pool data
+        Returns a MappedObject containing the account's transfer pool data.
+
+        API Documentation: https://www.linode.com/docs/api/account/#network-utilization-view
+
+        :returns: Information about this account's transfer pool data.
+        :rtype: MappedObject
         """
         result = self.client.get("/account/transfer")
 
@@ -967,6 +1106,8 @@ class AccountGroup(Group):
 
         The new user will receive an email inviting them to set up their password.
         This must be completed before they can log in.
+
+        API Documentation: https://www.linode.com/docs/api/account/#user-create
 
         :param email: The new user's email address.  This is used to finish setting
                       up their user account.
@@ -1002,11 +1143,15 @@ class AccountGroup(Group):
 
 
 class NetworkingGroup(Group):
+    """
+    Collections related to Linode Networking.
+    """
+
     def firewalls(self, *filters):
         """
-        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
-
         Retrieves the Firewalls your user has access to.
+
+        API Documentation: https://www.linode.com/docs/api/networking/#firewalls-list
 
         :param filters: Any number of filters to apply to this query.
 
@@ -1017,10 +1162,10 @@ class NetworkingGroup(Group):
 
     def firewall_create(self, label, rules, **kwargs):
         """
-        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
-
         Creates a new Firewall, either in the given Region or
         attached to the given Instance.
+
+        API Documentation: https://www.linode.com/docs/api/networking/#firewall-create
 
         :param label: The label for the new Firewall.
         :type label: str
@@ -1077,20 +1222,56 @@ class NetworkingGroup(Group):
         return f
 
     def ips(self, *filters):
+        """
+        Returns a list of IP addresses on this account, excluding private addresses.
+
+        API Documentation: https://www.linode.com/docs/api/networking/#ip-addresses-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of IP addresses on this account.
+        :rtype: PaginatedList of IPAddress
+        """
         return self.client._get_and_filter(IPAddress, *filters)
 
     def ipv6_ranges(self, *filters):
+        """
+        Returns a list of IPv6 ranges on this account.
+
+        API Documentation: https://www.linode.com/docs/api/networking/#ipv6-ranges-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of IPv6 ranges on this account.
+        :rtype: PaginatedList of IPv6Range
+        """
         return self.client._get_and_filter(IPv6Range, *filters)
 
     def ipv6_pools(self, *filters):
+        """
+        Returns a list of IPv6 pools on this account.
+
+        API Documentation: https://www.linode.com/docs/api/networking/#ipv6-pools-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of IPv6 pools on this account.
+        :rtype: PaginatedList of IPv6Pool
+        """
+
         return self.client._get_and_filter(IPv6Pool, *filters)
 
     def vlans(self, *filters):
         """
         .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+
         Returns a list of VLANs on your account.
 
-        :returns: A Paginated List of VLANs on your account.
+        API Documentation: https://www.linode.com/docs/api/networking/#vlans-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A List of VLANs on your account.
         :rtype: PaginatedList of VLAN
         """
         return self.client._get_and_filter(VLAN, *filters)
@@ -1123,6 +1304,7 @@ class NetworkingGroup(Group):
            linode1.invalidate()
            linode2.invalidate()
 
+        API Documentation: https://www.linode.com/docs/api/networking/#linodes-assign-ipv4s
 
         :param region: The Region in which the assignments should take place.
                        All Instances and IPAddresses involved in the assignment
@@ -1152,12 +1334,14 @@ class NetworkingGroup(Group):
         Allocates an IP to a Instance you own.  Additional IPs must be requested
         by opening a support ticket first.
 
+        API Documentation: https://www.linode.com/docs/api/networking/#ip-address-allocate
+
         :param linode: The Instance to allocate the new IP for.
         :type linode: Instance or int
         :param public: If True, allocate a public IP address.  Defaults to True.
         :type public: bool
 
-        :returns: The new IPAddress
+        :returns: The new IPAddress.
         :rtype: IPAddress
         """
         result = self.client.post(
@@ -1182,6 +1366,8 @@ class NetworkingGroup(Group):
         Shares the given list of :any:`IPAddresses<IPAddress>` with the provided
         :any:`Instance`.  This will enable the provided Instance to bring up the
         shared IP Addresses even though it does not own them.
+
+        API Documentation: https://www.linode.com/docs/api/networking/#ipv4-sharing-configure
 
         :param linode: The Instance to share the IPAddresses with.  This Instance
                        will be able to bring up the given addresses.
@@ -1214,25 +1400,76 @@ class NetworkingGroup(Group):
 
 
 class SupportGroup(Group):
+    """
+    Collections related to support tickets.
+    """
+
     def tickets(self, *filters):
+        """
+        Returns a list of support tickets on this account.
+
+        API Documentation: https://www.linode.com/docs/api/support/#support-tickets-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of support tickets on this account.
+        :rtype: PaginatedList of SupportTicket
+        """
+
         return self.client._get_and_filter(SupportTicket, *filters)
 
-    def ticket_open(self, summary, description, regarding=None):
-        """ """
+    def ticket_open(
+        self,
+        summary,
+        description,
+        managed_issue=False,
+        regarding=None,
+        **kwargs,
+    ):
+        """
+        Opens a support ticket on this account.
+
+        API Documentation: https://www.linode.com/docs/api/support/#support-ticket-open
+
+        :param summary: The summary or title for this support ticket.
+        :type summary: str
+        :param description: The full details of the issue or question.
+        :type description: str
+        :param regarding: The resource being referred to in this ticket.
+        :type regarding:
+        :param managed_issue: Designates if this ticket relates to a managed service.
+        :type managed_issue: bool
+
+        :returns: The new support ticket.
+        :rtype: SupportTicket
+        """
         params = {
             "summary": summary,
             "description": description,
+            "managed_issue": managed_issue,
         }
 
+        type_to_id = {
+            Instance: "linode_id",
+            Domain: "domain_id",
+            NodeBalancer: "nodebalancer_id",
+            Volume: "volume_id",
+            Firewall: "firewall_id",
+            LKECluster: "lkecluster_id",
+            Database: "database_id",
+            LongviewClient: "longviewclient_id",
+        }
+
+        params.update(kwargs)
+
         if regarding:
-            if isinstance(regarding, Instance):
-                params["linode_id"] = regarding.id
-            elif isinstance(regarding, Domain):
-                params["domain_id"] = regarding.id
-            elif isinstance(regarding, NodeBalancer):
-                params["nodebalancer_id"] = regarding.id
-            elif isinstance(regarding, Volume):
-                params["volume_id"] = regarding.id
+            id_attr = type_to_id.get(type(regarding))
+
+            if id_attr is not None:
+                params[id_attr] = regarding.id
+            elif isinstance(regarding, VLAN):
+                params["vlan"] = regarding.label
+                params["region"] = regarding.region
             else:
                 raise ValueError(
                     "Cannot open ticket regarding type {}!".format(
@@ -1264,6 +1501,8 @@ class ObjectStorageGroup(Group):
 
            us_east_clusters = client.object_storage.clusters(ObjectStorageCluster.region == "us-east")
 
+        API Documentation: https://www.linode.com/docs/api/object-storage/#clusters-list
+
         :param filters: Any number of filters to apply to this query.
 
         :returns: A list of Object Storage Clusters that matched the query.
@@ -1275,6 +1514,8 @@ class ObjectStorageGroup(Group):
         """
         Returns a list of Object Storage Keys active on this account.  These keys
         allow third-party applications to interact directly with Linode Object Storage.
+
+        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-keys-list
 
         :param filters: Any number of filters to apply to this query.
 
@@ -1317,6 +1558,8 @@ class ObjectStorageGroup(Group):
                "restricted-keys-2",
                bucket_access=client.object_storage.bucket_access("us-east-1", "example2", "read_only"),
            )
+
+        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-key-create
 
         :param label: The label for this keypair, for identification only.
         :type label: str
@@ -1391,6 +1634,8 @@ class ObjectStorageGroup(Group):
         Cancels Object Storage service.  This may be a destructive operation.  Once
         cancelled, you will no longer receive the transfer for or be billed for
         Object Storage, and all keys will be invalidated.
+
+        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-cancel
         """
         self.client.post("/object-storage/cancel", data={})
         return True
@@ -1417,6 +1662,8 @@ class DatabaseGroup(Group):
 
            database_types = client.database.types(DatabaseType.deprecated == False)
 
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-database-types-list
+
         :param filters: Any number of filters to apply to the query.
 
         :returns: A list of types that match the query.
@@ -1433,6 +1680,8 @@ class DatabaseGroup(Group):
 
            mysql_engines = client.database.engines(DatabaseEngine.engine == 'mysql')
 
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-database-engines-list
+
         :param filters: Any number of filters to apply to the query.
 
         :returns: A list of types that match the query.
@@ -1444,6 +1693,8 @@ class DatabaseGroup(Group):
         """
         Returns a list of Managed Databases active on this account.
 
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-databases-list-all
+
         :param filters: Any number of filters to apply to this query.
 
         :returns: A list of databases that matched the query.
@@ -1454,6 +1705,8 @@ class DatabaseGroup(Group):
     def mysql_instances(self, *filters):
         """
         Returns a list of Managed MySQL Databases active on this account.
+
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-mysql-databases-list
 
         :param filters: Any number of filters to apply to this query.
 
@@ -1481,6 +1734,8 @@ class DatabaseGroup(Group):
                engine.id,
                type.id
             )
+
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-mysql-database-create
 
         :param label: The name for this cluster
         :type label: str
@@ -1514,6 +1769,8 @@ class DatabaseGroup(Group):
         """
         Returns a list of Managed PostgreSQL Databases active on this account.
 
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-postgresql-databases-list
+
         :param filters: Any number of filters to apply to this query.
 
         :returns: A list of PostgreSQL databases that matched the query.
@@ -1540,6 +1797,8 @@ class DatabaseGroup(Group):
                engine.id,
                type.id
             )
+
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-postgresql-database-create
 
         :param label: The name for this cluster
         :type label: str
@@ -1576,6 +1835,8 @@ class DatabaseGroup(Group):
         """
         Returns a list of Managed MongoDB Databases active on this account.
 
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-mongodb-databases-list
+
         :param filters: Any number of filters to apply to this query.
 
         :returns: A list of MongoDB databases that matched the query.
@@ -1602,6 +1863,8 @@ class DatabaseGroup(Group):
                engine.id,
                type.id
             )
+
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-mongodb-database-create
 
         :param label: The name for this cluster
         :type label: str
@@ -1884,6 +2147,8 @@ class LinodeClient:
         """
         Returns the available Regions for Linode products.
 
+        API Documentation: https://www.linode.com/docs/api/regions/#regions-list
+
         :param filters: Any number of filters to apply to the query.
 
         :returns: A list of available Regions.
@@ -1900,6 +2165,8 @@ class LinodeClient:
            debian_images = client.images(
                Image.vendor == "debain")
 
+        API Documentation: https://www.linode.com/docs/api/images/#images-list
+
         :param filters: Any number of filters to apply to the query.
 
         :returns: A list of available Images.
@@ -1910,6 +2177,8 @@ class LinodeClient:
     def image_create(self, disk, label=None, description=None):
         """
         Creates a new Image from a disk you own.
+
+        API Documentation: https://www.linode.com/docs/api/images/#image-create
 
         :param disk: The Disk to imagize.
         :type disk: Disk or int
@@ -1948,7 +2217,8 @@ class LinodeClient:
     ) -> Tuple[Image, str]:
         """
         Creates a new Image and returns the corresponding upload URL.
-        https://www.linode.com/docs/api/images/#image-upload
+
+        API Documentation: https://www.linode.com/docs/api/images/#image-upload
 
         :param label: The label of the Image to create.
         :type label: str
@@ -1979,7 +2249,8 @@ class LinodeClient:
     ) -> Image:
         """
         Creates and uploads a new image.
-        https://www.linode.com/docs/api/images/#image-upload
+
+        API Documentation: https://www.linode.com/docs/api/images/#image-upload
 
         :param label: The label of the Image to create.
         :type label: str
@@ -2011,6 +2282,8 @@ class LinodeClient:
         """
         Retrieves all of the Domains the acting user has access to.
 
+        API Documentation: https://www.linode.com/docs/api/domains/#domains-list
+
         :param filters: Any number of filters to apply to this query.
 
         :returns: A list of Domains the acting user can access.
@@ -2022,6 +2295,8 @@ class LinodeClient:
         """
         Retrieves all of the NodeBalancers the acting user has access to.
 
+        API Documentation: https://www.linode.com/docs/api/nodebalancers/#nodebalancers-list
+
         :param filters: Any number of filters to apply to this query.
 
         :returns: A list of NodeBalancers the acting user can access.
@@ -2032,6 +2307,8 @@ class LinodeClient:
     def nodebalancer_create(self, region, **kwargs):
         """
         Creates a new NodeBalancer in the given Region.
+
+        API Documentation: https://www.linode.com/docs/api/nodebalancers/#nodebalancer-create
 
         :param region: The Region in which to create the NodeBalancer.
         :type region: Region or str
@@ -2059,6 +2336,8 @@ class LinodeClient:
         Registers a new Domain on the acting user's account.  Make sure to point
         your registrar to Linode's nameservers so that Linode's DNS manager will
         correctly serve your domain.
+
+        API Documentation: https://www.linode.com/docs/api/domains/#domain-create
 
         :param domain: The domain to register to Linode's DNS manager.
         :type domain: str
@@ -2093,6 +2372,8 @@ class LinodeClient:
         Retrieves the Tags on your account.  This may only be attempted by
         unrestricted users.
 
+        API Documentation: https://www.linode.com/docs/api/domains/#domain-create
+
         :param filters: Any number of filters to apply to this query.
 
         :returns: A list of Tags on the account.
@@ -2111,6 +2392,8 @@ class LinodeClient:
     ):
         """
         Creates a new Tag and optionally applies it to the given entities.
+
+        API Documentation: https://www.linode.com/docs/api/tags/#tags-list
 
         :param label: The label for the new Tag
         :type label: str
@@ -2192,6 +2475,8 @@ class LinodeClient:
         """
         Retrieves the Block Storage Volumes your user has access to.
 
+        API Documentation: https://www.linode.com/docs/api/volumes/#volumes-list
+
         :param filters: Any number of filters to apply to this query.
 
         :returns: A list of Volumes the acting user can access.
@@ -2203,6 +2488,8 @@ class LinodeClient:
         """
         Creates a new Block Storage Volume, either in the given Region or
         attached to the given Instance.
+
+        API Documentation: https://www.linode.com/docs/api/volumes/#volumes-list
 
         :param label: The label for the new Volume.
         :type label: str

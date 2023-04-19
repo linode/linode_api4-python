@@ -40,6 +40,10 @@ class SupportTicket(Base):
         "updated": Property(is_datetime=True),
         "updated_by": Property(),
         "replies": Property(derived_class=TicketReply),
+        "attachments": Property(),
+        "closable": Property(),
+        "gravatar_id": Property(),
+        "opened_by": Property(),
     }
 
     @property
@@ -114,3 +118,6 @@ class SupportTicket(Base):
             raise ApiError("{}: {}".format(result.status_code, errors), json=j)
 
         return True
+
+    def support_ticket_close(self):
+        self._client.post("{}/close".format(self.api_endpoint), model=self)
