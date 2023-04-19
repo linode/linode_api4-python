@@ -1694,6 +1694,11 @@ class NodeBalancerGroup(Group):
         """
         Retrieves all of the NodeBalancers the acting user has access to.
 
+        This is intended to be called off of the :any:`LinodeClient`
+        class, like this::
+
+           nodebalancers = client.nodebalancers()
+
         API Documentation: https://www.linode.com/docs/api/nodebalancers/#nodebalancers-list
 
         :param filters: Any number of filters to apply to this query.
@@ -1735,6 +1740,11 @@ class DomainGroup(Group):
     def __call__(self, *filters):
         """
         Retrieves all of the Domains the acting user has access to.
+
+        This is intended to be called off of the :any:`LinodeClient`
+        class, like this::
+
+           domains = client.domains()
 
         API Documentation: https://www.linode.com/docs/api/domains/#domains-list
 
@@ -1787,6 +1797,11 @@ class TagGroup(Group):
         """
         Retrieves the Tags on your account.  This may only be attempted by
         unrestricted users.
+
+        This is intended to be called off of the :any:`LinodeClient`
+        class, like this::
+
+           tags = client.tags()
 
         API Documentation: https://www.linode.com/docs/api/domains/#domain-create
 
@@ -1893,6 +1908,11 @@ class VolumeGroup(Group):
         """
         Retrieves the Block Storage Volumes your user has access to.
 
+        This is intended to be called off of the :any:`LinodeClient`
+        class, like this::
+
+           volumes = client.volumes()
+
         API Documentation: https://www.linode.com/docs/api/volumes/#volumes-list
 
         :param filters: Any number of filters to apply to this query.
@@ -1955,6 +1975,11 @@ class RegionGroup(Group):
     def __call__(self, *filters):
         """
         Returns the available Regions for Linode products.
+
+        This is intended to be called off of the :any:`LinodeClient`
+        class, like this::
+
+           region = client.regions()
 
         API Documentation: https://www.linode.com/docs/api/regions/#regions-list
 
@@ -2076,9 +2101,7 @@ class ImageGroup(Group):
         :rtype: Image
         """
 
-        image, url = self.create_upload(
-            label, region, description=description
-        )
+        image, url = self.create_upload(label, region, description=description)
 
         requests.put(
             url,
@@ -2362,9 +2385,7 @@ class LinodeClient:
         .. note:: This method is an alias to maintain backwards compatibility.
                   Please use :meth:`LinodeClient.images.create(...) <.ImageGroup.create>` for all new logic.
         """
-        return self.images.create(
-            disk, label=label, description=description
-        )
+        return self.images.create(disk, label=label, description=description)
 
     def image_create_upload(
         self, label: str, region: str, description: str = None
@@ -2375,9 +2396,7 @@ class LinodeClient:
                   for all new logic.
         """
 
-        return self.images.create_upload(
-            label, region, description=description
-        )
+        return self.images.create_upload(label, region, description=description)
 
     def image_upload(
         self, label: str, region: str, file: BinaryIO, description: str = None
@@ -2386,9 +2405,7 @@ class LinodeClient:
         .. note:: This method is an alias to maintain backwards compatibility.
                   Please use :meth:`LinodeClient.images.upload(...) <.ImageGroup.upload>` for all new logic.
         """
-        return self.images.upload(
-            label, region, file, description=description
-        )
+        return self.images.upload(label, region, file, description=description)
 
     def nodebalancer_create(self, region, **kwargs):
         """
