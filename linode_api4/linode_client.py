@@ -1874,13 +1874,13 @@ class LinodeClient:
             error_msg = "{}: ".format(response.status_code)
             try:
                 j = response.json()
-                if 'errors' in j.keys():
-                    for e in j['errors']:
-                        msg = e.get('reason', '')
-                        field = e.get('field', None)
+                if "errors" in j.keys():
+                    for e in j["errors"]:
+                        msg = e.get("reason", "")
+                        field = e.get("field", None)
 
-                        error_msg += '{}{}; '.format(
-                            f'[{field}] ' if field is not None else '',
+                        error_msg += "{}{}; ".format(
+                            f"[{field}] " if field is not None else "",
                             msg,
                         )
             except:
