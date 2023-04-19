@@ -4,6 +4,7 @@ from unittest import TestCase
 from unittest.mock import MagicMock
 
 from linode_api4 import ApiError, LinodeClient, LongviewSubscription
+from linode_api4.objects.linode import Instance
 from linode_api4.objects.networking import IPAddress
 
 
@@ -698,6 +699,7 @@ class NetworkingGroupTest(ClientBaseCase):
         """
 
         ip = IPAddress(self.client, "192.0.2.1", {})
+        linode = Instance(self.client, 123)
 
         with self.mock_post({}) as m:
             self.client.networking.ip_addresses_share(["192.0.2.1"], 123)
@@ -707,6 +709,12 @@ class NetworkingGroupTest(ClientBaseCase):
 
         with self.mock_post({}) as m:
             self.client.networking.ip_addresses_share([ip], 123)
+            self.assertEqual(m.call_url, "/networking/ips/share")
+            self.assertEqual(m.call_data["ips"], ["192.0.2.1"])
+            self.assertEqual(m.call_data["linode_id"], 123)
+
+        with self.mock_post({}) as m:
+            self.client.networking.ip_addresses_share(["192.0.2.1"], linode)
             self.assertEqual(m.call_url, "/networking/ips/share")
             self.assertEqual(m.call_data["ips"], ["192.0.2.1"])
             self.assertEqual(m.call_data["linode_id"], 123)

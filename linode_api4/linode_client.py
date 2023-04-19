@@ -1005,16 +1005,16 @@ class NetworkingGroup(Group):
 
         linode.invalidate()  # clear the Instance's shared IPs
 
-    def ip_addresses_share(self, ips, linode_id):
+    def ip_addresses_share(self, ips, linode):
         """
         Configure shared IPs. P sharing allows IP address reassignment
         (also referred to as IP failover) from one Linode to another if the
         primary Linode becomes unresponsive. This means that requests to the primary Linode’s
         IP address can be automatically rerouted to secondary Linodes at the configured shared IP addresses.
 
-        :param linode_id: The id of the Instance to share the IPAddresses with.
-                       This Instance will be able to bring up the given addresses.
-        :type: linode_id: int
+        :param linode_id: The id of the Instance or the Instance to share the IPAddresses with.
+                          This Instance will be able to bring up the given addresses.
+        :type: linode_id: int or Instance
         :param ips: Any number of IPAddresses to share to the Instance.
         :type ips: str or IPAddress
         """
@@ -1023,7 +1023,9 @@ class NetworkingGroup(Group):
             "ips": ips
             if not isinstance(ips[0], IPAddress)
             else [ip.address for ip in ips],
-            "linode_id": linode_id,
+            "linode_id": linode
+            if not isinstance(linode, Instance)
+            else linode.id,
         }
 
         self.client.post("/networking/ips/share", model=self, data=params)
