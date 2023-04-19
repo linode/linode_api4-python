@@ -1,0 +1,19 @@
+{
+    "image": {
+        "created": "2021-08-14T22:44:02",
+        "created_by": "someone",
+        "deprecated": false,
+        "description": "very real image upload.",
+        "eol": "2026-07-01T04:00:00",
+        "expiry": null,
+        "id": "private/1337",
+        "is_public": false,
+        "label": "Realest Image Upload",
+        "size": 2500,
+        "status": "available",
+        "type": "manual",
+        "updated": "2021-08-14T22:44:02",
+        "vendor": "Debian"
+    },
+    "upload_to": "https://linode.com/"
+}

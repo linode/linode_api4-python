@@ -1,30 +1,29 @@
-import string
-import sys
-from datetime import datetime
-from enum import Enum
-from os import urandom
-from random import randint
-
 from linode_api4.errors import UnexpectedResponseError
+from linode_api4.objects import (
+    Base,
+    DerivedBase,
+    Domain,
+    Instance,
+    NodeBalancer,
+    Property,
+    Volume,
+)
 from linode_api4.paginated_list import PaginatedList
-from linode_api4.objects import (Base, DerivedBase, Property, Instance, Volume,
-                                 NodeBalancer, Domain)
-
 
 CLASS_MAP = {
-    'linode': Instance,
-    'domain': Domain,
-    'nodebalancer': NodeBalancer,
-    'volume': Volume,
+    "linode": Instance,
+    "domain": Domain,
+    "nodebalancer": NodeBalancer,
+    "volume": Volume,
 }
 
 
 class Tag(Base):
-    api_endpoint = '/tags/{label}'
-    id_attribute = 'label'
+    api_endpoint = "/tags/{label}"
+    id_attribute = "label"
 
     properties = {
-        'label': Property(identifier=True),
+        "label": Property(identifier=True),
     }
 
     def _get_raw_objects(self):
@@ -33,12 +32,12 @@ class Tag(Base):
         This has the side effect of creating the ``_raw_objects`` attribute of
         this object.
         """
-        if not hasattr(self, '_raw_objects'):
+        if not hasattr(self, "_raw_objects"):
             result = self._client.get(type(self).api_endpoint, model=self)
 
             # I want to cache this to avoid making duplicate requests, but I don't
             # want it in the __init__
-            self._raw_objects = result # pylint: disable=attribute-defined-outside-init
+            self._raw_objects = result
 
         return self._raw_objects
 
@@ -62,8 +61,12 @@ class Tag(Base):
         """
         data = self._get_raw_objects()
 
-        return PaginatedList.make_paginated_list(data, self._client, TaggedObjectProxy,
-                                                 page_url=type(self).api_endpoint.format(**vars(self)))
+        return PaginatedList.make_paginated_list(
+            data,
+            self._client,
+            TaggedObjectProxy,
+            page_url=type(self).api_endpoint.format(**vars(self)),
+        )
 
 
 class TaggedObjectProxy:
@@ -77,11 +80,14 @@ class TaggedObjectProxy:
        enveloped objects returned from the tagged objects collection, and should
        only be used in that context.
     """
-    id_attribute = 'type' # the envelope containing tagged objects has a `type` field
-                          # that defined what type of object is in the envelope.  We'll
-                          # use that as the ID for the proxy class so ``make_instance``
-                          # below can easily tell what type it should actually be
-                          # making and returning.
+
+    id_attribute = (
+        "type"  # the envelope containing tagged objects has a `type` field
+    )
+    # that defined what type of object is in the envelope.  We'll
+    # use that as the ID for the proxy class so ``make_instance``
+    # below can easily tell what type it should actually be
+    # making and returning.
 
     @classmethod
     def make_instance(cls, id, client, parent_id=None, json=None):
@@ -97,15 +103,19 @@ class TaggedObjectProxy:
 
         :returns: A new instance of this type, populated with json
         """
-        make_cls = CLASS_MAP.get(id) # in this case, ID is coming in as the type
+        make_cls = CLASS_MAP.get(
+            id
+        )  # in this case, ID is coming in as the type
 
         if make_cls is None:
             # we don't recognize this entity type - do nothing?
             return None
 
         # discard the envelope
-        real_json = json['data']
-        real_id = real_json['id']
+        real_json = json["data"]
+        real_id = real_json["id"]
 
         # make the real object type
-        return Base.make(real_id, client, make_cls, parent_id=None, json=real_json)
+        return Base.make(
+            real_id, client, make_cls, parent_id=None, json=real_json
+        )

@@ -5,8 +5,8 @@ The official python library for the `Linode API v4`_ in python.
 
 .. _Linode API v4: https://developers.linode.com/api/v4/
 
-.. image:: https://travis-ci.com/linode/linode_api4-python.svg?branch=master
-    :target: https://travis-ci.com/linode/linode_api4-python
+.. image:: https://img.shields.io/github/actions/workflow/status/linode/linode_api4-python/main.yml?label=tests
+    :target: https://img.shields.io/github/actions/workflow/status/linode/linode_api4-python/main.yml?label=tests
 
 .. image:: https://badge.fury.io/py/linode-api4.svg
    :target: https://badge.fury.io/py/linode-api4
@@ -30,13 +30,62 @@ To build and install this package:
 - ``./setup.py install``
 
 Usage
------
+=====
 
-Check out the `Getting Started guide`_ to start using this library, or read
-`the docs`_ for extensive documentation.
+Quick Start
+-----------
 
-.. _Getting Started guide: http://linode_api4.readthedocs.io/en/latest/guides/getting_started.html
-.. _the docs: http://linode_api4.readthedocs.io/en/latest/index.html
+In order to authenticate with the Linode API, you will first need to create a
+`Linode Personal Access Token`_ with your desired account permissions.
+
+The following code sample can help you quickly get started using this package.
+
+.. code-block:: python
+
+    from linode_api4 import LinodeClient, Instance
+
+    # Create a Linode API client
+    client = LinodeClient("MY_PERSONAL_ACCESS_TOKEN")
+
+    # Create a new Linode
+    new_linode, root_pass = client.linode.instance_create(
+        ltype="g6-nanode-1",
+        region="us-southeast",
+        image="linode/ubuntu22.04",
+        label="my-ubuntu-linode"
+    )
+
+    # Print info about the Linode
+    print("Linode IP:", new_linode.ipv4[0])
+    print("Linode Root Password:", root_pass)
+
+    # List all Linodes on the account
+    my_linodes = client.linode.instances()
+
+    # Print the Label of every Linode on the account
+    print("All Instances:")
+    for instance in my_linodes:
+        print(instance.label)
+
+    # List Linodes in the us-southeast region
+    specific_linodes = client.linode.instances(
+        Instance.region == "us-southeast"
+    )
+
+    # Print the label of each Linode in us-southeast
+    print("Instances in us-southeast:")
+    for instance in specific_linodes:
+        print(instance.label)
+
+    # Delete the new instance
+    new_linode.delete()
+
+Check out the `Getting Started guide`_ for more details on getting started
+with this library, or read `the docs`_ for more extensive documentation.
+
+.. _Linode Personal Access Token: https://www.linode.com/docs/products/tools/api/guides/manage-api-tokens/
+.. _Getting Started guide: http://linode-api4.readthedocs.io/en/latest/guides/getting_started.html
+.. _the docs: http://linode-api4.readthedocs.io/en/latest/index.html
 
 Examples
 --------
@@ -89,7 +138,12 @@ Documentation
 
 This library is documented with Sphinx_.  Docs live in the ``docs`` directory.
 The easiest way to build the docs is to run ``sphinx-autobuild`` in that
-folder.
+folder::
+
+    sphinx-autobuild docs docs/build
+
+After running this command, ``sphinx-autobuild`` will host a local web server
+with the rendered documentation.
 
 Classes and functions inside the library should be annotated with sphinx-compliant
 docstrings which will be used to automatically generate documentation for the
@@ -103,3 +157,10 @@ documentation for this library is out of date or unclear, please
 
 .. _Sphinx: http://www.sphinx-doc.org/en/master/index.html
 .. _open an issue: https://github.com/linode/linode_api4-python/issues/new
+
+Contributing
+------------
+
+Please follow the `Contributing Guidelines`_ when making a contribution.
+
+.. _Contributing Guidelines: https://github.com/linode/linode_api4-python/blob/master/CONTRIBUTING.md

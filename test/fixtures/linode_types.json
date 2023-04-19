@@ -24,7 +24,8 @@
       "price": {
         "hourly": 0.0075,
         "monthly": 5
-      }
+      },
+      "successor": null
     },
     {
       "disk": 20480,
@@ -47,7 +48,8 @@
       "price": {
         "hourly": 0.09,
         "monthly": 60
-      }
+      },
+      "successor": null
     },
     {
       "disk": 30720,
@@ -70,7 +72,8 @@
       "price": {
         "hourly": 0.015,
         "monthly": 10
-      }
+      },
+      "successor": null
     },
     {
       "disk": 49152,
@@ -93,7 +96,8 @@
       "price": {
         "hourly": 0.03,
         "monthly": 20
-      }
+      },
+      "successor": null
     }
   ]
 }

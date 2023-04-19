@@ -1,4 +1,3 @@
-from datetime import datetime
 from test.base import ClientBaseCase
 
 from linode_api4.objects import NodeBalancerConfig, NodeBalancerNode
@@ -9,6 +8,7 @@ class NodeBalancerConfigTest(ClientBaseCase):
     """
     Tests methods of the NodeBalancerConfig class
     """
+
     def test_get_config(self):
         """
         Tests that a config is loaded correctly by ID
@@ -44,6 +44,7 @@ class NodeBalancerNodeTest(ClientBaseCase):
     """
     Tests methods of the NodeBalancerNode class
     """
+
     def test_get_node(self):
         """
         Tests that a node is loaded correctly by ID
@@ -66,26 +67,36 @@ class NodeBalancerNodeTest(ClientBaseCase):
         """
         Tests that a node can be created
         """
-        with self.mock_post('nodebalancers/123456/configs/65432/nodes/54321') as m:
+        with self.mock_post(
+            "nodebalancers/123456/configs/65432/nodes/54321"
+        ) as m:
             config = NodeBalancerConfig(self.client, 65432, 123456)
-            node = config.node_create('node54321', '192.168.210.120',
-                weight=50, mode='accept')
+            node = config.node_create(
+                "node54321", "192.168.210.120", weight=50, mode="accept"
+            )
 
             self.assertIsNotNone(node)
             self.assertEqual(node.id, 54321)
-            self.assertEqual(m.call_url, '/nodebalancers/123456/configs/65432/nodes')
-            self.assertEqual(m.call_data, {
-                "label": "node54321",
-                "address": "192.168.210.120",
-                "weight": 50,
-                "mode": "accept"
-            })
+            self.assertEqual(
+                m.call_url, "/nodebalancers/123456/configs/65432/nodes"
+            )
+            self.assertEqual(
+                m.call_data,
+                {
+                    "label": "node54321",
+                    "address": "192.168.210.120",
+                    "weight": 50,
+                    "mode": "accept",
+                },
+            )
 
     def test_update_node(self):
         """
         Tests that a node can be updated
         """
-        with self.mock_put('nodebalancers/123456/configs/65432/nodes/54321') as m:
+        with self.mock_put(
+            "nodebalancers/123456/configs/65432/nodes/54321"
+        ) as m:
             node = self.client.load(NodeBalancerNode, 54321, (65432, 123456))
             node.label = "ThisNewLabel"
             node.weight = 60
@@ -93,13 +104,18 @@ class NodeBalancerNodeTest(ClientBaseCase):
             node.address = "192.168.210.121"
             node.save()
 
-            self.assertEqual(m.call_url, '/nodebalancers/123456/configs/65432/nodes/54321')
-            self.assertEqual(m.call_data, {
-                "label": "ThisNewLabel",
-                "address": "192.168.210.121",
-                "mode": "drain",
-                "weight": 60
-            })
+            self.assertEqual(
+                m.call_url, "/nodebalancers/123456/configs/65432/nodes/54321"
+            )
+            self.assertEqual(
+                m.call_data,
+                {
+                    "label": "ThisNewLabel",
+                    "address": "192.168.210.121",
+                    "mode": "drain",
+                    "weight": 60,
+                },
+            )
 
     def test_delete_node(self):
         """
@@ -109,4 +125,6 @@ class NodeBalancerNodeTest(ClientBaseCase):
             node = NodeBalancerNode(self.client, 54321, (65432, 123456))
             node.delete()
 
-            self.assertEqual(m.call_url, '/nodebalancers/123456/configs/65432/nodes/54321')
+            self.assertEqual(
+                m.call_url, "/nodebalancers/123456/configs/65432/nodes/54321"
+            )

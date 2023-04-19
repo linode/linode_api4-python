@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import json
 import logging
-from datetime import datetime
 import os
 import time
+from datetime import datetime
+from typing import BinaryIO, Tuple
 
 import pkg_resources
 import requests
@@ -11,8 +14,9 @@ from linode_api4.errors import ApiError, UnexpectedResponseError
 from linode_api4.objects import *
 from linode_api4.objects.filtering import Filter
 
-from .common import load_and_validate_keys, SSH_KEY_TYPES
+from .common import SSH_KEY_TYPES, load_and_validate_keys
 from .paginated_list import PaginatedList
+from .util import drop_null_keys
 
 package_version = pkg_resources.require("linode_api4")[0].version
 
@@ -20,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 class Group:
-    def __init__(self, client):
+    def __init__(self, client: LinodeClient):
         self.client = client
 
 
@@ -35,6 +39,7 @@ class LinodeGroup(Group):
 
     This group contains all features beneath the `/linode` group in the API v4.
     """
+
     def types(self, *filters):
         """
         Returns a list of Linode Instance types.  These may be used to create
@@ -42,6 +47,8 @@ class LinodeGroup(Group):
         filtered to return specific types, for example::
 
            standard_types = client.linode.types(Type.class == "standard")
+
+        API documentation: https://www.linode.com/docs/api/linode-types/#types-list
 
         :param filters: Any number of filters to apply to the query.
 
@@ -56,6 +63,8 @@ class LinodeGroup(Group):
         this query to return only Linodes that match specific criteria::
 
            prod_linodes = client.linode.instances(Instance.group == "prod")
+
+        API Documentation: https://www.linode.com/docs/api/linode-instances/#linodes-list
 
         :param filters: Any number of filters to apply to this query.
 
@@ -73,6 +82,8 @@ class LinodeGroup(Group):
 
            my_stackscripts = client.linode.stackscripts(mine_only=True)
 
+        API Documentation: https://www.linode.com/docs/api/stackscripts/#stackscripts-list
+
         :param filters: Any number of filters to apply to this query.
         :param mine_only: If True, returns only private StackScripts
         :type mine_only: bool
@@ -81,19 +92,23 @@ class LinodeGroup(Group):
         :rtype: PaginatedList of StackScript
         """
         # python2 can't handle *args and a single keyword argument, so this is a workaround
-        if 'mine_only' in kwargs:
-            if kwargs['mine_only']:
-                new_filter = Filter({"mine":True})
+        if "mine_only" in kwargs:
+            if kwargs["mine_only"]:
+                new_filter = Filter({"mine": True})
                 if filters:
                     filters = list(filters)
                     filters[0] = filters[0] & new_filter
                 else:
                     filters = [new_filter]
 
-            del kwargs['mine_only']
+            del kwargs["mine_only"]
 
         if kwargs:
-            raise TypeError("stackscripts() got unexpected keyword argument '{}'".format(kwargs.popitem()[0]))
+            raise TypeError(
+                "stackscripts() got unexpected keyword argument '{}'".format(
+                    kwargs.popitem()[0]
+                )
+            )
 
         return self.client._get_and_filter(StackScript, *filters)
 
@@ -101,6 +116,8 @@ class LinodeGroup(Group):
         """
         Returns a list of available :any:`Kernels<Kernel>`.  Kernels are used
         when creating or updating :any:`LinodeConfigs,LinodeConfig>`.
+
+        API Documentation: https://www.linode.com/docs/api/linode-instances/#kernels-list
 
         :param filters: Any number of filters to apply to this query.
 
@@ -110,8 +127,9 @@ class LinodeGroup(Group):
         return self.client._get_and_filter(Kernel, *filters)
 
     # create things
-    def instance_create(self, ltype, region, image=None,
-            authorized_keys=None, **kwargs):
+    def instance_create(
+        self, ltype, region, image=None, authorized_keys=None, **kwargs
+    ):
         """
         Creates a new Linode Instance. This function has several modes of operation:
 
@@ -187,6 +205,8 @@ class LinodeGroup(Group):
         successfully until disks and configs are created, or it is otherwise
         configured.
 
+        API Documentation: https://www.linode.com/docs/api/linode-instances/#linode-create
+
         :param ltype: The Instance Type we are creating
         :type ltype: str or Type
         :param region: The Region in which we are creating the Instance
@@ -236,45 +256,59 @@ class LinodeGroup(Group):
                                          an outdated library.
         """
         ret_pass = None
-        if image and not 'root_pass' in kwargs:
+        if image and not "root_pass" in kwargs:
             ret_pass = Instance.generate_root_password()
-            kwargs['root_pass'] = ret_pass
+            kwargs["root_pass"] = ret_pass
 
         authorized_keys = load_and_validate_keys(authorized_keys)
 
         if "stackscript" in kwargs:
             # translate stackscripts
-            kwargs["stackscript_id"] = (kwargs["stackscript"].id if issubclass(type(kwargs["stackscript"]), Base)
-                                        else kwargs["stackscript"])
+            kwargs["stackscript_id"] = (
+                kwargs["stackscript"].id
+                if issubclass(type(kwargs["stackscript"]), Base)
+                else kwargs["stackscript"]
+            )
             del kwargs["stackscript"]
 
         if "backup" in kwargs:
             # translate backups
-            kwargs["backup_id"] = (kwargs["backup"].id if issubclass(type(kwargs["backup"]), Base)
-                                   else kwargs["backup"])
+            kwargs["backup_id"] = (
+                kwargs["backup"].id
+                if issubclass(type(kwargs["backup"]), Base)
+                else kwargs["backup"]
+            )
             del kwargs["backup"]
 
         params = {
-             'type': ltype.id if issubclass(type(ltype), Base) else ltype,
-             'region': region.id if issubclass(type(region), Base) else region,
-             'image': (image.id if issubclass(type(image), Base) else image) if image else None,
-             'authorized_keys': authorized_keys,
-         }
+            "type": ltype.id if issubclass(type(ltype), Base) else ltype,
+            "region": region.id if issubclass(type(region), Base) else region,
+            "image": (image.id if issubclass(type(image), Base) else image)
+            if image
+            else None,
+            "authorized_keys": authorized_keys,
+        }
         params.update(kwargs)
 
-        result = self.client.post('/linode/instances', data=params)
+        result = self.client.post("/linode/instances", data=params)
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating linode!', json=result)
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating linode!", json=result
+            )
 
-        l = Instance(self.client, result['id'], result)
+        l = Instance(self.client, result["id"], result)
         if not ret_pass:
             return l
         return l, ret_pass
 
-    def stackscript_create(self, label, script, images, desc=None, public=False, **kwargs):
+    def stackscript_create(
+        self, label, script, images, desc=None, public=False, **kwargs
+    ):
         """
         Creates a new :any:`StackScript` on your account.
+
+        API Documentation: https://www.linode.com/docs/api/stackscripts/#stackscript-create
 
         :param label: The label for this StackScript.
         :type label: str
@@ -297,13 +331,17 @@ class LinodeGroup(Group):
         """
         image_list = None
         if type(images) is list or type(images) is PaginatedList:
-            image_list = [d.id if issubclass(type(d), Base) else d for d in images ]
+            image_list = [
+                d.id if issubclass(type(d), Base) else d for d in images
+            ]
         elif type(images) is Image:
             image_list = [images.id]
         elif type(images) is str:
             image_list = [images]
         else:
-            raise ValueError('images must be a list of Images or a single Image')
+            raise ValueError(
+                "images must be a list of Images or a single Image"
+            )
 
         script_body = script
         if not script.startswith("#!"):
@@ -312,23 +350,27 @@ class LinodeGroup(Group):
                 with open(script) as f:
                     script_body = f.read()
             else:
-                raise ValueError("script must be the script text or a path to a file")
+                raise ValueError(
+                    "script must be the script text or a path to a file"
+                )
 
         params = {
             "label": label,
             "images": image_list,
             "is_public": public,
             "script": script_body,
-            "description": desc if desc else '',
+            "description": desc if desc else "",
         }
         params.update(kwargs)
 
-        result = self.client.post('/linode/stackscripts', data=params)
+        result = self.client.post("/linode/stackscripts", data=params)
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating StackScript!', json=result)
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating StackScript!", json=result
+            )
 
-        s = StackScript(self.client, result['id'], result)
+        s = StackScript(self.client, result["id"], result)
         return s
 
 
@@ -336,6 +378,7 @@ class ProfileGroup(Group):
     """
     Collections related to your user.
     """
+
     def __call__(self):
         """
         Retrieve the acting user's Profile, containing information about the
@@ -344,54 +387,93 @@ class ProfileGroup(Group):
 
            profile = client.profile()
 
+        API Documentation: https://www.linode.com/docs/api/profile/#profile-view
+
         :returns: The acting user's profile.
         :rtype: Profile
         """
-        result = self.client.get('/profile')
+        result = self.client.get("/profile")
 
-        if not 'username' in result:
-            raise UnexpectedResponseError('Unexpected response when getting profile!', json=result)
+        if not "username" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when getting profile!", json=result
+            )
 
-        p = Profile(self.client, result['username'], result)
+        p = Profile(self.client, result["username"], result)
         return p
 
     def tokens(self, *filters):
         """
-        Returns the Person Access Tokens active for this user
+        Returns the Person Access Tokens active for this user.
+
+        API Documentation: https://www.linode.com/docs/api/profile/#personal-access-tokens-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of tokens that matches the query.
+        :rtype: PaginatedList of PersonalAccessToken
         """
         return self.client._get_and_filter(PersonalAccessToken, *filters)
 
     def token_create(self, label=None, expiry=None, scopes=None, **kwargs):
         """
-        Creates and returns a new Personal Access Token
+        Creates and returns a new Personal Access Token.
+
+        API Documentation: https://www.linode.com/docs/api/profile/#personal-access-token-create
+
+        :param label: The label of the new Personal Access Token.
+        :type label: str
+        :param expiry: When the new Personal Accses Token will expire.
+        :type expiry: datetime or str
+        :param scopes: A space-separated list of OAuth scopes for this token.
+        :type scopes: str
+
+        :returns: The new Personal Access Token.
+        :rtype: PersonalAccessToken
         """
         if label:
-            kwargs['label'] = label
+            kwargs["label"] = label
         if expiry:
             if isinstance(expiry, datetime):
                 expiry = datetime.strftime(expiry, "%Y-%m-%dT%H:%M:%S")
-            kwargs['expiry'] = expiry
+            kwargs["expiry"] = expiry
         if scopes:
-            kwargs['scopes'] = scopes
+            kwargs["scopes"] = scopes
 
-        result = self.client.post('/profile/tokens', data=kwargs)
+        result = self.client.post("/profile/tokens", data=kwargs)
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating Personal Access '
-                    'Token!', json=result)
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating Personal Access Token!",
+                json=result,
+            )
 
-        token = PersonalAccessToken(self.client, result['id'], result)
+        token = PersonalAccessToken(self.client, result["id"], result)
         return token
 
     def apps(self, *filters):
         """
         Returns the Authorized Applications for this user
+
+        API Documentation: https://www.linode.com/docs/api/profile/#authorized-apps-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of Authorized Applications for this user
+        :rtype: PaginatedList of AuthorizedApp
         """
         return self.client._get_and_filter(AuthorizedApp, *filters)
 
     def ssh_keys(self, *filters):
         """
-        Returns the SSH Public Keys uploaded to your profile
+        Returns the SSH Public Keys uploaded to your profile.
+
+        API Documentation: https://www.linode.com/docs/api/profile/#ssh-keys-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of SSH Keys for this profile.
+        :rtype: PaginatedList of SSHKey
         """
         return self.client._get_and_filter(SSHKey, *filters)
 
@@ -399,6 +481,8 @@ class ProfileGroup(Group):
         """
         Uploads a new SSH Public Key to your profile  This key can be used in
         later Linode deployments.
+
+        API Documentation: https://www.linode.com/docs/api/profile/#ssh-key-add
 
         :param key: The ssh key, or a path to the ssh key.  If a path is provided,
                     the file at the path must exist and be readable or an exception
@@ -419,20 +503,21 @@ class ProfileGroup(Group):
                 with open(path) as f:
                     key = f.read().strip()
             if not key.startswith(SSH_KEY_TYPES):
-                raise ValueError('Invalid SSH Public Key')
+                raise ValueError("Invalid SSH Public Key")
 
         params = {
-            'ssh_key': key,
-            'label': label,
+            "ssh_key": key,
+            "label": label,
         }
 
-        result = self.client.post('/profile/sshkeys', data=params)
+        result = self.client.post("/profile/sshkeys", data=params)
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when uploading SSH Key!',
-                                          json=result)
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when uploading SSH Key!", json=result
+            )
 
-        ssh_key = SSHKey(self.client, result['id'], result)
+        ssh_key = SSHKey(self.client, result["id"], result)
         return ssh_key
 
 
@@ -447,10 +532,13 @@ class LKEGroup(Group):
 
     This group contains all features beneath the `/lke` group in the API v4.
     """
+
     def versions(self, *filters):
         """
         Returns a :any:`PaginatedList` of :any:`KubeVersion` objects that can be
         used when creating an LKE Cluster.
+
+        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubernetes-versions-list
 
         :param filters: Any number of filters to apply to the query.
 
@@ -463,6 +551,8 @@ class LKEGroup(Group):
         """
         Returns a :any:`PaginagtedList` of :any:`LKECluster` objects that belong
         to this account.
+
+        https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubernetes-clusters-list
 
         :param filters: Any number of filters to apply to the query.
 
@@ -491,6 +581,8 @@ class LKEGroup(Group):
                [client.lke.node_pool(node_type, 3), client.lke.node_pool(node_type_2, 3)],
                kube_version
             )
+
+        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubernetes-cluster-create
 
         :param region: The Region to create this LKE Cluster in.
         :type region: Region or str
@@ -533,12 +625,14 @@ class LKEGroup(Group):
         }
         params.update(kwargs)
 
-        result = self.client.post('/lke/clusters', data=params)
+        result = self.client.post("/lke/clusters", data=params)
 
-        if 'id' not in result:
-            raise UnexpectedResponseError('Unexpected response when creating LKE cluster!', json=result)
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating LKE cluster!", json=result
+            )
 
-        return LKECluster(self.client, result['id'], result)
+        return LKECluster(self.client, result["id"], result)
 
     def node_pool(self, node_type, node_count):
         """
@@ -559,17 +653,31 @@ class LKEGroup(Group):
             "count": node_count,
         }
 
+
 class LongviewGroup(Group):
+    """
+    Collections related to Linode Longview.
+    """
+
     def clients(self, *filters):
         """
         Requests and returns a paginated list of LongviewClients on your
         account.
+
+        API Documentation: https://www.linode.com/docs/api/longview/#longview-clients-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of Longview Clients matching the given filters.
+        :rtype: PaginatedList of LongviewClient
         """
         return self.client._get_and_filter(LongviewClient, *filters)
 
     def client_create(self, label=None):
         """
         Creates a new LongviewClient, optionally with a given label.
+
+        API Documentation: https://www.linode.com/docs/api/longview/#longview-client-create
 
         :param label: The label for the new client.  If None, a default label based
             on the new client's ID will be used.
@@ -580,25 +688,36 @@ class LongviewGroup(Group):
         :raises UnexpectedResponseError: If the returned data from the api does
             not look as expected.
         """
-        result = self.client.post('/longview/clients', data={
-            "label": label
-        })
+        result = self.client.post("/longview/clients", data={"label": label})
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating Longivew '
-                'Client!', json=result)
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating Longview Client!",
+                json=result,
+            )
 
-        c = LongviewClient(self.client, result['id'], result)
+        c = LongviewClient(self.client, result["id"], result)
         return c
 
     def subscriptions(self, *filters):
         """
         Requests and returns a paginated list of LongviewSubscriptions available
+
+        API Documentation: https://www.linode.com/docs/api/longview/#longview-subscriptions-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of Longview Subscriptions matching the given filters.
+        :rtype: PaginatedList of LongviewSubscription
         """
         return self.client._get_and_filter(LongviewSubscription, *filters)
 
 
 class AccountGroup(Group):
+    """
+    Collections related to your account.
+    """
+
     def __call__(self):
         """
         Retrieves information about the acting user's account, such as billing
@@ -607,63 +726,121 @@ class AccountGroup(Group):
 
            account = client.account()
 
+        API Documentation: https://www.linode.com/docs/api/account/#account-view
+
         :returns: Returns the acting user's account information.
         :rtype: Account
         """
-        result = self.client.get('/account')
+        result = self.client.get("/account")
 
-        if not 'email' in result:
-            raise UnexpectedResponseError('Unexpected response when getting account!', json=result)
+        if not "email" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when getting account!", json=result
+            )
 
-        return Account(self.client, result['email'], result)
-
+        return Account(self.client, result["email"], result)
 
     def events(self, *filters):
+        """
+        Lists events on the current account matching the given filters.
+
+        API Documentation: https://www.linode.com/docs/api/account/#events-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of events on the current account matching the given filters.
+        :rtype: PaginatedList of Event
+        """
+
         return self.client._get_and_filter(Event, *filters)
 
     def events_mark_seen(self, event):
         """
         Marks event as the last event we have seen.  If event is an int, it is treated
         as an event_id, otherwise it should be an event object whose id will be used.
+
+        API Documentation: https://www.linode.com/docs/api/account/#event-mark-as-seen
+
+        :param event: The Linode event to mark as seen.
+        :type event: Event or int
         """
         last_seen = event if isinstance(event, int) else event.id
-        self.client.post('{}/seen'.format(Event.api_endpoint), model=Event(self.client, last_seen))
+        self.client.post(
+            "{}/seen".format(Event.api_endpoint),
+            model=Event(self.client, last_seen),
+        )
 
     def settings(self):
         """
-        Resturns the account settings data for this acocunt.  This is not  a
+        Returns the account settings data for this acocunt.  This is not  a
         listing endpoint.
+
+        API Documentation: https://www.linode.com/docs/api/account/#account-settings-view
+
+        :returns: The account settings data for this account.
+        :rtype: AccountSettings
         """
-        result = self.client.get('/account/settings')
+        result = self.client.get("/account/settings")
 
-        if not 'managed' in result:
-            raise UnexpectedResponseError('Unexpected response when getting account settings!',
-                    json=result)
+        if not "managed" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when getting account settings!",
+                json=result,
+            )
 
-        s = AccountSettings(self.client, result['managed'], result)
+        s = AccountSettings(self.client, result["managed"], result)
         return s
 
     def invoices(self):
         """
-        Returns Invoices issued to this account
+        Returns Invoices issued to this account.
+
+        API Documentation: https://www.linode.com/docs/api/account/#invoices-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: Invoices issued to this account.
+        :rtype: PaginatedList of Invoice
         """
         return self.client._get_and_filter(Invoice)
 
     def payments(self):
         """
-        Returns a list of Payments made to this account
+        Returns a list of Payments made on this account.
+
+        API Documentation: https://www.linode.com/docs/api/account/#payments-list
+
+        :returns: A list of payments made on this account.
+        :rtype: PaginatedList of Payment
         """
         return self.client._get_and_filter(Payment)
 
     def oauth_clients(self, *filters):
         """
-        Returns the OAuth Clients associated to this account
+        Returns the OAuth Clients associated with this account.
+
+        API Documentation: https://www.linode.com/docs/api/account/#oauth-clients-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of OAuth Clients associated with this account.
+        :rtype: PaginatedList of OAuthClient
         """
         return self.client._get_and_filter(OAuthClient, *filters)
 
     def oauth_client_create(self, name, redirect_uri, **kwargs):
         """
-        Make a new OAuth Client and return it
+        Creates a new OAuth client.
+
+        API Documentation: https://www.linode.com/docs/api/account/#oauth-client-create
+
+        :param name: The name of this application.
+        :type name: str
+        :param redirect_uri: The location a successful log in from https://login.linode.com should be redirected to for this client.
+        :type redirect_uri: str
+
+        :returns: The created OAuth Client.
+        :rtype: OAuthClient
         """
         params = {
             "label": name,
@@ -671,29 +848,44 @@ class AccountGroup(Group):
         }
         params.update(kwargs)
 
-        result = self.client.post('/account/oauth-clients', data=params)
+        result = self.client.post("/account/oauth-clients", data=params)
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating OAuth Client!',
-                    json=result)
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating OAuth Client!", json=result
+            )
 
-        c = OAuthClient(self.client, result['id'], result)
+        c = OAuthClient(self.client, result["id"], result)
         return c
 
     def users(self, *filters):
         """
-        Returns a list of users on this account
+        Returns a list of users on this account.
+
+        API Documentation: https://www.linode.com/docs/api/account/#users-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of users on this account.
+        :rtype: PaginatedList of User
         """
         return self.client._get_and_filter(User, *filters)
 
     def transfer(self):
         """
-        Returns a MappedObject containing the account's transfer pool data
-        """
-        result = self.client.get('/account/transfer')
+        Returns a MappedObject containing the account's transfer pool data.
 
-        if not 'used' in result:
-            raise UnexpectedResponseError('Unexpected response when getting Transfer Pool!')
+        API Documentation: https://www.linode.com/docs/api/account/#network-utilization-view
+
+        :returns: Information about this account's transfer pool data.
+        :rtype: MappedObject
+        """
+        result = self.client.get("/account/transfer")
+
+        if not "used" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when getting Transfer Pool!"
+            )
 
         return MappedObject(**result)
 
@@ -707,6 +899,8 @@ class AccountGroup(Group):
 
         The new user will receive an email inviting them to set up their password.
         This must be completed before they can log in.
+
+        API Documentation: https://www.linode.com/docs/api/account/#user-create
 
         :param email: The new user's email address.  This is used to finish setting
                       up their user account.
@@ -728,20 +922,29 @@ class AccountGroup(Group):
             "username": username,
             "restricted": restricted,
         }
-        result = self.client.post('/account/users', data=params)
+        result = self.client.post("/account/users", data=params)
 
-        if not all([c in result for c in ('email', 'restricted', 'username')]): # pylint: disable=use-a-generator
-            raise UnexpectedResponseError('Unexpected response when creating user!', json=result)
+        if not all(
+            [c in result for c in ("email", "restricted", "username")]
+        ):  # pylint: disable=use-a-generator
+            raise UnexpectedResponseError(
+                "Unexpected response when creating user!", json=result
+            )
 
-        u = User(self.client, result['username'], result)
+        u = User(self.client, result["username"], result)
         return u
 
+
 class NetworkingGroup(Group):
+    """
+    Collections related to Linode Networking.
+    """
+
     def firewalls(self, *filters):
         """
-        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
-
         Retrieves the Firewalls your user has access to.
+
+        API Documentation: https://www.linode.com/docs/api/networking/#firewalls-list
 
         :param filters: Any number of filters to apply to this query.
 
@@ -752,10 +955,10 @@ class NetworkingGroup(Group):
 
     def firewall_create(self, label, rules, **kwargs):
         """
-        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
-
         Creates a new Firewall, either in the given Region or
         attached to the given Instance.
+
+        API Documentation: https://www.linode.com/docs/api/networking/#firewall-create
 
         :param label: The label for the new Firewall.
         :type label: str
@@ -796,34 +999,72 @@ class NetworkingGroup(Group):
         """
 
         params = {
-            'label': label,
-            'rules': rules,
+            "label": label,
+            "rules": rules,
         }
         params.update(kwargs)
 
-        result = self.client.post('/networking/firewalls', data=params)
+        result = self.client.post("/networking/firewalls", data=params)
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating Firewall!', json=result)
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating Firewall!", json=result
+            )
 
-        f = Firewall(self.client, result['id'], result)
+        f = Firewall(self.client, result["id"], result)
         return f
 
     def ips(self, *filters):
+        """
+        Returns a list of IP addresses on this account, excluding private addresses.
+
+        API Documentation: https://www.linode.com/docs/api/networking/#ip-addresses-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of IP addresses on this account.
+        :rtype: PaginatedList of IPAddress
+        """
         return self.client._get_and_filter(IPAddress, *filters)
 
     def ipv6_ranges(self, *filters):
+        """
+        Returns a list of IPv6 ranges on this account.
+
+        API Documentation: https://www.linode.com/docs/api/networking/#ipv6-ranges-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of IPv6 ranges on this account.
+        :rtype: PaginatedList of IPv6Range
+        """
         return self.client._get_and_filter(IPv6Range, *filters)
 
     def ipv6_pools(self, *filters):
+        """
+        Returns a list of IPv6 pools on this account.
+
+        API Documentation: https://www.linode.com/docs/api/networking/#ipv6-pools-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of IPv6 pools on this account.
+        :rtype: PaginatedList of IPv6Pool
+        """
+
         return self.client._get_and_filter(IPv6Pool, *filters)
 
     def vlans(self, *filters):
         """
         .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+
         Returns a list of VLANs on your account.
-        
-        :returns: A Paginated List of VLANs on your account.
+
+        API Documentation: https://www.linode.com/docs/api/networking/#vlans-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A List of VLANs on your account.
         :rtype: PaginatedList of VLAN
         """
         return self.client._get_and_filter(VLAN, *filters)
@@ -856,6 +1097,7 @@ class NetworkingGroup(Group):
            linode1.invalidate()
            linode2.invalidate()
 
+        API Documentation: https://www.linode.com/docs/api/networking/#linodes-assign-ipv4s
 
         :param region: The Region in which the assignments should take place.
                        All Instances and IPAddresses involved in the assignment
@@ -867,40 +1109,49 @@ class NetworkingGroup(Group):
         :type assignments: dct
         """
         for a in assignments:
-            if not 'address' in a or not 'linode_id' in a:
+            if not "address" in a or not "linode_id" in a:
                 raise ValueError("Invalid assignment: {}".format(a))
         if isinstance(region, Region):
             region = region.id
 
-        self.client.post('/networking/ipv4/assign', data={
-            "region": region,
-            "assignments": assignments,
-        })
+        self.client.post(
+            "/networking/ipv4/assign",
+            data={
+                "region": region,
+                "assignments": assignments,
+            },
+        )
 
     def ip_allocate(self, linode, public=True):
         """
         Allocates an IP to a Instance you own.  Additional IPs must be requested
         by opening a support ticket first.
 
+        API Documentation: https://www.linode.com/docs/api/networking/#ip-address-allocate
+
         :param linode: The Instance to allocate the new IP for.
         :type linode: Instance or int
         :param public: If True, allocate a public IP address.  Defaults to True.
         :type public: bool
 
-        :returns: The new IPAddress
+        :returns: The new IPAddress.
         :rtype: IPAddress
         """
-        result = self.client.post('/networking/ips/', data={
-            "linode_id": linode.id if isinstance(linode, Base) else linode,
-            "type": "ipv4",
-            "public": public,
-        })
+        result = self.client.post(
+            "/networking/ips/",
+            data={
+                "linode_id": linode.id if isinstance(linode, Base) else linode,
+                "type": "ipv4",
+                "public": public,
+            },
+        )
 
-        if not 'address' in result:
-            raise UnexpectedResponseError('Unexpected response when adding IPv4 address!',
-                    json=result)
+        if not "address" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when adding IPv4 address!", json=result
+            )
 
-        ip = IPAddress(self.client, result['address'], result)
+        ip = IPAddress(self.client, result["address"], result)
         return ip
 
     def ips_share(self, linode, *ips):
@@ -908,6 +1159,8 @@ class NetworkingGroup(Group):
         Shares the given list of :any:`IPAddresses<IPAddress>` with the provided
         :any:`Instance`.  This will enable the provided Instance to bring up the
         shared IP Addresses even though it does not own them.
+
+        API Documentation: https://www.linode.com/docs/api/networking/#ipv4-sharing-configure
 
         :param linode: The Instance to share the IPAddresses with.  This Instance
                        will be able to bring up the given addresses.
@@ -926,51 +1179,105 @@ class NetworkingGroup(Group):
             elif isinstance(ip, IPAddress):
                 params.append(ip.address)
             else:
-                params.append(str(ip)) # and hope that works
+                params.append(str(ip))  # and hope that works
 
-        params = {
-            "ips": params
-        }
+        params = {"ips": params}
 
-        self.client.post('{}/networking/ipv4/share'.format(Instance.api_endpoint),
-                         model=linode, data=params)
+        self.client.post(
+            "{}/networking/ipv4/share".format(Instance.api_endpoint),
+            model=linode,
+            data=params,
+        )
 
-        linode.invalidate() # clear the Instance's shared IPs
+        linode.invalidate()  # clear the Instance's shared IPs
 
 
 class SupportGroup(Group):
-    def tickets(self, *filters):
-        return self.client._get_and_filter(SupportTicket, *filters)
+    """
+    Collections related to support tickets.
+    """
 
-    def ticket_open(self, summary, description, regarding=None):
+    def tickets(self, *filters):
+        """
+        Returns a list of support tickets on this account.
+
+        API Documentation: https://www.linode.com/docs/api/support/#support-tickets-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of support tickets on this account.
+        :rtype: PaginatedList of SupportTicket
         """
 
+        return self.client._get_and_filter(SupportTicket, *filters)
+
+    def ticket_open(
+        self,
+        summary,
+        description,
+        managed_issue=False,
+        regarding=None,
+        **kwargs,
+    ):
+        """
+        Opens a support ticket on this account.
+
+        API Documentation: https://www.linode.com/docs/api/support/#support-ticket-open
+
+        :param summary: The summary or title for this support ticket.
+        :type summary: str
+        :param description: The full details of the issue or question.
+        :type description: str
+        :param regarding: The resource being referred to in this ticket.
+        :type regarding:
+        :param managed_issue: Designates if this ticket relates to a managed service.
+        :type managed_issue: bool
+
+        :returns: The new support ticket.
+        :rtype: SupportTicket
         """
         params = {
             "summary": summary,
             "description": description,
+            "managed_issue": managed_issue,
         }
 
+        type_to_id = {
+            Instance: "linode_id",
+            Domain: "domain_id",
+            NodeBalancer: "nodebalancer_id",
+            Volume: "volume_id",
+            Firewall: "firewall_id",
+            LKECluster: "lkecluster_id",
+            Database: "database_id",
+            LongviewClient: "longviewclient_id",
+        }
+
+        params.update(kwargs)
+
         if regarding:
-            if isinstance(regarding, Instance):
-                params['linode_id'] = regarding.id
-            elif isinstance(regarding, Domain):
-                params['domain_id'] = regarding.id
-            elif isinstance(regarding, NodeBalancer):
-                params['nodebalancer_id'] = regarding.id
-            elif isinstance(regarding, Volume):
-                params['volume_id'] = regarding.id
+            id_attr = type_to_id.get(type(regarding))
+
+            if id_attr is not None:
+                params[id_attr] = regarding.id
+            elif isinstance(regarding, VLAN):
+                params["vlan"] = regarding.label
+                params["region"] = regarding.region
             else:
-                raise ValueError('Cannot open ticket regarding type {}!'.format(type(regarding)))
+                raise ValueError(
+                    "Cannot open ticket regarding type {}!".format(
+                        type(regarding)
+                    )
+                )
 
+        result = self.client.post("/support/tickets", data=params)
 
-        result = self.client.post('/support/tickets', data=params)
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating ticket!", json=result
+            )
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating ticket!',
-                    json=result)
-
-        t = SupportTicket(self.client, result['id'], result)
+        t = SupportTicket(self.client, result["id"], result)
         return t
 
 
@@ -979,12 +1286,15 @@ class ObjectStorageGroup(Group):
     This group encapsulates all endpoints under /object-storage, including viewing
     available clusters and managing keys.
     """
+
     def clusters(self, *filters):
         """
         Returns a list of available Object Storage Clusters.  You may filter
         this query to return only Clusters that are available in a specific region::
 
            us_east_clusters = client.object_storage.clusters(ObjectStorageCluster.region == "us-east")
+
+        API Documentation: https://www.linode.com/docs/api/object-storage/#clusters-list
 
         :param filters: Any number of filters to apply to this query.
 
@@ -997,6 +1307,8 @@ class ObjectStorageGroup(Group):
         """
         Returns a list of Object Storage Keys active on this account.  These keys
         allow third-party applications to interact directly with Linode Object Storage.
+
+        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-keys-list
 
         :param filters: Any number of filters to apply to this query.
 
@@ -1040,6 +1352,8 @@ class ObjectStorageGroup(Group):
                bucket_access=client.object_storage.bucket_access("us-east-1", "example2", "read_only"),
            )
 
+        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-key-create
+
         :param label: The label for this keypair, for identification only.
         :type label: str
         :param bucket_access: One or a list of dicts with keys "cluster,"
@@ -1054,9 +1368,7 @@ class ObjectStorageGroup(Group):
         :returns: The new keypair, with the secret key populated.
         :rtype: ObjectStorageKeys
         """
-        params = {
-            "label": label
-        }
+        params = {"label": label}
 
         if bucket_access is not None:
             if not isinstance(bucket_access, list):
@@ -1066,18 +1378,24 @@ class ObjectStorageGroup(Group):
                 {
                     "permissions": c.get("permissions"),
                     "bucket_name": c.get("bucket_name"),
-                    "cluster": c.id if "cluster" in c and issubclass(type(c["cluster"]), Base) else c.get("cluster"),
-                } for c in bucket_access
+                    "cluster": c.id
+                    if "cluster" in c and issubclass(type(c["cluster"]), Base)
+                    else c.get("cluster"),
+                }
+                for c in bucket_access
             ]
 
-            params['bucket_access'] = ba
+            params["bucket_access"] = ba
 
-        result = self.client.post('/object-storage/keys', data=params)
+        result = self.client.post("/object-storage/keys", data=params)
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating Object Storage Keys!', json=result)
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating Object Storage Keys!",
+                json=result,
+            )
 
-        ret = ObjectStorageKeys(self.client, result['id'], result)
+        ret = ObjectStorageKeys(self.client, result["id"], result)
         return ret
 
     def bucket_access(self, cluster, bucket_name, permissions):
@@ -1109,13 +1427,277 @@ class ObjectStorageGroup(Group):
         Cancels Object Storage service.  This may be a destructive operation.  Once
         cancelled, you will no longer receive the transfer for or be billed for
         Object Storage, and all keys will be invalidated.
+
+        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-cancel
         """
-        self.client.post('/object-storage/cancel', data={})
+        self.client.post("/object-storage/cancel", data={})
         return True
 
 
+class DatabaseGroup(Group):
+    """
+    Encapsulates Linode Managed Databases related methods of the :any:`LinodeClient`. This
+    should not be instantiated on its own, but should instead be used through
+    an instance of :any:`LinodeClient`::
+
+       client = LinodeClient(token)
+       instances = client.database.instances() # use the DatabaseGroup
+
+    This group contains all features beneath the `/databases` group in the API v4.
+    """
+
+    def types(self, *filters):
+        """
+        Returns a list of Linode Database-compatible Instance types.
+        These may be used to create Managed Databases, or simply
+        referenced to on their own. DatabaseTypes can be
+        filtered to return specific types, for example::
+
+           database_types = client.database.types(DatabaseType.deprecated == False)
+
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-database-types-list
+
+        :param filters: Any number of filters to apply to the query.
+
+        :returns: A list of types that match the query.
+        :rtype: PaginatedList of DatabaseType
+        """
+        return self.client._get_and_filter(DatabaseType, *filters)
+
+    def engines(self, *filters):
+        """
+        Returns a list of Linode Managed Database Engines.
+        These may be used to create Managed Databases, or simply
+        referenced to on their own. Engines can be filtered to
+        return specific engines, for example::
+
+           mysql_engines = client.database.engines(DatabaseEngine.engine == 'mysql')
+
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-database-engines-list
+
+        :param filters: Any number of filters to apply to the query.
+
+        :returns: A list of types that match the query.
+        :rtype: PaginatedList of DatabaseEngine
+        """
+        return self.client._get_and_filter(DatabaseEngine, *filters)
+
+    def instances(self, *filters):
+        """
+        Returns a list of Managed Databases active on this account.
+
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-databases-list-all
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of databases that matched the query.
+        :rtype: PaginatedList of Database
+        """
+        return self.client._get_and_filter(Database, *filters)
+
+    def mysql_instances(self, *filters):
+        """
+        Returns a list of Managed MySQL Databases active on this account.
+
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-mysql-databases-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of MySQL databases that matched the query.
+        :rtype: PaginatedList of MySQLDatabase
+        """
+        return self.client._get_and_filter(MySQLDatabase, *filters)
+
+    def mysql_create(self, label, region, engine, ltype, **kwargs):
+        """
+        Creates an :any:`MySQLDatabase` on this account with
+        the given label, region, engine, and node type.  For example::
+
+           client = LinodeClient(TOKEN)
+
+           # look up Region and Types to use.  In this example I'm just using
+           # the first ones returned.
+           region = client.regions().first()
+           node_type = client.database.types()[0]
+           engine = client.database.engines(DatabaseEngine.engine == 'mysql')[0]
+
+           new_database = client.database.mysql_create(
+               "example-database",
+               region,
+               engine.id,
+               type.id
+            )
+
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-mysql-database-create
+
+        :param label: The name for this cluster
+        :type label: str
+        :param region: The region to deploy this cluster in
+        :type region: str or Region
+        :param engine: The engine to deploy this cluster with
+        :type engine: str or Engine
+        :param ltype: The Linode Type to use for this cluster
+        :type ltype: str or Type
+        """
+
+        params = {
+            "label": label,
+            "region": region.id if issubclass(type(region), Base) else region,
+            "engine": engine.id if issubclass(type(engine), Base) else engine,
+            "type": ltype.id if issubclass(type(ltype), Base) else ltype,
+        }
+        params.update(kwargs)
+
+        result = self.client.post("/databases/mysql/instances", data=params)
+
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating MySQL Database", json=result
+            )
+
+        d = MySQLDatabase(self.client, result["id"], result)
+        return d
+
+    def postgresql_instances(self, *filters):
+        """
+        Returns a list of Managed PostgreSQL Databases active on this account.
+
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-postgresql-databases-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of PostgreSQL databases that matched the query.
+        :rtype: PaginatedList of PostgreSQLDatabase
+        """
+        return self.client._get_and_filter(PostgreSQLDatabase, *filters)
+
+    def postgresql_create(self, label, region, engine, ltype, **kwargs):
+        """
+        Creates an :any:`PostgreSQLDatabase` on this account with
+        the given label, region, engine, and node type.  For example::
+
+           client = LinodeClient(TOKEN)
+
+           # look up Region and Types to use.  In this example I'm just using
+           # the first ones returned.
+           region = client.regions().first()
+           node_type = client.database.types()[0]
+           engine = client.database.engines(DatabaseEngine.engine == 'postgresql')[0]
+
+           new_database = client.database.postgresql_create(
+               "example-database",
+               region,
+               engine.id,
+               type.id
+            )
+
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-postgresql-database-create
+
+        :param label: The name for this cluster
+        :type label: str
+        :param region: The region to deploy this cluster in
+        :type region: str or Region
+        :param engine: The engine to deploy this cluster with
+        :type engine: str or Engine
+        :param ltype: The Linode Type to use for this cluster
+        :type ltype: str or Type
+        """
+
+        params = {
+            "label": label,
+            "region": region.id if issubclass(type(region), Base) else region,
+            "engine": engine.id if issubclass(type(engine), Base) else engine,
+            "type": ltype.id if issubclass(type(ltype), Base) else ltype,
+        }
+        params.update(kwargs)
+
+        result = self.client.post(
+            "/databases/postgresql/instances", data=params
+        )
+
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating PostgreSQL Database",
+                json=result,
+            )
+
+        d = PostgreSQLDatabase(self.client, result["id"], result)
+        return d
+
+    def mongodb_instances(self, *filters):
+        """
+        Returns a list of Managed MongoDB Databases active on this account.
+
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-mongodb-databases-list
+
+        :param filters: Any number of filters to apply to this query.
+
+        :returns: A list of MongoDB databases that matched the query.
+        :rtype: PaginatedList of MongoDBDatabase
+        """
+        return self.client._get_and_filter(MongoDBDatabase, *filters)
+
+    def mongodb_create(self, label, region, engine, ltype, **kwargs):
+        """
+        Creates an :any:`MongoDBDatabase` on this account with
+        the given label, region, engine, and node type.  For example::
+
+           client = LinodeClient(TOKEN)
+
+           # look up Region and Types to use.  In this example I'm just using
+           # the first ones returned.
+           region = client.regions().first()
+           node_type = client.database.types()[0]
+           engine = client.database.engines(DatabaseEngine.engine == 'mongodb')[0]
+
+           new_database = client.database.mongodb_create(
+               "example-database",
+               region,
+               engine.id,
+               type.id
+            )
+
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-mongodb-database-create
+
+        :param label: The name for this cluster
+        :type label: str
+        :param region: The region to deploy this cluster in
+        :type region: str or Region
+        :param engine: The engine to deploy this cluster with
+        :type engine: str or Engine
+        :param ltype: The Linode Type to use for this cluster
+        :type ltype: str or Type
+        """
+
+        params = {
+            "label": label,
+            "region": region.id if issubclass(type(region), Base) else region,
+            "engine": engine.id if issubclass(type(engine), Base) else engine,
+            "type": ltype.id if issubclass(type(ltype), Base) else ltype,
+        }
+        params.update(kwargs)
+
+        result = self.client.post("/databases/mongodb/instances", data=params)
+
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating MongoDB Database",
+                json=result,
+            )
+
+        d = MongoDBDatabase(self.client, result["id"], result)
+        return d
+
+
 class LinodeClient:
-    def __init__(self, token, base_url="https://api.linode.com/v4", user_agent=None, page_size=None, retry_rate_limit_interval=None):
+    def __init__(
+        self,
+        token,
+        base_url="https://api.linode.com/v4",
+        user_agent=None,
+        page_size=None,
+        retry_rate_limit_interval=None,
+    ):
         """
         The main interface to the Linode API.
 
@@ -1153,7 +1735,9 @@ class LinodeClient:
             if not isinstance(self.retry_rate_limit_interval, int):
                 raise ValueError("retry_rate_limit_interval must be an int")
             if self.retry_rate_limit_interval < 1:
-                raise ValueError("retry_rate_limit_interval must not be less than 1")
+                raise ValueError(
+                    "retry_rate_limit_interval must not be less than 1"
+                )
 
         #: Access methods related to Linodes - see :any:`LinodeGroup` for
         #: more information
@@ -1186,12 +1770,15 @@ class LinodeClient:
         #: Access methods related to LKE - see :any:`LKEGroup` for more information.
         self.lke = LKEGroup(self)
 
+        #: Access methods related to Managed Databases - see :any:`DatabaseGroup` for more information.
+        self.database = DatabaseGroup(self)
+
     @property
     def _user_agent(self):
-        return '{}python-linode_api4/{} {}'.format(
-                '{} '.format(self._add_user_agent) if self._add_user_agent else '',
-                package_version,
-                requests.utils.default_user_agent()
+        return "{}python-linode_api4/{} {}".format(
+            "{} ".format(self._add_user_agent) if self._add_user_agent else "",
+            package_version,
+            requests.utils.default_user_agent(),
         )
 
     def load(self, target_type, target_id, target_parent_id=None):
@@ -1222,12 +1809,16 @@ class LinodeClient:
         :rtype: target_type
         :raise ApiError: if the requested object could not be loaded.
         """
-        result = target_type.make_instance(target_id, self, parent_id=target_parent_id)
+        result = target_type.make_instance(
+            target_id, self, parent_id=target_parent_id
+        )
         result._api_get()
 
         return result
 
-    def _api_call(self, endpoint, model=None, method=None, data=None, filters=None):
+    def _api_call(
+        self, endpoint, model=None, method=None, data=None, filters=None
+    ):
         """
         Makes a call to the linode api.  Data should only be given if the method is
         POST or PUT, and should be a dictionary
@@ -1240,15 +1831,15 @@ class LinodeClient:
 
         if model:
             endpoint = endpoint.format(**vars(model))
-        url = '{}{}'.format(self.base_url, endpoint)
+        url = "{}{}".format(self.base_url, endpoint)
         headers = {
-            'Authorization': "Bearer {}".format(self.token),
-            'Content-Type': 'application/json',
-            'User-Agent': self._user_agent,
+            "Authorization": "Bearer {}".format(self.token),
+            "Content-Type": "application/json",
+            "User-Agent": self._user_agent,
         }
 
         if filters:
-            headers['X-Filter'] = json.dumps(filters)
+            headers["X-Filter"] = json.dumps(filters)
 
         body = None
         if data is not None:
@@ -1259,22 +1850,28 @@ class LinodeClient:
         for attempt in range(max_retries):
             response = method(url, headers=headers, data=body)
 
-            warning = response.headers.get('Warning', None)
+            warning = response.headers.get("Warning", None)
             if warning:
-                logger.warning('Received warning from server: {}'.format(warning))
+                logger.warning(
+                    "Received warning from server: {}".format(warning)
+                )
 
             # if we were configured to retry 429s, and we got a 429, sleep briefly and then retry
             if self.retry_rate_limit_interval and response.status_code == 429:
-                logger.warning("Received 429 response; waiting {} seconds and retrying request (attempt {}/{})".format(
-                    self.retry_rate_limit_interval, attempt, max_retries,
-                ))
+                logger.warning(
+                    "Received 429 response; waiting {} seconds and retrying request (attempt {}/{})".format(
+                        self.retry_rate_limit_interval,
+                        attempt,
+                        max_retries,
+                    )
+                )
                 time.sleep(self.retry_rate_limit_interval)
             else:
                 break
 
         if 399 < response.status_code < 600:
             j = None
-            error_msg = '{}: '.format(response.status_code)
+            error_msg = "{}: ".format(response.status_code)
             try:
                 j = response.json()
                 if 'errors' in j.keys():
@@ -1283,7 +1880,7 @@ class LinodeClient:
                         field = e.get('field', None)
 
                         error_msg += '{}{}; '.format(
-                            '[{}] '.format(field) if field is not None else '',
+                            f'[{field}] ' if field is not None else '',
                             msg,
                         )
             except:
@@ -1293,11 +1890,13 @@ class LinodeClient:
         if response.status_code != 204:
             j = response.json()
         else:
-            j = None # handle no response body
+            j = None  # handle no response body
 
         return j
 
-    def _get_objects(self, endpoint, cls, model=None, parent_id=None, filters=None):
+    def _get_objects(
+        self, endpoint, cls, model=None, parent_id=None, filters=None
+    ):
         # handle non-default page sizes
         call_endpoint = endpoint
         if self.page_size is not None:
@@ -1306,17 +1905,25 @@ class LinodeClient:
         response_json = self.get(call_endpoint, model=model, filters=filters)
 
         if not "data" in response_json:
-            raise UnexpectedResponseError("Problem with response!", json=response_json)
+            raise UnexpectedResponseError(
+                "Problem with response!", json=response_json
+            )
 
-        if 'pages' in response_json:
+        if "pages" in response_json:
             formatted_endpoint = endpoint
             if model:
                 formatted_endpoint = formatted_endpoint.format(**vars(model))
-            return PaginatedList.make_paginated_list(response_json, self, cls,
-                    parent_id=parent_id, page_url=formatted_endpoint[1:],
-                    filters=filters)
-        return PaginatedList.make_list(response_json["data"], self, cls,
-                parent_id=parent_id)
+            return PaginatedList.make_paginated_list(
+                response_json,
+                self,
+                cls,
+                parent_id=parent_id,
+                page_url=formatted_endpoint[1:],
+                filters=filters,
+            )
+        return PaginatedList.make_list(
+            response_json["data"], self, cls, parent_id=parent_id
+        )
 
     def get(self, *args, **kwargs):
         return self._api_call(*args, method=self.session.get, **kwargs)
@@ -1335,6 +1942,8 @@ class LinodeClient:
         """
         Returns the available Regions for Linode products.
 
+        API Documentation: https://www.linode.com/docs/api/regions/#regions-list
+
         :param filters: Any number of filters to apply to the query.
 
         :returns: A list of available Regions.
@@ -1351,6 +1960,8 @@ class LinodeClient:
            debian_images = client.images(
                Image.vendor == "debain")
 
+        API Documentation: https://www.linode.com/docs/api/images/#images-list
+
         :param filters: Any number of filters to apply to the query.
 
         :returns: A list of available Images.
@@ -1361,6 +1972,8 @@ class LinodeClient:
     def image_create(self, disk, label=None, description=None):
         """
         Creates a new Image from a disk you own.
+
+        API Documentation: https://www.linode.com/docs/api/images/#image-create
 
         :param disk: The Disk to imagize.
         :type disk: Disk or int
@@ -1383,17 +1996,88 @@ class LinodeClient:
         if description is not None:
             params["description"] = description
 
-        result = self.post('/images', data=params)
+        result = self.post("/images", data=params)
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating an '
-                                          'Image from disk {}'.format(disk))
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating an Image from disk {}".format(
+                    disk
+                )
+            )
 
-        return Image(self, result['id'], result)
+        return Image(self, result["id"], result)
+
+    def image_create_upload(
+        self, label: str, region: str, description: str = None
+    ) -> Tuple[Image, str]:
+        """
+        Creates a new Image and returns the corresponding upload URL.
+
+        API Documentation: https://www.linode.com/docs/api/images/#image-upload
+
+        :param label: The label of the Image to create.
+        :type label: str
+        :param region: The region to upload to. Once the image has been created, it can be used in any region.
+        :type region: str
+        :param description: The description for the new Image.
+        :type description: str
+
+        :returns: A tuple containing the new image and the image upload URL.
+        :rtype: (Image, str)
+        """
+        params = {"label": label, "region": region, "description": description}
+
+        result = self.post("/images/upload", data=drop_null_keys(params))
+
+        if "image" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating an Image upload URL"
+            )
+
+        result_image = result["image"]
+        result_url = result["upload_to"]
+
+        return Image(self, result_image["id"], result_image), result_url
+
+    def image_upload(
+        self, label: str, region: str, file: BinaryIO, description: str = None
+    ) -> Image:
+        """
+        Creates and uploads a new image.
+
+        API Documentation: https://www.linode.com/docs/api/images/#image-upload
+
+        :param label: The label of the Image to create.
+        :type label: str
+        :param region: The region to upload to. Once the image has been created, it can be used in any region.
+        :type region: str
+        :param file: The BinaryIO object to upload to the image. This is generally obtained from open("myfile", "rb").
+        :param description: The description for the new Image.
+        :type description: str
+
+        :returns: The resulting image.
+        :rtype: Image
+        """
+
+        image, url = self.image_create_upload(
+            label, region, description=description
+        )
+
+        requests.put(
+            url,
+            headers={"Content-Type": "application/octet-stream"},
+            data=file,
+        )
+
+        image._api_get()
+
+        return image
 
     def domains(self, *filters):
         """
         Retrieves all of the Domains the acting user has access to.
+
+        API Documentation: https://www.linode.com/docs/api/domains/#domains-list
 
         :param filters: Any number of filters to apply to this query.
 
@@ -1406,6 +2090,8 @@ class LinodeClient:
         """
         Retrieves all of the NodeBalancers the acting user has access to.
 
+        API Documentation: https://www.linode.com/docs/api/nodebalancers/#nodebalancers-list
+
         :param filters: Any number of filters to apply to this query.
 
         :returns: A list of NodeBalancers the acting user can access.
@@ -1416,6 +2102,8 @@ class LinodeClient:
     def nodebalancer_create(self, region, **kwargs):
         """
         Creates a new NodeBalancer in the given Region.
+
+        API Documentation: https://www.linode.com/docs/api/nodebalancers/#nodebalancer-create
 
         :param region: The Region in which to create the NodeBalancer.
         :type region: Region or str
@@ -1428,12 +2116,14 @@ class LinodeClient:
         }
         params.update(kwargs)
 
-        result = self.post('/nodebalancers', data=params)
+        result = self.post("/nodebalancers", data=params)
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating Nodebalaner!', json=result)
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating Nodebalaner!", json=result
+            )
 
-        n = NodeBalancer(self, result['id'], result)
+        n = NodeBalancer(self, result["id"], result)
         return n
 
     def domain_create(self, domain, master=True, **kwargs):
@@ -1441,6 +2131,8 @@ class LinodeClient:
         Registers a new Domain on the acting user's account.  Make sure to point
         your registrar to Linode's nameservers so that Linode's DNS manager will
         correctly serve your domain.
+
+        API Documentation: https://www.linode.com/docs/api/domains/#domain-create
 
         :param domain: The domain to register to Linode's DNS manager.
         :type domain: str
@@ -1455,23 +2147,27 @@ class LinodeClient:
         :rtype: Domain
         """
         params = {
-            'domain': domain,
-            'type': 'master' if master else 'slave',
+            "domain": domain,
+            "type": "master" if master else "slave",
         }
         params.update(kwargs)
 
-        result = self.post('/domains', data=params)
+        result = self.post("/domains", data=params)
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating Domain!', json=result)
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating Domain!", json=result
+            )
 
-        d = Domain(self, result['id'], result)
+        d = Domain(self, result["id"], result)
         return d
 
     def tags(self, *filters):
         """
         Retrieves the Tags on your account.  This may only be attempted by
         unrestricted users.
+
+        API Documentation: https://www.linode.com/docs/api/domains/#domain-create
 
         :param filters: Any number of filters to apply to this query.
 
@@ -1480,10 +2176,19 @@ class LinodeClient:
         """
         return self._get_and_filter(Tag, *filters)
 
-    def tag_create(self, label, instances=None, domains=None, nodebalancers=None,
-                   volumes=None, entities=[]):
+    def tag_create(
+        self,
+        label,
+        instances=None,
+        domains=None,
+        nodebalancers=None,
+        volumes=None,
+        entities=[],
+    ):
         """
         Creates a new Tag and optionally applies it to the given entities.
+
+        API Documentation: https://www.linode.com/docs/api/tags/#tags-list
 
         :param label: The label for the new Tag
         :type label: str
@@ -1514,8 +2219,10 @@ class LinodeClient:
         linode_ids, nodebalancer_ids, domain_ids, volume_ids = [], [], [], []
 
         # filter input into lists of ids
-        sorter = zip((linode_ids, nodebalancer_ids, domain_ids, volume_ids),
-                     (instances, nodebalancers, domains, volumes))
+        sorter = zip(
+            (linode_ids, nodebalancer_ids, domain_ids, volume_ids),
+            (instances, nodebalancers, domains, volumes),
+        )
 
         for id_list, input_list in sorter:
             # if we got something, we need to find its ID
@@ -1538,28 +2245,32 @@ class LinodeClient:
             if type(e) in type_map:
                 type_map[type(e)].append(e.id)
             else:
-                raise ValueError('Unsupported entity type {}'.format(type(e)))
+                raise ValueError("Unsupported entity type {}".format(type(e)))
 
         # finally, omit all id lists that are empty
         params = {
-            'label': label,
-            'linodes': linode_ids or None,
-            'nodebalancers': nodebalancer_ids or None,
-            'domains': domain_ids or None,
-            'volumes': volume_ids or None,
+            "label": label,
+            "linodes": linode_ids or None,
+            "nodebalancers": nodebalancer_ids or None,
+            "domains": domain_ids or None,
+            "volumes": volume_ids or None,
         }
 
-        result = self.post('/tags', data=params)
+        result = self.post("/tags", data=params)
 
-        if not 'label' in result:
-            raise UnexpectedResponseError('Unexpected response when creating Tag!', json=result)
+        if not "label" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating Tag!", json=result
+            )
 
-        t = Tag(self, result['label'], result)
+        t = Tag(self, result["label"], result)
         return t
 
     def volumes(self, *filters):
         """
         Retrieves the Block Storage Volumes your user has access to.
+
+        API Documentation: https://www.linode.com/docs/api/volumes/#volumes-list
 
         :param filters: Any number of filters to apply to this query.
 
@@ -1572,6 +2283,8 @@ class LinodeClient:
         """
         Creates a new Block Storage Volume, either in the given Region or
         attached to the given Instance.
+
+        API Documentation: https://www.linode.com/docs/api/volumes/#volumes-list
 
         :param label: The label for the new Volume.
         :type label: str
@@ -1592,31 +2305,39 @@ class LinodeClient:
         :rtype: Volume
         """
         if not (region or linode):
-            raise ValueError('region or linode required!')
+            raise ValueError("region or linode required!")
 
         params = {
             "label": label,
             "size": size,
             "region": region.id if issubclass(type(region), Base) else region,
-            "linode_id": linode.id if issubclass(type(linode), Base) else linode,
+            "linode_id": linode.id
+            if issubclass(type(linode), Base)
+            else linode,
         }
         params.update(kwargs)
 
-        result = self.post('/volumes', data=params)
+        result = self.post("/volumes", data=params)
 
-        if not 'id' in result:
-            raise UnexpectedResponseError('Unexpected response when creating volume!', json=result)
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating volume!", json=result
+            )
 
-        v = Volume(self, result['id'], result)
+        v = Volume(self, result["id"], result)
         return v
 
     # helper functions
     def _get_and_filter(self, obj_type, *filters):
         parsed_filters = None
         if filters:
-            if(len(filters) > 1):
-                parsed_filters = and_(*filters).dct # pylint: disable=no-value-for-parameter
+            if len(filters) > 1:
+                parsed_filters = and_(
+                    *filters
+                ).dct  # pylint: disable=no-value-for-parameter
             else:
                 parsed_filters = filters[0].dct
 
-        return self._get_objects(obj_type.api_list(), obj_type, filters=parsed_filters)
+        return self._get_objects(
+            obj_type.api_list(), obj_type, filters=parsed_filters
+        )

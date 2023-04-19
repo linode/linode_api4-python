@@ -9,3 +9,5 @@ docs/_build/*
 .coverage
 .pytest_cache/*
 .tox/*
+venv
+baked_version
