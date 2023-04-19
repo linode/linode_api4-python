@@ -286,11 +286,17 @@ class AccountGroupTest(ClientBaseCase):
         self.assertEqual(invoice.total, 9.51)
 
     def test_logins(self):
+        """
+        Tests that logins can be retrieved
+        """
         logins = self.client.account.logins()
         self.assertEqual(len(logins), 1)
         self.assertEqual(logins[0].id, 1234)
 
     def test_maintenance(self):
+        """
+        Tests that maintenance can be retrieved
+        """
         with self.mock_get("/account/maintenance") as m:
             result = self.client.account.maintenance()
             self.assertEqual(m.call_url, "/account/maintenance")
@@ -301,6 +307,9 @@ class AccountGroupTest(ClientBaseCase):
             )
 
     def test_notifications(self):
+        """
+        Tests that notifications can be retrieved
+        """
         with self.mock_get("/account/notifications") as m:
             result = self.client.account.notifications()
             self.assertEqual(m.call_url, "/account/notifications")
@@ -310,11 +319,17 @@ class AccountGroupTest(ClientBaseCase):
             )
 
     def test_payment_methods(self):
+        """
+        Tests that payment methods can be retrieved
+        """
         paymentMethods = self.client.account.payment_methods()
         self.assertEqual(len(paymentMethods), 1)
         self.assertEqual(paymentMethods[0].id, 123)
 
     def test_add_payment_method(self):
+        """
+        Tests that adding a payment method creates the correct api request.
+        """
         with self.mock_post({}) as m:
             self.client.account.add_payment_method(
                 {
@@ -334,12 +349,18 @@ class AccountGroupTest(ClientBaseCase):
             self.assertIsNotNone(m.call_data["data"])
 
     def test_add_promo_code(self):
+        """
+        Tests that adding a promo code creates the correct api request.
+        """
         with self.mock_post("/account/promo-codes") as m:
             self.client.account.add_promo_code("123promo456")
             self.assertEqual(m.call_url, "/account/promo-codes")
             self.assertEqual(m.call_data["promo_code"], "123promo456")
 
     def test_service_transfers(self):
+        """
+        Tests that service transfers can be retrieved
+        """
         serviceTransfers = self.client.account.service_transfers()
         self.assertEqual(len(serviceTransfers), 1)
         self.assertEqual(
@@ -347,11 +368,17 @@ class AccountGroupTest(ClientBaseCase):
         )
 
     def test_linode_managed_enable(self):
+        """
+        Tests that enabling linode managed creates the correct api request.
+        """
         with self.mock_post({}) as m:
             self.client.account.linode_managed_enable()
             self.assertEqual(m.call_url, "/account/settings/managed-enable")
 
     def test_service_transfer_create(self):
+        """
+        Tests that creating a service transfer creates the correct api request.
+        """
         data = {"entities": {"linodes": [111, 222]}}
         response = {
             "created": "2021-02-11T16:37:03",
@@ -366,6 +393,7 @@ class AccountGroupTest(ClientBaseCase):
         with self.mock_post(response) as m:
             self.client.account.service_transfer_create(data)
             self.assertEqual(m.call_url, "/account/service-transfers")
+            self.assertEqual(m.call_data["entities"], data)
 
     def test_payments(self):
         """

@@ -660,6 +660,10 @@ class AccountGroup(Group):
         return Account(self.client, result["email"], result)
 
     def events(self, *filters):
+        """
+        Returns a collection of Event objects representing actions taken on your Account
+        from the last 90 days. The Events returned depend on your grants.
+        """
         return self.client._get_and_filter(Event, *filters)
 
     def events_mark_seen(self, event):
@@ -736,6 +740,11 @@ class AccountGroup(Group):
     def logins(self):
         """
         Returns a collection of successful logins for all users on the account during the last 90 days.
+
+        API Documentation: https://www.linode.com/docs/api/account/#user-logins-list-all
+
+        :returns: A list of Logins on this account.
+        :rtype: PaginatedList of Login
         """
 
         return self.client._get_and_filter(Login)
@@ -743,6 +752,11 @@ class AccountGroup(Group):
     def maintenance(self):
         """
         Returns a collection of Maintenance objects for any entity a user has permissions to view. Cancelled Maintenance objects are not returned.
+
+        API Documentation: https://www.linode.com/docs/api/account/#user-logins-list-all
+
+        :returns: A list of Maintenance objects on this account.
+        :rtype: List of Maintenance objects as MappedObjects
         """
 
         result = self.client.get(
@@ -754,6 +768,11 @@ class AccountGroup(Group):
     def payment_methods(self):
         """
         Returns a  list of Payment Methods for this Account.
+
+        API Documentation: https://www.linode.com/docs/api/account/#payment-methods-list
+
+        :returns: A list of Payment Methods on this account.
+        :rtype: PaginatedList of PaymentMethod
         """
 
         return self.client._get_and_filter(PaymentMethod)
@@ -761,6 +780,27 @@ class AccountGroup(Group):
     def add_payment_method(self, data, is_default, type):
         """
         Adds a Payment Method to your Account with the option to set it as the default method.
+
+        API Documentation: https://www.linode.com/docs/api/account/#payment-method-add
+
+        :param data: An object representing the credit card information you have on file with
+                     Linode to make Payments against your Account.
+        :type data: dict
+
+        Example usage::
+           data = {
+                "card_number": "4111111111111111",
+                "expiry_month": 11,
+                "expiry_year": 2020,
+                "cvv": "111"
+            }
+
+        :param is_default: Whether this Payment Method is the default method for
+                           automatically processing service charges.
+        :type data: bool
+
+        :param type: The type of Payment Method. Enum: ["credit_card]
+        :type data: str
         """
 
         if type != "credit_card":
@@ -777,15 +817,26 @@ class AccountGroup(Group):
 
         params = {"data": data, "type": type, "is_default": is_default}
 
-        self.client.post(
+        resp = self.client.post(
             "{}/payment-methods".format(Account.api_endpoint),
             model=self,
             data=params,
         )
 
+        if "errors" in resp:
+            raise UnexpectedResponseError(
+                "Unexpected response when adding payment method!",
+                json=resp,
+            )
+
     def notifications(self):
         """
         Returns a collection of Notification objects representing important, often time-sensitive items related to your Account.
+
+        API Documentation: https://www.linode.com/docs/api/account/#notifications-list
+
+        :returns: A list of Notifications on this account.
+        :rtype: List of Notification objects as MappedObjects
         """
 
         result = self.client.get(
@@ -797,31 +848,55 @@ class AccountGroup(Group):
     def linode_managed_enable(self):
         """
         Enables Linode Managed for the entire account and sends a welcome email to the account’s associated email address.
+
+        API Documentation: https://www.linode.com/docs/api/account/#linode-managed-enable
         """
 
-        self.client.post(
+        resp = self.client.post(
             "{}/settings/managed-enable".format(Account.api_endpoint),
             model=self,
         )
 
+        if "errors" in resp:
+            raise UnexpectedResponseError(
+                "Unexpected response when enabling Linode Managed!",
+                json=resp,
+            )
+
     def add_promo_code(self, promo_code):
         """
         Adds an expiring Promo Credit to your account.
+
+        API Documentation: https://www.linode.com/docs/api/account/#promo-credit-add
+
+        :param promo_code: The Promo Code.
+        :type promo_code: str
         """
 
         params = {
             "promo_code": promo_code,
         }
 
-        self.client.post(
+        resp = self.client.post(
             "{}/promo-codes".format(Account.api_endpoint),
             model=self,
             data=params,
         )
 
+        if "errors" in resp:
+            raise UnexpectedResponseError(
+                "Unexpected response when adding Promo Code!",
+                json=resp,
+            )
+
     def service_transfers(self):
         """
         Returns a collection of all created and accepted Service Transfers for this account, regardless of the user that created or accepted the transfer.
+
+        API Documentation: https://www.linode.com/docs/api/account/#service-transfers-list
+
+        :returns: A list of Service Transfers on this account.
+        :rtype: PaginatedList of ServiceTransfer
         """
 
         return self.client._get_and_filter(ServiceTransfer)
@@ -829,6 +904,19 @@ class AccountGroup(Group):
     def service_transfer_create(self, entities):
         """
         Creates a transfer request for the specified services.
+
+        API Documentation: https://www.linode.com/docs/api/account/#service-transfer-create
+
+        :param entities: A collection of the services to include in this transfer request, separated by type.
+        :type entities: dict
+
+        Example usage::
+           entities = {
+                "linodes": [
+                    111,
+                    222
+                ]
+            }
         """
 
         if not entities["entities"] or "linodes" not in entities["entities"]:
@@ -836,11 +924,17 @@ class AccountGroup(Group):
 
         params = {"entities": entities}
 
-        self.client.post(
+        resp = self.client.post(
             "{}/service-transfers".format(Account.api_endpoint),
             model=self,
             data=params,
         )
+
+        if "errors" in resp:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating Service Transfer!",
+                json=resp,
+            )
 
     def transfer(self):
         """

@@ -29,6 +29,9 @@ class InvoiceTest(ClientBaseCase):
     """
 
     def test_get_invoice(self):
+        """
+        Tests that an invoice is loaded correctly by ID
+        """
         invoice = Invoice(self.client, 123456)
         self.assertEqual(invoice._populated, False)
 
@@ -63,6 +66,9 @@ class InvoiceTest(ClientBaseCase):
         )
 
     def test_get_account(self):
+        """
+        Tests that an account is loaded correctly by email
+        """
         account = Account(self.client, "support@linode.com", {})
 
         self.assertEqual(account.email, "support@linode.com")
@@ -85,6 +91,9 @@ class InvoiceTest(ClientBaseCase):
         self.assertEqual(account.euuid, "E1AF5EEC-526F-487D-B317EBEB34C87D71")
 
     def test_get_login(self):
+        """
+        Tests that a login is loaded correctly by ID
+        """
         login = Login(self.client, 123)
 
         self.assertEqual(login.id, 123)
@@ -94,6 +103,9 @@ class InvoiceTest(ClientBaseCase):
         self.assertEqual(login.username, "test-user")
 
     def test_get_account_settings(self):
+        """
+        Tests that account settings are loaded correctly
+        """
         settings = AccountSettings(self.client, False, {})
 
         self.assertEqual(settings.longview_subscription.id, "longview-100")
@@ -103,6 +115,9 @@ class InvoiceTest(ClientBaseCase):
         self.assertEqual(settings.backups_enabled, True)
 
     def test_get_event(self):
+        """
+        Tests that an event is loaded correctly by ID
+        """
         event = Event(self.client, 123, {})
 
         self.assertEqual(event.action, "ticket_create")
@@ -121,6 +136,9 @@ class InvoiceTest(ClientBaseCase):
         self.assertEqual(event.username, "exampleUser")
 
     def test_get_invoice(self):
+        """
+        Tests that an invoice is loaded correctly by ID
+        """
         invoice = Invoice(self.client, 123, {})
 
         self.assertEqual(invoice.date, datetime(2018, 1, 1, 0, 1, 1))
@@ -132,6 +150,9 @@ class InvoiceTest(ClientBaseCase):
         self.assertIsNotNone(invoice.tax_summary)
 
     def test_get_oauth_client(self):
+        """
+        Tests that an oauth client is loaded correctly by ID
+        """
         client = OAuthClient(self.client, "2737bf16b39ab5d7b4a1", {})
 
         self.assertEqual(client.id, "2737bf16b39ab5d7b4a1")
@@ -148,6 +169,9 @@ class InvoiceTest(ClientBaseCase):
         )
 
     def test_get_user(self):
+        """
+        Tests that a user is loaded correctly by username
+        """
         user = User(self.client, "test-user", {})
 
         self.assertEqual(user.username, "test-user")
@@ -157,6 +181,9 @@ class InvoiceTest(ClientBaseCase):
         self.assertIsNotNone(user.ssh_keys)
 
     def test_get_service_transfer(self):
+        """
+        Tests that a service transfer is loaded correctly by token
+        """
         serviceTransfer = ServiceTransfer(self.client, "12345")
 
         self.assertEqual(serviceTransfer.token, "12345")
@@ -164,6 +191,9 @@ class InvoiceTest(ClientBaseCase):
         self.assertEqual(serviceTransfer.status, "pending")
 
     def test_get_payment_method(self):
+        """
+        Tests that a payment method is loaded correctly by ID
+        """
         paymentMethod = PaymentMethod(self.client, 123)
 
         self.assertEqual(paymentMethod.id, 123)
@@ -171,6 +201,9 @@ class InvoiceTest(ClientBaseCase):
         self.assertEqual(paymentMethod.type, "credit_card")
 
     def test_get_user_grant(self):
+        """
+        Tests that a user grant is loaded correctly
+        """
         grants = get_obj_grants()
 
         self.assertTrue(grants.count(("linode", Instance)) > 0)
@@ -183,6 +216,9 @@ class InvoiceTest(ClientBaseCase):
         self.assertTrue(grants.count(("database", Database)) > 0)
 
     def test_payment_method_make_default(self):
+        """
+        Tests that making a payment method default creates the correct api request.
+        """
         paymentMethod = PaymentMethod(self.client, 123)
 
         with self.mock_post({}) as m:
@@ -192,6 +228,9 @@ class InvoiceTest(ClientBaseCase):
             )
 
     def test_service_transfer_accept(self):
+        """
+        Tests that accepting a service transfer creates the correct api request.
+        """
         serviceTransfer = ServiceTransfer(self.client, "12345")
 
         with self.mock_post({}) as m:

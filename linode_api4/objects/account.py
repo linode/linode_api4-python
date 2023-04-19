@@ -46,19 +46,6 @@ class Account(Base):
         "euuid": Property(),
     }
 
-    def add_promo_code(self, promo_code):
-        """
-        Adds an expiring Promo Credit to your account.
-        """
-
-        params = {
-            "promo_code": promo_code,
-        }
-
-        self._client.post(
-            "{}/promo-codes".format(self.api_endpoint), model=self, data=params
-        )
-
 
 class ServiceTransfer(Base):
     api_endpoint = "/account/service-transfers/{token}"
@@ -78,10 +65,16 @@ class ServiceTransfer(Base):
         Accept a Service Transfer for the provided token to receive the services included in the transfer to your account.
         """
 
-        self._client.post(
+        resp = self._client.post(
             "{}/accept".format(self.api_endpoint),
             model=self,
         )
+
+        if "errors" in resp:
+            raise UnexpectedResponseError(
+                "Unexpected response when accepting service transfer!",
+                json=resp,
+            )
 
 
 class PaymentMethod(Base):
@@ -99,10 +92,16 @@ class PaymentMethod(Base):
         Make this Payment Method the default method for automatically processing payments.
         """
 
-        self._client.post(
+        resp = self._client.post(
             "{}/make-default".format(self.api_endpoint),
             model=self,
         )
+
+        if "errors" in resp:
+            raise UnexpectedResponseError(
+                "Unexpected response when making payment method default!",
+                json=resp,
+            )
 
 
 class Login(Base):
