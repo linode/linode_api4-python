@@ -111,10 +111,3 @@ class ProfileTest(ClientBaseCase):
         self.assertEqual(login.status, "successful")
         self.assertEqual(login.username, "example_user")
         self.assertTrue(login.restricted)
-
-    def test_revoke(self):
-        device = TrustedDevice(self.client, 123)
-
-        with self.mock_post({}) as m:
-            device.revoke()
-            self.assertEqual(m.call_url, "/profile/devices/123")

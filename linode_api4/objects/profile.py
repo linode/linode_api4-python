@@ -163,12 +163,6 @@ class TrustedDevice(Base):
         "user_agent": Property(),
     }
 
-    def revoke(self):
-        """
-        Revoke an active TrustedDevice for your User.
-        """
-        self._client.post(self.api_endpoint, model=self)
-
 
 class ProfileLogin(Base):
     api_endpoint = "profile/logins/{id}"
