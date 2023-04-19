@@ -2383,7 +2383,7 @@ class LinodeClient:
     def image_create(self, disk, label=None, description=None):
         """
         .. note:: This method is an alias to maintain backwards compatibility.
-                  Please use :meth:`LinodeClient.images.create(...) <.ImageGroup.create>` for all new logic.
+                  Please use :meth:`LinodeClient.images.create(...) <.ImageGroup.create>` for all new projects.
         """
         return self.images.create(disk, label=label, description=description)
 
@@ -2393,7 +2393,7 @@ class LinodeClient:
         """
         .. note:: This method is an alias to maintain backwards compatibility.
                   Please use :meth:`LinodeClient.images.create_upload(...) <.ImageGroup.create_upload>`
-                  for all new logic.
+                  for all new projects.
         """
 
         return self.images.create_upload(label, region, description=description)
@@ -2403,7 +2403,7 @@ class LinodeClient:
     ) -> Image:
         """
         .. note:: This method is an alias to maintain backwards compatibility.
-                  Please use :meth:`LinodeClient.images.upload(...) <.ImageGroup.upload>` for all new logic.
+                  Please use :meth:`LinodeClient.images.upload(...) <.ImageGroup.upload>` for all new projects.
         """
         return self.images.upload(label, region, file, description=description)
 
@@ -2412,7 +2412,7 @@ class LinodeClient:
         .. note:: This method is an alias to maintain backwards compatibility.
                   Please use
                   :meth:`LinodeClient.nodebalancers.create(...) <.NodeBalancerGroup.create>`
-                  for all new logic.
+                  for all new projects.
         """
         return self.nodebalancers.create(region, **kwargs)
 
@@ -2420,7 +2420,7 @@ class LinodeClient:
         """
         .. note:: This method is an alias to maintain backwards compatibility.
                   Please use :meth:`LinodeClient.domains.create(...) <.DomainGroup.create>` for all
-                  new logic.
+                  new projects.
         """
         return self.domains.create(domain, master=master, **kwargs)
 
@@ -2435,7 +2435,7 @@ class LinodeClient:
     ):
         """
         .. note:: This method is an alias to maintain backwards compatibility.
-                  Please use :meth:`LinodeClient.tags.create(...) <.TagGroup.create>` for all new logic.
+                  Please use :meth:`LinodeClient.tags.create(...) <.TagGroup.create>` for all new projects.
         """
         return self.tags.create(
             label,
@@ -2449,7 +2449,7 @@ class LinodeClient:
     def volume_create(self, label, region=None, linode=None, size=20, **kwargs):
         """
         .. note:: This method is an alias to maintain backwards compatibility.
-                  Please use :meth:`LinodeClient.volumes.create(...) <.VolumeGroup.create>` for all new logic.
+                  Please use :meth:`LinodeClient.volumes.create(...) <.VolumeGroup.create>` for all new projects.
         """
         return self.volumes.create(
             label, region=region, linode=linode, size=size, **kwargs
