@@ -1690,7 +1690,7 @@ class DatabaseGroup(Group):
 
 
 class NodeBalancerGroup(Group):
-    def nodebalancers(self, *filters):
+    def __call__(self, *filters):
         """
         Retrieves all of the NodeBalancers the acting user has access to.
 
@@ -1703,7 +1703,7 @@ class NodeBalancerGroup(Group):
         """
         return self.client._get_and_filter(NodeBalancer, *filters)
 
-    def nodebalancer_create(self, region, **kwargs):
+    def create(self, region, **kwargs):
         """
         Creates a new NodeBalancer in the given Region.
 
@@ -1732,7 +1732,7 @@ class NodeBalancerGroup(Group):
 
 
 class DomainGroup(Group):
-    def domains(self, *filters):
+    def __call__(self, *filters):
         """
         Retrieves all of the Domains the acting user has access to.
 
@@ -1745,7 +1745,7 @@ class DomainGroup(Group):
         """
         return self.client._get_and_filter(Domain, *filters)
 
-    def domain_create(self, domain, master=True, **kwargs):
+    def create(self, domain, master=True, **kwargs):
         """
         Registers a new Domain on the acting user's account.  Make sure to point
         your registrar to Linode's nameservers so that Linode's DNS manager will
@@ -1783,7 +1783,7 @@ class DomainGroup(Group):
 
 
 class TagGroup(Group):
-    def tags(self, *filters):
+    def __call__(self, *filters):
         """
         Retrieves the Tags on your account.  This may only be attempted by
         unrestricted users.
@@ -1797,7 +1797,7 @@ class TagGroup(Group):
         """
         return self.client._get_and_filter(Tag, *filters)
 
-    def tag_create(
+    def create(
         self,
         label,
         instances=None,
@@ -1889,7 +1889,7 @@ class TagGroup(Group):
 
 
 class VolumeGroup(Group):
-    def volumes(self, *filters):
+    def __call__(self, *filters):
         """
         Retrieves the Block Storage Volumes your user has access to.
 
@@ -1902,7 +1902,7 @@ class VolumeGroup(Group):
         """
         return self.client._get_and_filter(Volume, *filters)
 
-    def volume_create(self, label, region=None, linode=None, size=20, **kwargs):
+    def create(self, label, region=None, linode=None, size=20, **kwargs):
         """
         Creates a new Block Storage Volume, either in the given Region or
         attached to the given Instance.
@@ -1952,7 +1952,7 @@ class VolumeGroup(Group):
 
 
 class RegionGroup(Group):
-    def regions(self, *filters):
+    def __call__(self, *filters):
         """
         Returns the available Regions for Linode products.
 
@@ -1963,11 +1963,12 @@ class RegionGroup(Group):
         :returns: A list of available Regions.
         :rtype: PaginatedList of Region
         """
+
         return self.client._get_and_filter(Region, *filters)
 
 
 class ImageGroup(Group):
-    def images(self, *filters):
+    def __call__(self, *filters):
         """
         Retrieves a list of available Images, including public and private
         Images available to the acting user.  You can filter this query to
@@ -1985,7 +1986,7 @@ class ImageGroup(Group):
         """
         return self.client._get_and_filter(Image, *filters)
 
-    def image_create(self, disk, label=None, description=None):
+    def create(self, disk, label=None, description=None):
         """
         Creates a new Image from a disk you own.
 
@@ -2023,7 +2024,7 @@ class ImageGroup(Group):
 
         return Image(self.client, result["id"], result)
 
-    def image_create_upload(
+    def create_upload(
         self, label: str, region: str, description: str = None
     ) -> Tuple[Image, str]:
         """
@@ -2055,7 +2056,7 @@ class ImageGroup(Group):
 
         return Image(self.client, result_image["id"], result_image), result_url
 
-    def image_upload(
+    def upload(
         self, label: str, region: str, file: BinaryIO, description: str = None
     ) -> Image:
         """
@@ -2075,7 +2076,7 @@ class ImageGroup(Group):
         :rtype: Image
         """
 
-        image, url = self.image_create_upload(
+        image, url = self.create_upload(
             label, region, description=description
         )
 
@@ -2175,22 +2176,22 @@ class LinodeClient:
         self.database = DatabaseGroup(self)
 
         #: Access methods related to NodeBalancers - see :any:`NodeBalancerGroup` for more information.
-        self.nodebalancer = NodeBalancerGroup(self)
+        self.nodebalancers = NodeBalancerGroup(self)
 
         #: Access methods related to Domains - see :any:`DomainGroup` for more information.
-        self.domain = DomainGroup(self)
+        self.domains = DomainGroup(self)
 
         #: Access methods related to Tags - See :any:`TagGroup` for more information.
-        self.tag = TagGroup(self)
+        self.tags = TagGroup(self)
 
         #: Access methods related to Volumes - See :any:`VolumeGroup` for more information.
-        self.volume = VolumeGroup(self)
+        self.volumes = VolumeGroup(self)
 
         #: Access methods related to Regions - See :any:`RegionGroup` for more information.
-        self.region = RegionGroup(self)
+        self.regions = RegionGroup(self)
 
         #: Access methods related to Images - See :any:`ImageGroup` for more information.
-        self.image = ImageGroup(self)
+        self.images = ImageGroup(self)
 
     @property
     def _user_agent(self):
@@ -2362,21 +2363,21 @@ class LinodeClient:
         .. note:: This method is an alias to maintain backwards compatibility.
                   Please use :meth:`LinodeClient.region.regions(...) <.RegionGroup.regions>` for all new logic.
         """
-        return self.region.regions(*filters)
+        return self.regions(*filters)
 
     def images(self, *filters):
         """
         .. note:: This method is an alias to maintain backwards compatibility.
                   Please use :meth:`LinodeClient.image.images(...) <.ImageGroup.images>` for all new logic.
         """
-        return self.image.images(*filters)
+        return self.images(*filters)
 
     def image_create(self, disk, label=None, description=None):
         """
         .. note:: This method is an alias to maintain backwards compatibility.
                   Please use :meth:`LinodeClient.image.image_create(...) <.ImageGroup.image_create>` for all new logic.
         """
-        return self.image.image_create(
+        return self.images.create(
             disk, label=label, description=description
         )
 
@@ -2389,7 +2390,7 @@ class LinodeClient:
                   for all new logic.
         """
 
-        return self.image.image_create_upload(
+        return self.images.create_upload(
             label, region, description=description
         )
 
@@ -2400,7 +2401,7 @@ class LinodeClient:
         .. note:: This method is an alias to maintain backwards compatibility.
                   Please use :meth:`LinodeClient.image.image_upload(...) <.ImageGroup.image_upload>` for all new logic.
         """
-        return self.image.image_upload(
+        return self.images.upload(
             label, region, file, description=description
         )
 
@@ -2411,7 +2412,7 @@ class LinodeClient:
                   :meth:`LinodeClient.nodebalancer.nodebalancers(...) <.NodeBalancerGroup.nodebalancer_create>`
                   for all new logic.
         """
-        return self.nodebalancer.nodebalancers(*filters)
+        return self.nodebalancers(*filters)
 
     def nodebalancer_create(self, region, **kwargs):
         """
@@ -2420,14 +2421,14 @@ class LinodeClient:
                   :meth:`LinodeClient.nodebalancer.nodebalancer_create(...) <.NodeBalancerGroup.nodebalancer_create>`
                   for all new logic.
         """
-        return self.nodebalancer.nodebalancer_create(region, **kwargs)
+        return self.nodebalancers.create(region, **kwargs)
 
     def domains(self, *filters):
         """
         .. note:: This method is an alias to maintain backwards compatibility.
                   Please use :meth:`LinodeClient.domain.domains(...) <.DomainGroup.domains>` for all new logic.
         """
-        return self.domain.domains(*filters)
+        return self.domains(*filters)
 
     def domain_create(self, domain, master=True, **kwargs):
         """
@@ -2435,14 +2436,14 @@ class LinodeClient:
                   Please use :meth:`LinodeClient.domain.domain_create(...) <.DomainGroup.domain_create>` for all
                   new logic.
         """
-        return self.domain.domain_create(domain, master=master, **kwargs)
+        return self.domain.create(domain, master=master, **kwargs)
 
     def tags(self, *filters):
         """
         .. note:: This method is an alias to maintain backwards compatibility.
                   Please use :meth:`LinodeClient.tag.tags(...) <.TagGroup.tags>` for all new logic.
         """
-        return self.tag.tags(*filters)
+        return self.tags(*filters)
 
     def tag_create(
         self,
@@ -2457,7 +2458,7 @@ class LinodeClient:
         .. note:: This method is an alias to maintain backwards compatibility.
                   Please use :meth:`LinodeClient.tag.tag_create(...) <.TagGroup.tag_create>` for all new logic.
         """
-        return self.tag.tag_create(
+        return self.tags.create(
             label,
             instances=instances,
             domains=domains,
@@ -2469,16 +2470,16 @@ class LinodeClient:
     def volumes(self, *filters):
         """
         .. note:: This method is an alias to maintain backwards compatibility.
-                  Please use :meth:`LinodeClient.volume.volumes(...) <.VolumeGroup.volumes>` for all new logic.
+                  Please use :meth:`LinodeClient.volume(...) <.VolumeGroup.>` for all new logic.
         """
-        return self.volume.volumes(*filters)
+        return self.volumes(*filters)
 
     def volume_create(self, label, region=None, linode=None, size=20, **kwargs):
         """
         .. note:: This method is an alias to maintain backwards compatibility.
                   Please use :meth:`LinodeClient.volume.volume_create(...) <.VolumeGroup.volume_create>` for all new logic.
         """
-        return self.volume.volume_create(
+        return self.volumes.create(
             label, region=region, linode=linode, size=size, **kwargs
         )
 
