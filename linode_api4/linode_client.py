@@ -919,8 +919,16 @@ class AccountGroup(Group):
             }
         """
 
-        if not entities["entities"] or "linodes" not in entities["entities"]:
-            raise ValueError("Invalid entities provided: {}".format(entities))
+        if not entities:
+            raise ValueError("Entities must be provided!")
+
+        bad_entries = [
+            k for k, v in entities.items() if not isinstance(v, list)
+        ]
+        if len(bad_entries) > 0:
+            raise ValueError(
+                f"Got unexpected type for entity lists: {', '.join(bad_entries)}"
+            )
 
         params = {"entities": entities}
 

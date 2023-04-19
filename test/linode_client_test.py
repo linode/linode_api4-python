@@ -379,7 +379,7 @@ class AccountGroupTest(ClientBaseCase):
         """
         Tests that creating a service transfer creates the correct api request.
         """
-        data = {"entities": {"linodes": [111, 222]}}
+        data = {"linodes": [111, 222]}
         response = {
             "created": "2021-02-11T16:37:03",
             "entities": {"linodes": [111, 222]},

@@ -7,6 +7,7 @@ from linode_api4.objects import (
     Database,
     Domain,
     Event,
+    Firewall,
     Image,
     Instance,
     Invoice,
@@ -214,6 +215,7 @@ class InvoiceTest(ClientBaseCase):
         self.assertTrue(grants.count(("image", Image)) > 0)
         self.assertTrue(grants.count(("longview", LongviewClient)) > 0)
         self.assertTrue(grants.count(("database", Database)) > 0)
+        self.assertTrue(grants.count(("firewall", Firewall)) > 0)
 
     def test_payment_method_make_default(self):
         """

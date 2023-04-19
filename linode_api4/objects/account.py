@@ -384,6 +384,7 @@ def get_obj_grants():
     """
     from linode_api4.objects import (  # pylint: disable=import-outside-toplevel
         Database,
+        Firewall,
     )
 
     return (
@@ -395,6 +396,7 @@ def get_obj_grants():
         ("image", Image),
         ("longview", LongviewClient),
         ("database", Database),
+        ("firewall", Firewall),
     )
 
 
