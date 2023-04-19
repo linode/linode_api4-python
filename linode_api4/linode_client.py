@@ -2376,7 +2376,9 @@ class LinodeClient:
         .. note:: This method is an alias to maintain backwards compatibility.
                   Please use :meth:`LinodeClient.image.image_create(...) <.ImageGroup.image_create>` for all new logic.
         """
-        return self.image.image_create(disk, label=label, description=description)
+        return self.image.image_create(
+            disk, label=label, description=description
+        )
 
     def image_create_upload(
         self, label: str, region: str, description: str = None
@@ -2387,7 +2389,9 @@ class LinodeClient:
                   for all new logic.
         """
 
-        return self.image.image_create_upload(label, region, description=description)
+        return self.image.image_create_upload(
+            label, region, description=description
+        )
 
     def image_upload(
         self, label: str, region: str, file: BinaryIO, description: str = None
@@ -2396,7 +2400,9 @@ class LinodeClient:
         .. note:: This method is an alias to maintain backwards compatibility.
                   Please use :meth:`LinodeClient.image.image_upload(...) <.ImageGroup.image_upload>` for all new logic.
         """
-        return self.image.image_upload(label, region, file, description=description)
+        return self.image.image_upload(
+            label, region, file, description=description
+        )
 
     def nodebalancers(self, *filters):
         """
