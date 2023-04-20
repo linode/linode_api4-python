@@ -957,7 +957,7 @@ class AccountGroup(Group):
             data=params,
         )
 
-        if "errors" in resp:
+        if "error" in resp:
             raise UnexpectedResponseError(
                 "Unexpected response when adding payment method!",
                 json=resp,
@@ -991,7 +991,7 @@ class AccountGroup(Group):
             model=self,
         )
 
-        if "errors" in resp:
+        if "error" in resp:
             raise UnexpectedResponseError(
                 "Unexpected response when enabling Linode Managed!",
                 json=resp,
@@ -1017,7 +1017,7 @@ class AccountGroup(Group):
             data=params,
         )
 
-        if "errors" in resp:
+        if "error" in resp:
             raise UnexpectedResponseError(
                 "Unexpected response when adding Promo Code!",
                 json=resp,
@@ -1072,7 +1072,7 @@ class AccountGroup(Group):
             data=params,
         )
 
-        if "errors" in resp:
+        if "error" in resp:
             raise UnexpectedResponseError(
                 "Unexpected response when creating Service Transfer!",
                 json=resp,
