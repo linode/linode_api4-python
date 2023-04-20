@@ -545,7 +545,7 @@ class ObjectStorageGroup(Group):
         :type name: str
 
         :returns: The signed URL to perform the request at.
-        :rtype: str
+        :rtype: dict { url : str }
         """
         if method not in ("GET", "DELETE") and content_type is None:
             raise ValueError(
@@ -585,6 +585,9 @@ class ObjectStorageGroup(Group):
 
         :param bucket: The bucket name.
         :type bucket: str
+
+        :returns: True if the TLS/SSL certificate and private key in the bucket were successfully deleted.
+        :rtype: bool
         """
 
         resp = self.client.delete("/object-storage/buckets/{}/{}/ssl".format(cluster_id, bucket))
@@ -610,9 +613,9 @@ class ObjectStorageGroup(Group):
         :param bucket: The bucket name.
         :type bucket: str
 
-        :returns: A boolean indicating if this Bucket has a corresponding 
+        :returns: A result object which has a boolean field indicating if this Bucket has a corresponding
                   TLS/SSL certificate that was uploaded by an Account user.
-        :rtype: boolean
+        :rtype: dict { ssl: bool }
         """
         result = self.client.get("/object-storage/buckets/{}/{}/ssl".format(cluster_id, bucket))
 
@@ -651,9 +654,9 @@ class ObjectStorageGroup(Group):
                             for requests (but not when using the Linode CLI)
         :type private_key: str
 
-        :returns: A boolean indicating if this Bucket has a corresponding 
+        :returns: A result object which has a boolean field indicating if this Bucket has a corresponding
                   TLS/SSL certificate that was uploaded by an Account user.
-        :rtype: boolean
+        :rtype: dict { ssl: bool }
         """
         params ={
             "certificate": certificate,
