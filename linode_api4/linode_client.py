@@ -941,11 +941,11 @@ class AccountGroup(Group):
             raise ValueError("Unknown Payment Method type: {}".format(type))
 
         if (
-            "card_number" not in data["data"]
-            or "expiry_month" not in data["data"]
-            or "expiry_year" not in data["data"]
-            or "cvv" not in data["data"]
-            or not data["data"]
+            "card_number" not in data
+            or "expiry_month" not in data
+            or "expiry_year" not in data
+            or "cvv" not in data
+            or not data
         ):
             raise ValueError("Invalid credit card info provided")
 

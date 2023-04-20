@@ -333,12 +333,10 @@ class AccountGroupTest(ClientBaseCase):
         with self.mock_post({}) as m:
             self.client.account.add_payment_method(
                 {
-                    "data": {
-                        "card_number": "123456789100",
-                        "expiry_month": 1,
-                        "expiry_year": 2028,
-                        "cvv": 111,
-                    }
+                    "card_number": "123456789100",
+                    "expiry_month": 1,
+                    "expiry_year": 2028,
+                    "cvv": 111,
                 },
                 True,
                 "credit_card",
