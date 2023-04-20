@@ -931,10 +931,10 @@ class AccountGroup(Group):
 
         :param is_default: Whether this Payment Method is the default method for
                            automatically processing service charges.
-        :type data: bool
+        :type is_default: bool
 
         :param type: The type of Payment Method. Enum: ["credit_card]
-        :type data: str
+        :type type: str
         """
 
         if type != "credit_card":
