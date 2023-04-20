@@ -294,41 +294,6 @@ class ObjectStorageGroup(Group):
             endpoint="/object-storage/buckets/{}".format(cluster_id),
         )
 
-    def bucket_delete(self, cluster_id, bucket):
-        """
-        Delete a single bucket.
-
-        Bucket objects must be removed prior to removing the bucket. While buckets 
-        containing objects may be deleted using the s3cmd command-line tool, such 
-        operations can fail if the bucket contains too many objects. The recommended 
-        way to empty large buckets is to use the S3 API to configure lifecycle 
-        policies that remove all objects, then delete the bucket.
-
-        This endpoint is available for convenience.
-        It is recommended that instead you use the more fully-featured S3 API directly.
-
-        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-bucket-remove
-
-        :param cluster_id: The ID of the cluster this bucket exists in.
-        :type cluster_id: str
-
-        :param bucket: The bucket name.
-        :type bucket: str
-        """
-        resp = self.client.delete(
-            ObjectStorageBucket.api_endpoint.format(
-                cluster=cluster_id, label=bucket
-            ),
-            model=self,
-        )
-
-        if "errors" in resp:
-            raise UnexpectedResponseError(
-                "Unexpected response when deleting a bucket!",
-                json=resp,
-            )
-        return True
-
     def object_acl_config(self, cluster_id, bucket, name=None):
         """
         View an Object’s configured Access Control List (ACL) in this Object Storage 
@@ -370,7 +335,7 @@ class ObjectStorageGroup(Group):
             data=drop_null_keys(params),
         )
 
-        if "errors" in result:
+        if not "acl" in result:
             raise UnexpectedResponseError(
                 "Unexpected response when viewing Object’s configured ACL!",
                 json=result,
@@ -429,7 +394,7 @@ class ObjectStorageGroup(Group):
             data=params,
         )
 
-        if "errors" in result:
+        if not "acl" in result:
             raise UnexpectedResponseError(
                 "Unexpected response when updating Object’s configured ACL!",
                 json=result,
@@ -525,7 +490,7 @@ class ObjectStorageGroup(Group):
             data=drop_null_keys(params),
         )
 
-        if "errors" in result:
+        if not "data" in result:
             raise UnexpectedResponseError(
                 "Unexpected response when getting the contents of a bucket!",
                 json=result,
@@ -600,7 +565,7 @@ class ObjectStorageGroup(Group):
             data=drop_null_keys(params),
         )
 
-        if "errors" in result:
+        if not "url" in result:
             raise UnexpectedResponseError(
                 "Unexpected response when creating the access url of an object!",
                 json=result,
@@ -624,7 +589,7 @@ class ObjectStorageGroup(Group):
 
         resp = self.client.delete("/object-storage/buckets/{}/{}/ssl".format(cluster_id, bucket))
 
-        if "errors" in resp:
+        if "error" in resp:
             raise UnexpectedResponseError(
                 "Unexpected response when deleting a bucket!",
                 json=resp,
@@ -633,8 +598,9 @@ class ObjectStorageGroup(Group):
 
     def ssl_cert(self, cluster_id, bucket):
         """
-        Returns a boolean value indicating if this bucket has a corresponding 
-        TLS/SSL certificate that was uploaded by an Account user.
+        Returns a result object which wraps a boolean value indicating
+        if this bucket has a corresponding TLS/SSL certificate that
+        was uploaded by an Account user.
 
         API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-tlsssl-cert-view
 
@@ -650,7 +616,7 @@ class ObjectStorageGroup(Group):
         """
         result = self.client.get("/object-storage/buckets/{}/{}/ssl".format(cluster_id, bucket))
 
-        if "errors" in result:
+        if not "ssl" in result:
             raise UnexpectedResponseError(
                 "Unexpected response when getting the TLS/SSL certs indicator of a bucket!",
                 json=result,
@@ -698,7 +664,7 @@ class ObjectStorageGroup(Group):
             data=params,
         )
 
-        if "errors" in result:
+        if not "ssl" in result:
             raise UnexpectedResponseError(
                 "Unexpected response when uploading TLS/SSL certs!",
                 json=result,

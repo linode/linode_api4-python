@@ -853,19 +853,6 @@ class ObjectStorageGroupTest(ClientBaseCase):
             self.assertEqual(bucket.objects, 4)
             self.assertEqual(bucket.size, 188318981)
 
-    def test_bucket_delete(self):
-        """
-        Test that you can delete a Object Storage Bucket
-        """
-        object_storage_bucket_delete_url = (
-            "/object-storage/buckets/us-east-1/example-bucket"
-        )
-        with self.mock_delete() as m:
-            self.client.object_storage.bucket_delete(
-                "us-east-1", "example-bucket"
-            )
-            self.assertEqual(m.call_url, object_storage_bucket_delete_url)
-
     def test_object_acl_config(self):
         """
         Test that you can view an Object’s configured Access Control List (ACL) in this Object Storage bucket.
