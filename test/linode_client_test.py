@@ -4,7 +4,7 @@ from unittest import TestCase
 from unittest.mock import MagicMock
 
 from linode_api4 import ApiError, LinodeClient, LongviewSubscription
-from linode_api4.objects.linode import Instance
+from linode_api4.objects.linode import ObjectStorageACL, Instance
 from linode_api4.objects.networking import IPAddress
 
 
@@ -792,7 +792,7 @@ class ObjectStorageGroupTest(ClientBaseCase):
             {"label": "example-bucket", "cluster": "us-east-1"}
         ) as m:
             b = self.client.object_storage.bucket_create(
-                "us-east-1", "example-bucket", "private", True
+                "us-east-1", "example-bucket", ObjectStorageACL.PRIVATE, True
             )
             self.assertIsNotNone(b)
             self.assertEqual(m.call_url, "/object-storage/buckets")
@@ -885,7 +885,10 @@ class ObjectStorageGroupTest(ClientBaseCase):
         )
         with self.mock_put(object_acl_config_update_url) as m:
             acl = self.client.object_storage.object_acl_config_update(
-                "us-east-1", "example-bucket", "public-read", "example"
+                "us-east-1",
+                "example-bucket",
+                ObjectStorageACL.PUBLIC_READ,
+                "example",
             )
             self.assertEqual(m.call_url, object_acl_config_update_url)
             self.assertEqual(acl.acl, "public-read")

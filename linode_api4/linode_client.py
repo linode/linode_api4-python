@@ -209,7 +209,13 @@ class ObjectStorageGroup(Group):
         """
         return self.client._get_and_filter(ObjectStorageBucket, *filters)
 
-    def bucket_create(self, cluster, label, acl="private", cors_enabled=False):
+    def bucket_create(
+        self,
+        cluster,
+        label,
+        acl: ObjectStorageACL = ObjectStorageACL.PRIVATE,
+        cors_enabled=False,
+    ):
         """
         Creates an Object Storage Bucket in the specified cluster. Accounts with 
         negative balances cannot access this command. If the bucket already exists 
@@ -246,9 +252,6 @@ class ObjectStorageGroup(Group):
         :returns: A Object Storage Buckets that created by user.
         :rtype: ObjectStorageBucket
         """
-        if not ObjectStorageBucket.is_valid_bucket_acl(self, acl):
-            raise ValueError("Invalid ACL value: {}".format(acl))
-
         cluster_id = (
             cluster.id if isinstance(cluster, ObjectStorageCluster) else cluster
         )
@@ -343,7 +346,9 @@ class ObjectStorageGroup(Group):
 
         return MappedObject(**result)
 
-    def object_acl_config_update(self, cluster_id, bucket, acl, name):
+    def object_acl_config_update(
+        self, cluster_id, bucket, acl: ObjectStorageACL, name
+    ):
         """
         Update an Object’s configured Access Control List (ACL) in this Object Storage 
         bucket. ACLs define who can access your buckets and objects and specify the 
@@ -379,9 +384,6 @@ class ObjectStorageGroup(Group):
             :acl_xml:
                 The full XML of the object’s ACL policy.
         """
-        if not self.client.is_valid_object_acl(acl):
-            raise ValueError("Invalid ACL value: {}".format(acl))
-
         params = {
             "acl": acl,
             "name": name,
@@ -1034,12 +1036,3 @@ class LinodeClient:
             return self._get_objects(
                 obj_type.api_list(), obj_type, filters=parsed_filters
             )
-
-    def is_valid_object_acl(self, acl):
-        return acl in (
-            "private",
-            "public-read",
-            "authenticated-read",
-            "public-read-write",
-            "custom",
-        )

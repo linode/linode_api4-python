@@ -3,6 +3,14 @@ from linode_api4.objects import Base, DerivedBase, Property, Region
 from linode_api4.util import drop_null_keys
 
 
+class ObjectStorageACL:
+    PRIVATE = "private"
+    PUBLIC_READ = "public-read"
+    AUTHENTICATED_READ = "authenticated-read"
+    PUBLIC_READ_WRITE = "public-read-write"
+    CUSTOM = "custom"
+
+
 class ObjectStorageBucket(DerivedBase):
     """
     A bucket where objects are stored in.
@@ -47,15 +55,13 @@ class ObjectStorageBucket(DerivedBase):
                 "Unexpected json response when making a new Object Storage Bucket instance."
             )
 
-    def is_valid_bucket_acl(self, acl):
-        return acl in (
-            "private",
-            "public-read",
-            "authenticated-read",
-            "public-read-write",
-        )
-
-    def access_modify(self, cluster_id, bucket, acl=None, cors_enabled=None):
+    def access_modify(
+        self,
+        cluster_id,
+        bucket,
+        acl: ObjectStorageACL = None,
+        cors_enabled=None,
+    ):
         """
         Allows changing basic Cross-origin Resource Sharing (CORS) and Access Control
         Level (ACL) settings. Only allows enabling/disabling CORS for all origins,
@@ -80,9 +86,6 @@ class ObjectStorageBucket(DerivedBase):
                              the S3 API directly.
         :type cors_enabled: boolean
         """
-        if acl and not self.is_valid_bucket_acl(acl):
-            raise ValueError("Invalid ACL value: {}".format(acl))
-
         params = {
             "acl": acl,
             "cors_enabled": cors_enabled,
@@ -100,7 +103,13 @@ class ObjectStorageBucket(DerivedBase):
             )
         return True
 
-    def access_update(self, cluster_id, bucket, acl=None, cors_enabled=None):
+    def access_update(
+        self,
+        cluster_id,
+        bucket,
+        acl: ObjectStorageACL = None,
+        cors_enabled=None,
+    ):
         """
         Allows changing basic Cross-origin Resource Sharing (CORS) and Access Control
         Level (ACL) settings. Only allows enabling/disabling CORS for all origins,
@@ -125,9 +134,6 @@ class ObjectStorageBucket(DerivedBase):
                              use the S3 API directly.
         :type cors_enabled: boolean
         """
-        if acl and not self.is_valid_bucket_acl(acl):
-            raise ValueError("Invalid ACL value: {}".format(acl))
-
         params = {
             "acl": acl,
             "cors_enabled": cors_enabled,
