@@ -1,6 +1,6 @@
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
-from linode_api4.objects import ObjectStorageCluster, ObjectStorageKeys, Base
+from linode_api4.objects import Base, ObjectStorageCluster, ObjectStorageKeys
 
 
 class ObjectStorageGroup(Group):
