@@ -422,7 +422,7 @@ class Instance(Base):
         API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/ips
 
         :returns: A List of the ips of the Linode Instance.
-        :rtype: List of IPAddress
+        :rtype: List[IPAddress]
         """
         if not hasattr(self, "_ips"):
             result = self._client.get(
@@ -495,7 +495,7 @@ class Instance(Base):
         API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/backups
 
         :returns: A List of the available backups for the Linode Instance.
-        :rtype: List of Backup
+        :rtype: List[Backup]
         """
         if not hasattr(self, "_avail_backups"):
             result = self._client.get(
@@ -583,7 +583,7 @@ class Instance(Base):
         :type: month: int
 
         :returns: The network transfer statistics for the specified month.
-        :rtype: MappedObject containing Network Transfer Statistics
+        :rtype: MappedObject
         """
 
         result = self._client.get(
@@ -601,7 +601,7 @@ class Instance(Base):
         API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/transfer
 
         :returns: The network transfer statistics for the current month.
-        :rtype: MappedObject containing Network Transfer Statistics
+        :rtype: MappedObject
         """
         if not hasattr(self, "_transfer"):
             result = self._client.get(
@@ -1081,7 +1081,7 @@ class Instance(Base):
 
         :returns: The newly generated password, if one was not provided
                   (otherwise True)
-        :rtype: str or bool
+        :rtype: str
         """
         ret_pass = None
         if not root_pass:
@@ -1223,7 +1223,7 @@ class Instance(Base):
         API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/firewalls
 
         :returns: A List of Firewalls of the Linode Instance.
-        :rtype: List of Firewall
+        :rtype: List[Firewall]
         """
         from linode_api4.objects import (  # pylint: disable=import-outside-toplevel
             Firewall,
@@ -1245,7 +1245,7 @@ class Instance(Base):
         API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/nodebalancers
 
         :returns: A List of Nodebalancers of the Linode Instance.
-        :rtype: List of Nodebalancer
+        :rtype: List[Nodebalancer]
         """
         from linode_api4.objects import (  # pylint: disable=import-outside-toplevel
             NodeBalancer,
@@ -1267,7 +1267,7 @@ class Instance(Base):
         API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/volumes
 
         :returns: A List of Volumes of the Linode Instance.
-        :rtype: List of Volume
+        :rtype: List[Volume]
         """
         from linode_api4.objects import (  # pylint: disable=import-outside-toplevel
             Volume,
@@ -1283,7 +1283,7 @@ class Instance(Base):
         self,
         to_linode=None,
         region=None,
-        service=None,
+        type=None,
         configs=[],
         disks=[],
         label=None,
@@ -1295,21 +1295,22 @@ class Instance(Base):
 
         API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/clone
 
-        :param to_linode:
-        :type: to_linode:
+        :param to_linode: If an existing Linode is the target for the clone, the ID of that
+                          Linode. The existing Linode must have enough resources to accept the clone.
+        :type: to_linode: int
 
         :param region: This is the Region where the Linode will be deployed. Region can only be
                        provided and is required when cloning to a new Linode.
         :type: region: str
 
-        :param service:
-        :type: service:
+        :param type:
+        :type: type:
 
-        :param configs:
-        :type: configs:
+        :param configs: An array of configuration profile IDs.
+        :type: configs: List of int
 
-        :param disks:
-        :type: disks:
+        :param disks: An array of disk IDs.
+        :type: disks: List of int
 
         :param label: The label to assign this Linode when cloning to a new Linode.
         :type: label: str
@@ -1329,7 +1330,7 @@ class Instance(Base):
                 'You may only specify one of "to_linode" and "region"'
             )
 
-        if region and not service:
+        if region and not type:
             raise ValueError('Specifying a region requires a "service" as well')
 
         if not isinstance(configs, list) and not isinstance(
@@ -1347,7 +1348,7 @@ class Instance(Base):
             if issubclass(type(to_linode), Base)
             else to_linode,
             "region": region.id if issubclass(type(region), Base) else region,
-            "type": service.id if issubclass(type(service), Base) else service,
+            "type": type.id if issubclass(type(type), Base) else type,
             "configs": cids if cids else None,
             "disks": dids if dids else None,
             "label": label,
