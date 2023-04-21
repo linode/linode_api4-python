@@ -3,6 +3,10 @@ from linode_api4.objects import Base, DerivedBase, Property, Region
 
 
 class IPv6Pool(Base):
+    """
+    DEPRECATED
+    """
+
     api_endpoint = "/networking/ipv6/pools/{}"
     id_attribute = "range"
 
@@ -13,16 +17,22 @@ class IPv6Pool(Base):
 
 
 class IPv6Range(Base):
-    api_endpoint = "/networking/ipv6/ranges/{}"
+    api_endpoint = "/networking/ipv6/ranges/{range}"
     id_attribute = "range"
 
     properties = {
         "range": Property(identifier=True),
         "region": Property(slug_relationship=Region, filterable=True),
+        "prefix": Property(),
+        "route_target": Property(),
     }
 
 
 class IPAddress(Base):
+    """
+    note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+    """
+
     api_endpoint = "/networking/ips/{address}"
     id_attribute = "address"
 
@@ -56,6 +66,7 @@ class IPAddress(Base):
 
         if not isinstance(linode, Instance):
             raise ValueError("IP Address can only be assigned to a Linode!")
+
         return {"address": self.address, "linode_id": linode.id}
 
 
@@ -115,6 +126,14 @@ class Firewall(Base):
             "{}/rules".format(self.api_endpoint), model=self, data=rules
         )
         self.invalidate()
+
+    def get_rules(self):
+        """
+        Gets the JSON rules for this Firewall
+        """
+        return self._client.get(
+            "{}/rules".format(self.api_endpoint), model=self
+        )
 
     def device_create(self, id, type="linode", **kwargs):
         """

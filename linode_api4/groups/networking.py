@@ -184,6 +184,8 @@ class NetworkingGroup(Group):
                             :any:`IPAddress.to` for details on how to construct
                             assignments.
         :type assignments: dct
+
+        DEPRECATED: Use ip_addresses_assign() instead
         """
         for a in assignments:
             if not "address" in a or not "linode_id" in a:
@@ -244,6 +246,8 @@ class NetworkingGroup(Group):
         :type: linode: int or Instance
         :param ips: Any number of IPAddresses to share to the Instance.
         :type ips: str or IPAddress
+
+        DEPRECATED: Use ip_addresses_share() instead
         """
         if not isinstance(linode, Instance):
             # make this an object
@@ -267,3 +271,60 @@ class NetworkingGroup(Group):
         )
 
         linode.invalidate()  # clear the Instance's shared IPs
+
+    def ip_addresses_share(self, ips, linode):
+        """
+        Configure shared IPs. P sharing allows IP address reassignment
+        (also referred to as IP failover) from one Linode to another if the
+        primary Linode becomes unresponsive. This means that requests to the primary Linode’s
+        IP address can be automatically rerouted to secondary Linodes at the configured shared IP addresses.
+
+        :param linode: The id of the Instance or the Instance to share the IPAddresses with.
+                          This Instance will be able to bring up the given addresses.
+        :type: linode: int or Instance
+        :param ips: Any number of IPAddresses to share to the Instance.
+        :type ips: str or IPAddress
+        """
+
+        params = {
+            "ips": ips
+            if not isinstance(ips[0], IPAddress)
+            else [ip.address for ip in ips],
+            "linode_id": linode
+            if not isinstance(linode, Instance)
+            else linode.id,
+        }
+
+        self.client.post("/networking/ips/share", model=self, data=params)
+
+    def ip_addresses_assign(self, assignments, region):
+        """
+        Assign multiple IPv4 addresses and/or IPv6 ranges to multiple Linodes in one Region.
+        This allows swapping, shuffling, or otherwise reorganizing IPs to your Linodes.
+
+        The following restrictions apply:
+            - All Linodes involved must have at least one public IPv4 address after assignment.
+            - Linodes may have no more than one assigned private IPv4 address.
+            - Linodes may have no more than one assigned IPv6 range.
+
+
+        :param region: The Region in which the assignments should take place.
+                       All Instances and IPAddresses involved in the assignment
+                       must be within this region.
+        :type region: str or Region
+        :param assignments: Any number of assignments to make.  See
+                            :any:`IPAddress.to` for details on how to construct
+                            assignments.
+        :type assignments: dct
+        """
+
+        for a in assignments["assignments"]:
+            if not "address" in a or not "linode_id" in a:
+                raise ValueError("Invalid assignment: {}".format(a))
+
+        if isinstance(region, Region):
+            region = region.id
+
+        params = {"assignments": assignments, "region": region}
+
+        self.client.post("/networking/ips/assign", model=self, data=params)
