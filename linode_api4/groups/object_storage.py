@@ -420,7 +420,7 @@ class ObjectStorageGroup(Group):
         :type perfix: str
 
         :param page_size: The number of items to return per page. Defaults to 100.
-        :type page_size: integer 25..500
+        :type page_size: int 25..500
 
         :returns: One page of the requested bucket's contents.
         :rtype:
@@ -431,7 +431,7 @@ class ObjectStorageGroup(Group):
                 name: str,
                 next_marker: str,
                 owner: str,
-                size: integer,
+                size: int,
             }]
             :etag: An MD-5 hash of the object. null if this object represents a prefix.
             :is_truncated: Designates if there is another page of bucket objects.
@@ -502,7 +502,7 @@ class ObjectStorageGroup(Group):
 
         :param expires_in: How long this signed URL will be valid for, in seconds.
                            If omitted, the URL will be valid for 3600 seconds (1 hour). Defaults to 3600.
-        :type expires_in: integer 360..86400
+        :type expires_in: int 360..86400
 
         :param method: The HTTP method allowed to be used with the pre-signed URL.
         :type method: str
