@@ -871,6 +871,213 @@ class AccountGroup(Group):
         """
         return self.client._get_and_filter(User, *filters)
 
+    def logins(self):
+        """
+        Returns a collection of successful logins for all users on the account during the last 90 days.
+
+        API Documentation: https://www.linode.com/docs/api/account/#user-logins-list-all
+
+        :returns: A list of Logins on this account.
+        :rtype: PaginatedList of Login
+        """
+
+        return self.client._get_and_filter(Login)
+
+    def maintenance(self):
+        """
+        Returns a collection of Maintenance objects for any entity a user has permissions to view. Cancelled Maintenance objects are not returned.
+
+        API Documentation: https://www.linode.com/docs/api/account/#user-logins-list-all
+
+        :returns: A list of Maintenance objects on this account.
+        :rtype: List of Maintenance objects as MappedObjects
+        """
+
+        result = self.client.get(
+            "{}/maintenance".format(Account.api_endpoint), model=self
+        )
+
+        return [MappedObject(**r) for r in result["data"]]
+
+    def payment_methods(self):
+        """
+        Returns a  list of Payment Methods for this Account.
+
+        API Documentation: https://www.linode.com/docs/api/account/#payment-methods-list
+
+        :returns: A list of Payment Methods on this account.
+        :rtype: PaginatedList of PaymentMethod
+        """
+
+        return self.client._get_and_filter(PaymentMethod)
+
+    def add_payment_method(self, data, is_default, type):
+        """
+        Adds a Payment Method to your Account with the option to set it as the default method.
+
+        API Documentation: https://www.linode.com/docs/api/account/#payment-method-add
+
+        :param data: An object representing the credit card information you have on file with
+                     Linode to make Payments against your Account.
+        :type data: dict
+
+        Example usage::
+           data = {
+                "card_number": "4111111111111111",
+                "expiry_month": 11,
+                "expiry_year": 2020,
+                "cvv": "111"
+            }
+
+        :param is_default: Whether this Payment Method is the default method for
+                           automatically processing service charges.
+        :type is_default: bool
+
+        :param type: The type of Payment Method. Enum: ["credit_card]
+        :type type: str
+        """
+
+        if type != "credit_card":
+            raise ValueError("Unknown Payment Method type: {}".format(type))
+
+        if (
+            "card_number" not in data
+            or "expiry_month" not in data
+            or "expiry_year" not in data
+            or "cvv" not in data
+            or not data
+        ):
+            raise ValueError("Invalid credit card info provided")
+
+        params = {"data": data, "type": type, "is_default": is_default}
+
+        resp = self.client.post(
+            "{}/payment-methods".format(Account.api_endpoint),
+            model=self,
+            data=params,
+        )
+
+        if "error" in resp:
+            raise UnexpectedResponseError(
+                "Unexpected response when adding payment method!",
+                json=resp,
+            )
+
+    def notifications(self):
+        """
+        Returns a collection of Notification objects representing important, often time-sensitive items related to your Account.
+
+        API Documentation: https://www.linode.com/docs/api/account/#notifications-list
+
+        :returns: A list of Notifications on this account.
+        :rtype: List of Notification objects as MappedObjects
+        """
+
+        result = self.client.get(
+            "{}/notifications".format(Account.api_endpoint), model=self
+        )
+
+        return [MappedObject(**r) for r in result["data"]]
+
+    def linode_managed_enable(self):
+        """
+        Enables Linode Managed for the entire account and sends a welcome email to the account’s associated email address.
+
+        API Documentation: https://www.linode.com/docs/api/account/#linode-managed-enable
+        """
+
+        resp = self.client.post(
+            "{}/settings/managed-enable".format(Account.api_endpoint),
+            model=self,
+        )
+
+        if "error" in resp:
+            raise UnexpectedResponseError(
+                "Unexpected response when enabling Linode Managed!",
+                json=resp,
+            )
+
+    def add_promo_code(self, promo_code):
+        """
+        Adds an expiring Promo Credit to your account.
+
+        API Documentation: https://www.linode.com/docs/api/account/#promo-credit-add
+
+        :param promo_code: The Promo Code.
+        :type promo_code: str
+        """
+
+        params = {
+            "promo_code": promo_code,
+        }
+
+        resp = self.client.post(
+            "{}/promo-codes".format(Account.api_endpoint),
+            model=self,
+            data=params,
+        )
+
+        if "error" in resp:
+            raise UnexpectedResponseError(
+                "Unexpected response when adding Promo Code!",
+                json=resp,
+            )
+
+    def service_transfers(self):
+        """
+        Returns a collection of all created and accepted Service Transfers for this account, regardless of the user that created or accepted the transfer.
+
+        API Documentation: https://www.linode.com/docs/api/account/#service-transfers-list
+
+        :returns: A list of Service Transfers on this account.
+        :rtype: PaginatedList of ServiceTransfer
+        """
+
+        return self.client._get_and_filter(ServiceTransfer)
+
+    def service_transfer_create(self, entities):
+        """
+        Creates a transfer request for the specified services.
+
+        API Documentation: https://www.linode.com/docs/api/account/#service-transfer-create
+
+        :param entities: A collection of the services to include in this transfer request, separated by type.
+        :type entities: dict
+
+        Example usage::
+           entities = {
+                "linodes": [
+                    111,
+                    222
+                ]
+            }
+        """
+
+        if not entities:
+            raise ValueError("Entities must be provided!")
+
+        bad_entries = [
+            k for k, v in entities.items() if not isinstance(v, list)
+        ]
+        if len(bad_entries) > 0:
+            raise ValueError(
+                f"Got unexpected type for entity lists: {', '.join(bad_entries)}"
+            )
+
+        params = {"entities": entities}
+
+        resp = self.client.post(
+            "{}/service-transfers".format(Account.api_endpoint),
+            model=self,
+            data=params,
+        )
+
+        if "error" in resp:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating Service Transfer!",
+                json=resp,
+            )
+
     def transfer(self):
         """
         Returns a MappedObject containing the account's transfer pool data.
