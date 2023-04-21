@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'linode_api4'
-copyright = '2020, Linode'
+copyright = '2023, Linode'
 author = 'Linode'
 
 # The short X.Y version
@@ -86,7 +86,10 @@ html_theme = 'alabaster'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {
+    'sidebar_width': '320px',
+    'page_width': '1000px',
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

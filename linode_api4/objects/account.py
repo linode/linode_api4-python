@@ -39,6 +39,80 @@ class Account(Base):
         "tax_id": Property(mutable=True),
         "capabilities": Property(),
         "credit_card": Property(),
+        "active_promotions": Property(),
+        "active_since": Property(),
+        "balance_uninvoiced": Property(),
+        "billing_source": Property(),
+        "euuid": Property(),
+    }
+
+
+class ServiceTransfer(Base):
+    api_endpoint = "/account/service-transfers/{token}"
+    id_attribute = "token"
+    properties = {
+        "token": Property(identifier=True),
+        "created": Property(is_datetime=True),
+        "updated": Property(is_datetime=True),
+        "is_sender": Property(),
+        "expiry": Property(),
+        "status": Property(),
+        "entities": Property(),
+    }
+
+    def service_transfer_accept(self):
+        """
+        Accept a Service Transfer for the provided token to receive the services included in the transfer to your account.
+        """
+
+        resp = self._client.post(
+            "{}/accept".format(self.api_endpoint),
+            model=self,
+        )
+
+        if "errors" in resp:
+            raise UnexpectedResponseError(
+                "Unexpected response when accepting service transfer!",
+                json=resp,
+            )
+
+
+class PaymentMethod(Base):
+    api_endpoint = "/account/payment-methods/{id}"
+    properties = {
+        "id": Property(identifier=True),
+        "created": Property(is_datetime=True),
+        "is_default": Property(),
+        "type": Property(),
+        "data": Property(),
+    }
+
+    def payment_method_make_default(self):
+        """
+        Make this Payment Method the default method for automatically processing payments.
+        """
+
+        resp = self._client.post(
+            "{}/make-default".format(self.api_endpoint),
+            model=self,
+        )
+
+        if "errors" in resp:
+            raise UnexpectedResponseError(
+                "Unexpected response when making payment method default!",
+                json=resp,
+            )
+
+
+class Login(Base):
+    api_endpoint = "/account/logins/{id}"
+    properties = {
+        "id": Property(identifier=True),
+        "datetime": Property(is_datetime=True),
+        "ip": Property(),
+        "restricted": Property(),
+        "status": Property(),
+        "username": Property(),
     }
 
 
@@ -53,6 +127,7 @@ class AccountSettings(Base):
             slug_relationship=LongviewSubscription
         ),
         "object_storage": Property(),
+        "backups_enabled": Property(mutable=True),
     }
 
 
@@ -72,6 +147,9 @@ class Event(Base):
         "time_remaining": Property(),
         "rate": Property(),
         "status": Property(),
+        "duration": Property(),
+        "secondary_entity": Property(),
+        "message": Property(),
     }
 
     @property
@@ -152,6 +230,9 @@ class Invoice(Base):
         "date": Property(is_datetime=True),
         "total": Property(),
         "items": Property(derived_class=InvoiceItem),
+        "tax": Property(),
+        "tax_summary": Property(),
+        "subtotal": Property(),
     }
 
 
@@ -164,7 +245,8 @@ class OAuthClient(Base):
         "secret": Property(),
         "redirect_uri": Property(mutable=True),
         "status": Property(),
-        "public": Property(),
+        "public": Property(mutable=True),
+        "thumbnail_url": Property(),
     }
 
     def reset_secret(self):
@@ -262,6 +344,8 @@ class User(Base):
         "email": Property(),
         "username": Property(identifier=True, mutable=True),
         "restricted": Property(mutable=True),
+        "ssh_keys": Property(),
+        "tfa_enabled": Property(),
     }
 
     @property
@@ -298,6 +382,11 @@ def get_obj_grants():
     """
     Returns Grant keys mapped to Object types.
     """
+    from linode_api4.objects import (  # pylint: disable=import-outside-toplevel
+        Database,
+        Firewall,
+    )
+
     return (
         ("linode", Instance),
         ("domain", Domain),
@@ -306,6 +395,8 @@ def get_obj_grants():
         ("volume", Volume),
         ("image", Image),
         ("longview", LongviewClient),
+        ("database", Database),
+        ("firewall", Firewall),
     )
 
 

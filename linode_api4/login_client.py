@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timedelta
 from enum import Enum
 
@@ -283,7 +284,7 @@ class OAuthScopes:
                 for scope in OAuthScopes._scope_families.values()
             ]
 
-        for scope in scopes.split(","):
+        for scope in re.split("[, ]", scopes):
             resource = access = None
             if ":" in scope:
                 resource, access = scope.split(":")
@@ -303,7 +304,7 @@ class OAuthScopes:
         access = access.lower()
         if resource in OAuthScopes._scope_families:
             if access == "*":
-                access = "delete"
+                access = "all"
             if hasattr(OAuthScopes._scope_families[resource], access):
                 return getattr(OAuthScopes._scope_families[resource], access)
 
