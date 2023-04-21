@@ -1353,7 +1353,9 @@ class Instance(Base):
             if issubclass(type(to_linode), Base)
             else to_linode,
             "region": region.id if issubclass(type(region), Base) else region,
-            "type": instance_type.id if issubclass(type(instance_type), Base) else instance_type,
+            "type": instance_type.id
+            if issubclass(type(instance_type), Base)
+            else instance_type,
             "configs": cids if cids else None,
             "disks": dids if dids else None,
             "label": label,
