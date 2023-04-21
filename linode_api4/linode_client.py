@@ -439,6 +439,12 @@ class ProfileGroup(Group):
         """
         Adds security question responses for your User. Requires exactly three unique questions.
         Previous responses are overwritten if answered or reset to null if unanswered.
+
+        Example question:
+        {
+            "question_id": 11,
+            "response": "secret answer 3"
+        }
         """
 
         if len(questions) != 3:
@@ -470,32 +476,72 @@ class ProfileGroup(Group):
     def phone_number_delete(self):
         """
         Delete the verified phone number for the User making this request.
+
+        API Documentation: https://api.linode.com/v4/profile/phone-number
+
+        :returns: Returns True if the operation was successful.
+        :rtype: bool
         """
 
-        self.client.delete(
+        resp = self.client.delete(
             "{}/phone-number".format(Profile.api_endpoint), model=self
         )
+
+        if "error" in resp:
+            raise UnexpectedResponseError(
+                "Unexpected response when deleting phone number!",
+                json=resp,
+            )
+        
+        return True
 
     def phone_number_verify(self, otp_code):
         """
         Verify a phone number by confirming the one-time code received via SMS message
         after accessing the Phone Verification Code Send (POST /profile/phone-number) command.
+        
+        API Documentation: https://api.linode.com/v4/profile/phone-number/verify
+        
+        :param otp_code: The one-time code received via SMS message after accessing the Phone Verification Code Send
+        :type otp_code: str
+
+        :returns: Returns True if the operation was successful.
+        :rtype: bool
         """
 
         if not otp_code:
             raise ValueError("OTP Code required to verify phone number.")
 
-        params = {"otp_code": otp_code}
+        params = {"otp_code": str(otp_code)}
 
-        self.client.post(
+        resp = self.client.post(
             "{}/phone-number/verify".format(Profile.api_endpoint),
             model=self,
             data=params,
         )
 
+        if "error" in resp:
+            raise UnexpectedResponseError(
+                "Unexpected response when verifying phone number!",
+                json=resp,
+            )
+        
+        return True
+
     def phone_number_verification_code_send(self, iso_code, phone_number):
         """
         Send a one-time verification code via SMS message to the submitted phone number.
+        
+        API Documentation: https://api.linode.com/v4/profile/phone-number
+
+        :param iso_code: The two-letter ISO 3166 country code associated with the phone number.
+        :type iso_code: str
+
+        :param phone_number: A valid phone number.
+        :type phone_number: str
+
+        :returns: Returns True if the operation was successful.
+        :rtype: bool
         """
 
         if not iso_code:
@@ -506,11 +552,19 @@ class ProfileGroup(Group):
 
         params = {"iso_code": iso_code, "phone_number": phone_number}
 
-        self.client.post(
+        resp = self.client.post(
             "{}/phone-number".format(Profile.api_endpoint),
             model=self,
             data=params,
         )
+
+        if "error" in resp:
+            raise UnexpectedResponseError(
+                "Unexpected response when sending verification code!",
+                json=resp,
+            )
+        
+        return True
 
     def logins(self):
         """
