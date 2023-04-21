@@ -1011,6 +1011,9 @@ class Instance(Base):
 
         :param label: The label for the new snapshot.
         :type: label: str
+
+        :returns: The snapshot Backup created.
+        :rtype: Backup
         """
 
         result = self._client.post(
@@ -1081,7 +1084,7 @@ class Instance(Base):
 
         :returns: The newly generated password, if one was not provided
                   (otherwise True)
-        :rtype: str
+        :rtype: str or bool
         """
         ret_pass = None
         if not root_pass:
@@ -1283,7 +1286,7 @@ class Instance(Base):
         self,
         to_linode=None,
         region=None,
-        type=None,
+        instance_type=None,
         configs=[],
         disks=[],
         label=None,
@@ -1303,8 +1306,10 @@ class Instance(Base):
                        provided and is required when cloning to a new Linode.
         :type: region: str
 
-        :param type:
-        :type: type:
+        :param instance_type: A Linode’s Type determines what resources are available to it, including disk space,
+                              memory, and virtual cpus. The amounts available to a specific Linode are
+                              returned as specs on the Linode object.
+        :type: instance_type: str
 
         :param configs: An array of configuration profile IDs.
         :type: configs: List of int
@@ -1348,7 +1353,7 @@ class Instance(Base):
             if issubclass(type(to_linode), Base)
             else to_linode,
             "region": region.id if issubclass(type(region), Base) else region,
-            "type": type.id if issubclass(type(type), Base) else type,
+            "type": instance_type.id if issubclass(type(instance_type), Base) else instance_type,
             "configs": cids if cids else None,
             "disks": dids if dids else None,
             "label": label,
@@ -1376,7 +1381,7 @@ class Instance(Base):
         API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/stats
 
         :returns: The JSON stats for this Instance
-        :rtype: str
+        :rtype: dict
         """
         # TODO - this would be nicer if we formatted the stats
         return self._client.get(
@@ -1393,7 +1398,7 @@ class Instance(Base):
         :type: dt: Datetime
 
         :returns: The JSON stats for this Instance at the specified Datetime
-        :rtype: str
+        :rtype: dict
         """
         # TODO - this would be nicer if we formatted the stats
         if not isinstance(dt, datetime):
