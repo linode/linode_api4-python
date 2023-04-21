@@ -6,12 +6,12 @@ from linode_api4.common import SSH_KEY_TYPES
 from linode_api4.groups import Group
 from linode_api4.objects import (
     AuthorizedApp,
+    MappedObject,
     PersonalAccessToken,
     Profile,
-    SSHKey,
-    MappedObject,
     ProfileLogin,
-    TrustedDevice
+    SSHKey,
+    TrustedDevice,
 )
 
 
@@ -133,16 +133,16 @@ class ProfileGroup(Group):
                 "Unexpected response when deleting phone number!",
                 json=resp,
             )
-        
+
         return True
 
     def phone_number_verify(self, otp_code):
         """
         Verify a phone number by confirming the one-time code received via SMS message
         after accessing the Phone Verification Code Send (POST /profile/phone-number) command.
-        
+
         API Documentation: https://api.linode.com/v4/profile/phone-number/verify
-        
+
         :param otp_code: The one-time code received via SMS message after accessing the Phone Verification Code Send
         :type otp_code: str
 
@@ -166,13 +166,13 @@ class ProfileGroup(Group):
                 "Unexpected response when verifying phone number!",
                 json=resp,
             )
-        
+
         return True
 
     def phone_number_verification_code_send(self, iso_code, phone_number):
         """
         Send a one-time verification code via SMS message to the submitted phone number.
-        
+
         API Documentation: https://api.linode.com/v4/profile/phone-number
 
         :param iso_code: The two-letter ISO 3166 country code associated with the phone number.
@@ -204,7 +204,7 @@ class ProfileGroup(Group):
                 "Unexpected response when sending verification code!",
                 json=resp,
             )
-        
+
         return True
 
     def logins(self):
