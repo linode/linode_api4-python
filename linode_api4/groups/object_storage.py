@@ -228,7 +228,7 @@ class ObjectStorageGroup(Group):
         :param cors_enabled: If true, the bucket will be created with CORS enabled for
                              all origins. For more fine-grained controls of CORS, use
                              the S3 API directly.
-        :type cors_enabled: boolean
+        :type cors_enabled: bool
 
         :param label: The name for this bucket. Must be unique in the cluster you are
                       creating the bucket in, or an error will be returned. Labels will
@@ -426,7 +426,7 @@ class ObjectStorageGroup(Group):
         :rtype:
             [{
                 etag: str,
-                is_truncated: boolean,
+                is_truncated: bool,
                 last_modified: string<date-time>,
                 name: str,
                 next_marker: str,
@@ -572,7 +572,7 @@ class ObjectStorageGroup(Group):
 
     def ssl_cert(self, cluster_id, bucket):
         """
-        Returns a result object which wraps a boolean value indicating
+        Returns a result object which wraps a bool value indicating
         if this bucket has a corresponding TLS/SSL certificate that
         was uploaded by an Account user.
 
@@ -584,7 +584,7 @@ class ObjectStorageGroup(Group):
         :param bucket: The bucket name.
         :type bucket: str
 
-        :returns: A result object which has a boolean field indicating if this Bucket has a corresponding
+        :returns: A result object which has a bool field indicating if this Bucket has a corresponding
                   TLS/SSL certificate that was uploaded by an Account user.
         :rtype: dict { ssl: bool }
         """
@@ -627,7 +627,7 @@ class ObjectStorageGroup(Group):
                             for requests (but not when using the Linode CLI)
         :type private_key: str
 
-        :returns: A result object which has a boolean field indicating if this Bucket has a corresponding
+        :returns: A result object which has a bool field indicating if this Bucket has a corresponding
                   TLS/SSL certificate that was uploaded by an Account user.
         :rtype: dict { ssl: bool }
         """

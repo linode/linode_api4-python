@@ -957,7 +957,7 @@ class ObjectStorageGroupTest(ClientBaseCase):
 
     def test_ssl_cert(self):
         """
-        Test tha you can get a boolean value indicating if this bucket
+        Test tha you can get a bool value indicating if this bucket
         has a corresponding TLS/SSL certificate.
         """
         ssl_cert_url = "/object-storage/buckets/us-east-1/example-bucket/ssl"

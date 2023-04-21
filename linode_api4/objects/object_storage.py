@@ -84,7 +84,7 @@ class ObjectStorageBucket(DerivedBase):
         :param cors_enabled: If true, the bucket will be created with CORS enabled for
                              all origins. For more fine-grained controls of CORS, use
                              the S3 API directly.
-        :type cors_enabled: boolean
+        :type cors_enabled: bool
         """
         params = {
             "acl": acl,
