@@ -4,8 +4,12 @@ from unittest import TestCase
 from unittest.mock import MagicMock
 
 from linode_api4 import ApiError, LinodeClient, LongviewSubscription
-from linode_api4.objects.linode import ObjectStorageACL, Instance
+from linode_api4.objects.linode import Instance
 from linode_api4.objects.networking import IPAddress
+from linode_api4.objects.object_storage import (
+    ObjectStorageACL,
+    ObjectStorageCluster,
+)
 
 
 class LinodeClientGeneralTest(ClientBaseCase):
@@ -827,31 +831,6 @@ class ObjectStorageGroupTest(ClientBaseCase):
                     "acl": "private",
                 },
             )
-
-    def test_buckets_in_cluster(self):
-        """
-        Test that Object Storage Buckets in a specified cluster can be reterived
-        """
-        buckets_in_cluster_url = "/object-storage/buckets/us-east-1"
-        with self.mock_get(buckets_in_cluster_url) as m:
-            buckets = self.client.object_storage.buckets_in_cluster("us-east-1")
-            self.assertIsNotNone(buckets)
-            bucket = buckets[0]
-
-            self.assertEqual(m.call_url, buckets_in_cluster_url)
-            self.assertEqual(bucket.cluster, "us-east-1")
-            self.assertEqual(
-                bucket.created,
-                datetime(
-                    year=2019, month=1, day=1, hour=1, minute=23, second=45
-                ),
-            )
-            self.assertEqual(
-                bucket.hostname, "example-bucket.us-east-1.linodeobjects.com"
-            )
-            self.assertEqual(bucket.label, "example-bucket")
-            self.assertEqual(bucket.objects, 4)
-            self.assertEqual(bucket.size, 188318981)
 
     def test_object_acl_config(self):
         """

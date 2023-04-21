@@ -132,7 +132,7 @@ class ObjectStorageBucket(DerivedBase):
         :param cors_enabled: If true, the bucket will be created with CORS enabled for
                              all origins. For more fine-grained controls of CORS,
                              use the S3 API directly.
-        :type cors_enabled: boolean
+        :type cors_enabled: bool
         """
         params = {
             "acl": acl,
@@ -166,6 +166,28 @@ class ObjectStorageCluster(Base):
         "domain": Property(),
         "static_site_domain": Property(),
     }
+
+    def buckets_in_cluster(self, *filters):
+        """
+        Returns a list of Buckets in this cluster belonging to this Account.
+
+        This endpoint is available for convenience.
+        It is recommended that instead you use the more fully-featured S3 API directly.
+
+        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-buckets-in-cluster-list
+
+        :param cluster_id: The ID of the cluster this bucket exists in.
+        :type cluster_id: str
+
+        :returns: A list of Object Storage Buckets that in the requested cluster.
+        :rtype: PaginatedList of ObjectStorageBucket
+        """
+
+        return self._client._get_and_filter(
+            ObjectStorageBucket,
+            *filters,
+            endpoint="/object-storage/buckets/{}".format(self.id),
+        )
 
 
 class ObjectStorageKeys(Base):
