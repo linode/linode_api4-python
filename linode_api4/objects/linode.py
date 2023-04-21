@@ -18,6 +18,12 @@ PASSWORD_CHARS = string.ascii_letters + string.digits + string.punctuation
 
 
 class Backup(DerivedBase):
+    """
+    A Backup of a Linode Instance.
+
+    View Endpoint: https://api.linode.com/v4/linode/instances/{linodeId}/backups/{backupId}
+    """
+
     api_endpoint = "/linode/instances/{linode_id}/backups/{id}"
     derived_url_path = "backups"
     parent_id_name = "linode_id"
@@ -40,6 +46,30 @@ class Backup(DerivedBase):
     }
 
     def restore_to(self, linode, **kwargs):
+        """
+        Restores a Linode’s Backup to the specified Linode.
+
+        API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/backups/{backupId}/restore
+
+        :param linode: The id of the Instance or the Instance to share the IPAddresses with.
+                       This Instance will be able to bring up the given addresses.
+        :type: linode: int or Instance
+
+        :param kwargs: A dict containing the The ID of the Linode to restore a Backup to and
+                       a boolean that, if True, deletes all Disks and Configs on
+                       the target Linode before restoring.
+        :type: kwargs: dict
+
+        Example usage:
+           kwargs = {
+                "linode_id": 123,
+                "overwrite": true
+            }
+
+        :returns: Returns true if the operation was successful
+        :rtype: bool
+        """
+
         d = {
             "linode_id": linode.id
             if issubclass(type(linode), Base)
@@ -54,6 +84,12 @@ class Backup(DerivedBase):
 
 
 class Disk(DerivedBase):
+    """
+    A Disk for the storage space on a Compute Instance.
+
+    View Endpoint: https://api.linode.com/v4/linode/instances/{linodeId}/disks/{diskId}
+    """
+
     api_endpoint = "/linode/instances/{linode_id}/disks/{id}"
     derived_url_path = "disks"
     parent_id_name = "linode_id"
@@ -70,6 +106,16 @@ class Disk(DerivedBase):
     }
 
     def duplicate(self):
+        """
+        Copies a disk, byte-for-byte, into a new Disk belonging to the same Linode. The Linode must have enough
+        storage space available to accept a new Disk of the same size as this one or this operation will fail.
+
+        API Documentation: https://www.linode.com/docs/api/linode-instances/#disk-clone
+
+        :returns: A Disk object representing the cloned Disk
+        :rtype: Disk
+        """
+
         d = self._client.post("{}/clone".format(Disk.api_endpoint), model=self)
 
         if not "id" in d:
@@ -80,6 +126,15 @@ class Disk(DerivedBase):
         return Disk(self._client, d["id"], self.linode_id)
 
     def reset_root_password(self, root_password=None):
+        """
+        Resets the password of a Disk you have permission to read_write.
+
+        API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/disks/{diskId}/password
+
+        :param root_password: The new root password for the OS installed on this Disk. The password must meet the complexity
+                              strength validation requirements for a strong password.
+        :type: root_password: str
+        """
         rpass = root_password
         if not rpass:
             rpass = Instance.generate_root_password()
@@ -102,6 +157,8 @@ class Disk(DerivedBase):
         fit on the new disk size.  You may need to resize the filesystem on the
         disk first before performing this action.
 
+        API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/disks/{diskId}/resize
+
         :param new_size: The intended new size of the disk, in MB
         :type new_size: int
 
@@ -118,6 +175,31 @@ class Disk(DerivedBase):
 
 
 class Kernel(Base):
+    """
+    The primary component of every Linux system. The kernel interfaces
+    with the system’s hardware and it controls the operating system’s core functionality.
+
+    Your Compute Instance is capable of running one of three kinds of kernels:
+
+        - Upstream kernel (or distribution-supplied kernel): This kernel is maintained
+          and provided by your Linux distribution. A major benefit of this kernel is that the
+          distribution was designed with this kernel in mind and all updates are managed through
+          the distributions package management system. It also may support features not present
+          in the Linode kernel (for example, SELinux).
+
+        - Linode kernel: Linode also maintains kernels that can be used on a Compute Instance.
+          If selected, these kernels are provided to your Compute Instance at boot
+          (not directly installed on your system). The Current Kernels page displays a
+          list of all the available Linode kernels.
+
+        - Custom-compiled kernel: A kernel that you compile from source. Compiling a kernel
+          can let you use features not available in the upstream or Linode kernels, but it takes longer
+          to compile the kernel from source than to download it from your package manager. For more
+          information on custom compiled kernels, review our guides for Debian, Ubuntu, and CentOS.
+
+    View Endpoint: https://api.linode.com/v4/linode/kernels/{kernelId}
+    """
+
     api_endpoint = "/linode/kernels/{id}"
     properties = {
         "created": Property(is_datetime=True),
@@ -136,6 +218,12 @@ class Kernel(Base):
 
 
 class Type(Base):
+    """
+    Linode Plan type to specify the resources available to a Linode Instance.
+
+    View Endpoint: https://api.linode.com/v4/linode/types/{typeId}
+    """
+
     api_endpoint = "/linode/types/{id}"
     properties = {
         "disk": Property(filterable=True),
@@ -207,6 +295,12 @@ class ConfigInterface:
 
 
 class Config(DerivedBase):
+    """
+    A Configuration Profile for a Linode Instance.
+
+    View Endpoint: https://api.linode.com/v4/linode/instances/{linodeId}/configs/{configId}
+    """
+
     api_endpoint = "/linode/instances/{linode_id}/configs/{id}"
     derived_url_path = "configs"
     parent_id_name = "linode_id"
@@ -289,6 +383,12 @@ class Config(DerivedBase):
 
 
 class Instance(Base):
+    """
+    A Linode Instance.
+
+    View Endpoint: https://api.linode.com/v4/linode/instances/{linodeId}
+    """
+
     api_endpoint = "/linode/instances/{id}"
     properties = {
         "id": Property(identifier=True, filterable=True),
@@ -318,6 +418,11 @@ class Instance(Base):
         """
         The ips related collection is not normalized like the others, so we have to
         make an ad-hoc object to return for its response
+
+        API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/ips
+
+        :returns: A List of the ips of the Linode Instance.
+        :rtype: List[IPAddress]
         """
         if not hasattr(self, "_ips"):
             result = self._client.get(
@@ -386,6 +491,11 @@ class Instance(Base):
     def available_backups(self):
         """
         The backups response contains what backups are available to be restored.
+
+        API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/backups
+
+        :returns: A List of the available backups for the Linode Instance.
+        :rtype: List[Backup]
         """
         if not hasattr(self, "_avail_backups"):
             result = self._client.get(
@@ -437,6 +547,17 @@ class Instance(Base):
         return self._avail_backups
 
     def reset_instance_root_password(self, root_password=None):
+        """
+        Resets the root password for this Linode.
+
+        API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/password
+
+        :param root_password: The root user’s password on this Linode. Linode passwords must
+                              meet a password strength score requirement that is calculated internally
+                              by the API. If the strength requirement is not met, you will receive a
+                              Password does not meet strength requirement error.
+        :type: root_password: str
+        """
         rpass = root_password
         if not rpass:
             rpass = Instance.generate_root_password()
@@ -452,6 +573,17 @@ class Instance(Base):
     def transfer_year_month(self, year, month):
         """
         Get per-linode transfer for specified month
+
+        API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/transfer/{year}/{month}
+
+        :param year: Numeric value representing the year to look up.
+        :type: year: int
+
+        :param month: Numeric value representing the month to look up.
+        :type: month: int
+
+        :returns: The network transfer statistics for the specified month.
+        :rtype: MappedObject
         """
 
         result = self._client.get(
@@ -465,6 +597,11 @@ class Instance(Base):
     def transfer(self):
         """
         Get per-linode transfer
+
+        API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/transfer
+
+        :returns: The network transfer statistics for the current month.
+        :rtype: MappedObject
         """
         if not hasattr(self, "_transfer"):
             result = self._client.get(
@@ -505,6 +642,25 @@ class Instance(Base):
         Base.invalidate(self)
 
     def boot(self, config=None):
+        """
+        Boots a Linode you have permission to modify. If no parameters are given, a Config
+        profile will be chosen for this boot based on the following criteria:
+
+            - If there is only one Config profile for this Linode, it will be used.
+            - If there is more than one Config profile, the last booted config will be used.
+            - If there is more than one Config profile and none were the last to be booted
+              (because the Linode was never booted or the last booted config was deleted)
+              an error will be returned.
+
+        API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/boot
+
+        :param config: The Linode Config ID to boot into.
+        :type: config: int
+
+        :returns: True if the operation was successful.
+        :rtype: bool
+        """
+
         resp = self._client.post(
             "{}/boot".format(Instance.api_endpoint),
             model=self,
@@ -516,6 +672,17 @@ class Instance(Base):
         return True
 
     def shutdown(self):
+        """
+        Shuts down a Linode you have permission to modify. If any actions
+        are currently running or queued, those actions must be completed
+        first before you can initiate a shutdown.
+
+        API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/shutdown
+
+        :returns: True if the operation was successful.
+        :rtype: bool
+        """
+
         resp = self._client.post(
             "{}/shutdown".format(Instance.api_endpoint), model=self
         )
@@ -525,6 +692,16 @@ class Instance(Base):
         return True
 
     def reboot(self):
+        """
+        Reboots a Linode you have permission to modify. If any actions are currently running
+        or queued, those actions must be completed first before you can initiate a reboot.
+
+        API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/reboot
+
+        :returns: True if the operation was successful.
+        :rtype: bool
+        """
+
         resp = self._client.post(
             "{}/reboot".format(Instance.api_endpoint), model=self
         )
@@ -533,11 +710,37 @@ class Instance(Base):
             return False
         return True
 
-    def resize(self, new_type, **kwargs):
+    def resize(self, new_type, allow_auto_disk_resize=True, **kwargs):
+        """
+        Resizes a Linode you have the read_write permission to a different Type. If any
+        actions are currently running or queued, those actions must be completed first
+        before you can initiate a resize. Additionally, the following criteria must be
+        met in order to resize a Linode:
+
+            - The Linode must not have a pending migration.
+            - Your Account cannot have an outstanding balance.
+            - The Linode must not have more disk allocation than the new Type allows.
+                - In that situation, you must first delete or resize the disk to be smaller.
+
+        API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/resize
+
+        :param new_type: The Linode Type or the id representing it.
+        :type: new_type: Type or int
+
+        :param allow_auto_disk_resize: Automatically resize disks when resizing a Linode.
+                                       When resizing down to a smaller plan your Linode’s
+                                       data must fit within the smaller disk size. Defaults to true.
+        :type: allow_auto_disk_resize: bool
+
+        :returns: True if the operation was successful.
+        :rtype: bool
+        """
+
         new_type = new_type.id if issubclass(type(new_type), Base) else new_type
 
         params = {
             "type": new_type,
+            "allow_auto_disk_resize": allow_auto_disk_resize,
         }
         params.update(kwargs)
 
@@ -768,6 +971,11 @@ class Instance(Base):
         `Backups Page`_
 
         .. _Backups Page: https://www.linode.com/backups
+
+        API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/backups/enable
+
+        :returns: True if the operation was successful.
+        :rtype: bool
         """
         self._client.post(
             "{}/backups/enable".format(Instance.api_endpoint), model=self
@@ -780,6 +988,11 @@ class Instance(Base):
         Cancels Backups for this Instance.  All existing Backups will be lost,
         including any snapshots that have been taken.  This cannot be undone,
         but Backups can be re-enabled at a later date.
+
+        API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/backups/cancel
+
+        :returns: True if the operation was successful.
+        :rtype: bool
         """
         self._client.post(
             "{}/backups/cancel".format(Instance.api_endpoint), model=self
@@ -788,6 +1001,21 @@ class Instance(Base):
         return True
 
     def snapshot(self, label=None):
+        """
+        Creates a snapshot Backup of a Linode.
+
+        Important: If you already have a snapshot of this Linode, this
+        is a destructive action. The previous snapshot will be deleted.
+
+        API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/backups
+
+        :param label: The label for the new snapshot.
+        :type: label: str
+
+        :returns: The snapshot Backup created.
+        :rtype: Backup
+        """
+
         result = self._client.post(
             "{}/backups".format(Instance.api_endpoint),
             model=self,
@@ -890,6 +1118,33 @@ class Instance(Base):
             return ret_pass
 
     def rescue(self, *disks):
+        """
+        Rescue Mode is a safe environment for performing many system recovery and disk management
+        tasks. Rescue Mode is based on the Finnix recovery distribution, a self-contained and bootable
+        Linux distribution. You can also use Rescue Mode for tasks other than disaster recovery,
+        such as formatting disks to use different filesystems, copying data between disks, and
+        downloading files from a disk via SSH and SFTP.
+
+        Note that “sdh” is reserved and unavailable during rescue.
+
+        API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/rescue
+
+        :param disks: Devices that are either Disks or Volumes
+        :type: disks: dict
+
+        Example usage:
+            disks = {
+                "sda": {
+                    "disk_id": 124458,
+                    "volume_id": null
+                },
+                "sdb": {
+                    "disk_id": null,
+                    "volume_id": null
+                }
+            }
+        """
+
         if disks:
             disks = {
                 x: {"disk_id": y}
@@ -908,17 +1163,19 @@ class Instance(Base):
 
         return result
 
-    def kvmify(self):
-        """
-        Converts this linode to KVM from Xen
-        """
-        self._client.post("{}/kvmify".format(Instance.api_endpoint), model=self)
-
-        return True
-
     def mutate(self, allow_auto_disk_resize=True):
         """
         Upgrades this Instance to the latest generation type
+
+        API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/mutate
+
+        :param allow_auto_disk_resize: Automatically resize disks when resizing a Linode.
+                                       When resizing down to a smaller plan your Linode’s
+                                       data must fit within the smaller disk size. Defaults to true.
+        :type: allow_auto_disk_resize: bool
+
+        :returns: True if the operation was successful.
+        :rtype: bool
         """
 
         params = {"allow_auto_disk_resize": allow_auto_disk_resize}
@@ -933,6 +1190,23 @@ class Instance(Base):
         """
         Initiates a pending migration that is already scheduled for this Linode
         Instance
+
+        API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/migrate
+
+        :param region: The region to which the Linode will be migrated. Must be a valid region slug.
+                       A list of regions can be viewed by using the GET /regions endpoint. A cross data
+                       center migration will cancel a pending migration that has not yet been initiated.
+                       A cross data center migration will initiate a linode_migrate_datacenter_create event.
+        :type: region: str
+
+        :param upgrade: When initiating a cross DC migration, setting this value to true will also ensure
+                        that the Linode is upgraded to the latest generation of hardware that corresponds to
+                        your Linode’s Type, if any free upgrades are available for it. If no free upgrades
+                        are available, and this value is set to true, then the endpoint will return a 400
+                        error code and the migration will not be performed. If the data center set in the
+                        region field does not allow upgrades, then the endpoint will return a 400 error
+                        code and the migration will not be performed.
+        :type: upgrade: bool
         """
         params = {
             "region": region.id if issubclass(type(region), Base) else region,
@@ -948,6 +1222,11 @@ class Instance(Base):
     def firewalls(self):
         """
         View Firewall information for Firewalls associated with this Linode.
+
+        API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/firewalls
+
+        :returns: A List of Firewalls of the Linode Instance.
+        :rtype: List[Firewall]
         """
         from linode_api4.objects import (  # pylint: disable=import-outside-toplevel
             Firewall,
@@ -965,6 +1244,11 @@ class Instance(Base):
     def nodebalancers(self):
         """
         View a list of NodeBalancers that are assigned to this Linode and readable by the requesting User.
+
+        API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/nodebalancers
+
+        :returns: A List of Nodebalancers of the Linode Instance.
+        :rtype: List[Nodebalancer]
         """
         from linode_api4.objects import (  # pylint: disable=import-outside-toplevel
             NodeBalancer,
@@ -982,6 +1266,11 @@ class Instance(Base):
     def volumes(self):
         """
         View Block Storage Volumes attached to this Linode.
+
+        API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/volumes
+
+        :returns: A List of Volumes of the Linode Instance.
+        :rtype: List[Volume]
         """
         from linode_api4.objects import (  # pylint: disable=import-outside-toplevel
             Volume,
@@ -997,20 +1286,56 @@ class Instance(Base):
         self,
         to_linode=None,
         region=None,
-        service=None,
+        instance_type=None,
         configs=[],
         disks=[],
         label=None,
         group=None,
         with_backups=None,
     ):
-        """Clones this linode into a new linode or into a new linode in the given region"""
+        """
+        Clones this linode into a new linode or into a new linode in the given region
+
+        API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/clone
+
+        :param to_linode: If an existing Linode is the target for the clone, the ID of that
+                          Linode. The existing Linode must have enough resources to accept the clone.
+        :type: to_linode: int
+
+        :param region: This is the Region where the Linode will be deployed. Region can only be
+                       provided and is required when cloning to a new Linode.
+        :type: region: str
+
+        :param instance_type: A Linode’s Type determines what resources are available to it, including disk space,
+                              memory, and virtual cpus. The amounts available to a specific Linode are
+                              returned as specs on the Linode object.
+        :type: instance_type: str
+
+        :param configs: An array of configuration profile IDs.
+        :type: configs: List of int
+
+        :param disks: An array of disk IDs.
+        :type: disks: List of int
+
+        :param label: The label to assign this Linode when cloning to a new Linode.
+        :type: label: str
+
+        :param group: A label used to group Linodes for display. Linodes are not required to have a group.
+        :type: group: str
+
+        :param with_backups: If this field is set to true, the created Linode will automatically be
+                             enrolled in the Linode Backup service. This will incur an additional charge.
+        :type: with_backups: bool
+
+        :returns: The cloned Instance.
+        :rtype: Instance
+        """
         if to_linode and region:
             raise ValueError(
                 'You may only specify one of "to_linode" and "region"'
             )
 
-        if region and not service:
+        if region and not type:
             raise ValueError('Specifying a region requires a "service" as well')
 
         if not isinstance(configs, list) and not isinstance(
@@ -1028,7 +1353,9 @@ class Instance(Base):
             if issubclass(type(to_linode), Base)
             else to_linode,
             "region": region.id if issubclass(type(region), Base) else region,
-            "type": service.id if issubclass(type(service), Base) else service,
+            "type": instance_type.id
+            if issubclass(type(instance_type), Base)
+            else instance_type,
             "configs": cids if cids else None,
             "disks": dids if dids else None,
             "label": label,
@@ -1052,6 +1379,11 @@ class Instance(Base):
     def stats(self):
         """
         Returns the JSON stats for this Instance
+
+        API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/stats
+
+        :returns: The JSON stats for this Instance
+        :rtype: dict
         """
         # TODO - this would be nicer if we formatted the stats
         return self._client.get(
@@ -1061,6 +1393,14 @@ class Instance(Base):
     def stats_for(self, dt):
         """
         Returns stats for the month containing the given datetime
+
+        API Documentation: https://api.linode.com/v4/linode/instances/{linodeId}/stats/{year}/{month}
+
+        :param dt: A Datetime for which to return statistics
+        :type: dt: Datetime
+
+        :returns: The JSON stats for this Instance at the specified Datetime
+        :rtype: dict
         """
         # TODO - this would be nicer if we formatted the stats
         if not isinstance(dt, datetime):
@@ -1092,6 +1432,13 @@ class UserDefinedField:
 
 
 class StackScript(Base):
+    """
+    A script allowing users to reproduce specific software configurations
+    when deploying Compute Instances, with more user control than static system images.
+
+    View Endpoint: https://api.linode.com/v4/linode/stackscripts/{stackscriptId}
+    """
+
     api_endpoint = "/linode/stackscripts/{id}"
     properties = {
         "user_defined_fields": Property(),

@@ -1,0 +1,13 @@
+{
+    "data": [
+      {
+        "prefix": 124,
+        "range": "2600:3c01::2:5000:0",
+        "region": "us-east",
+        "route_target": "2600:3c01::2:5000:f"
+      }
+    ],
+    "page": 1,
+    "pages": 1,
+    "results": 1
+}

@@ -84,8 +84,8 @@ Check out the `Getting Started guide`_ for more details on getting started
 with this library, or read `the docs`_ for more extensive documentation.
 
 .. _Linode Personal Access Token: https://www.linode.com/docs/products/tools/api/guides/manage-api-tokens/
-.. _Getting Started guide: http://linode_api4.readthedocs.io/en/latest/guides/getting_started.html
-.. _the docs: http://linode_api4.readthedocs.io/en/latest/index.html
+.. _Getting Started guide: https://linode-api4.readthedocs.io/en/latest/guides/getting_started.html
+.. _the docs: https://linode-api4.readthedocs.io/en/latest/index.html
 
 Examples
 --------
@@ -138,7 +138,12 @@ Documentation
 
 This library is documented with Sphinx_.  Docs live in the ``docs`` directory.
 The easiest way to build the docs is to run ``sphinx-autobuild`` in that
-folder.
+folder::
+
+    sphinx-autobuild docs docs/build
+
+After running this command, ``sphinx-autobuild`` will host a local web server
+with the rendered documentation.
 
 Classes and functions inside the library should be annotated with sphinx-compliant
 docstrings which will be used to automatically generate documentation for the

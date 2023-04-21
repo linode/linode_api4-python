@@ -4,6 +4,8 @@ from unittest import TestCase
 from unittest.mock import MagicMock
 
 from linode_api4 import ApiError, LinodeClient, LongviewSubscription
+from linode_api4.objects.linode import Instance
+from linode_api4.objects.networking import IPAddress
 
 
 class LinodeClientGeneralTest(ClientBaseCase):
@@ -285,6 +287,114 @@ class AccountGroupTest(ClientBaseCase):
         self.assertEqual(invoice.label, "Invoice #123456")
         self.assertEqual(invoice.total, 9.51)
 
+    def test_logins(self):
+        """
+        Tests that logins can be retrieved
+        """
+        logins = self.client.account.logins()
+        self.assertEqual(len(logins), 1)
+        self.assertEqual(logins[0].id, 1234)
+
+    def test_maintenance(self):
+        """
+        Tests that maintenance can be retrieved
+        """
+        with self.mock_get("/account/maintenance") as m:
+            result = self.client.account.maintenance()
+            self.assertEqual(m.call_url, "/account/maintenance")
+            self.assertEqual(len(result), 1)
+            self.assertEqual(
+                result[0].reason,
+                "This maintenance will allow us to update the BIOS on the host's motherboard.",
+            )
+
+    def test_notifications(self):
+        """
+        Tests that notifications can be retrieved
+        """
+        with self.mock_get("/account/notifications") as m:
+            result = self.client.account.notifications()
+            self.assertEqual(m.call_url, "/account/notifications")
+            self.assertEqual(len(result), 1)
+            self.assertEqual(
+                result[0].label, "You have an important ticket open!"
+            )
+
+    def test_payment_methods(self):
+        """
+        Tests that payment methods can be retrieved
+        """
+        paymentMethods = self.client.account.payment_methods()
+        self.assertEqual(len(paymentMethods), 1)
+        self.assertEqual(paymentMethods[0].id, 123)
+
+    def test_add_payment_method(self):
+        """
+        Tests that adding a payment method creates the correct api request.
+        """
+        with self.mock_post({}) as m:
+            self.client.account.add_payment_method(
+                {
+                    "card_number": "123456789100",
+                    "expiry_month": 1,
+                    "expiry_year": 2028,
+                    "cvv": 111,
+                },
+                True,
+                "credit_card",
+            )
+            self.assertEqual(m.call_url, "/account/payment-methods")
+            self.assertEqual(m.call_data["type"], "credit_card")
+            self.assertTrue(m.call_data["is_default"])
+            self.assertIsNotNone(m.call_data["data"])
+
+    def test_add_promo_code(self):
+        """
+        Tests that adding a promo code creates the correct api request.
+        """
+        with self.mock_post("/account/promo-codes") as m:
+            self.client.account.add_promo_code("123promo456")
+            self.assertEqual(m.call_url, "/account/promo-codes")
+            self.assertEqual(m.call_data["promo_code"], "123promo456")
+
+    def test_service_transfers(self):
+        """
+        Tests that service transfers can be retrieved
+        """
+        serviceTransfers = self.client.account.service_transfers()
+        self.assertEqual(len(serviceTransfers), 1)
+        self.assertEqual(
+            serviceTransfers[0].token, "123E4567-E89B-12D3-A456-426614174000"
+        )
+
+    def test_linode_managed_enable(self):
+        """
+        Tests that enabling linode managed creates the correct api request.
+        """
+        with self.mock_post({}) as m:
+            self.client.account.linode_managed_enable()
+            self.assertEqual(m.call_url, "/account/settings/managed-enable")
+
+    def test_service_transfer_create(self):
+        """
+        Tests that creating a service transfer creates the correct api request.
+        """
+        data = {"linodes": [111, 222]}
+        response = {
+            "created": "2021-02-11T16:37:03",
+            "entities": {"linodes": [111, 222]},
+            "expiry": "2021-02-12T16:37:03",
+            "is_sender": True,
+            "status": "pending",
+            "token": "123E4567-E89B-12D3-A456-426614174000",
+            "updated": "2021-02-11T16:37:03",
+        }
+
+        with self.mock_post(response) as m:
+            self.client.account.service_transfer_create(data)
+            self.assertEqual(m.call_url, "/account/service-transfers")
+            self.assertEqual(m.call_data["entities"], data)
+
     def test_payments(self):
         """
         Tests that payments can be retrieved
@@ -396,7 +506,10 @@ class LongviewGroupTest(ClientBaseCase):
         """
         Tests that Longview subscriptions can be retrieved
         """
-        r = self.client.longview.subscriptions()
+
+        with self.mock_get("longview/subscriptions") as m:
+            r = self.client.longview.subscriptions()
+            self.assertEqual(m.call_url, "/longview/subscriptions")
 
         self.assertEqual(len(r), 4)
 
@@ -770,6 +883,57 @@ class NetworkingGroupTest(ClientBaseCase):
         firewall = f[0]
 
         self.assertEqual(firewall.id, 123)
+
+    def test_ip_addresses_share(self):
+        """
+        Tests that you can submit a correct ip addresses share api request.
+        """
+
+        ip = IPAddress(self.client, "192.0.2.1", {})
+        linode = Instance(self.client, 123)
+
+        with self.mock_post({}) as m:
+            self.client.networking.ip_addresses_share(["192.0.2.1"], 123)
+            self.assertEqual(m.call_url, "/networking/ips/share")
+            self.assertEqual(m.call_data["ips"], ["192.0.2.1"])
+            self.assertEqual(m.call_data["linode_id"], 123)
+
+        with self.mock_post({}) as m:
+            self.client.networking.ip_addresses_share([ip], 123)
+            self.assertEqual(m.call_url, "/networking/ips/share")
+            self.assertEqual(m.call_data["ips"], ["192.0.2.1"])
+            self.assertEqual(m.call_data["linode_id"], 123)
+
+        with self.mock_post({}) as m:
+            self.client.networking.ip_addresses_share(["192.0.2.1"], linode)
+            self.assertEqual(m.call_url, "/networking/ips/share")
+            self.assertEqual(m.call_data["ips"], ["192.0.2.1"])
+            self.assertEqual(m.call_data["linode_id"], 123)
+
+    def test_ip_addresses_assign(self):
+        """
+        Tests that you can submit a correct ip addresses assign api request.
+        """
+
+        with self.mock_post({}) as m:
+            self.client.networking.ip_addresses_assign(
+                {"assignments": [{"address": "192.0.2.1", "linode_id": 123}]},
+                "us-east",
+            )
+            self.assertEqual(m.call_url, "/networking/ips/assign")
+            self.assertEqual(
+                m.call_data["assignments"],
+                {"assignments": [{"address": "192.0.2.1", "linode_id": 123}]},
+            )
+            self.assertEqual(m.call_data["region"], "us-east")
+
+    def test_ipv6_ranges(self):
+        """
+        Tests that IPRanges can be retrieved
+        """
+        ranges = self.client.networking.ipv6_ranges()
+        self.assertEqual(len(ranges), 1)
+        self.assertEqual(ranges[0].range, "2600:3c01::")
 
 
 class LinodeClientRateLimitRetryTest(TestCase):

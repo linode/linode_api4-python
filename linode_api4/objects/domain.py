@@ -20,6 +20,8 @@ class DomainRecord(DerivedBase):
         "protocol": Property(mutable=True),
         "ttl_sec": Property(mutable=True),
         "tag": Property(mutable=True),
+        "created": Property(),
+        "updated": Property(),
     }
 
 
@@ -61,3 +63,25 @@ class Domain(Base):
 
         zr = DomainRecord(self._client, result["id"], self.id, result)
         return zr
+
+    def zone_file_view(self):
+        result = self._client.get(
+            "{}/zone-file".format(self.api_endpoint), model=self
+        )
+
+        return result["zone_file"]
+
+    def clone(self, domain: str):
+        params = {"domain": domain}
+
+        self._client.post(
+            "{}/clone".format(self.api_endpoint), model=self, data=params
+        )
+
+    def domain_import(self, domain, remote_nameserver):
+        params = {
+            "domain": domain.domain if isinstance(domain, Domain) else domain,
+            "remote_nameserver": remote_nameserver,
+        }
+
+        self._client.post("/domains/import", model=self, data=params)
