@@ -9,5 +9,5 @@ class Region(Base):
         "capabilities": Property(),
         "status": Property(),
         "resolvers": Property(),
-        "label": Property()
+        "label": Property(),
     }

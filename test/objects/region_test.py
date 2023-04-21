@@ -2,6 +2,7 @@ from test.base import ClientBaseCase
 
 from linode_api4.objects import Region
 
+
 class RegionTest(ClientBaseCase):
     """
     Tests methods of the Region class
@@ -12,7 +13,7 @@ class RegionTest(ClientBaseCase):
         Tests that a Region is loaded correctly by ID
         """
         region = Region(self.client, "us-east")
-        
+
         self.assertEqual(region.id, "us-east")
         self.assertIsNotNone(region.capabilities)
         self.assertEqual(region.country, "us")
