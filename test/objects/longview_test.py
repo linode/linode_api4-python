@@ -1,8 +1,46 @@
 from datetime import datetime
 from test.base import ClientBaseCase
 
-from linode_api4.objects import LongviewClient, LongviewSubscription
+from linode_api4.objects import (
+    LongviewClient,
+    LongviewPlan,
+    LongviewSubscription,
+)
 from linode_api4.objects.base import MappedObject
+
+
+class LongviewPlanTest(ClientBaseCase):
+    """
+    Tests methods of the LongviewPlan class
+    """
+
+    def test_get_plan(self):
+        """
+        Tests that a plan is loaded correctly
+        """
+        plan = LongviewPlan(self.client, "longview-10")
+
+        self.assertEqual(plan.id, "longview-10")
+        self.assertEqual(plan.clients_included, 10)
+        self.assertEqual(plan.label, "Longview Pro 10 pack")
+        self.assertIsNotNone(plan.price)
+
+    def test_update_plan(self):
+        """
+        Tests that you can submit a correct longview plan update api request
+        """
+        plan = LongviewPlan(self.client, "longview-10")
+
+        with self.mock_post("/longview/plan") as m:
+            result = plan.longview_plan_update("longview-100")
+            self.assertEqual(m.call_url, "/longview/plan")
+            self.assertEqual(
+                m.call_data["longview_subscription"], "longview-100"
+            )
+            self.assertEqual(result.id, "longview-10")
+            self.assertEqual(result.clients_included, 10)
+            self.assertEqual(result.label, "Longview Pro 10 pack")
+            self.assertIsNotNone(result.price)
 
 
 class LongviewClientTest(ClientBaseCase):
