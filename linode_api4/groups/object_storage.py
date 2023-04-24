@@ -173,7 +173,7 @@ class ObjectStorageGroup(Group):
 
         :returns: The amount of outbound data transfer used by your account’s Object
                   Storage buckets, in bytes, for the current month’s billing cycle.
-        :rtype: { used : int }
+        :rtype: MappedObject
         """
         result = self.client.get("/object-storage/transfer")
 
@@ -287,13 +287,7 @@ class ObjectStorageGroup(Group):
         :type name: str
 
         :returns: The Object's canned ACL and policy.
-        :rtype: dict { acl: str, acl_xml: str }
-            :acl:
-                The Access Control Level of the object, as a canned ACL string.
-                For more fine-grained control of ACLs, use the S3 API directly.
-                Enum: private,public-read,authenticated-read,public-read-write,custom
-            :acl_xml:
-                The full XML of the object’s ACL policy.
+        :rtype: MappedObject
         """
         params = {
             "name": name,
@@ -343,13 +337,7 @@ class ObjectStorageGroup(Group):
         :type name: str
 
         :returns: The Object's canned ACL and policy.
-        :rtype: dict { acl: str, acl_xml: str }
-            :acl:
-                The Access Control Level of the object, as a canned ACL string.
-                For more fine-grained control of ACLs, use the S3 API directly.
-                Enum: private,public-read,authenticated-read,public-read-write,custom
-            :acl_xml:
-                The full XML of the object’s ACL policy.
+        :rtype: MappedObject
         """
         params = {
             "acl": acl,
@@ -422,29 +410,8 @@ class ObjectStorageGroup(Group):
         :param page_size: The number of items to return per page. Defaults to 100.
         :type page_size: int 25..500
 
-        :returns: One page of the requested bucket's contents.
-        :rtype:
-            [{
-                etag: str,
-                is_truncated: bool,
-                last_modified: string<date-time>,
-                name: str,
-                next_marker: str,
-                owner: str,
-                size: int,
-            }]
-            :etag: An MD-5 hash of the object. null if this object represents a prefix.
-            :is_truncated: Designates if there is another page of bucket objects.
-            :last_modified: The date and time this object was last modified.
-                            null if this object represents a prefix.
-            :name: The name of this object or prefix.
-            :next_marker: Returns the value you should pass to the marker query
-                          parameter to get the next page of objects.
-                          If there is no next page, null will be returned.
-            :owner: The owner of this object, as a UUID. null if this object
-                    represents a prefix.
-            :size: The size of this object, in bytes. null if this object represents
-                   a prefix.
+        :returns: A list of the MappedObject of the requested bucket's contents.
+        :rtype: [MappedObject]
         """
         params = {
             "marker": marker,
@@ -514,7 +481,7 @@ class ObjectStorageGroup(Group):
         :type name: str
 
         :returns: The signed URL to perform the request at.
-        :rtype: dict { url : str }
+        :rtype: MappedObject
         """
         if method not in ("GET", "DELETE") and content_type is None:
             raise ValueError(
@@ -586,7 +553,7 @@ class ObjectStorageGroup(Group):
 
         :returns: A result object which has a bool field indicating if this Bucket has a corresponding
                   TLS/SSL certificate that was uploaded by an Account user.
-        :rtype: dict { ssl: bool }
+        :rtype: MappedObject
         """
         result = self.client.get(
             "/object-storage/buckets/{}/{}/ssl".format(cluster_id, bucket)
@@ -629,7 +596,7 @@ class ObjectStorageGroup(Group):
 
         :returns: A result object which has a bool field indicating if this Bucket has a corresponding
                   TLS/SSL certificate that was uploaded by an Account user.
-        :rtype: dict { ssl: bool }
+        :rtype: MappedObject
         """
         params = {
             "certificate": certificate,
