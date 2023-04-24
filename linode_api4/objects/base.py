@@ -10,6 +10,14 @@ DATE_FORMAT = "%Y-%m-%dT%H:%M:%S"
 volatile_refresh_timeout = timedelta(seconds=15)
 
 
+class ExplicitNullValue:
+    """
+    An explicitly null value to set a property to.
+    Instances of `NullValue` differ from None as they will be explicitly
+    included in the resource PUT requests.
+    """
+
+
 class Property:
     def __init__(
         self,
@@ -22,6 +30,7 @@ class Property:
         filterable=False,
         id_relationship=False,
         slug_relationship=False,
+        nullable=False,
     ):
         """
         A Property is an attribute returned from the API, and defines metadata
@@ -39,6 +48,7 @@ class Property:
         id_relationship - This Property should create a relationship with this key as the ID
             (This should be used on fields ending with '_id' only)
         slug_relationship - This property is a slug related for a given type.
+        nullable - This property can be explicitly null on PUT requests.
         """
         self.mutable = mutable
         self.identifier = identifier
@@ -244,19 +254,33 @@ class Base(object, metaclass=FilterableMetaclass):
         A helper method to build a dict of all mutable Properties of
         this object
         """
-        result = {
-            a: getattr(self, a)
-            for a in type(self).properties
-            if type(self).properties[a].mutable
-        }
 
+        result = {}
+
+        # Aggregate mutable values into a dict
+        for k, v in type(self).properties.items():
+            if not v.mutable:
+                continue
+
+            value = getattr(self, k)
+
+            if not value:
+                continue
+
+            # Let's allow explicit null values
+            if isinstance(value, ExplicitNullValue):
+                value = None
+
+            result[k] = value
+
+        # Resolve the underlying IDs of results
         for k, v in result.items():
             if isinstance(v, Base):
                 result[k] = v.id
             elif isinstance(v, MappedObject):
                 result[k] = v.dict
 
-        return {k: v for k, v in result.items() if v}
+        return result
 
     def _api_get(self):
         """
