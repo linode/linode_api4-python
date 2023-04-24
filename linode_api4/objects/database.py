@@ -5,7 +5,7 @@ class DatabaseType(Base):
     """
     The type of a managed database.
 
-    View Endpoint: https://api.linode.com/v4/databases/types/{typeId}
+    API Documentation: https://www.linode.com/docs/api/databases/#managed-database-type-view
     """
 
     api_endpoint = "/databases/types/{id}"
@@ -41,7 +41,7 @@ class DatabaseEngine(Base):
         - PostgreSQL
         - MongoDB
 
-    View Endpoint: https://api.linode.com/v4/databases/engines/{engineId}
+    API Documentation: https://www.linode.com/docs/api/databases/#managed-database-engine-view
     """
 
     api_endpoint = "/databases/engines/{id}"
@@ -89,9 +89,9 @@ class DatabaseBackup(DerivedBase):
 
         API Documentation:
 
-            - MongoDB: https://api.linode.com/v4/databases/mongodb/instances/{instanceId}/backups/{backupId}/restore
-            - MySQL: https://api.linode.com/v4/databases/mysql/instances/{instanceId}/backups/{backupId}/restore
-            - PostgreSQL: https://api.linode.com/v4/databases/postgresql/instances/{instanceId}/backups/{backupId}/restore
+            - MongoDB: https://www.linode.com/docs/api/databases/#managed-mongodb-database-backup-restore
+            - MySQL: https://www.linode.com/docs/api/databases/#managed-mysql-database-backup-restore
+            - PostgreSQL: https://www.linode.com/docs/api/databases/#managed-postgresql-database-backup-restore
         """
 
         return self._client.post(
@@ -103,7 +103,7 @@ class MySQLDatabaseBackup(DatabaseBackup):
     """
     A backup for an accessible Managed MySQL Database.
 
-    View Endpoint: https://api.linode.com/v4/databases/mysql/instances/{instanceId}/backups/{backupId}
+    API Documentation: https://www.linode.com/docs/api/databases/#managed-mysql-database-backup-view
     """
 
     api_endpoint = "/databases/mysql/instances/{database_id}/backups/{id}"
@@ -113,7 +113,7 @@ class MongoDBDatabaseBackup(DatabaseBackup):
     """
     A backup for an accessible Managed MongoDB Database.
 
-    View Endpoint: https://api.linode.com/v4/databases/mongodb/instances/{instanceId}/backups/{backupId}
+    API Documentation: https://www.linode.com/docs/api/databases/#managed-mongodb-database-backup-view
     """
 
     api_endpoint = "/databases/mongodb/instances/{database_id}/backups/{id}"
@@ -123,7 +123,7 @@ class PostgreSQLDatabaseBackup(DatabaseBackup):
     """
     A backup for an accessible Managed PostgreSQL Database.
 
-    View Endpoint: https://api.linode.com/v4/databases/postgresql/instances/{instanceId}/backups/{backupId}
+    API Documentation: https://www.linode.com/docs/api/databases/#managed-postgresql-database-backup-view
     """
 
     api_endpoint = "/databases/postgresql/instances/{database_id}/backups/{id}"
@@ -133,7 +133,7 @@ class MySQLDatabase(Base):
     """
     An accessible Managed MySQL Database.
 
-    View Endpoint: https://api.linode.com/v4/databases/mysql/instances/{instanceId}
+    API Documentation: https://www.linode.com/docs/api/databases/#managed-mysql-database-view
     """
 
     api_endpoint = "/databases/mysql/instances/{id}"
@@ -165,7 +165,7 @@ class MySQLDatabase(Base):
         Display the root username and password for an accessible Managed MySQL Database.
         The Database must have an active status to perform this command.
 
-        API Documentation: https://api.linode.com/v4/databases/mysql/instances/{instanceId}/credentials
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-mysql-database-credentials-view
 
         :returns: MappedObject containing credntials for this DB
         :rtype: MappedObject
@@ -184,7 +184,7 @@ class MySQLDatabase(Base):
         """
         Display the SSL CA certificate for an accessible Managed MySQL Database.
 
-        API Documentation: https://api.linode.com/v4/databases/mysql/instances/{instanceId}/ssl
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-mysql-database-ssl-certificate-view
 
         :returns: MappedObject containing SSL CA certificate for this DB
         :rtype: MappedObject
@@ -202,7 +202,7 @@ class MySQLDatabase(Base):
         """
         Reset the root password for a Managed MySQL Database.
 
-        API Documentation: https://api.linode.com/v4/databases/mysql/instances/{instanceId}/credentials/reset
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-mysql-database-credentials-reset
 
         :returns: Response from the API call to reset credentials
         :rtype: dict
@@ -219,7 +219,7 @@ class MySQLDatabase(Base):
         """
         Apply security patches and updates to the underlying operating system of the Managed MySQL Database.
 
-        API Documentation: https://api.linode.com/v4/databases/mysql/instances/{instanceId}/patch
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-mysql-database-patch
 
         :returns: Response from the API call to apply security patches
         :rtype: dict
@@ -235,7 +235,7 @@ class MySQLDatabase(Base):
         """
         Creates a snapshot backup of a Managed MySQL Database.
 
-        API Documentation: https://api.linode.com/v4/databases/mysql/instances/{instanceId}/backups
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-mysql-database-backup-snapshot-create
         """
 
         params = {
@@ -266,7 +266,7 @@ class PostgreSQLDatabase(Base):
     """
     An accessible Managed PostgreSQL Database.
 
-    View Endpoint: https://api.linode.com/v4/databases/postgresql/instances/{instanceId}
+    API Documentation: https://www.linode.com/docs/api/databases/#managed-postgresql-database-view
     """
 
     api_endpoint = "/databases/postgresql/instances/{id}"
@@ -299,7 +299,7 @@ class PostgreSQLDatabase(Base):
         Display the root username and password for an accessible Managed PostgreSQL Database.
         The Database must have an active status to perform this command.
 
-        API Documentation: https://api.linode.com/v4/databases/postgresql/instances/{instanceId}/credentials
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-postgresql-database-credentials-view
 
         :returns: MappedObject containing credntials for this DB
         :rtype: MappedObject
@@ -319,7 +319,7 @@ class PostgreSQLDatabase(Base):
         """
         Display the SSL CA certificate for an accessible Managed PostgreSQL Database.
 
-        API Documentation: https://api.linode.com/v4/databases/postgresql/instances/{instanceId}/ssl
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-postgresql-database-ssl-certificate-view
 
         :returns: MappedObject containing SSL CA certificate for this DB
         :rtype: MappedObject
@@ -337,7 +337,7 @@ class PostgreSQLDatabase(Base):
         """
         Reset the root password for a Managed PostgreSQL Database.
 
-        API Documentation: https://api.linode.com/v4/databases/postgresql/instances/{instanceId}/credentials/reset
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-postgresql-database-credentials-reset
 
         :returns: Response from the API call to reset credentials
         :rtype: dict
@@ -354,7 +354,7 @@ class PostgreSQLDatabase(Base):
         """
         Apply security patches and updates to the underlying operating system of the Managed PostgreSQL Database.
 
-        API Documentation: https://api.linode.com/v4/databases/postgresql/instances/{instanceId}/patch
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-postgresql-database-patch
 
         :returns: Response from the API call to apply security patches
         :rtype: dict
@@ -370,7 +370,7 @@ class PostgreSQLDatabase(Base):
         """
         Creates a snapshot backup of a Managed PostgreSQL Database.
 
-        API Documentation: https://api.linode.com/v4/databases/postgresql/instances/{instanceId}/backups
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-postgresql-database-backup-snapshot-create
         """
 
         params = {
@@ -401,7 +401,7 @@ class MongoDBDatabase(Base):
     """
     An accessible Managed MongoDB Database.
 
-    View Endpoint: https://api.linode.com/v4/databases/mongodb/instances/{instanceId}
+    API Documentation: https://www.linode.com/docs/api/databases/#managed-mongodb-database-view
     """
 
     api_endpoint = "/databases/mongodb/instances/{id}"
@@ -436,7 +436,7 @@ class MongoDBDatabase(Base):
         Display the root username and password for an accessible Managed MongoDB Database.
         The Database must have an active status to perform this command.
 
-        API Documentation:  https://api.linode.com/v4/databases/mongodb/instances/{instanceId}/credentials
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-mongodb-database-credentials-view
 
         :returns: MappedObject containing credntials for this DB
         :rtype: MappedObject
@@ -456,7 +456,7 @@ class MongoDBDatabase(Base):
         """
         Display the SSL CA certificate for an accessible Managed MongoDB Database.
 
-        API Documentation: https://api.linode.com/v4/databases/mongodb/instances/{instanceId}/ssl
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-mongodb-database-ssl-certificate-view
 
         :returns: MappedObject containing SSL CA certificate for this DB
         :rtype: MappedObject
@@ -474,7 +474,7 @@ class MongoDBDatabase(Base):
         """
         Reset the root password for a Managed MongoDB Database.
 
-        API Documentation: https://api.linode.com/v4/databases/mongodb/instances/{instanceId}/credentials/reset
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-mongodb-database-credentials-reset
 
         :returns: Response from the API call to reset credentials
         :rtype: dict
@@ -491,7 +491,7 @@ class MongoDBDatabase(Base):
         """
         Apply security patches and updates to the underlying operating system of the Managed MongoDB Database.
 
-        API Documentation: https://api.linode.com/v4/databases/mongodb/instances/{instanceId}/patch
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-mongodb-database-patch
 
         :returns: Response from the API call to apply security patches
         :rtype: dict
@@ -507,7 +507,7 @@ class MongoDBDatabase(Base):
         """
         Creates a snapshot backup of a Managed MongoDB Database.
 
-        API Documentation: https://api.linode.com/v4/databases/mongodb/instances/{instanceId}/backups
+        API Documentation: https://www.linode.com/docs/api/databases/#managed-mongodb-database-backup-snapshot-create
         """
 
         params = {
