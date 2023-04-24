@@ -37,7 +37,7 @@ class IPAddress(Base):
     When attempting to reset the `rdns` field to default, consider using the ExplicitNullValue class::
 
         ip = IPAddress(client, "127.0.0.1")
-        ip.rdns = ExplicitNullValue()
+        ip.rdns = ExplicitNullValue
         ip.save()
 
         # Re-populate all attributes with new information from the API

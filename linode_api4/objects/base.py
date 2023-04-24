@@ -267,8 +267,11 @@ class Base(object, metaclass=FilterableMetaclass):
             if not value:
                 continue
 
-            # Let's allow explicit null values
-            if isinstance(value, ExplicitNullValue):
+            # Let's allow explicit null values as both classes and instances
+            if (
+                isinstance(value, ExplicitNullValue)
+                or value == ExplicitNullValue
+            ):
                 value = None
 
             result[k] = value

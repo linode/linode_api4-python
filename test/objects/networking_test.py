@@ -61,3 +61,12 @@ class NetworkingTest(ClientBaseCase):
             # We need to assert of call_data_raw because
             # call_data drops keys with null values
             self.assertEqual(m.call_data_raw, '{"rdns": null}')
+
+        # Ensure that everything works as expected with a class reference
+        with self.mock_put("/networking/ips/127.0.0.1") as m:
+            ip.rdns = ExplicitNullValue
+            ip.save()
+
+            self.assertEqual(m.call_url, "/networking/ips/127.0.0.1")
+
+            self.assertEqual(m.call_data_raw, '{"rdns": null}')
