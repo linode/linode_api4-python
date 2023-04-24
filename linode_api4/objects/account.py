@@ -134,10 +134,10 @@ class AccountSettings(Base):
 class Event(Base):
     api_endpoint = "/account/events/{id}"
     properties = {
-        "id": Property(identifier=True, filterable=True),
+        "id": Property(identifier=True),
         "percent_complete": Property(volatile=True),
-        "created": Property(is_datetime=True, filterable=True),
-        "updated": Property(is_datetime=True, filterable=True),
+        "created": Property(is_datetime=True),
+        "updated": Property(is_datetime=True),
         "seen": Property(),
         "read": Property(),
         "action": Property(),
@@ -241,7 +241,7 @@ class OAuthClient(Base):
 
     properties = {
         "id": Property(identifier=True),
-        "label": Property(mutable=True, filterable=True),
+        "label": Property(mutable=True),
         "secret": Property(),
         "redirect_uri": Property(mutable=True),
         "status": Property(),
