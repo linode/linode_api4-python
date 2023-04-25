@@ -1,10 +1,11 @@
 from linode_api4 import LinodeClient
-from linode_api4.objects import Instance, Disk, Domain
+from linode_api4.objects import Instance, Disk, Domain, LongviewClient, ObjectStorageKeys
 import pytest
 from unittest import TestCase
 
+from helpers import get_test_label, delete_all_test_instances
+
 from linode_api4 import ApiError
-from helpers import create_domain, create_volume, create_tag, create_nodebalancer
 
 import re
 import time
@@ -15,14 +16,18 @@ def setup_client_and_linode(get_client):
     client = get_client
     available_regions = client.regions()
     chosen_region = available_regions[0]
+    label = get_test_label()
 
     linode_instance, password = client.linode.instance_create('g5-standard-4',
                                                      chosen_region,
-                                                     image='linode/debian9')
+                                                     image='linode/debian9', label=label)
     
     yield client, linode_instance
 
     linode_instance.delete()
+
+    # delete all instances with test label 
+    delete_all_test_instances(get_client)
 
 
 def test_get_account(setup_client_and_linode):
@@ -67,7 +72,7 @@ def test_image_create(setup_client_and_linode):
     client = setup_client_and_linode[0]
     linode = setup_client_and_linode[1]
     
-    label = "Test-image"
+    label = get_test_label()
     description = "Test description"
     disk_id = linode.disks.first().id
 
@@ -76,13 +81,11 @@ def test_image_create(setup_client_and_linode):
     assert image.label == label
     assert image.description == description
 
-    image.delete()
-
 
 def test_fails_to_create_image_with_non_existing_disk_id(setup_client_and_linode):
     client = setup_client_and_linode[0]
     
-    label = "Test-image"
+    label = get_test_label()
     description = "Test description"
     disk_id = 111111
 
@@ -99,7 +102,7 @@ def test_fails_to_delete_predefined_images(setup_client_and_linode):
     images = client.images() 
 
     try:
-        # new images go on top of the list 
+        # new images go on top of the list thus choose last image
         images.last().delete()
     except ApiError as e:
         assert "Unauthorized" in str(e.json)
@@ -128,7 +131,6 @@ def test_get_tag(get_client, create_tag):
     assert label in tag_label_list
 
 
-
 def test_create_tag_with_id(setup_client_and_linode, create_nodebalancer, create_domain, create_volume):
     client = setup_client_and_linode[0]
     linode = setup_client_and_linode[1]
@@ -136,7 +138,7 @@ def test_create_tag_with_id(setup_client_and_linode, create_nodebalancer, create
     domain = create_domain
     volume = create_volume
 
-    label= "test-tag-create-with-id"
+    label= get_test_label()
 
     tag = client.tag_create(label=label, instances=[linode.id, linode], nodebalancers=[nodebalancer.id, nodebalancer], domains=[domain.id, domain], volumes=[volume.id, volume])
 
@@ -147,8 +149,6 @@ def test_create_tag_with_id(setup_client_and_linode, create_nodebalancer, create
 
     assert label in tag_label_list
 
-    tag.delete()
-
 
 def test_create_tag_with_entities(setup_client_and_linode, create_nodebalancer, create_domain, create_volume):
     client = setup_client_and_linode[0]
@@ -157,7 +157,7 @@ def test_create_tag_with_entities(setup_client_and_linode, create_nodebalancer, 
     domain = create_domain
     volume = create_volume
 
-    label= "test-tag-create-with-entities"
+    label= get_test_label()
 
     tag = client.tag_create(label, entities=[linode, domain, nodebalancer, volume])
 
@@ -168,5 +168,172 @@ def test_create_tag_with_entities(setup_client_and_linode, create_nodebalancer, 
 
     assert label in tag_label_list
 
-    tag.delete()
+
+# AccountGroupTests
+def test_get_account_settings(get_client):
+    client = get_client
+    account_settings = client.account.settings()
+
+    assert account_settings._populated == True
+    assert account_settings.network_helper == True
+
+# TODO: Account invoice and payment test cases need to be added
+
+
+# LinodeGroupTests
+def test_create_linode_instance_without_image(get_client):
+    client = get_client
+    available_regions = client.regions()
+    chosen_region = available_regions[0]
+    label = get_test_label()
+
+    linode_instance = client.linode.instance_create('g5-standard-4',  chosen_region, label=label)
+
+    assert linode_instance.label == label
+    assert linode_instance.image == None
+
+
+def test_create_linode_instance_with_image(setup_client_and_linode):
+    linode = setup_client_and_linode[1]
+
+    assert (re.search('linode/debian9', str(linode.image)))
+
+
+# LongviewGroupTests
+def test_get_longview_clients(get_client, create_longview_client):
+    client = get_client
+
+    longview_client = client.longview.clients()
+
+    client_labels = [ i.label for i in longview_client ]
+
+    assert(create_longview_client.label in client_labels)
+
+
+def test_client_create_with_label(get_client):
+    client = get_client
+    label = get_test_label()
+    longview_clilent = client.longview.client_create(label = label)
+
+    assert label == longview_clilent.label
+
+
+# TODO: Subscription related test cases need to be added, currently returns a 404
+# def test_get_subscriptions():
+
+
+# LKEGroupTest
+
+def test_kube_version(get_client):
+    client = get_client
+    lke_version = client.lke.versions()
+
+    assert re.search("[0-9].[0-9]+", lke_version.first().id)
+    
+def test_cluster_create_with_api_objects(get_client):
+    client = get_client
+    node_type = client.linode.types()[1] # g6-standard-1
+    version = client.lke.versions()[0]
+    region = client.regions().first()
+    node_pools = client.lke.node_pool(node_type, 3)
+    label = get_test_label() + "-cluster"
+    
+    cluster = client.lke.cluster_create(region, label, node_pools, version)
+
+    assert(cluster.region.id == region.id)
+    assert(cluster.k8s_version.id == version.id)
+
+
+def test_fails_to_create_cluster_with_invalid_version(get_client):
+    invalid_version = 'a.12'
+    client = get_client
+
+    try:
+        cluster = client.lke.cluster_create("ap-west", "example-cluster", {"type": "g6-standard-1", "count": 3}, invalid_version)
+    except ApiError as e:
+        assert "not valid" in  str(e.json)
+        assert e.status == 400
+
+
+# ProfileGroupTest
+
+def test_get_sshkeys(get_client, upload_sshkey):
+    client = get_client
+
+    ssh_keys = client.profile.ssh_keys()
+
+    ssh_labels = [i.label for i in ssh_keys]
+
+    assert upload_sshkey.label in ssh_labels
+
+
+def test_client_create(get_client):
+    client = get_client
+    label = get_test_label() + "-lv"
+    lv_client = client.longview.client_create(label = label)
+
+    assert(re.search("[0-9]+", str(lv_client.id)))
+
+
+def test_ssh_key_create(upload_sshkey, ssh_key_gen):
+    pub_key = ssh_key_gen[0]
+    key = upload_sshkey
+
+    assert pub_key == key._raw_json['ssh_key']
+
+
+# ObjectStorageGroupTests
+
+def test_get_object_storage_clusters(get_client):
+    client = get_client
+
+    clusters = client.object_storage.clusters()
+
+    assert 'us-east' in clusters[0].id
+    assert 'us-east' in clusters[0].region.id
+
+
+def test_get_keys(get_client, create_ssh_keys_object_storage):
+    client = get_client
+    key = create_ssh_keys_object_storage
+
+    keys = client.object_storage.keys()
+    key_labels = [i.label for i in keys]
+
+    assert key.label in key_labels
+    
+
+def test_keys_create(get_client, create_ssh_keys_object_storage):
+    key = create_ssh_keys_object_storage
+
+    assert type(key) == type(ObjectStorageKeys(client=get_client, id='123'))
+
+
+# NetworkingGroupTests
+
+# TODO:: creating vlans
+# def test_get_vlans():
+    
+    
+def test_firewall_create_with_inbound_outbound_rules(get_client):
+    client = get_client
+    label = get_test_label() + "-firewall"
+    rules = {
+        'outbound' : [{"ports": "22", "protocol": "TCP", "addresses": {"ipv4": ["198.0.0.2/32"]}, "action": "ACCEPT", "label": "accept-inbound-SSH"}],
+        'outbound_policy' : 'DROP',
+        'inbound' : [{"ports": "22", "protocol": "TCP", "addresses": {"ipv4": ["198.0.0.2/32"]}, "action": "ACCEPT", "label": "accept-inbound-SSH"}],
+        'inbound_policy' : 'ACCEPT',
+    }
+
+    firewall = client.networking.firewall_create(label, rules=rules, status='enabled')
+
+
+def test_get_firewalls(get_client, create_firewall):
+    client = get_client
+    firewalls = client.networking.firewalls()
+    firewall = create_firewall
+
+    firewall_labels = [i.label for i in firewalls]
+
+    assert firewall.label in firewall_labels
 

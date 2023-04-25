@@ -1,58 +1,40 @@
 import pytest
 import time
+import random
 from linode_api4.linode_client import LinodeClient 
-
-@pytest.fixture(scope="session")
-def create_domain(get_client):
-    client = get_client
-
-    timestamp = str(int(time.time()))
-    domain_addr = timestamp + "example.com"
-    soa_email = "test-123@linode.com"
-
-    domain = client.domain_create(domain=domain_addr, soa_email=soa_email)
-
-    yield domain
-    
-    domain.delete()
+from linode_api4 import Instance
+from linode_api4 import PaginatedList
 
 
-@pytest.fixture(scope="session")
-def create_volume(get_client):
-    client = get_client
-    timestamp = str(int(time.time()))
-    label = "Test-label" + timestamp
+def get_test_label():
+    unique_timestamp = str(int(time.time()) + random.randint(0, 1000))
+    label = "IntTestSDK-"+ unique_timestamp
+    return label
 
-    volume = client.volume_create(label=label, region='us-east')
+def delete_instance_with_test_label(paginated_list: PaginatedList):
+    print("deleting instace: ", paginated_list )
+    for i in paginated_list:
+        if "IntTestSDK" in str(i.__dict__):
+            try:
+                i.delete()
+            except e:
+                print("failed deleting", i)
 
-    yield volume
+def delete_all_test_instances(client: LinodeClient):
+    tags = client.tags()
+    linodes = client.linode.instances()
+    images = client.images()
+    volumes = client.volumes()
+    nodebalancers = client.nodebalancers()
+    domains = client.domains()
+    longview_clients = client.longview.clients()
+    clusters = client.lke.clusters()
 
-    volume.delete()
-
-
-@pytest.fixture(scope="session")
-def create_tag(get_client):
-    client = get_client
-
-    timestamp = str(int(time.time()))
-    label = "Test-label" + timestamp
-
-    tag = client.tag_create(label=label)
-
-    yield tag
-
-    tag.delete()
-
-
-@pytest.fixture(scope="session")
-def create_nodebalancer(get_client):
-    client = get_client
-
-    timestamp = str(int(time.time()))
-    label = "Test-label" + timestamp
-
-    nodebalancer = client.nodebalancer_create(region='us-east')
-
-    yield nodebalancer
-
-    nodebalancer.delete()
+    delete_instance_with_test_label(tags)
+    delete_instance_with_test_label(linodes)
+    delete_instance_with_test_label(images)
+    delete_instance_with_test_label(volumes)
+    delete_instance_with_test_label(nodebalancers)
+    delete_instance_with_test_label(domains)
+    delete_instance_with_test_label(longview_clients)
+    delete_instance_with_test_label(clusters)
