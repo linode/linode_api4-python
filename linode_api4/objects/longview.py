@@ -8,7 +8,7 @@ class LongviewClient(Base):
         "id": Property(identifier=True),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),
-        "label": Property(mutable=True, filterable=True),
+        "label": Property(mutable=True),
         "install_code": Property(),
         "apps": Property(),
         "api_key": Property(),
