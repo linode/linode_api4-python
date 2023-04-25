@@ -17,6 +17,12 @@ class IPv6Pool(Base):
 
 
 class IPv6Range(Base):
+    """
+    An instance of a Linode IPv6 Range.
+
+    API Documentation: https://www.linode.com/docs/api/networking/#ipv6-range-view
+    """
+
     api_endpoint = "/networking/ipv6/ranges/{range}"
     id_attribute = "range"
 
@@ -74,6 +80,12 @@ class VLAN(Base):
     """
     .. note:: At this time, the Linode API only supports listing VLANs.
     .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+
+    An instance of a Linode VLAN.
+    VLANs provide a mechanism for secure communication between two or more Linodes that are assigned to the same VLAN.
+    VLANs are implicitly created during Instance or Instance Config creation.
+
+    API Documentation: https://www.linode.com/docs/api/networking/#vlans-list
     """
 
     api_endpoint = "/networking/vlans/{}"
@@ -88,6 +100,12 @@ class VLAN(Base):
 
 
 class FirewallDevice(DerivedBase):
+    """
+    An object representing the assignment between a Linode Firewall and another Linode resource.
+
+    API Documentation: https://www.linode.com/docs/api/networking/#firewall-device-view
+    """
+
     api_endpoint = "/networking/firewalls/{firewall_id}/devices/{id}"
     derived_url_path = "devices"
     parent_id_name = "firewall_id"
@@ -103,6 +121,10 @@ class FirewallDevice(DerivedBase):
 class Firewall(Base):
     """
     .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+
+    An instance of a Linode Cloud Firewall.
+
+    API Documentation: https://www.linode.com/docs/api/networking/#firewall-view
     """
 
     api_endpoint = "/networking/firewalls/{id}"
@@ -120,7 +142,12 @@ class Firewall(Base):
 
     def update_rules(self, rules):
         """
-        Sets the JSON rules for this Firewall
+        Sets the JSON rules for this Firewall.
+
+        API Documentation: https://www.linode.com/docs/api/networking/#firewall-rules-update__request-samples
+
+        :param rules: The rules to apply to this Firewall.
+        :type rules: dict
         """
         self._client.put(
             "{}/rules".format(self.api_endpoint), model=self, data=rules
@@ -129,7 +156,12 @@ class Firewall(Base):
 
     def get_rules(self):
         """
-        Gets the JSON rules for this Firewall
+        Gets the JSON rules for this Firewall.
+
+        API Documentation: https://www.linode.com/docs/api/networking/#firewall-rules-update__request-samples
+
+        :returns: The rules that this Firewall is currently configured with.
+        :rtype: dict
         """
         return self._client.get(
             "{}/rules".format(self.api_endpoint), model=self
@@ -138,6 +170,8 @@ class Firewall(Base):
     def device_create(self, id, type="linode", **kwargs):
         """
         Creates and attaches a device to this Firewall
+
+        API Documentation: https://www.linode.com/docs/api/networking/#firewall-device-create
 
         :param id: The ID of the entity to create a device for.
         :type id: int
