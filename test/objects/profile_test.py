@@ -1,7 +1,8 @@
 from datetime import datetime
 from test.base import ClientBaseCase
 
-from linode_api4.objects import SSHKey
+from linode_api4.objects import Profile, ProfileLogin, SSHKey
+from linode_api4.objects.profile import TrustedDevice
 
 
 class SSHKeyTest(ClientBaseCase):
@@ -66,3 +67,47 @@ class SSHKeyTest(ClientBaseCase):
             key.delete()
 
             self.assertEqual(m.call_url, "/profile/sshkeys/22")
+
+
+class ProfileTest(ClientBaseCase):
+    """
+    Tests methods of the Profile class
+    """
+
+    def test_get_profile(self):
+        """
+        Tests that a Profile is loaded correctly by ID
+        """
+        profile = Profile(self.client, "exampleUser")
+
+        self.assertEqual(profile.username, "exampleUser")
+        self.assertEqual(profile.authentication_type, "password")
+        self.assertIsNotNone(profile.authorized_keys)
+        self.assertEqual(profile.email, "example-user@gmail.com")
+        self.assertTrue(profile.email_notifications)
+        self.assertFalse(profile.ip_whitelist_enabled)
+        self.assertEqual(profile.lish_auth_method, "keys_only")
+        self.assertIsNotNone(profile.referrals)
+        self.assertFalse(profile.restricted)
+        self.assertEqual(profile.timezone, "US/Eastern")
+        self.assertTrue(profile.two_factor_auth)
+        self.assertEqual(profile.uid, 1234)
+        self.assertEqual(profile.verified_phone_number, "+5555555555")
+
+    def test_get_trusted_device(self):
+        device = TrustedDevice(self.client, 123)
+
+        self.assertEqual(device.id, 123)
+        self.assertEqual(
+            device.user_agent,
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36 Vivaldi/2.1.1337.36\n",
+        )
+
+    def test_get_login(self):
+        login = ProfileLogin(self.client, 123)
+
+        self.assertEqual(login.id, 123)
+        self.assertEqual(login.ip, "192.0.2.0")
+        self.assertEqual(login.status, "successful")
+        self.assertEqual(login.username, "example_user")
+        self.assertTrue(login.restricted)

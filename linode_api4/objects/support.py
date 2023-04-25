@@ -33,7 +33,7 @@ class SupportTicket(Base):
         "id": Property(identifier=True),
         "summary": Property(),
         "description": Property(),
-        "status": Property(filterable=True),
+        "status": Property(),
         "entity": Property(),
         "opened": Property(is_datetime=True),
         "closed": Property(is_datetime=True),

@@ -19,7 +19,6 @@ class Property:
         relationship=None,
         derived_class=None,
         is_datetime=False,
-        filterable=False,
         id_relationship=False,
         slug_relationship=False,
     ):
@@ -35,7 +34,6 @@ class Property:
         relationship - The API Object this Property represents
         derived_class - The sub-collection type this Property represents
         is_datetime - True if this Property should be parsed as a datetime.datetime
-        filterable - True if the API allows filtering on this property
         id_relationship - This Property should create a relationship with this key as the ID
             (This should be used on fields ending with '_id' only)
         slug_relationship - This property is a slug related for a given type.
@@ -46,7 +44,6 @@ class Property:
         self.relationship = relationship
         self.derived_class = derived_class
         self.is_datetime = is_datetime
-        self.filterable = filterable
         self.id_relationship = id_relationship
         self.slug_relationship = slug_relationship
 
