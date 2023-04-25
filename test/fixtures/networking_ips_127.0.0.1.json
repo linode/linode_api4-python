@@ -1,0 +1,11 @@
+{
+  "address": "127.0.0.1",
+  "gateway": "127.0.0.1",
+  "linode_id": 123,
+  "prefix": 24,
+  "public": true,
+  "rdns": "test.example.org",
+  "region": "us-east",
+  "subnet_mask": "255.255.255.0",
+  "type": "ipv4"
+}

@@ -31,6 +31,19 @@ class IPv6Range(Base):
 class IPAddress(Base):
     """
     note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+
+    Represents a Linode IP address object.
+
+    When attempting to reset the `rdns` field to default, consider using the ExplicitNullValue class::
+
+        ip = IPAddress(client, "127.0.0.1")
+        ip.rdns = ExplicitNullValue
+        ip.save()
+
+        # Re-populate all attributes with new information from the API
+        ip.invalidate()
+
+    API Documentation: https://www.linode.com/docs/api/networking/#ip-address-view
     """
 
     api_endpoint = "/networking/ips/{address}"

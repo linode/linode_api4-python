@@ -1,5 +1,6 @@
 from test.base import ClientBaseCase
 
+from linode_api4 import ExplicitNullValue
 from linode_api4.objects import Firewall, IPAddress, IPv6Pool, IPv6Range
 
 
@@ -43,3 +44,29 @@ class NetworkingTest(ClientBaseCase):
             self.assertEqual(result["outbound"], [])
             self.assertEqual(result["inbound_policy"], "DROP")
             self.assertEqual(result["outbound_policy"], "DROP")
+
+    def test_rdns_reset(self):
+        """
+        Tests that the RDNS of an IP and be reset using an explicit null value.
+        """
+
+        ip = IPAddress(self.client, "127.0.0.1")
+
+        with self.mock_put("/networking/ips/127.0.0.1") as m:
+            ip.rdns = ExplicitNullValue()
+            ip.save()
+
+            self.assertEqual(m.call_url, "/networking/ips/127.0.0.1")
+
+            # We need to assert of call_data_raw because
+            # call_data drops keys with null values
+            self.assertEqual(m.call_data_raw, '{"rdns": null}')
+
+        # Ensure that everything works as expected with a class reference
+        with self.mock_put("/networking/ips/127.0.0.1") as m:
+            ip.rdns = ExplicitNullValue
+            ip.save()
+
+            self.assertEqual(m.call_url, "/networking/ips/127.0.0.1")
+
+            self.assertEqual(m.call_data_raw, '{"rdns": null}')
