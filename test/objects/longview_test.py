@@ -25,23 +25,6 @@ class LongviewPlanTest(ClientBaseCase):
         self.assertEqual(plan.label, "Longview Pro 10 pack")
         self.assertIsNotNone(plan.price)
 
-    def test_update_plan(self):
-        """
-        Tests that you can submit a correct longview plan update api request
-        """
-        plan = LongviewPlan(self.client, "longview-10")
-
-        with self.mock_post("/longview/plan") as m:
-            result = plan.longview_plan_update("longview-100")
-            self.assertEqual(m.call_url, "/longview/plan")
-            self.assertEqual(
-                m.call_data["longview_subscription"], "longview-100"
-            )
-            self.assertEqual(result.id, "longview-10")
-            self.assertEqual(result.clients_included, 10)
-            self.assertEqual(result.label, "Longview Pro 10 pack")
-            self.assertIsNotNone(result.price)
-
 
 class LongviewClientTest(ClientBaseCase):
     """

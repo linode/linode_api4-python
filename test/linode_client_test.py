@@ -502,6 +502,21 @@ class LongviewGroupTest(ClientBaseCase):
             self.assertEqual(m.call_url, "/longview/clients")
             self.assertEqual(m.call_data, {"label": "test_client_1"})
 
+    def test_update_plan(self):
+        """
+        Tests that you can submit a correct longview plan update api request
+        """
+        with self.mock_post("/longview/plan") as m:
+            result = self.client.longview.longview_plan_update("longview-100")
+            self.assertEqual(m.call_url, "/longview/plan")
+            self.assertEqual(
+                m.call_data["longview_subscription"], "longview-100"
+            )
+            self.assertEqual(result.id, "longview-10")
+            self.assertEqual(result.clients_included, 10)
+            self.assertEqual(result.label, "Longview Pro 10 pack")
+            self.assertIsNotNone(result.price)
+
     def test_get_subscriptions(self):
         """
         Tests that Longview subscriptions can be retrieved
