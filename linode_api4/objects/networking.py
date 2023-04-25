@@ -12,7 +12,7 @@ class IPv6Pool(Base):
 
     properties = {
         "range": Property(identifier=True),
-        "region": Property(slug_relationship=Region, filterable=True),
+        "region": Property(slug_relationship=Region),
     }
 
 
@@ -22,7 +22,7 @@ class IPv6Range(Base):
 
     properties = {
         "range": Property(identifier=True),
-        "region": Property(slug_relationship=Region, filterable=True),
+        "region": Property(slug_relationship=Region),
         "prefix": Property(),
         "route_target": Property(),
     }
@@ -45,7 +45,7 @@ class IPAddress(Base):
         "public": Property(),
         "rdns": Property(mutable=True),
         "linode_id": Property(),
-        "region": Property(slug_relationship=Region, filterable=True),
+        "region": Property(slug_relationship=Region),
     }
 
     @property
@@ -82,8 +82,8 @@ class VLAN(Base):
     properties = {
         "label": Property(identifier=True),
         "created": Property(is_datetime=True),
-        "linodes": Property(filterable=True),
-        "region": Property(slug_relationship=Region, filterable=True),
+        "linodes": Property(),
+        "region": Property(slug_relationship=Region),
     }
 
 
@@ -93,8 +93,8 @@ class FirewallDevice(DerivedBase):
     parent_id_name = "firewall_id"
 
     properties = {
-        "created": Property(filterable=True, is_datetime=True),
-        "updated": Property(filterable=True, is_datetime=True),
+        "created": Property(is_datetime=True),
+        "updated": Property(is_datetime=True),
         "entity": Property(),
         "id": Property(identifier=True),
     }
@@ -109,11 +109,11 @@ class Firewall(Base):
 
     properties = {
         "id": Property(identifier=True),
-        "label": Property(mutable=True, filterable=True),
-        "tags": Property(mutable=True, filterable=True),
+        "label": Property(mutable=True),
+        "tags": Property(mutable=True),
         "status": Property(mutable=True),
-        "created": Property(filterable=True, is_datetime=True),
-        "updated": Property(filterable=True, is_datetime=True),
+        "created": Property(is_datetime=True),
+        "updated": Property(is_datetime=True),
         "devices": Property(derived_class=FirewallDevice),
         "rules": Property(),
     }

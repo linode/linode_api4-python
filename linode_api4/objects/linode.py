@@ -97,9 +97,9 @@ class Disk(DerivedBase):
     properties = {
         "id": Property(identifier=True),
         "created": Property(is_datetime=True),
-        "label": Property(mutable=True, filterable=True),
-        "size": Property(filterable=True),
-        "status": Property(filterable=True, volatile=True),
+        "label": Property(mutable=True),
+        "size": Property(),
+        "status": Property(volatile=True),
         "filesystem": Property(),
         "updated": Property(is_datetime=True),
         "linode_id": Property(identifier=True),
@@ -203,17 +203,17 @@ class Kernel(Base):
     api_endpoint = "/linode/kernels/{id}"
     properties = {
         "created": Property(is_datetime=True),
-        "deprecated": Property(filterable=True),
+        "deprecated": Property(),
         "description": Property(),
         "id": Property(identifier=True),
-        "kvm": Property(filterable=True),
-        "label": Property(filterable=True),
+        "kvm": Property(),
+        "label": Property(),
         "updates": Property(),
-        "version": Property(filterable=True),
-        "architecture": Property(filterable=True),
-        "xen": Property(filterable=True),
+        "version": Property(),
+        "architecture": Property(),
+        "xen": Property(),
         "built": Property(),
-        "pvops": Property(filterable=True),
+        "pvops": Property(),
     }
 
 
@@ -226,16 +226,16 @@ class Type(Base):
 
     api_endpoint = "/linode/types/{id}"
     properties = {
-        "disk": Property(filterable=True),
+        "disk": Property(),
         "id": Property(identifier=True),
-        "label": Property(filterable=True),
-        "network_out": Property(filterable=True),
+        "label": Property(),
+        "network_out": Property(),
         "price": Property(),
         "addons": Property(),
-        "memory": Property(filterable=True),
-        "transfer": Property(filterable=True),
-        "vcpus": Property(filterable=True),
-        "gpus": Property(filterable=True),
+        "memory": Property(),
+        "transfer": Property(),
+        "vcpus": Property(),
+        "gpus": Property(),
         "successor": Property(),
         # type_class is populated from the 'class' attribute of the returned JSON
     }
@@ -311,15 +311,15 @@ class Config(DerivedBase):
         "helpers": Property(),  # TODO: mutable=True),
         "created": Property(is_datetime=True),
         "root_device": Property(mutable=True),
-        "kernel": Property(relationship=Kernel, mutable=True, filterable=True),
-        "devices": Property(filterable=True),  # TODO: mutable=True),
+        "kernel": Property(relationship=Kernel, mutable=True),
+        "devices": Property(),  # TODO: mutable=True),
         "initrd": Property(relationship=Disk),
         "updated": Property(),
-        "comments": Property(mutable=True, filterable=True),
-        "label": Property(mutable=True, filterable=True),
-        "run_level": Property(mutable=True, filterable=True),
-        "virt_mode": Property(mutable=True, filterable=True),
-        "memory_limit": Property(mutable=True, filterable=True),
+        "comments": Property(mutable=True),
+        "label": Property(mutable=True),
+        "run_level": Property(mutable=True),
+        "virt_mode": Property(mutable=True),
+        "memory_limit": Property(mutable=True),
         "interfaces": Property(mutable=True),  # gets setup in _populate below
         "helpers": Property(mutable=True),
     }
@@ -391,15 +391,15 @@ class Instance(Base):
 
     api_endpoint = "/linode/instances/{id}"
     properties = {
-        "id": Property(identifier=True, filterable=True),
-        "label": Property(mutable=True, filterable=True),
-        "group": Property(mutable=True, filterable=True),
+        "id": Property(identifier=True),
+        "label": Property(mutable=True),
+        "group": Property(mutable=True),
         "status": Property(volatile=True),
         "created": Property(is_datetime=True),
         "updated": Property(volatile=True, is_datetime=True),
-        "region": Property(slug_relationship=Region, filterable=True),
+        "region": Property(slug_relationship=Region),
         "alerts": Property(mutable=True),
-        "image": Property(slug_relationship=Image, filterable=True),
+        "image": Property(slug_relationship=Image),
         "disks": Property(derived_class=Disk),
         "configs": Property(derived_class=Config),
         "type": Property(slug_relationship=Type),
@@ -1448,19 +1448,17 @@ class StackScript(Base):
     api_endpoint = "/linode/stackscripts/{id}"
     properties = {
         "user_defined_fields": Property(),
-        "label": Property(mutable=True, filterable=True),
+        "label": Property(mutable=True),
         "rev_note": Property(mutable=True),
-        "username": Property(filterable=True),
+        "username": Property(),
         "user_gravatar_id": Property(),
-        "is_public": Property(mutable=True, filterable=True),
+        "is_public": Property(mutable=True),
         "created": Property(is_datetime=True),
         "deployments_active": Property(),
         "script": Property(mutable=True),
-        "images": Property(
-            mutable=True, filterable=True
-        ),  # TODO make slug_relationship
+        "images": Property(mutable=True),  # TODO make slug_relationship
         "deployments_total": Property(),
-        "description": Property(mutable=True, filterable=True),
+        "description": Property(mutable=True),
         "updated": Property(is_datetime=True),
     }
 
