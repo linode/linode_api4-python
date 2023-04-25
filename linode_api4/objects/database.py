@@ -5,7 +5,7 @@ class DatabaseType(Base):
     api_endpoint = "/databases/types/{id}"
 
     properties = {
-        "deprecated": Property(filterable=True),
+        "deprecated": Property(),
         "disk": Property(),
         "engines": Property(),
         "id": Property(identifier=True),
@@ -32,8 +32,8 @@ class DatabaseEngine(Base):
 
     properties = {
         "id": Property(identifier=True),
-        "engine": Property(filterable=True),
-        "version": Property(filterable=True),
+        "engine": Property(),
+        "version": Property(),
     }
 
     def invalidate(self):
@@ -94,23 +94,23 @@ class MySQLDatabase(Base):
 
     properties = {
         "id": Property(identifier=True),
-        "label": Property(mutable=True, filterable=True),
+        "label": Property(mutable=True),
         "allow_list": Property(mutable=True),
         "backups": Property(derived_class=MySQLDatabaseBackup),
         "cluster_size": Property(),
         "created": Property(is_datetime=True),
         "encrypted": Property(),
-        "engine": Property(filterable=True),
+        "engine": Property(),
         "hosts": Property(),
         "port": Property(),
-        "region": Property(filterable=True),
+        "region": Property(),
         "replication_type": Property(),
         "ssl_connection": Property(),
-        "status": Property(volatile=True, filterable=True),
-        "type": Property(filterable=True),
+        "status": Property(volatile=True),
+        "type": Property(),
         "updated": Property(volatile=True, is_datetime=True),
         "updates": Property(mutable=True),
-        "version": Property(filterable=True),
+        "version": Property(),
     }
 
     @property
@@ -193,24 +193,24 @@ class PostgreSQLDatabase(Base):
 
     properties = {
         "id": Property(identifier=True),
-        "label": Property(mutable=True, filterable=True),
+        "label": Property(mutable=True),
         "allow_list": Property(mutable=True),
         "backups": Property(derived_class=PostgreSQLDatabaseBackup),
         "cluster_size": Property(),
         "created": Property(is_datetime=True),
         "encrypted": Property(),
-        "engine": Property(filterable=True),
+        "engine": Property(),
         "hosts": Property(),
         "port": Property(),
-        "region": Property(filterable=True),
+        "region": Property(),
         "replication_commit_type": Property(),
         "replication_type": Property(),
         "ssl_connection": Property(),
-        "status": Property(volatile=True, filterable=True),
-        "type": Property(filterable=True),
+        "status": Property(volatile=True),
+        "type": Property(),
         "updated": Property(volatile=True, is_datetime=True),
         "updates": Property(mutable=True),
-        "version": Property(filterable=True),
+        "version": Property(),
     }
 
     @property
@@ -291,26 +291,26 @@ class MongoDBDatabase(Base):
 
     properties = {
         "id": Property(identifier=True),
-        "label": Property(mutable=True, filterable=True),
+        "label": Property(mutable=True),
         "allow_list": Property(mutable=True),
         "backups": Property(derived_class=MongoDBDatabaseBackup),
         "cluster_size": Property(),
         "compression_type": Property(),
         "created": Property(is_datetime=True),
         "encrypted": Property(),
-        "engine": Property(filterable=True),
+        "engine": Property(),
         "hosts": Property(),
         "peers": Property(),
         "port": Property(),
-        "region": Property(filterable=True),
+        "region": Property(),
         "replica_set": Property(),
         "ssl_connection": Property(),
-        "status": Property(volatile=True, filterable=True),
+        "status": Property(volatile=True),
         "storage_engine": Property(),
-        "type": Property(filterable=True),
+        "type": Property(),
         "updated": Property(volatile=True, is_datetime=True),
         "updates": Property(mutable=True),
-        "version": Property(filterable=True),
+        "version": Property(),
     }
 
     @property

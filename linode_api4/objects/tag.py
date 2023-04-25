@@ -19,6 +19,13 @@ CLASS_MAP = {
 
 
 class Tag(Base):
+    """
+    A User-defined labels attached to objects in your Account, such as Linodes.
+    Used for specifying and grouping attributes of objects that are relevant to the User.
+
+    API Documentation: https://www.linode.com/docs/api/tags/#tags-list
+    """
+
     api_endpoint = "/tags/{label}"
     id_attribute = "label"
 
@@ -58,6 +65,11 @@ class Tag(Base):
         """
         Returns a list of objects with this Tag.  This list may contain any
         taggable object type.
+
+        API Documentation: https://www.linode.com/docs/api/tags/#tagged-objects-list
+
+        :returns: Objects with this Tag
+        :rtype: PaginatedList of objects with this Tag
         """
         data = self._get_raw_objects()
 
@@ -102,6 +114,7 @@ class TaggedObjectProxy:
         :param json: The JSON to populate the instance with
 
         :returns: A new instance of this type, populated with json
+        :rtype: TaggedObjectProxy
         """
         make_cls = CLASS_MAP.get(
             id
