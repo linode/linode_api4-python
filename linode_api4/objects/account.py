@@ -20,6 +20,12 @@ from linode_api4.objects.support import SupportTicket
 
 
 class Account(Base):
+    """
+    The contact and billing information related to your Account.
+
+    API Documentation: https://www.linode.com/docs/api/account/#account-view
+    """
+
     api_endpoint = "/account"
     id_attribute = "email"
 
@@ -48,6 +54,12 @@ class Account(Base):
 
 
 class ServiceTransfer(Base):
+    """
+    A transfer request for transferring a service between Linode accounts.
+
+    API Documentation: https://www.linode.com/docs/api/account/#service-transfer-view
+    """
+
     api_endpoint = "/account/service-transfers/{token}"
     id_attribute = "token"
     properties = {
@@ -63,6 +75,8 @@ class ServiceTransfer(Base):
     def service_transfer_accept(self):
         """
         Accept a Service Transfer for the provided token to receive the services included in the transfer to your account.
+
+        API Documentation: https://www.linode.com/docs/api/account/#service-transfer-accept
         """
 
         resp = self._client.post(
@@ -78,6 +92,12 @@ class ServiceTransfer(Base):
 
 
 class PaymentMethod(Base):
+    """
+    A payment method to be used on this Linode account.
+
+    API Documentation: https://www.linode.com/docs/api/account/#payment-method-view
+    """
+
     api_endpoint = "/account/payment-methods/{id}"
     properties = {
         "id": Property(identifier=True),
@@ -90,6 +110,8 @@ class PaymentMethod(Base):
     def payment_method_make_default(self):
         """
         Make this Payment Method the default method for automatically processing payments.
+
+        API Documentation: https://www.linode.com/docs/api/account/#payment-method-make-default
         """
 
         resp = self._client.post(
@@ -105,6 +127,12 @@ class PaymentMethod(Base):
 
 
 class Login(Base):
+    """
+    A login entry for this account.
+
+    API Documentation: https://www.linode.com/docs/api/account/#login-view
+    """
+
     api_endpoint = "/account/logins/{id}"
     properties = {
         "id": Property(identifier=True),
@@ -117,6 +145,12 @@ class Login(Base):
 
 
 class AccountSettings(Base):
+    """
+    Information related to your Account settings.
+
+    API Documentation: https://www.linode.com/docs/api/account/#account-settings-view
+    """
+
     api_endpoint = "/account/settings"
     id_attribute = "managed"  # this isn't actually used
 
@@ -132,6 +166,12 @@ class AccountSettings(Base):
 
 
 class Event(Base):
+    """
+    An event object representing an event that took place on this account.
+
+    API Documentation: https://www.linode.com/docs/api/account/#event-view
+    """
+
     api_endpoint = "/account/events/{id}"
     properties = {
         "id": Property(identifier=True, filterable=True),
@@ -154,45 +194,108 @@ class Event(Base):
 
     @property
     def linode(self):
+        """
+        Returns the Linode Instance referenced by this event.
+
+        :returns: The Linode Instance referenced by this event.
+        :rtype: Optional[Instance]
+        """
+
         if self.entity and self.entity.type == "linode":
             return Instance(self._client, self.entity.id)
         return None
 
     @property
     def stackscript(self):
+        """
+        Returns the Linode StackScript referenced by this event.
+
+        :returns: The Linode StackScript referenced by this event.
+        :rtype: Optional[StackScript]
+        """
+
         if self.entity and self.entity.type == "stackscript":
             return StackScript(self._client, self.entity.id)
         return None
 
     @property
     def domain(self):
+        """
+        Returns the Linode Domain referenced by this event.
+
+        :returns: The Linode Domain referenced by this event.
+        :rtype: Optional[Domain]
+        """
+
         if self.entity and self.entity.type == "domain":
             return Domain(self._client, self.entity.id)
         return None
 
     @property
     def nodebalancer(self):
+        """
+        Returns the Linode NodeBalancer referenced by this event.
+
+        :returns: The Linode NodeBalancer referenced by this event.
+        :rtype: Optional[NodeBalancer]
+        """
+
         if self.entity and self.entity.type == "nodebalancer":
             return NodeBalancer(self._client, self.entity.id)
         return None
 
     @property
     def ticket(self):
+        """
+        Returns the Linode Support Ticket referenced by this event.
+
+        :returns: The Linode Support Ticket referenced by this event.
+        :rtype: Optional[SupportTicket]
+        """
+
         if self.entity and self.entity.type == "ticket":
             return SupportTicket(self._client, self.entity.id)
         return None
 
     @property
     def volume(self):
+        """
+        Returns the Linode Volume referenced by this event.
+
+        :returns: The Linode Volume referenced by this event.
+        :rtype: Optional[Volume]
+        """
+
         if self.entity and self.entity.type == "volume":
             return Volume(self._client, self.entity.id)
         return None
 
     def mark_read(self):
+        """
+        Marks a single Event as read.
+
+        API Documentation: https://www.linode.com/docs/api/account/#event-mark-as-read
+        """
+
         self._client.post("{}/read".format(Event.api_endpoint), model=self)
+
+    def mark_seen(self):
+        """
+        Marks a single Event as seen.
+
+        API Documentation: https://www.linode.com/docs/api/account/#event-mark-as-seen
+        """
+
+        self._client.post("{}/seen".format(Event.api_endpoint), model=self)
 
 
 class InvoiceItem(DerivedBase):
+    """
+    An individual invoice item under an :any:`Invoice` object.
+
+    API Documentation: https://www.linode.com/docs/api/account/#invoice-items-list
+    """
+
     api_endpoint = "/account/invoices/{invoice_id}/items"
     derived_url_path = "items"
     parent_id_name = "invoice_id"
@@ -222,6 +325,12 @@ class InvoiceItem(DerivedBase):
 
 
 class Invoice(Base):
+    """
+    A single invoice on this Linode account.
+
+    API Documentation: https://www.linode.com/docs/api/account/#invoice-view
+    """
+
     api_endpoint = "/account/invoices/{id}"
 
     properties = {
@@ -237,6 +346,12 @@ class Invoice(Base):
 
 
 class OAuthClient(Base):
+    """
+    An OAuthClient object that can be used to authenticate apps with this account.
+
+    API Documentation: https://www.linode.com/docs/api/account/#oauth-client-view
+    """
+
     api_endpoint = "/account/oauth-clients/{id}"
 
     properties = {
@@ -252,6 +367,8 @@ class OAuthClient(Base):
     def reset_secret(self):
         """
         Resets the client secret for this client.
+
+        API Documentation: https://www.linode.com/docs/api/account/#oauth-client-secret-reset
         """
         result = self._client.post(
             "{}/reset_secret".format(OAuthClient.api_endpoint), model=self
@@ -270,6 +387,8 @@ class OAuthClient(Base):
         This returns binary data that represents a 128x128 image.
         If dump_to is given, attempts to write the image to a file
         at the given location.
+
+        API Documentation: https://www.linode.com/docs/api/account/#oauth-client-thumbnail-view
         """
         headers = {"Authorization": "token {}".format(self._client.token)}
 
@@ -296,6 +415,8 @@ class OAuthClient(Base):
         Sets the thumbnail for this OAuth Client.  If thumbnail is bytes,
         uploads it as a png.  Otherwise, assumes thumbnail is a path to the
         thumbnail and reads it in as bytes before uploading.
+
+        API Documentation: https://www.linode.com/docs/api/account/#oauth-client-thumbnail-update
         """
         headers = {
             "Authorization": "token {}".format(self._client.token),
@@ -327,6 +448,12 @@ class OAuthClient(Base):
 
 
 class Payment(Base):
+    """
+    An object representing a single payment on the current Linode Account.
+
+    API Documentation: https://www.linode.com/docs/api/account/#payment-view
+    """
+
     api_endpoint = "/account/payments/{id}"
 
     properties = {
@@ -337,6 +464,12 @@ class Payment(Base):
 
 
 class User(Base):
+    """
+    An object representing a single user on this account.
+
+    API Documentation: https://www.linode.com/docs/api/account/#user-view
+    """
+
     api_endpoint = "/account/users/{id}"
     id_attribute = "username"
 
@@ -354,6 +487,8 @@ class User(Base):
         Retrieves the grants for this user.  If the user is unrestricted, this
         will result in an ApiError.  This is smart, and will only fetch from the
         api once unless the object is invalidated.
+
+        API Documentation: https://www.linode.com/docs/api/account/#users-grants-view
 
         :returns: The grants for this user.
         :rtype: linode.objects.account.UserGrants
@@ -451,6 +586,8 @@ class UserGrants:
     This is not an instance of Base because it lacks most of the attributes of
     a Base-like model (such as a unique, ID-based endpoint at which to access
     it), however it has some similarities so that its usage is familiar.
+
+    API Documentation: https://www.linode.com/docs/api/account/#users-grants-view
     """
 
     api_endpoint = "/account/users/{username}/grants"
@@ -473,6 +610,12 @@ class UserGrants:
             setattr(self, key, lst)
 
     def save(self):
+        """
+        Applies the grants to the parent user.
+
+        API Documentation: https://www.linode.com/docs/api/account/#users-grants-update
+        """
+
         req = {
             "global": {
                 k: v
