@@ -27,6 +27,12 @@ class LongviewSubscription(Base):
 
 
 class LongviewPlan(Base):
+    """
+    The current Longview Plan an account is using.
+
+    API Documentation: https://www.linode.com/docs/api/longview/#longview-plan-view
+    """
+
     api_endpoint = "/longview/plan"
 
     properties = {
