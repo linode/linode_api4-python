@@ -1,5 +1,6 @@
 from linode_api4.objects.account import Account
 
+
 @pytest.fixture(scope="session", autouse=True)
 def test_create_account(get_client):
     client = get_client
@@ -7,6 +8,7 @@ def test_create_account(get_client):
     account.make(id="test1", client=client, cls="account")
 
     print(account)
+
 
 # def test_account_view():
 # def test_notifications_list():

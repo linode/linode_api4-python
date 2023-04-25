@@ -1,10 +1,12 @@
 import os
-import pytest
 import time
+
+import pytest
+
 from linode_api4.linode_client import LinodeClient, LongviewSubscription
 
-
 ENV_TOKEN_NAME = "LINODE_CLI_TOKEN"
+
 
 def get_token():
     return os.environ.get(ENV_TOKEN_NAME, None)
@@ -14,14 +16,17 @@ def get_token():
 def ssh_key_gen():
     output = os.popen("ssh-keygen -q -t rsa -f ./sdk-sshkey  -q -N ''")
 
-    pub_file = open("./sdk-sshkey.pub", 'r')
-    priv_file = open("./sdk-sshkey", 'r')
+    time.sleep(1)
+
+    pub_file = open("./sdk-sshkey.pub", "r")
     pub_key = pub_file.read().rstrip()
+
+    priv_file = open("./sdk-sshkey", "r")
     priv_key = priv_file.read().rstrip()
-    
+
     yield pub_key, priv_key
 
-    os.popen("rm sdk_sshkey*")
+    os.popen("rm ./sdk-sshkey*")
 
 
 @pytest.fixture(scope="session")
@@ -57,7 +62,7 @@ def set_account_settings(get_client):
     account_settings = client.account.settings()
     account_settings._populated = True
     account_settings.network_helper = True
-    
+
     account_settings.save()
 
 
@@ -66,13 +71,15 @@ def create_domain(get_client):
     client = get_client
 
     timestamp = str(int(time.time()))
-    domain_addr = timestamp + "-IntTestSDK.com"
-    soa_email = "test-123@linode.com"
+    domain_addr = timestamp + "-example.com"
+    soa_email = "pathiel-test123@linode.com"
 
-    domain = client.domain_create(domain=domain_addr, soa_email=soa_email)
+    domain = client.domain_create(
+        domain=domain_addr, soa_email=soa_email, tags=["test-tag"]
+    )
 
     yield domain
-    
+
     domain.delete()
 
 
@@ -80,9 +87,9 @@ def create_domain(get_client):
 def create_volume(get_client):
     client = get_client
     timestamp = str(int(time.time()))
-    label = "IntTestSDK-" + timestamp
+    label = "TestSDK-" + timestamp
 
-    volume = client.volume_create(label=label, region='us-east')
+    volume = client.volume_create(label=label, region="us-east")
 
     yield volume
 
@@ -94,7 +101,7 @@ def create_tag(get_client):
     client = get_client
 
     timestamp = str(int(time.time()))
-    label = "IntTestSDK-" + timestamp
+    label = "TestSDK-" + timestamp
 
     tag = client.tag_create(label=label)
 
@@ -108,9 +115,9 @@ def create_nodebalancer(get_client):
     client = get_client
 
     timestamp = str(int(time.time()))
-    label = "IntTestSDK-" + timestamp
+    label = "TestSDK-" + timestamp
 
-    nodebalancer = client.nodebalancer_create(region='us-east')
+    nodebalancer = client.nodebalancer_create(region="us-east")
 
     yield nodebalancer
 
@@ -121,11 +128,11 @@ def create_nodebalancer(get_client):
 def create_longview_client(get_client):
     client = get_client
     timestamp = str(int(time.time()))
-    label = "IntTestSDK-" + timestamp
+    label = "TestSDK-" + timestamp
     longview_client = client.longview.client_create(label=label)
 
     yield longview_client
-    
+
     longview_client.delete()
 
 
@@ -143,11 +150,11 @@ def upload_sshkey(get_client, ssh_key_gen):
 @pytest.fixture
 def create_ssh_keys_object_storage(get_client):
     client = get_client
-    label = 'IntTestSDK-obj-storage-key'
+    label = "TestSDK-obj-storage-key"
     key = client.object_storage.keys_create(label)
 
     yield key
-    
+
     key.delete()
 
 
@@ -155,13 +162,15 @@ def create_ssh_keys_object_storage(get_client):
 def create_firewall(get_client):
     client = get_client
     rules = {
-        'outbound' : [],
-        'outbound_policy' : 'DROP',
-        'inbound' : [],
-        'inbound_policy' : 'ACCEPT',
+        "outbound": [],
+        "outbound_policy": "DROP",
+        "inbound": [],
+        "inbound_policy": "ACCEPT",
     }
 
-    firewall = client.networking.firewall_create('IntTestSDK-firewall', rules=rules, status='enabled')
+    firewall = client.networking.firewall_create(
+        "test-firewall", rules=rules, status="enabled"
+    )
 
     yield firewall
 

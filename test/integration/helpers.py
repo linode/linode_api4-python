@@ -1,24 +1,39 @@
-import pytest
-import time
 import random
-from linode_api4.linode_client import LinodeClient 
-from linode_api4 import Instance
+import time
+
 from linode_api4 import PaginatedList
+from linode_api4.linode_client import LinodeClient
 
 
 def get_test_label():
     unique_timestamp = str(int(time.time()) + random.randint(0, 1000))
-    label = "IntTestSDK-"+ unique_timestamp
+    label = "IntTestSDK-" + unique_timestamp
     return label
 
-def delete_instance_with_test_label(paginated_list: PaginatedList):
-    print("deleting instace: ", paginated_list )
+
+def delete_instance_with_test_kw(paginated_list: PaginatedList):
     for i in paginated_list:
-        if "IntTestSDK" in str(i.__dict__):
-            try:
+        try:
+            if hasattr(i, "label"):
+                label = getattr(i, "label")
+                if "IntTestSDK" in str(label):
+                    i.delete()
+                elif "lke" in str(label):
+                    iso_created_date = getattr(i, "created")
+                    created_time = int(
+                        time.mktime(iso_created_date.timetuple())
+                    )
+                    timestamp = int(time.time())
+                    if (timestamp - created_time) < 86400:
+                        i.delete()
+            elif hasattr(i, "domain"):
+                domain = getattr(i, "domain")
+                if "IntTestSDK" in domain:
+                    i.delete()
+        except AttributeError as e:
+            if "IntTestSDK" in str(i.__dict__):
                 i.delete()
-            except e:
-                print("failed deleting", i)
+
 
 def delete_all_test_instances(client: LinodeClient):
     tags = client.tags()
@@ -29,12 +44,14 @@ def delete_all_test_instances(client: LinodeClient):
     domains = client.domains()
     longview_clients = client.longview.clients()
     clusters = client.lke.clusters()
+    firewalls = client.networking.firewalls()
 
-    delete_instance_with_test_label(tags)
-    delete_instance_with_test_label(linodes)
-    delete_instance_with_test_label(images)
-    delete_instance_with_test_label(volumes)
-    delete_instance_with_test_label(nodebalancers)
-    delete_instance_with_test_label(domains)
-    delete_instance_with_test_label(longview_clients)
-    delete_instance_with_test_label(clusters)
+    delete_instance_with_test_kw(tags)
+    delete_instance_with_test_kw(linodes)
+    delete_instance_with_test_kw(images)
+    delete_instance_with_test_kw(volumes)
+    delete_instance_with_test_kw(nodebalancers)
+    delete_instance_with_test_kw(domains)
+    delete_instance_with_test_kw(longview_clients)
+    delete_instance_with_test_kw(clusters)
+    delete_instance_with_test_kw(firewalls)
