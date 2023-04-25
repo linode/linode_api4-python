@@ -2,6 +2,12 @@ from linode_api4.objects import Base, Property
 
 
 class LongviewClient(Base):
+    """
+    A Longview Client that is accessible for use. Longview is Linode’s system data graphing service.
+
+    API Documentation: https://www.linode.com/docs/api/longview/#longview-client-view
+    """
+
     api_endpoint = "/longview/clients/{id}"
 
     properties = {
@@ -16,6 +22,12 @@ class LongviewClient(Base):
 
 
 class LongviewSubscription(Base):
+    """
+    Contains the Longview Plan details for a specific subscription id.
+
+    API Documentation: https://www.linode.com/docs/api/longview/#longview-subscription-view
+    """
+
     api_endpoint = "/longview/subscriptions/{id}"
 
     properties = {
