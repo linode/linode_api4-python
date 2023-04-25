@@ -41,7 +41,7 @@ class IPAddress(Base):
         ip.save()
 
         # Re-populate all attributes with new information from the API
-        ip._api_get()
+        ip.invalidate()
 
     API Documentation: https://www.linode.com/docs/api/networking/#ip-address-view
     """
