@@ -336,7 +336,7 @@ class ObjectStorageBucket(DerivedBase):
 
         return [MappedObject(**c) for c in result["data"]]
 
-    def object_acl_config(self, cluster_id, bucket, name=None):
+    def object_acl_config(self, name=None):
         """
         View an Object’s configured Access Control List (ACL) in this Object Storage
         bucket. ACLs define who can access your buckets and objects and specify the
@@ -364,10 +364,10 @@ class ObjectStorageBucket(DerivedBase):
         params = {
             "name": name,
         }
+
         result = self._client.get(
-            "/object-storage/buckets/{}/{}/object-acl".format(
-                cluster_id, bucket
-            ),
+            f"{ObjectStorageBucket.api_endpoint}/object-acl",
+            model=self,
             data=drop_null_keys(params),
         )
 
@@ -379,9 +379,7 @@ class ObjectStorageBucket(DerivedBase):
 
         return MappedObject(**result)
 
-    def object_acl_config_update(
-        self, cluster_id, bucket, acl: ObjectStorageACL, name
-    ):
+    def object_acl_config_update(self, acl: ObjectStorageACL, name):
         """
         Update an Object’s configured Access Control List (ACL) in this Object Storage
         bucket. ACLs define who can access your buckets and objects and specify the
@@ -417,9 +415,8 @@ class ObjectStorageBucket(DerivedBase):
         }
 
         result = self._client.put(
-            "/object-storage/buckets/{}/{}/object-acl".format(
-                cluster_id, bucket
-            ),
+            f"{ObjectStorageBucket.api_endpoint}/object-acl",
+            model=self,
             data=params,
         )
 

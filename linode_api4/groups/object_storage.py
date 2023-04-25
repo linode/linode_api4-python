@@ -246,16 +246,16 @@ class ObjectStorageGroup(Group):
         )
 
     def object_acl_config(self, cluster_id, bucket, name=None):
-        return ObjectStorageBucket.object_acl_config(
-            self.client, cluster_id, bucket, name
-        )
+        return ObjectStorageBucket(
+            self.client, bucket, cluster_id
+        ).object_acl_config(name)
 
     def object_acl_config_update(
         self, cluster_id, bucket, acl: ObjectStorageACL, name
     ):
-        return ObjectStorageBucket.object_acl_config_update(
-            self.client, cluster_id, bucket, acl, name
-        )
+        return ObjectStorageBucket(
+            self.client, bucket, cluster_id
+        ).object_acl_config_update(acl, name)
 
     def object_url_create(
         self,

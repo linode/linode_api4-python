@@ -217,9 +217,7 @@ class ObjectStorageTest(ClientBaseCase):
             object_storage_bucket = ObjectStorageBucket(
                 self.client, "example-bucket", "us-east-1"
             )
-            acl = object_storage_bucket.object_acl_config(
-                "us-east-1", "example-bucket", "example"
-            )
+            acl = object_storage_bucket.object_acl_config("example")
             self.assertEqual(m.call_url, object_acl_config_url)
             self.assertEqual(acl.acl, "public-read")
             self.assertEqual(
@@ -244,8 +242,6 @@ class ObjectStorageTest(ClientBaseCase):
                 self.client, "example-bucket", "us-east-1"
             )
             acl = object_storage_bucket.object_acl_config_update(
-                "us-east-1",
-                "example-bucket",
                 ObjectStorageACL.PUBLIC_READ,
                 "example",
             )
