@@ -1,3 +1,6 @@
+from pathlib import Path
+from typing import Union
+
 import requests
 
 from linode_api4.errors import ApiError, UnexpectedResponseError
@@ -88,17 +91,15 @@ class SupportTicket(Base):
         r = TicketReply(self._client, result["id"], self.id, result)
         return r
 
-    def upload_attachment(self, attachment):
-        content = None
-        with open(attachment) as f:
-            content = f.read()
+    def upload_attachment(self, attachment: Union[Path, str]):
+        if not isinstance(attachment, Path):
+            attachment = Path(attachment)
 
-        if not content:
-            raise ValueError("Nothing to upload!")
+        if not attachment.exists():
+            raise Exception("File not exist, nothing to upload.")
 
         headers = {
-            "Authorization": "token {}".format(self._client.token),
-            "Content-type": "multipart/form-data",
+            "Authorization": "Bearer {}".format(self._client.token),
         }
 
         result = requests.post(
@@ -107,7 +108,7 @@ class SupportTicket(Base):
                 SupportTicket.api_endpoint.format(id=self.id),
             ),
             headers=headers,
-            files=content,
+            files={"file": open(attachment, "rb")},
         )
 
         if not result.status_code == 200:
