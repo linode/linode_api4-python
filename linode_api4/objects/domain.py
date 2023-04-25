@@ -105,7 +105,7 @@ class Domain(Base):
 
         :returns: The zone file for the last rendered zone for the specified domain in the form
                   of a list of the lines of the zone file.
-        :rtype: List[str[]
+        :rtype: List[str]
         """
 
         result = self._client.get(
