@@ -102,18 +102,15 @@ class SupportTicket(Base):
             "Authorization": "Bearer {}".format(self._client.token),
         }
 
-        result = requests.post(
-            "{}{}/attachments".format(
-                self._client.base_url,
-                SupportTicket.api_endpoint.format(id=self.id),
-            ),
-            headers=headers,
-            files={
-                "file": open(  # pylint: disable=consider-using-with
-                    attachment, "rb"
-                )
-            },
-        )
+        with open(attachment, "rb") as f:
+            result = requests.post(
+                "{}{}/attachments".format(
+                    self._client.base_url,
+                    SupportTicket.api_endpoint.format(id=self.id),
+                ),
+                headers=headers,
+                files={"file": f},
+            )
 
         if not result.status_code == 200:
             errors = []
