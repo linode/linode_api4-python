@@ -4,6 +4,8 @@ from linode_api4.objects import Base, Property
 class Image(Base):
     """
     An Image is something a Linode Instance or Disk can be deployed from.
+
+    API Documentation: https://www.linode.com/docs/api/images/#image-view
     """
 
     api_endpoint = "/images/{id}"

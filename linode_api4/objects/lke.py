@@ -13,6 +13,8 @@ from linode_api4.objects import (
 class KubeVersion(Base):
     """
     A KubeVersion is a version of Kubernetes that can be deployed on LKE.
+
+    API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubernetes-version-view
     """
 
     api_endpoint = "/lke/versions/{id}"
@@ -52,6 +54,8 @@ class LKENodePool(DerivedBase):
     """
     An LKE Node Pool describes a pool of Linode Instances that exist within an
     LKE Cluster.
+
+    API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#node-pool-view
     """
 
     api_endpoint = "/lke/clusters/{cluster_id}/pools/{id}"
@@ -88,6 +92,8 @@ class LKENodePool(DerivedBase):
         Deleted and recreates all Linodes in this Node Pool in a rolling fashion.
         Completing this operation may take several minutes.  This operation will
         cause all local data on Linode Instances in this pool to be lost.
+
+        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#node-pool-recycle
         """
         self._client.post(
             "{}/recycle".format(LKENodePool.api_endpoint), model=self
@@ -98,6 +104,8 @@ class LKENodePool(DerivedBase):
 class LKECluster(Base):
     """
     An LKE Cluster is a single k8s cluster deployed via Linode Kubernetes Engine.
+
+    API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubernetes-cluster-view
     """
 
     api_endpoint = "/lke/clusters/{id}"
@@ -118,6 +126,11 @@ class LKECluster(Base):
     def api_endpoints(self):
         """
         A list of API Endpoints for this Cluster.
+
+        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubernetes-api-endpoints-list
+
+        :returns: A list of MappedObjects of the API Endpoints
+        :rtype: List[MappedObject]
         """
         # This result appears to be a PaginatedList, but objects in the list don't
         # have IDs and can't be retrieved on their own, and it doesn't accept normal
@@ -151,6 +164,11 @@ class LKECluster(Base):
 
         It may take a few minutes for a config to be ready when creating a new
         cluster; during that time this request may fail.
+
+        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubeconfig-view
+
+        :returns: The Kubeconfig file for this Cluster.
+        :rtype: str
         """
         if not hasattr(self, "_kubeconfig"):
             result = self._client.get(
@@ -164,6 +182,8 @@ class LKECluster(Base):
     def node_pool_create(self, node_type, node_count, **kwargs):
         """
         Creates a new :any:`LKENodePool` for this cluster.
+
+        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#node-pool-create
 
         :param node_type: The type of nodes to create in this pool.
         :type node_type: :any:`Type` or str
@@ -196,6 +216,11 @@ class LKECluster(Base):
     def cluster_dashboard_url_view(self):
         """
         Get a Kubernetes Dashboard access URL for this Cluster.
+
+        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubernetes-cluster-dashboard-url-view
+
+        :returns: The Kubernetes Dashboard access URL for this Cluster.
+        :rtype: str
         """
 
         result = self._client.get(
@@ -207,6 +232,8 @@ class LKECluster(Base):
     def kubeconfig_delete(self):
         """
         Delete and regenerate the Kubeconfig file for a Cluster.
+
+        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubeconfig-delete
         """
 
         self._client.delete(
@@ -215,7 +242,15 @@ class LKECluster(Base):
 
     def node_view(self, nodeId):
         """
-        Get a specific Node Pool by ID.
+        Get a specific Node by ID.
+
+        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#node-view
+
+        :param nodeId: ID of the Node to look up.
+        :type nodeId: str
+
+        :returns: The specified Node
+        :rtype: LKENodePoolNode
         """
 
         node = self._client.get(
@@ -227,6 +262,11 @@ class LKECluster(Base):
     def node_delete(self, nodeId):
         """
         Delete a specific Node from a Node Pool.
+
+        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#node-delete
+
+        :param nodeId: ID of the Node to delete.
+        :type nodeId: str
         """
 
         self._client.delete(
@@ -236,6 +276,11 @@ class LKECluster(Base):
     def node_recycle(self, nodeId):
         """
         Recycle a specific Node from an LKE cluster.
+
+        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#node-recycle
+
+        :param nodeId: ID of the Node to recycle.
+        :type nodeId: str
         """
 
         self._client.post(
@@ -246,6 +291,8 @@ class LKECluster(Base):
     def cluster_nodes_recycle(self):
         """
         Recycles all nodes in all pools of a designated Kubernetes Cluster.
+
+        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#cluster-nodes-recycle
         """
 
         self._client.post(
@@ -255,6 +302,8 @@ class LKECluster(Base):
     def cluster_regenerate(self):
         """
         Regenerate the Kubeconfig file and/or the service account token for a Cluster.
+
+        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubernetes-cluster-regenerate
         """
 
         self._client.post(
@@ -264,6 +313,8 @@ class LKECluster(Base):
     def service_token_delete(self):
         """
         Delete and regenerate the service account token for a Cluster.
+
+        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#service-token-delete
         """
 
         self._client.delete(
