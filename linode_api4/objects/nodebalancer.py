@@ -163,7 +163,7 @@ class NodeBalancer(Base):
         "updated": Property(is_datetime=True),
         "ipv4": Property(relationship=IPAddress),
         "ipv6": Property(),
-        "region": Property(slug_relationship=Region, filterable=True),
+        "region": Property(slug_relationship=Region),
         "configs": Property(derived_class=NodeBalancerConfig),
     }
 

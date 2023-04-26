@@ -12,7 +12,7 @@ class IPv6Pool(Base):
 
     properties = {
         "range": Property(identifier=True),
-        "region": Property(slug_relationship=Region, filterable=True),
+        "region": Property(slug_relationship=Region),
     }
 
 
@@ -22,7 +22,7 @@ class IPv6Range(Base):
 
     properties = {
         "range": Property(identifier=True),
-        "region": Property(slug_relationship=Region, filterable=True),
+        "region": Property(slug_relationship=Region),
         "prefix": Property(),
         "route_target": Property(),
     }
@@ -31,6 +31,19 @@ class IPv6Range(Base):
 class IPAddress(Base):
     """
     note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+
+    Represents a Linode IP address object.
+
+    When attempting to reset the `rdns` field to default, consider using the ExplicitNullValue class::
+
+        ip = IPAddress(client, "127.0.0.1")
+        ip.rdns = ExplicitNullValue
+        ip.save()
+
+        # Re-populate all attributes with new information from the API
+        ip.invalidate()
+
+    API Documentation: https://www.linode.com/docs/api/networking/#ip-address-view
     """
 
     api_endpoint = "/networking/ips/{address}"
@@ -45,7 +58,7 @@ class IPAddress(Base):
         "public": Property(),
         "rdns": Property(mutable=True),
         "linode_id": Property(),
-        "region": Property(slug_relationship=Region, filterable=True),
+        "region": Property(slug_relationship=Region),
     }
 
     @property
@@ -82,8 +95,8 @@ class VLAN(Base):
     properties = {
         "label": Property(identifier=True),
         "created": Property(is_datetime=True),
-        "linodes": Property(filterable=True),
-        "region": Property(slug_relationship=Region, filterable=True),
+        "linodes": Property(),
+        "region": Property(slug_relationship=Region),
     }
 
 
@@ -93,8 +106,8 @@ class FirewallDevice(DerivedBase):
     parent_id_name = "firewall_id"
 
     properties = {
-        "created": Property(filterable=True, is_datetime=True),
-        "updated": Property(filterable=True, is_datetime=True),
+        "created": Property(is_datetime=True),
+        "updated": Property(is_datetime=True),
         "entity": Property(),
         "id": Property(identifier=True),
     }
@@ -109,11 +122,11 @@ class Firewall(Base):
 
     properties = {
         "id": Property(identifier=True),
-        "label": Property(mutable=True, filterable=True),
-        "tags": Property(mutable=True, filterable=True),
+        "label": Property(mutable=True),
+        "tags": Property(mutable=True),
         "status": Property(mutable=True),
-        "created": Property(filterable=True, is_datetime=True),
-        "updated": Property(filterable=True, is_datetime=True),
+        "created": Property(is_datetime=True),
+        "updated": Property(is_datetime=True),
         "devices": Property(derived_class=FirewallDevice),
         "rules": Property(),
     }
