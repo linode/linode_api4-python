@@ -72,6 +72,9 @@ class LongviewGroup(Group):
         :param longview_subscription: The subscription ID for a particular Longview plan.
                                       A value of null corresponds to Longview Free.
         :type longview_subscription: str
+
+        :returns: The updated Longview Plan
+        :rtype: LongviewPlan
         """
 
         if longview_subscription not in [
