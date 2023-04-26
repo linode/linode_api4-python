@@ -33,16 +33,13 @@ class Volume(Base):
 
         API Documentation: https://www.linode.com/docs/api/volumes/#volume-attach
 
-        :param to_linode: The ID of the Linode to attach the volume to.
-        :type to_linode: int
+        :param to_linode: The ID or object of the Linode to attach the volume to.
+        :type to_linode: Union[Instance, int]
 
-        :param config: The ID of the Linode Config to include this Volume in.
+        :param config: The ID or object of the Linode Config to include this Volume in.
                        Must belong to the Linode referenced by linode_id.
                        If not given, the last booted Config will be chosen.
-        :type config: int
-
-        :returns: Returns true if operation was successful
-        :rtype: bool
+        :type config: Union[Config, int]
         """
         result = self._client.post(
             "{}/attach".format(Volume.api_endpoint),
