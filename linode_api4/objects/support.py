@@ -96,7 +96,7 @@ class SupportTicket(Base):
             attachment = Path(attachment)
 
         if not attachment.exists():
-            raise Exception("File not exist, nothing to upload.")
+            raise ValueError("File not exist, nothing to upload.")
 
         headers = {
             "Authorization": "Bearer {}".format(self._client.token),
@@ -108,7 +108,11 @@ class SupportTicket(Base):
                 SupportTicket.api_endpoint.format(id=self.id),
             ),
             headers=headers,
-            files={"file": open(attachment, "rb")},
+            files={
+                "file": open(  # pylint: disable=consider-using-with
+                    attachment, "rb"
+                )
+            },
         )
 
         if not result.status_code == 200:
