@@ -103,6 +103,10 @@ class Profile(Base):
 
         API Documentation: https://www.linode.com/docs/api/profile/#two-factor-authentication-confirmenable
 
+        :param code: The Two Factor code you generated with your Two Factor secret.
+                     These codes are time-based, so be sure it is current.
+        :type code: str
+
         :returns: Returns true if operation was successful
         :rtype: bool
         """
