@@ -68,6 +68,8 @@ class ProfileGroup(Group):
     def security_questions(self):
         """
         Returns a collection of security questions and their responses, if any, for your User Profile.
+
+        API Documentation: https://www.linode.com/docs/api/profile/#security-questions-list
         """
 
         result = self.client.get(
@@ -118,7 +120,7 @@ class ProfileGroup(Group):
         """
         Delete the verified phone number for the User making this request.
 
-        API Documentation: https://api.linode.com/v4/profile/phone-number
+        API Documentation: https://www.linode.com/docs/api/profile/#phone-number-delete
 
         :returns: Returns True if the operation was successful.
         :rtype: bool
@@ -141,7 +143,7 @@ class ProfileGroup(Group):
         Verify a phone number by confirming the one-time code received via SMS message
         after accessing the Phone Verification Code Send (POST /profile/phone-number) command.
 
-        API Documentation: https://api.linode.com/v4/profile/phone-number/verify
+        API Documentation: https://www.linode.com/docs/api/profile/#phone-number-verify
 
         :param otp_code: The one-time code received via SMS message after accessing the Phone Verification Code Send
         :type otp_code: str
@@ -173,7 +175,7 @@ class ProfileGroup(Group):
         """
         Send a one-time verification code via SMS message to the submitted phone number.
 
-        API Documentation: https://api.linode.com/v4/profile/phone-number
+        API Documentation: https://www.linode.com/docs/api/profile/#phone-number-verification-code-send
 
         :param iso_code: The two-letter ISO 3166 country code associated with the phone number.
         :type iso_code: str
