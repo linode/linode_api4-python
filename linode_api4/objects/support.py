@@ -13,6 +13,12 @@ from linode_api4.objects.nodebalancer import NodeBalancer
 
 
 class TicketReply(DerivedBase):
+    """
+    A reply to a Support Ticket.
+
+    API Documentation: https://www.linode.com/docs/api/support/#replies-list
+    """
+
     api_endpoint = "/support/tickets/{ticket_id}/replies"
     derived_url_path = "replies"
     parent_id_name = "ticket_id"
@@ -28,6 +34,12 @@ class TicketReply(DerivedBase):
 
 
 class SupportTicket(Base):
+    """
+    An objected representing a Linode Support Ticket.
+
+    API Documentation: https://www.linode.com/docs/api/support/#replies-list
+    """
+
     api_endpoint = "/support/tickets/{id}"
     properties = {
         "id": Property(identifier=True),
@@ -48,30 +60,69 @@ class SupportTicket(Base):
 
     @property
     def linode(self):
+        """
+        If applicable, the Linode referenced in this ticket.
+
+        :returns: The Linode referenced in this ticket.
+        :rtype: Optional[Instance]
+        """
+
         if self.entity and self.entity.type == "linode":
             return Instance(self._client, self.entity.id)
         return None
 
     @property
     def domain(self):
+        """
+        If applicable, the Domain referenced in this ticket.
+
+        :returns: The Domain referenced in this ticket.
+        :rtype: Optional[Domain]
+        """
+
         if self.entity and self.entity.type == "domain":
             return Domain(self._client, self.entity.id)
         return None
 
     @property
     def nodebalancer(self):
+        """
+        If applicable, the NodeBalancer referenced in this ticket.
+
+        :returns: The NodeBalancer referenced in this ticket.
+        :rtype: Optional[NodeBalancer]
+        """
+
         if self.entity and self.entity.type == "nodebalancer":
             return NodeBalancer(self._client, self.entity.id)
         return None
 
     @property
     def volume(self):
+        """
+        If applicable, the Volume referenced in this ticket.
+
+        :returns: The Volume referenced in this ticket.
+        :rtype: Optional[Volume]
+        """
+
         if self.entity and self.entity.type == "volume":
             return Volume(self._client, self.entity.id)
         return None
 
     def post_reply(self, description):
-        """ """
+        """
+        Adds a reply to an existing Support Ticket.
+
+        API Documentation: https://www.linode.com/docs/api/support/#reply-create
+
+        :param description: The content of this Support Ticket Reply.
+        :type description: str
+
+        :returns: The new TicketReply object.
+        :rtype: Optional[TicketReply]
+        """
+
         result = self._client.post(
             "{}/replies".format(SupportTicket.api_endpoint),
             model=self,
@@ -89,6 +140,18 @@ class SupportTicket(Base):
         return r
 
     def upload_attachment(self, attachment):
+        """
+        Uploads an attachment to an existing Support Ticket.
+
+        API Documentation: https://www.linode.com/docs/api/support/#support-ticket-attachment-create
+
+        :param attachment: A path to the file to upload as an attachment.
+        :type attachment: str
+
+        :returns: Whether the upload operation was successful.
+        :rtype: bool
+        """
+
         content = None
         with open(attachment) as f:
             content = f.read()
@@ -120,4 +183,10 @@ class SupportTicket(Base):
         return True
 
     def support_ticket_close(self):
+        """
+        Closes a Support Ticket.
+
+        API Documentation: https://www.linode.com/docs/api/support/#support-ticket-close
+        """
+
         self._client.post("{}/close".format(self.api_endpoint), model=self)
