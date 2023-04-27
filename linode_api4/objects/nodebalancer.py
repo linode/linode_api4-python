@@ -197,6 +197,21 @@ class NodeBalancer(Base):
         return c
 
     def config_rebuild(self, config_id, nodes, **kwargs):
+        """
+        Rebuilds a NodeBalancer Config and its Nodes that you have permission to modify.
+        Use this command to update a NodeBalancer’s Config and Nodes with a single request.
+
+        API documentation: https://www.linode.com/docs/api/nodebalancers/#config-rebuild
+
+        :param config_id: The ID of the Config to access.
+        :type config_id: int
+
+        :param nodes: The NodeBalancer Node(s) that serve this Config.
+        :type nodes: [{ address: str, id: int, label: str, mode: str, weight: int }]
+
+        :returns: A nodebalancer config that rebuilt successfully.
+        :rtype: NodeBalancerConfig
+        """
         params = {
             "nodes": nodes,
         }
@@ -218,6 +233,14 @@ class NodeBalancer(Base):
         return NodeBalancerConfig(self._client, result["id"], self.id, result)
 
     def statistics(self):
+        """
+        Returns detailed statistics about the requested NodeBalancer.
+
+        API documentation: https://www.linode.com/docs/api/nodebalancers/#nodebalancer-statistics-view
+
+        :returns: The requested stats.
+        :rtype: MappedObject
+        """
         result = self._client.get(
             "{}/stats".format(NodeBalancer.api_endpoint), model=self
         )
