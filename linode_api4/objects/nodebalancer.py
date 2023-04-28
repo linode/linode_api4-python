@@ -126,7 +126,7 @@ class NodeBalancerConfig(DerivedBase):
                         This must be a private IP address.
         :type address: str
 
-        :param label: The label for this node. This is for display purposes only. 
+        :param label: The label for this node. This is for display purposes only.
                       Must have a length between 2 and 32 characters.
         :type label: str
 
