@@ -175,3 +175,15 @@ def create_firewall(get_client):
     yield firewall
 
     firewall.delete()
+
+
+@pytest.fixture
+def create_oauth_client(get_client):
+    client = get_client
+    oauth_client = client.account.oauth_client_create(
+        "test-oauth-client", "https://localhost/oauth/callback"
+    )
+
+    yield oauth_client
+
+    oauth_client.delete()

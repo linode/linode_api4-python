@@ -1,46 +1,99 @@
-from linode_api4.objects.account import Account
+from linode_api4.objects import (
+    Account,
+    AccountSettings,
+    Event,
+    Login,
+    OAuthClient,
+    User,
+)
+
+from test.integration.helpers import get_test_label
+
+import time
 
 
-@pytest.fixture(scope="session", autouse=True)
-def test_create_account(get_client):
+def test_get_account(get_client):
     client = get_client
-    account = Account(client=client, id="test")
-    account.make(id="test1", client=client, cls="account")
+    account = client.load(Account(client, "test-123@linode.com"))
 
-    print(account)
+    assert account.first_name == "Test"
+    assert account.last_name == "User"
+    assert account.email == "test-123@linode.com"
+    assert account.phone == "111-111-1111"
+    assert account.address_1 == "3rd & Arch St"
+    assert account.address_2 == "Unit 999"
+    assert account.city == "Philadelphia"
+    assert account.state == "PA"
+    assert account.country == "US"
+    assert account.zip == "19106"
+    assert account.tax_id == "999-99-9999"
 
 
-# def test_account_view():
-# def test_notifications_list():
-# def test_oauth_clients_list():
-# def test_oauth_clinet_create():
-# def test_oauth_client_view():
-# def test_oauth_client_update():
-# def test_oauth_client_secret_reset():
-# def test_oauth_client_thumbnail_view():
-# def test_oauth_client_thumbnail_update():
-# def test_payment_methods_list():
-# def test_payment_method_add():
-# def test_payment_method_view():
-# def test_payment_method_make_default():
-# def test_payments_list():
-# def test_payment_make():
-# def test_paypal_payment_stage():
-# def test_staged_approved_paypal_payment_execute():
-# def test_payment_view():
-# def test_promo_credit_add():
-# def test_service_transfers_list():
-# def test_service_transfer_create():
-# def test_service_transfer_view():
-# def test_service_transfer_accept():
-# def test_account_settings_view():
-# def test_account_settings_update_():
-# def test_service_transfer_create():
-# def test_linode_managed_eneabled():
-# def test_network_utilization_view():
-# def test_users_list():
-# def test_user_create():
-# def test_user_view():
-# def test_user_update():
-# def test_user_grants_view():
-# def test_user_grants_update():
+def test_get_login(get_client):
+    client = get_client
+    login = client.load(Login(client, "", {}), "")
+
+    updated_time = int(time.mktime(getattr(login, "_last_updated").timetuple()))
+
+    login_updated = int(time.time()) - updated_time
+
+    assert "username" in str(login._raw_json)
+    assert "ip" in str(login._raw_json)
+    assert "datetime" in str(login._raw_json)
+    assert "status" in str(login._raw_json)
+    assert login_updated < 15
+
+
+def test_get_account_settings(get_client):
+    client = get_client
+    account_settings = client.load(AccountSettings(client, ""), "")
+
+    assert "managed" in str(account_settings._raw_json)
+    assert "network_helper" in str(account_settings._raw_json)
+    assert "longview_subscription" in str(account_settings._raw_json)
+    assert "backups_enabled" in str(account_settings._raw_json)
+    assert "object_storage" in str(account_settings._raw_json)
+
+
+def test_latest_get_event(get_client):
+    client = get_client
+
+    available_regions = client.regions()
+    chosen_region = available_regions[0]
+    label = get_test_label()
+
+    linode, password = client.linode.instance_create(
+        "g5-standard-4", chosen_region, image="linode/debian9", label=label
+    )
+
+    events = client.load(Event, "")
+
+    latest_event = events._raw_json.get("data")[0]
+
+    linode.delete()
+
+    assert "linode_" in latest_event
+    assert label in latest_event
+
+
+def test_get_oathclient(get_client, create_oauth_client):
+    client = get_client
+
+    oauth_client = client.load(OAuthClient, create_oauth_client.id)
+
+    assert "test-oauth-client" == oauth_client.label
+    assert "https://localhost/oauth/callback" == oauth_client.redirect_uri
+
+
+def test_get_user(get_client):
+    client = get_client
+
+    events = client.load(Event, "")
+
+    username = events._raw_json.get("data")[0]["username"]
+
+    user = client.laod(User, username)
+
+    assert username == user.username
+    assert "email" in user._raw_json
+    assert "email" in user._raw_json

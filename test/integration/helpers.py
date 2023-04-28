@@ -1,6 +1,7 @@
 import random
 import time
 
+from typing import Callable, List
 from linode_api4 import PaginatedList
 from linode_api4.linode_client import LinodeClient
 
@@ -55,3 +56,16 @@ def delete_all_test_instances(client: LinodeClient):
     delete_instance_with_test_kw(longview_clients)
     delete_instance_with_test_kw(clusters)
     delete_instance_with_test_kw(firewalls)
+
+
+def wait_for_condition(interval: int, timeout: int, condition: Callable):
+    start_time = time.time()
+    while True:
+        if condition():
+            break
+
+        if time.time() - start_time > timeout:
+            raise TimeoutError("Wait for condition timeout error")
+
+        time.sleep(interval)
+
