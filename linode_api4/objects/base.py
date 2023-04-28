@@ -218,7 +218,10 @@ class Base(object, metaclass=FilterableMetaclass):
                 and object.__getattribute__(self, a) is not None
                 and hasattr(self, a)
             }
-            # pdb.set_trace()
+
+            for key, value in result.items():
+                if isinstance(value, ExplicitNullValue) or value == ExplicitNullValue:
+                    result[key] = None
 
             resp = self._client.put(
                 type(self).api_endpoint, model=self, data=result
