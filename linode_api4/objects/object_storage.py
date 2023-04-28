@@ -20,6 +20,8 @@ class ObjectStorageACL:
 class ObjectStorageBucket(DerivedBase):
     """
     A bucket where objects are stored in.
+
+    API documentation: https://www.linode.com/docs/api/object-storage/#object-storage-bucket-view
     """
 
     api_endpoint = "/object-storage/buckets/{cluster}/{label}"
