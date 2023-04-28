@@ -1,0 +1,8 @@
+{
+  "cluster": "us-east-1",
+  "created": "2019-01-01T01:23:45",
+  "hostname": "example-bucket.us-east-1.linodeobjects.com",
+  "label": "example-bucket",
+  "objects": 4,
+  "size": 188318981
+}
