@@ -126,8 +126,9 @@ class NodeBalancerConfig(DerivedBase):
                         This must be a private IP address.
         :type address: str
 
-        :param label: The label for this node. This is for display purposes only.
-        :type label: str 3..32 characters
+        :param label: The label for this node. This is for display purposes only. 
+                      Must have a length between 2 and 32 characters.
+        :type label: str
 
         :returns: The node which is created successfully.
         :rtype: NodeBalancerNode
@@ -211,7 +212,7 @@ class NodeBalancer(Base):
     }
 
     # create derived objects
-    def config_create(self, label=None, **kwargs):
+    def config_create(self, **kwargs):
         """
         Creates a NodeBalancer Config, which allows the NodeBalancer to accept traffic
         on a new port. You will need to add NodeBalancer Nodes to the new Config before
@@ -223,8 +224,6 @@ class NodeBalancer(Base):
         :rtype: NodeBalancerConfig
         """
         params = kwargs
-        if label:
-            params["label"] = label
 
         result = self._client.post(
             "{}/configs".format(NodeBalancer.api_endpoint),
