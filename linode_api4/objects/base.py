@@ -203,9 +203,23 @@ class Base(object, metaclass=FilterableMetaclass):
         if not force and not self._changed:
             return False
 
-        resp = self._client.put(
-            type(self).api_endpoint, model=self, data=self._serialize()
-        )
+        if not self._populated:
+            result = {
+                a: getattr(self, a)
+                for a in type(self).properties
+                if type(self).properties[a].mutable
+                and object.__getattribute__(self, a) is not None
+                and hasattr(self, a)
+            }
+            # pdb.set_trace()
+
+            resp = self._client.put(
+                type(self).api_endpoint, model=self, data=result
+            )
+        else:
+            resp = self._client.put(
+                type(self).api_endpoint, model=self, data=self._serialize()
+            )
 
         if "error" in resp:
             return False
