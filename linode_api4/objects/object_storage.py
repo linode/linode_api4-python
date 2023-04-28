@@ -456,6 +456,8 @@ class ObjectStorageBucket(DerivedBase):
 class ObjectStorageCluster(Base):
     """
     A cluster where Object Storage is available.
+
+    API documentation: https://www.linode.com/docs/api/object-storage/#cluster-view
     """
 
     api_endpoint = "/object-storage/clusters/{id}"
@@ -494,6 +496,8 @@ class ObjectStorageCluster(Base):
 class ObjectStorageKeys(Base):
     """
     A keypair that allows third-party applications to access Linode Object Storage.
+
+    API documentation: https://www.linode.com/docs/api/object-storage/#object-storage-key-view
     """
 
     api_endpoint = "/object-storage/keys/{id}"
