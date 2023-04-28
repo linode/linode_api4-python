@@ -220,7 +220,10 @@ class Base(object, metaclass=FilterableMetaclass):
             }
 
             for key, value in result.items():
-                if isinstance(value, ExplicitNullValue) or value == ExplicitNullValue:
+                if (
+                    isinstance(value, ExplicitNullValue)
+                    or value == ExplicitNullValue
+                ):
                     result[key] = None
 
             resp = self._client.put(
