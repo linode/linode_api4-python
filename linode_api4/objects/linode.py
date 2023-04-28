@@ -1460,6 +1460,7 @@ class StackScript(Base):
         "deployments_total": Property(),
         "description": Property(mutable=True),
         "updated": Property(is_datetime=True),
+        "mine": Property(),
     }
 
     def _populate(self, json):

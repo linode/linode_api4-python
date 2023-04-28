@@ -6,6 +6,12 @@ from linode_api4.objects.networking import IPAddress
 
 
 class NodeBalancerNode(DerivedBase):
+    """
+    The information about a single Node, a backend for this NodeBalancer’s configured port.
+
+    API documentation: https://www.linode.com/docs/api/nodebalancers/#node-view
+    """
+
     api_endpoint = (
         "/nodebalancers/{nodebalancer_id}/configs/{config_id}/nodes/{id}"
     )
@@ -45,6 +51,12 @@ class NodeBalancerNode(DerivedBase):
 
 
 class NodeBalancerConfig(DerivedBase):
+    """
+    The configuration information for a single port of this NodeBalancer.
+
+    API documentation: https://www.linode.com/docs/api/nodebalancers/#config-view
+    """
+
     api_endpoint = "/nodebalancers/{nodebalancer_id}/configs/{id}"
     derived_url_path = "configs"
     parent_id_name = "nodebalancer_id"
@@ -77,6 +89,14 @@ class NodeBalancerConfig(DerivedBase):
         """
         This is a special derived_class relationship because NodeBalancerNode is the
         only api object that requires two parent_ids
+
+        Returns a paginated list of NodeBalancer nodes associated with this Config.
+        These are the backends that will be sent traffic for this port.
+
+        API documentation: https://www.linode.com/docs/api/nodebalancers/#nodes-list
+
+        :returns: A paginated list of NodeBalancer nodes.
+        :rtype: PaginatedList of NodeBalancerNode
         """
         if not hasattr(self, "_nodes"):
             base_url = "{}/{}".format(
@@ -95,6 +115,24 @@ class NodeBalancerConfig(DerivedBase):
         return self._nodes
 
     def node_create(self, label, address, **kwargs):
+        """
+        Creates a NodeBalancer Node, a backend that can accept traffic for this
+        NodeBalancer Config. Nodes are routed requests on the configured port based
+        on their status.
+
+        API documentation: https://www.linode.com/docs/api/nodebalancers/#node-create
+
+        :param address: The private IP Address where this backend can be reached.
+                        This must be a private IP address.
+        :type address: str
+
+        :param label: The label for this node. This is for display purposes only.
+                      Must have a length between 2 and 32 characters.
+        :type label: str
+
+        :returns: The node which is created successfully.
+        :rtype: NodeBalancerNode
+        """
         params = {
             "label": label,
             "address": address,
@@ -152,6 +190,12 @@ class NodeBalancerConfig(DerivedBase):
 
 
 class NodeBalancer(Base):
+    """
+    A single NodeBalancer you can access.
+
+    API documentation: https://www.linode.com/docs/api/nodebalancers/#nodebalancer-view
+    """
+
     api_endpoint = "/nodebalancers/{id}"
     properties = {
         "id": Property(identifier=True),
@@ -168,10 +212,18 @@ class NodeBalancer(Base):
     }
 
     # create derived objects
-    def config_create(self, label=None, **kwargs):
+    def config_create(self, **kwargs):
+        """
+        Creates a NodeBalancer Config, which allows the NodeBalancer to accept traffic
+        on a new port. You will need to add NodeBalancer Nodes to the new Config before
+        it can actually serve requests.
+
+        API documentation: https://www.linode.com/docs/api/nodebalancers/#config-create
+
+        :returns: The config that created successfully.
+        :rtype: NodeBalancerConfig
+        """
         params = kwargs
-        if label:
-            params["label"] = label
 
         result = self._client.post(
             "{}/configs".format(NodeBalancer.api_endpoint),

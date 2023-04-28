@@ -1,7 +1,7 @@
 from datetime import datetime
 from test.base import ClientBaseCase
 
-from linode_api4.objects import Config, Disk, Image, Instance, Type
+from linode_api4.objects import Config, Disk, Image, Instance, StackScript, Type
 
 
 class LinodeTest(ClientBaseCase):
@@ -450,6 +450,27 @@ class ConfigTest(ClientBaseCase):
         self.assertIsNone(config.initrd)
         self.assertEqual(config.virt_mode, "paravirt")
         self.assertIsNotNone(config.devices)
+
+
+class StackScriptTest(ClientBaseCase):
+    """
+    Tests the methods of the StackScript class.
+    """
+
+    def test_get_stackscript(self):
+        """
+        Tests that a stackscript is loaded correctly by ID
+        """
+        stackscript = StackScript(self.client, 10079)
+
+        self.assertEqual(stackscript.id, 10079)
+        self.assertEqual(stackscript.deployments_active, 1)
+        self.assertEqual(stackscript.deployments_total, 12)
+        self.assertEqual(stackscript.rev_note, "Set up MySQL")
+        self.assertTrue(stackscript.mine)
+        self.assertTrue(stackscript.is_public)
+        self.assertIsNotNone(stackscript.user_defined_fields)
+        self.assertIsNotNone(stackscript.images)
 
 
 class TypeTest(ClientBaseCase):

@@ -1,0 +1,9 @@
+{
+    "clients_included": 10,
+    "id": "longview-10",
+    "label": "Longview Pro 10 pack",
+    "price": {
+      "hourly": 0.06,
+      "monthly": 40
+    }
+}

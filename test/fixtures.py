@@ -41,5 +41,5 @@ class TestFixtures:
             if "results" in data:
                 # this is a paginated response
                 for obj in data["data"]:
-                    if "id" in obj:  # tags don't have ids
+                    if "id" in obj:  # tags, obj-buckets don't have ids
                         self.fixtures[fixture_url + "/" + str(obj["id"])] = obj

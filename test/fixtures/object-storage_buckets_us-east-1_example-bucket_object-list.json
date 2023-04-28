@@ -1,0 +1,13 @@
+{
+    "data": [
+      {
+        "etag": "9f254c71e28e033bf9e0e5262e3e72ab",
+        "is_truncated": true,
+        "last_modified": "2019-01-01T01:23:45",
+        "name": "example",
+        "next_marker": "bd021c21-e734-4823-97a4-58b41c2cd4c8.892602.184",
+        "owner": "bfc70ab2-e3d4-42a4-ad55-83921822270c",
+        "size": 123
+      }
+    ]
+}
