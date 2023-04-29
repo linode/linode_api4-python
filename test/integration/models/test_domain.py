@@ -1,3 +1,5 @@
+
+from linode_api4.groups import domain
 from linode_api4.objects import (
     Account,
     AccountSettings,
@@ -19,8 +21,3 @@ from linode_api4.objects import (
     Volume,
     get_obj_grants,
 )
-
-from linode_api4.groups import domain
-
-from test.integration.helpers import get_test_label
-

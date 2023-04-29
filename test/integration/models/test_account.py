@@ -1,3 +1,6 @@
+import time
+from test.integration.helpers import get_test_label
+
 from linode_api4.objects import (
     Account,
     AccountSettings,
@@ -6,10 +9,6 @@ from linode_api4.objects import (
     OAuthClient,
     User,
 )
-
-from test.integration.helpers import get_test_label
-
-import time
 
 
 def test_get_account(get_client):
