@@ -3,17 +3,34 @@ from datetime import datetime, timedelta
 
 from .filtering import FilterableMetaclass
 
-
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 
 # The interval to reload volatile properties
 volatile_refresh_timeout = timedelta(seconds=15)
 
+
+class ExplicitNullValue:
+    """
+    An explicitly null value to set a property to.
+    Instances of `NullValue` differ from None as they will be explicitly
+    included in the resource PUT requests.
+    """
+
+
 class Property:
-    def __init__(self, mutable=False, identifier=False, volatile=False, relationship=None,
-            derived_class=None, is_datetime=False, filterable=False, id_relationship=False,
-            slug_relationship=False):
+    def __init__(
+        self,
+        mutable=False,
+        identifier=False,
+        volatile=False,
+        relationship=None,
+        derived_class=None,
+        is_datetime=False,
+        id_relationship=False,
+        slug_relationship=False,
+        nullable=False,
+    ):
         """
         A Property is an attribute returned from the API, and defines metadata
         about that value.  These are expected to be used as the values of a
@@ -26,10 +43,10 @@ class Property:
         relationship - The API Object this Property represents
         derived_class - The sub-collection type this Property represents
         is_datetime - True if this Property should be parsed as a datetime.datetime
-        filterable - True if the API allows filtering on this property
         id_relationship - This Property should create a relationship with this key as the ID
             (This should be used on fields ending with '_id' only)
         slug_relationship - This property is a slug related for a given type.
+        nullable - This property can be explicitly null on PUT requests.
         """
         self.mutable = mutable
         self.identifier = identifier
@@ -37,9 +54,9 @@ class Property:
         self.relationship = relationship
         self.derived_class = derived_class
         self.is_datetime = is_datetime
-        self.filterable = filterable
         self.id_relationship = id_relationship
         self.slug_relationship = slug_relationship
+
 
 class MappedObject:
     """
@@ -53,6 +70,7 @@ class MappedObject:
 
     object.this # "that"
     """
+
     def __init__(self, **vals):
         self._expand_vals(self.__dict__, **vals)
 
@@ -62,39 +80,44 @@ class MappedObject:
                 vals[v] = MappedObject(**vals[v])
             elif type(vals[v]) is list:
                 # oh mama
-                vals[v] = [ MappedObject(**i) if type(i) is dict else i for i in vals[v] ]
+                vals[v] = [
+                    MappedObject(**i) if type(i) is dict else i for i in vals[v]
+                ]
         target.update(vals)
 
     def __repr__(self):
         return "Mapping containing {}".format(vars(self).keys())
-    
+
     @property
     def dict(self):
         return dict(self.__dict__)
+
 
 class Base(object, metaclass=FilterableMetaclass):
     """
     The Base class knows how to look up api properties of a model, and lazy-load them.
     """
+
     properties = {}
 
     def __init__(self, client, id, json={}):
-        self._set('_populated', False)
-        self._set('_last_updated', datetime.min)
-        self._set('_client', client)
+        self._set("_populated", False)
+        self._set("_last_updated", datetime.min)
+        self._set("_client", client)
+        self._set("_changed", False)
 
         #: self._raw_json is a copy of the json received from the API on population,
         #: and cannot be relied upon to be current.  Local changes to mutable fields
         #: that have not been saved will not be present, and volatile fields will not
         #: be updated on access.
-        self._set('_raw_json', None)
+        self._set("_raw_json", None)
 
         for prop in type(self).properties:
             self._set(prop, None)
 
-        self._set('id', id)
-        if hasattr(type(self), 'id_attribute'):
-            self._set(getattr(type(self), 'id_attribute'), id)
+        self._set("id", id)
+        if hasattr(type(self), "id_attribute"):
+            self._set(getattr(type(self), "id_attribute"), id)
 
         self._populate(json)
 
@@ -106,30 +129,48 @@ class Base(object, metaclass=FilterableMetaclass):
         if name in type(self).properties.keys():
             # We are accessing a Property
             if type(self).properties[name].identifier:
-                pass # don't load identifiers from the server, we have those
-            elif (object.__getattribute__(self, name) is None and not self._populated \
-                    or type(self).properties[name].derived_class) \
-                    or (type(self).properties[name].volatile \
-                    and object.__getattribute__(self, '_last_updated')
-                    + volatile_refresh_timeout < datetime.now()):
+                pass  # don't load identifiers from the server, we have those
+            elif (
+                object.__getattribute__(self, name) is None
+                and not self._populated
+                or type(self).properties[name].derived_class
+            ) or (
+                type(self).properties[name].volatile
+                and object.__getattribute__(self, "_last_updated")
+                + volatile_refresh_timeout
+                < datetime.now()
+            ):
                 # needs to be loaded from the server
                 if type(self).properties[name].derived_class:
-                    #load derived object(s)
-                    self._set(name, type(self).properties[name].derived_class
-                            ._api_get_derived(self, getattr(self, '_client')))
+                    # load derived object(s)
+                    self._set(
+                        name,
+                        type(self)
+                        .properties[name]
+                        .derived_class._api_get_derived(
+                            self, getattr(self, "_client")
+                        ),
+                    )
                 else:
                     self._api_get()
         elif "{}_id".format(name) in type(self).properties.keys():
             # possible id-based relationship
-            related_type = type(self).properties['{}_id'.format(name)].id_relationship
+            related_type = (
+                type(self).properties["{}_id".format(name)].id_relationship
+            )
             if related_type:
                 # no id, no related object
                 if not getattr(self, "{}_id".format(name)):
                     return None
                 # it is a relationship
-                relcache_name = '_{}_relcache'.format(name)
+                relcache_name = "_{}_relcache".format(name)
                 if not hasattr(self, relcache_name):
-                    self._set(relcache_name, related_type(self._client, getattr(self, '{}_id'.format(name))))
+                    self._set(
+                        relcache_name,
+                        related_type(
+                            self._client, getattr(self, "{}_id".format(name))
+                        ),
+                    )
                 return object.__getattribute__(self, relcache_name)
 
         return object.__getattribute__(self, name)
@@ -144,20 +185,40 @@ class Base(object, metaclass=FilterableMetaclass):
         """
         Enforces allowing editing of only Properties defined as mutable
         """
-        if name in type(self).properties.keys() and not type(self).properties[name].mutable:
-            raise AttributeError("'{}' is not a mutable field of '{}'"
-                .format(name, type(self).__name__))
+        if name in type(self).properties.keys():
+            if not type(self).properties[name].mutable:
+                raise AttributeError(
+                    "'{}' is not a mutable field of '{}'".format(
+                        name, type(self).__name__
+                    )
+                )
+
+            self._changed = True
+
         self._set(name, value)
 
-    def save(self):
+    def save(self, force=True) -> bool:
         """
-        Send this object's mutable values to the server in a PUT request
-        """
-        resp = self._client.put(type(self).api_endpoint, model=self,
-            data=self._serialize())
+        Send this object's mutable values to the server in a PUT request.
 
-        if 'error' in resp:
+        :param force: If true, this method will always send a PUT request regardless of
+                      whether the field has been explicitly updated. For optimization
+                      purposes, this field should be set to false for typical update
+                      operations. (Defaults to True)
+        :type force: bool
+        """
+        if not force and not self._changed:
             return False
+
+        resp = self._client.put(
+            type(self).api_endpoint, model=self, data=self._serialize()
+        )
+
+        if "error" in resp:
+            return False
+
+        self._set("_changed", False)
+
         return True
 
     def delete(self):
@@ -166,7 +227,7 @@ class Base(object, metaclass=FilterableMetaclass):
         """
         resp = self._client.delete(type(self).api_endpoint, model=self)
 
-        if 'error' in resp:
+        if "error" in resp:
             return False
         self.invalidate()
         return True
@@ -176,24 +237,47 @@ class Base(object, metaclass=FilterableMetaclass):
         Invalidates all non-identifier Properties this object has locally,
         causing the next access to re-fetch them from the server
         """
-        for key in [k for k in type(self).properties.keys()
-                if not type(self).properties[k].identifier]:
+        for key in [
+            k
+            for k in type(self).properties.keys()
+            if not type(self).properties[k].identifier
+        ]:
             self._set(key, None)
 
-        self._set('_populated', False)
+        self._set("_populated", False)
 
     def _serialize(self):
         """
         A helper method to build a dict of all mutable Properties of
         this object
         """
-        result = { a: getattr(self, a) for a in type(self).properties
-            if type(self).properties[a].mutable }
 
+        result = {}
+
+        # Aggregate mutable values into a dict
+        for k, v in type(self).properties.items():
+            if not v.mutable:
+                continue
+
+            value = getattr(self, k)
+
+            if not value:
+                continue
+
+            # Let's allow explicit null values as both classes and instances
+            if (
+                isinstance(value, ExplicitNullValue)
+                or value == ExplicitNullValue
+            ):
+                value = None
+
+            result[k] = value
+
+        # Resolve the underlying IDs of results
         for k, v in result.items():
             if isinstance(v, Base):
                 result[k] = v.id
-            elif isinstance(v,MappedObject):
+            elif isinstance(v, MappedObject):
                 result[k] = v.dict
 
         return result
@@ -215,46 +299,62 @@ class Base(object, metaclass=FilterableMetaclass):
             return
 
         # hide the raw JSON away in case someone needs it
-        self._set('_raw_json', json)
+        self._set("_raw_json", json)
+        self._set("_updated", False)
 
         for key in json:
-            if key in (k for k in type(self).properties.keys()
-                    if not type(self).properties[k].identifier):
-                if type(self).properties[key].relationship \
-                    and not json[key] is None:
+            if key in (
+                k
+                for k in type(self).properties.keys()
+                if not type(self).properties[k].identifier
+            ):
+                if (
+                    type(self).properties[key].relationship
+                    and not json[key] is None
+                ):
                     if isinstance(json[key], list):
                         objs = []
                         for d in json[key]:
-                            if not 'id' in d:
+                            if not "id" in d:
                                 continue
                             new_class = type(self).properties[key].relationship
-                            obj = new_class.make_instance(d['id'],
-                                    getattr(self,'_client'))
+                            obj = new_class.make_instance(
+                                d["id"], getattr(self, "_client")
+                            )
                             if obj:
                                 obj._populate(d)
                             objs.append(obj)
                         self._set(key, objs)
                     else:
                         if isinstance(json[key], dict):
-                            related_id = json[key]['id']
+                            related_id = json[key]["id"]
                         else:
                             related_id = json[key]
                         new_class = type(self).properties[key].relationship
-                        obj = new_class.make_instance(related_id, getattr(self,'_client'))
+                        obj = new_class.make_instance(
+                            related_id, getattr(self, "_client")
+                        )
                         if obj and isinstance(json[key], dict):
                             obj._populate(json[key])
                         self._set(key, obj)
-                elif  type(self).properties[key].slug_relationship \
-                        and not json[key] is None:
+                elif (
+                    type(self).properties[key].slug_relationship
+                    and not json[key] is None
+                ):
                     # create an object of the expected type with the given slug
-                    self._set(key, type(self).properties[key].slug_relationship(self._client, json[key]))
+                    self._set(
+                        key,
+                        type(self)
+                        .properties[key]
+                        .slug_relationship(self._client, json[key]),
+                    )
                 elif type(json[key]) is dict:
                     self._set(key, MappedObject(**json[key]))
                 elif type(json[key]) is list:
                     # we're going to use MappedObject's behavior with lists to
                     # expand these, then grab the resulting value to set
                     mapping = MappedObject(_list=json[key])
-                    self._set(key, mapping._list) # pylint: disable=no-member
+                    self._set(key, mapping._list)  # pylint: disable=no-member
                 elif type(self).properties[key].is_datetime:
                     try:
                         t = time.strptime(json[key], DATE_FORMAT)
@@ -267,8 +367,8 @@ class Base(object, metaclass=FilterableMetaclass):
                 else:
                     self._set(key, json[key])
 
-        self._set('_populated', True)
-        self._set('_last_updated', datetime.now())
+        self._set("_populated", True)
+        self._set("_last_updated", datetime.now())
 
     def _set(self, name, value):
         """
@@ -283,7 +383,7 @@ class Base(object, metaclass=FilterableMetaclass):
         Returns a URL that will produce a list of JSON objects
         of this class' type
         """
-        return '/'.join(cls.api_endpoint.split('/')[:-1])
+        return "/".join(cls.api_endpoint.split("/")[:-1])
 
     @staticmethod
     def make(id, client, cls, parent_id=None, json=None):
@@ -298,7 +398,7 @@ class Base(object, metaclass=FilterableMetaclass):
 
         :returns: An instance of cls with the given id
         """
-        from .dbase import DerivedBase # pylint: disable-all
+        from .dbase import DerivedBase  # pylint: disable-all
 
         if issubclass(cls, DerivedBase):
             return cls(client, id, parent_id, json)

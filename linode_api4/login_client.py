@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timedelta
 from enum import Enum
 
@@ -6,17 +7,17 @@ import requests
 from linode_api4.errors import ApiError
 
 try:
-    from urllib.parse import urlparse
-    from urllib.parse import urlencode
-    from urllib.parse import urlunparse
+    from urllib.parse import urlencode, urlparse, urlunparse
 except ImportError:
-    from urlparse import urlparse
     from urllib import urlencode
-    from urlparse import urlunparse
 
-class AllWrapper():
+    from urlparse import urlparse, urlunparse
+
+
+class AllWrapper:
     def __repr__(self):
-        return '*'
+        return "*"
+
 
 class OAuthScopes:
     """
@@ -44,12 +45,13 @@ class OAuthScopes:
         """
         Access to Linodes
         """
+
         read_only = 0
         read_write = 1
         all = 2
 
         def __repr__(self):
-            if(self.name == 'all'):
+            if self.name == "all":
                 return "linodes:*"
             return "linodes:{}".format(self.name)
 
@@ -57,12 +59,13 @@ class OAuthScopes:
         """
         Access to Domains
         """
+
         read_only = 0
         read_write = 1
         all = 2
 
         def __repr__(self):
-            if(self.name == 'all'):
+            if self.name == "all":
                 return "domains:*"
             return "domains:{}".format(self.name)
 
@@ -70,12 +73,13 @@ class OAuthScopes:
         """
         Access to private StackScripts
         """
+
         read_only = 0
         read_write = 1
         all = 2
 
         def __repr__(self):
-            if(self.name == 'all'):
+            if self.name == "all":
                 return "stackscripts:*"
             return "stackscripts:{}".format(self.name)
 
@@ -85,7 +89,7 @@ class OAuthScopes:
         all = 2
 
         def __repr__(self):
-            if(self.name == 'all'):
+            if self.name == "all":
                 return "users:*"
             return "users:{}".format(self.name)
 
@@ -93,12 +97,13 @@ class OAuthScopes:
         """
         Access to NodeBalancers
         """
+
         read_only = 0
         read_write = 1
         all = 2
 
         def __repr__(self):
-            if(self.name == 'all'):
+            if self.name == "all":
                 return "nodebalancers:*"
             return "nodebalancers:{}".format(self.name)
 
@@ -108,7 +113,7 @@ class OAuthScopes:
         all = 2
 
         def __repr__(self):
-            if(self.name == 'all'):
+            if self.name == "all":
                 return "tokens:*"
             return "tokens:{}".format(self.name)
 
@@ -116,12 +121,13 @@ class OAuthScopes:
         """
         Access to IPs and networking managements
         """
+
         read_only = 0
         read_write = 1
         all = 2
 
         def __repr__(self):
-            if(self.name == 'all'):
+            if self.name == "all":
                 return "ips:*"
             return "ips:{}".format(self.name)
 
@@ -129,12 +135,13 @@ class OAuthScopes:
         """
         Access to Firewalls
         """
+
         read_only = 0
         read_write = 1
         all = 2
 
         def __repr__(self):
-            if(self.name == 'all'):
+            if self.name == "all":
                 return "firewall:*"
             return "firewall:{}".format(self.name)
 
@@ -142,12 +149,13 @@ class OAuthScopes:
         """
         Access to view, open, and respond to Support Tickets
         """
+
         read_only = 0
         read_write = 1
         all = 2
 
         def __repr__(self):
-            if(self.name == 'all'):
+            if self.name == "all":
                 return "tickets:*"
             return "tickets:{}".format(self.name)
 
@@ -157,7 +165,7 @@ class OAuthScopes:
         all = 2
 
         def __repr__(self):
-            if(self.name == 'all'):
+            if self.name == "all":
                 return "clients:*"
             return "clients:{}".format(self.name)
 
@@ -166,12 +174,13 @@ class OAuthScopes:
         Access to the user's account, including billing information, tokens
         management, user management, etc.
         """
+
         read_only = 0
         read_write = 1
         all = 2
 
         def __repr__(self):
-            if(self.name == 'all'):
+            if self.name == "all":
                 return "account:*"
             return "account:{}".format(self.name)
 
@@ -179,12 +188,13 @@ class OAuthScopes:
         """
         Access to a user's Events
         """
+
         read_only = 0
         read_write = 1
         all = 2
 
         def __repr__(self):
-            if(self.name == 'all'):
+            if self.name == "all":
                 return "events:*"
             return "events:{}".format(self.name)
 
@@ -192,12 +202,13 @@ class OAuthScopes:
         """
         Access to Block Storage Volumes
         """
+
         read_only = 0
         read_write = 1
         all = 2
 
         def __repr__(self):
-            if(self.name == 'all'):
+            if self.name == "all":
                 return "volumes:*"
             return "volumes:{}".format(self.name)
 
@@ -205,12 +216,13 @@ class OAuthScopes:
         """
         Access to LKE Endpoint
         """
+
         read_only = 0
         read_write = 1
         all = 2
 
         def __repr__(self):
-            if(self.name == 'all'):
+            if self.name == "all":
                 return "lke:*"
             return "lke:{}".format(self.name)
 
@@ -218,12 +230,13 @@ class OAuthScopes:
         """
         Access to Object Storage
         """
+
         read_only = 0
         read_write = 1
         all = 2
 
         def __repr__(self):
-            if(self.name == 'all'):
+            if self.name == "all":
                 return "object_storage:*"
             return "object_storage:{}".format(self.name)
 
@@ -231,32 +244,33 @@ class OAuthScopes:
         """
         Access to Longview
         """
+
         read_only = 0
         read_write = 1
         all = 2
 
         def __repr__(self):
-            if(self.name == 'all'):
+            if self.name == "all":
                 return "longview:*"
             return "longview:{}".format(self.name)
 
     _scope_families = {
-        'linodes': Linodes,
-        'domains': Domains,
-        'stackscripts': StackScripts,
-        'users': Users,
-        'tokens': Tokens,
-        'ips': IPs,
-        'firewall': Firewalls,
-        'tickets': Tickets,
-        'clients': Clients,
-        'account': Account,
-        'events': Events,
-        'volumes': Volumes,
-        'lke': LKE,
-        'object_storage': ObjectStorage,
-        'nodebalancers': NodeBalancers,
-        'longview': Longview,
+        "linodes": Linodes,
+        "domains": Domains,
+        "stackscripts": StackScripts,
+        "users": Users,
+        "tokens": Tokens,
+        "ips": IPs,
+        "firewall": Firewalls,
+        "tickets": Tickets,
+        "clients": Clients,
+        "account": Account,
+        "events": Events,
+        "volumes": Volumes,
+        "lke": LKE,
+        "object_storage": ObjectStorage,
+        "nodebalancers": NodeBalancers,
+        "longview": Longview,
     }
 
     @staticmethod
@@ -264,17 +278,19 @@ class OAuthScopes:
         ret = []
 
         # special all-scope case
-        if scopes == '*':
-            return [ getattr(OAuthScopes._scope_families[s], 'all')
-                    for s in OAuthScopes._scope_families ] # pylint: disable=consider-using-dict-items
+        if scopes == "*":
+            return [
+                getattr(scope, "all")
+                for scope in OAuthScopes._scope_families.values()
+            ]
 
-        for scope in scopes.split(','):
+        for scope in re.split("[, ]", scopes):
             resource = access = None
-            if ':' in scope:
-                resource, access = scope.split(':')
+            if ":" in scope:
+                resource, access = scope.split(":")
             else:
                 resource = scope
-                access = '*'
+                access = "*"
 
             parsed_scope = OAuthScopes._get_parsed_scope(resource, access)
             if parsed_scope:
@@ -287,8 +303,8 @@ class OAuthScopes:
         resource = resource.lower()
         access = access.lower()
         if resource in OAuthScopes._scope_families:
-            if access == '*':
-                access = 'delete'
+            if access == "*":
+                access = "all"
             if hasattr(OAuthScopes._scope_families[resource], access):
                 return getattr(OAuthScopes._scope_families[resource], access)
 
@@ -296,18 +312,20 @@ class OAuthScopes:
 
     @staticmethod
     def serialize(scopes):
-        ret = ''
+        ret = ""
         if not type(scopes) is list:
-            scopes = [ scopes ]
+            scopes = [scopes]
         for scope in scopes:
             ret += "{},".format(repr(scope))
         if ret:
             ret = ret[:-1]
         return ret
 
+
 class LinodeLoginClient:
-    def __init__(self, client_id, client_secret,
-                 base_url="https://login.linode.com"):
+    def __init__(
+        self, client_id, client_secret, base_url="https://login.linode.com"
+    ):
         """
         Create a new LinodeLoginClient.  These clients do not make any requests
         on creation, and can safely be created and thrown away as needed.
@@ -356,7 +374,7 @@ class LinodeLoginClient:
         split = list(urlparse(url))
         params = {
             "client_id": self.client_id,
-            "response_type": "code", # needed for all logins
+            "response_type": "code",  # needed for all logins
         }
         if scopes:
             params["scopes"] = OAuthScopes.serialize(scopes)
@@ -398,19 +416,26 @@ class LinodeLoginClient:
 
         :raise ApiError: If the OAuth exchange fails.
         """
-        r = requests.post(self._login_uri("/oauth/token"), data={
+        r = requests.post(
+            self._login_uri("/oauth/token"),
+            data={
                 "code": code,
                 "client_id": self.client_id,
-                "client_secret": self.client_secret
-            })
+                "client_secret": self.client_secret,
+            },
+        )
 
         if r.status_code != 200:
-            raise ApiError("OAuth token exchange failed", status=r.status_code, json=r.json())
+            raise ApiError(
+                "OAuth token exchange failed",
+                status=r.status_code,
+                json=r.json(),
+            )
 
         token = r.json()["access_token"]
         scopes = OAuthScopes.parse(r.json()["scopes"])
-        expiry = datetime.now() + timedelta(seconds=r.json()['expires_in'])
-        refresh_token = r.json()['refresh_token']
+        expiry = datetime.now() + timedelta(seconds=r.json()["expires_in"])
+        refresh_token = r.json()["refresh_token"]
 
         return token, scopes, expiry, refresh_token
 
@@ -434,20 +459,23 @@ class LinodeLoginClient:
 
         :raise ApiError: If the refresh fails..
         """
-        r = requests.post(self._login_uri("/oauth/token"), data={
-            "grant_type": "refresh_token",
-            "client_id": self.client_id,
-            "client_secret": self.client_secret,
-            "refresh_token": refresh_token,
-        })
+        r = requests.post(
+            self._login_uri("/oauth/token"),
+            data={
+                "grant_type": "refresh_token",
+                "client_id": self.client_id,
+                "client_secret": self.client_secret,
+                "refresh_token": refresh_token,
+            },
+        )
 
         if r.status_code != 200:
             raise ApiError("Refresh failed", r)
 
         token = r.json()["access_token"]
         scopes = OAuthScopes.parse(r.json()["scopes"])
-        expiry = datetime.now() + timedelta(seconds=r.json()['expires_in'])
-        refresh_token = r.json()['refresh_token']
+        expiry = datetime.now() + timedelta(seconds=r.json()["expires_in"])
+        refresh_token = r.json()["refresh_token"]
 
         return token, scopes, expiry, refresh_token
 
@@ -466,12 +494,14 @@ class LinodeLoginClient:
 
         :raises ApiError: If the expiration attempt failed.
         """
-        r = requests.post(self._login_uri("/oauth/token/expire"),
+        r = requests.post(
+            self._login_uri("/oauth/token/expire"),
             data={
                 "client_id": self.client_id,
                 "client_secret": self.client_secret,
                 "token": token,
-            })
+            },
+        )
 
         if r.status_code != 200:
             raise ApiError("Failed to expire token!", r)
