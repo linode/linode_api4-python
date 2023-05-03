@@ -210,29 +210,26 @@ class Base(object, metaclass=FilterableMetaclass):
         if not force and not self._changed:
             return False
 
+        data = None
         if not self._populated:
-            result = {
-                a: getattr(self, a)
+            data = {
+                a: object.__getattribute__(self, a)
                 for a in type(self).properties
                 if type(self).properties[a].mutable
                 and object.__getattribute__(self, a) is not None
-                and hasattr(self, a)
             }
 
-            for key, value in result.items():
+            for key, value in data.items():
                 if (
                     isinstance(value, ExplicitNullValue)
                     or value == ExplicitNullValue
                 ):
-                    result[key] = None
+                    data[key] = None
 
-            resp = self._client.put(
-                type(self).api_endpoint, model=self, data=result
-            )
         else:
-            resp = self._client.put(
-                type(self).api_endpoint, model=self, data=self._serialize()
-            )
+            data = self._serialize()
+
+        resp = self._client.put(type(self).api_endpoint, model=self, data=data)
 
         if "error" in resp:
             return False
