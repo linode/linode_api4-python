@@ -385,7 +385,6 @@ class PostgreSQLDatabase(Base):
         Base.invalidate(self)
 
 
-
 ENGINE_TYPE_TRANSLATION = {
     "mysql": MySQLDatabase,
     "postgresql": PostgreSQLDatabase,
