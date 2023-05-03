@@ -11,7 +11,7 @@ from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import Base, DerivedBase, Image, Property, Region
 from linode_api4.objects.base import MappedObject
 from linode_api4.objects.filtering import FilterableAttribute
-from linode_api4.objects.networking import IPAddress, IPv6Pool
+from linode_api4.objects.networking import IPAddress, IPv6Range
 from linode_api4.paginated_list import PaginatedList
 
 PASSWORD_CHARS = string.ascii_letters + string.digits + string.punctuation
@@ -465,7 +465,7 @@ class Instance(Base):
                 result["ipv6"]["link_local"],
             )
 
-            pools = [IPv6Pool(self._client, result["ipv6"]["global"]["range"])]
+            pools = [IPv6Range(self._client, r["range"]) for r in result["ipv6"]["global"]]
 
             ips = MappedObject(
                 **{
