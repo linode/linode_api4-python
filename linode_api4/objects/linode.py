@@ -465,7 +465,10 @@ class Instance(Base):
                 result["ipv6"]["link_local"],
             )
 
-            pools = [IPv6Range(self._client, r["range"]) for r in result["ipv6"]["global"]]
+            pools = [
+                IPv6Range(self._client, r["range"])
+                for r in result["ipv6"]["global"]
+            ]
 
             ips = MappedObject(
                 **{
