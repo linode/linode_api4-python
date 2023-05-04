@@ -11,6 +11,20 @@ ENV_TOKEN_NAME = "LINODE_CLI_TOKEN"
 def get_token():
     return os.environ.get(ENV_TOKEN_NAME, None)
 
+@pytest.fixture(scope="session")
+def create_linode(get_client):
+    client = get_client
+    available_regions = client.regions()
+    chosen_region = available_regions[0]
+    label = "linode_instance_fw_device"
+
+    linode_instance, password = client.linode.instance_create(
+        "g5-standard-4", chosen_region, image="linode/debian9", label=label
+    )
+
+    yield linode_instance
+
+    linode_instance.delete()
 
 @pytest.fixture(scope="session")
 def ssh_key_gen():
@@ -77,6 +91,9 @@ def create_domain(get_client):
     domain = client.domain_create(
         domain=domain_addr, soa_email=soa_email, tags=["test-tag"]
     )
+
+    # Create a SRV record
+    domain.record_create("SRV", target="rc_test", priority=10, weight=5, port=80, service="service_test")
 
     yield domain
 
@@ -158,7 +175,7 @@ def create_ssh_keys_object_storage(get_client):
     key.delete()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def create_firewall(get_client):
     client = get_client
     rules = {

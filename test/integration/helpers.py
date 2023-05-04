@@ -46,7 +46,6 @@ def delete_all_test_instances(client: LinodeClient):
     longview_clients = client.longview.clients()
     clusters = client.lke.clusters()
     firewalls = client.networking.firewalls()
-    databases = client.database.instances()
 
     delete_instance_with_test_kw(tags)
     delete_instance_with_test_kw(linodes)
@@ -57,7 +56,9 @@ def delete_all_test_instances(client: LinodeClient):
     delete_instance_with_test_kw(longview_clients)
     delete_instance_with_test_kw(clusters)
     delete_instance_with_test_kw(firewalls)
-    delete_instance_with_test_kw(databases)
+
+
+# def delete_target_with_testkw(target: str):
 
 
 def wait_for_condition(
