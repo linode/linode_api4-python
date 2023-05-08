@@ -6,17 +6,24 @@ import pytest
 from linode_api4.linode_client import LinodeClient, LongviewSubscription
 
 ENV_TOKEN_NAME = "LINODE_CLI_TOKEN"
+RUN_LONG_TESTS = "RUN_LONG_TESTS"
 
 
 def get_token():
     return os.environ.get(ENV_TOKEN_NAME, None)
+
+
+def run_long_tests():
+    return os.environ.get(RUN_LONG_TESTS, None)
+
 
 @pytest.fixture(scope="session")
 def create_linode(get_client):
     client = get_client
     available_regions = client.regions()
     chosen_region = available_regions[0]
-    label = "linode_instance_fw_device"
+    timestamp = str(int(time.time()))
+    label = "TestSDK-" + timestamp
 
     linode_instance, password = client.linode.instance_create(
         "g5-standard-4", chosen_region, image="linode/debian9", label=label
@@ -25,6 +32,24 @@ def create_linode(get_client):
     yield linode_instance
 
     linode_instance.delete()
+
+
+@pytest.fixture
+def create_linode_for_pass_reset(get_client):
+    client = get_client
+    available_regions = client.regions()
+    chosen_region = available_regions[0]
+    timestamp = str(int(time.time()))
+    label = "TestSDK-" + timestamp
+
+    linode_instance, password = client.linode.instance_create(
+        "g5-standard-4", chosen_region, image="linode/debian9", label=label
+    )
+
+    yield linode_instance, password
+
+    linode_instance.delete()
+
 
 @pytest.fixture(scope="session")
 def ssh_key_gen():
@@ -50,7 +75,7 @@ def get_client():
     return client
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def set_up_account(get_client):
     client = get_client
     account = client.account()
@@ -100,13 +125,13 @@ def create_domain(get_client):
     domain.delete()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def create_volume(get_client):
     client = get_client
     timestamp = str(int(time.time()))
     label = "TestSDK-" + timestamp
 
-    volume = client.volume_create(label=label, region="us-east")
+    volume = client.volume_create(label=label, region="ap-west")
 
     yield volume
 
@@ -134,7 +159,7 @@ def create_nodebalancer(get_client):
     timestamp = str(int(time.time()))
     label = "TestSDK-" + timestamp
 
-    nodebalancer = client.nodebalancer_create(region="us-east")
+    nodebalancer = client.nodebalancer_create(region="us-east", label=label)
 
     yield nodebalancer
 

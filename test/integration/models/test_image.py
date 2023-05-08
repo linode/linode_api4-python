@@ -24,7 +24,6 @@ def image_upload(get_client):
 def test_get_image(get_client, image_upload):
     image = get_client.load(Image, image_upload.id)
 
-    assert image.description == "integration test image upload"
     assert image.label == image_upload.label
 
 

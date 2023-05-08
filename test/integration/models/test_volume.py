@@ -1,127 +1,92 @@
+import pytest
+import time
+
+from linode_api4.objects import Volume
+from linode_api4 import LinodeClient
+from test.integration.helpers import get_test_label, wait_for_condition, delete_instance_with_test_kw
+from test.integration.conftest import get_token
 
 
+@pytest.fixture(scope="session")
+def create_linode_for_volume(get_client):
+    client = get_client
+    available_regions = client.regions()
+    chosen_region = available_regions[0]
+    timestamp = str(int(time.time()))
+    label = "TestSDK-" + timestamp
+
+    linode_instance, password = client.linode.instance_create(
+        "g5-standard-4", chosen_region, image="linode/debian9", label=label
+    )
+
+    yield linode_instance
+
+    linode_instance.delete()
 
 
-# ------- MONGODB Test cases -------
-def test_get_mongodb_db_instance(get_client, test_create_mongo_db):
-    dbs = get_client.database.mongodb_instances()
-
-    for db in dbs:
-        if db.id == test_create_mongo_db.id:
-            database = db
-
-    assert str(test_create_mongo_db.id) == str(database.id)
-    assert str(test_create_mongo_db.label) == str(database.label)
-    assert database.cluster_size == 1
-    assert database.engine == "mysql"
-    assert "-mysql-primary.servers.linodedb.net" in database.hosts.primary
+def get_status(volume: Volume, status: str):
+    client = LinodeClient(token=get_token())
+    volume = client.load(Volume, volume.id)
+    return volume.status == status
 
 
-def test_update_mongodb_db(get_client, test_create_mongo_db):
-    db = get_client.load(MongoDBDatabase, test_create_mongo_db.id)
+def test_get_volume(get_client, create_volume):
+    volume = get_client.load(Volume, create_volume.id)
 
-    new_allow_list = ["192.168.0.1/32"]
-    label = get_test_label() + "updatedPostgresDB"
+    assert volume.id == create_volume.id
 
-    db.allow_list = new_allow_list
-    db.updates.day_of_week = 2
-    db.label = label
 
-    res = db.save()
+def test_update_volume_tag(get_client, create_volume):
+    volume = create_volume
+    tag_1 = "volume_test_tag1"
+    tag_2 = "volume_test_tag2"
 
-    database = get_client.load(MongoDBDatabase, test_create_mongo_db.id)
+    volume.tags = [tag_1, tag_2]
+    volume.save()
 
-    def get_db_status():
-        return db.status == "active"
+    volume = get_client.load(Volume, create_volume.id)
 
-    wait_for_condition(60, 1000, get_db_status)
+    assert [tag_1, tag_2] == volume.tags
+
+
+def test_volume_resize(get_client, create_volume):
+    volume = get_client.load(Volume, create_volume.id)
+
+    wait_for_condition(10, 100, get_status, volume, "active")
+
+    res = volume.resize(21)
 
     assert res
-    assert database.allow_list == new_allow_list
-    assert database.label == label
-    assert database.updates.day_of_week == 2
 
 
-def test_create_mongodb_backup(get_client, test_create_mongo_db):
-    db = get_client.load(MongoDBDatabase, test_create_mongo_db.id)
-    label = "database_backup_test"
+def test_volume_clone(get_client, create_volume):
+    volume = get_client.load(Volume, create_volume.id)
+    label = get_test_label()
 
-    def get_db_status():
-        return db.status == "active"
+    wait_for_condition(10, 100, get_status, volume, "active")
 
-    wait_for_condition(interval=60, timeout=1000, condition=get_db_status)
+    new_volume = volume.clone(label)
 
-    db.backup_create(label=label, target="secondary")
+    assert label == new_volume.label
 
-    wait_for_condition(interval=60, timeout=1000, condition=get_db_status)
+    res = new_volume.delete()
 
-    # list backup and most recently created one is first element of the array
-    backup = db.backups[0]
-
-    assert backup.label == label
-    assert backup.database_id == test_create_mongo_db.id
+    assert res, "deletion failed"
 
 
-def test_mongodb_backup_restore(get_client, test_create_mongo_db):
-    db = get_client.load(MongoDBDatabase, test_create_mongo_db.id)
+def test_attach_volume_to_linode(get_client, create_volume, create_linode_for_volume):
+    volume = create_volume
+    linode = create_linode_for_volume
 
-    try:
-        backup = db.backups[0]
-    except IndexError as e:
-        pytest.skip(
-            "Skipping this test. Reason: Couldn't find db backup instance"
-        )
+    res = volume.attach(linode.id)
 
-    def get_db_restoring_status():
-        return db.status == "restoring"
-
-    backup.restore()
-    wait_for_condition(
-        interval=60, timeout=1000, condition=get_db_restoring_status
-    )
-
-    def get_db_active_status():
-        return db.status == "active"
-
-    wait_for_condition(
-        interval=60, timeout=1000, condition=get_db_active_status
-    )
-
-    assert db.status == "active"
+    assert res
 
 
-def test_get_mongodb_ssl(get_client, test_create_mongo_db):
-    db = get_client.load(MongoDBDatabase, test_create_mongo_db.id)
+def test_detach_volume_to_linode(get_client, create_volume, create_linode_for_volume):
+    volume = create_volume
+    linode = create_linode_for_volume
 
-    assert "ca_certificate" in str(db.ssl)
+    res = volume.detach()
 
-
-def test_mongodb_patch(get_client, test_create_mongo_db):
-    db = get_client.load(MongoDBDatabase, test_create_mongo_db.id)
-
-    db.patch()
-
-    def get_db_status():
-        return db.status == "active"
-
-    wait_for_condition(interval=60, timeout=900, condition=get_db_status)
-
-    assert db.status == "active"
-
-
-def test_get_mongodb_credentials(get_client, test_create_mongo_db):
-    db = get_client.load(MongoDBDatabase, test_create_mongo_db.id)
-
-    assert db.credentials.username == "linroot"
-    assert db.credentials.password
-
-
-def test_reset_mongodb_credentials(get_client, test_create_mongo_db):
-    db = get_client.load(MongoDBDatabase, test_create_mongo_db.id)
-
-    old_pass = db.credentials.password
-
-    db.credentials_reset()
-
-    assert db.credentials.username == "linroot"
-    assert db.credentials.password != old_pass
+    assert res

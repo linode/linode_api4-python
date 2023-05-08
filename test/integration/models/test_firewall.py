@@ -4,7 +4,7 @@ from linode_api4.objects import Firewall, FirewallDevice
 
 
 @pytest.fixture(scope="session")
-def create_linode(get_client):
+def create_linode_fw(get_client):
     client = get_client
     available_regions = client.regions()
     chosen_region = available_regions[0]
@@ -58,20 +58,18 @@ def test_update_firewall_rules(get_client, create_firewall):
     assert(firewall.rules.outbound_policy == 'DROP')
 
 
-def test_get_devices(get_client, create_linode, create_firewall):
-    linode = create_linode
+def test_get_devices(get_client, create_linode_fw, create_firewall):
+    linode = create_linode_fw
 
-    firewall_device = create_firewall.device_create(int(linode.id))
+    create_firewall.device_create(int(linode.id))
 
     firewall = get_client.load(Firewall, create_firewall.id)
 
     assert(len(firewall.devices) > 0)
 
 
-def test_get_device(get_client, create_firewall, create_linode):
+def test_get_device(get_client, create_firewall, create_linode_fw):
     firewall = create_firewall
-
-    print("firewall info:", firewall.id, firewall.devices.first().id)
 
     firewall_device = get_client.load(FirewallDevice, firewall.devices.first().id, firewall.id)
 
