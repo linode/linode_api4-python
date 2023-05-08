@@ -1,8 +1,8 @@
 import re
 import time
+from test.integration.helpers import delete_all_test_instances, get_test_label
 
 import pytest
-from test.integration.helpers import delete_all_test_instances, get_test_label
 
 from linode_api4 import ApiError, LinodeClient
 from linode_api4.objects import (

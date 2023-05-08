@@ -1,10 +1,11 @@
-import pytest
 import time
-
-from linode_api4.objects import Volume
-from linode_api4 import LinodeClient
-from test.integration.helpers import get_test_label, wait_for_condition, delete_instance_with_test_kw
 from test.integration.conftest import get_token
+from test.integration.helpers import get_test_label, wait_for_condition
+
+import pytest
+
+from linode_api4 import LinodeClient
+from linode_api4.objects import Volume
 
 
 @pytest.fixture(scope="session")
@@ -59,7 +60,7 @@ def test_volume_resize(get_client, create_volume):
     assert res
 
 
-def test_volume_clone(get_client, create_volume):
+def test_volume_clone_and_delete(get_client, create_volume):
     volume = get_client.load(Volume, create_volume.id)
     label = get_test_label()
 
@@ -74,7 +75,9 @@ def test_volume_clone(get_client, create_volume):
     assert res, "deletion failed"
 
 
-def test_attach_volume_to_linode(get_client, create_volume, create_linode_for_volume):
+def test_attach_volume_to_linode(
+    get_client, create_volume, create_linode_for_volume
+):
     volume = create_volume
     linode = create_linode_for_volume
 
@@ -83,7 +86,9 @@ def test_attach_volume_to_linode(get_client, create_volume, create_linode_for_vo
     assert res
 
 
-def test_detach_volume_to_linode(get_client, create_volume, create_linode_for_volume):
+def test_detach_volume_to_linode(
+    get_client, create_volume, create_linode_for_volume
+):
     volume = create_volume
     linode = create_linode_for_volume
 

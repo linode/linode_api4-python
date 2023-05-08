@@ -1,5 +1,7 @@
 import time
+
 import pytest
+
 from linode_api4.objects import Firewall, FirewallDevice
 
 
@@ -23,8 +25,8 @@ def test_get_firewall_rules(get_client, create_firewall):
     firewall = get_client.load(Firewall, create_firewall.id)
     rules = firewall.rules
 
-    assert(rules.inbound_policy in ['ACCEPT', 'DROP'])
-    assert(rules.outbound_policy in ['ACCEPT', 'DROP'])
+    assert rules.inbound_policy in ["ACCEPT", "DROP"]
+    assert rules.outbound_policy in ["ACCEPT", "DROP"]
 
 
 def test_update_firewall_rules(get_client, create_firewall):
@@ -54,8 +56,8 @@ def test_update_firewall_rules(get_client, create_firewall):
 
     firewall = get_client.load(Firewall, create_firewall.id)
 
-    assert(firewall.rules.inbound_policy == 'ACCEPT')
-    assert(firewall.rules.outbound_policy == 'DROP')
+    assert firewall.rules.inbound_policy == "ACCEPT"
+    assert firewall.rules.outbound_policy == "DROP"
 
 
 def test_get_devices(get_client, create_linode_fw, create_firewall):
@@ -65,15 +67,16 @@ def test_get_devices(get_client, create_linode_fw, create_firewall):
 
     firewall = get_client.load(Firewall, create_firewall.id)
 
-    assert(len(firewall.devices) > 0)
+    assert len(firewall.devices) > 0
 
 
 def test_get_device(get_client, create_firewall, create_linode_fw):
     firewall = create_firewall
 
-    firewall_device = get_client.load(FirewallDevice, firewall.devices.first().id, firewall.id)
+    firewall_device = get_client.load(
+        FirewallDevice, firewall.devices.first().id, firewall.id
+    )
 
-    assert(firewall_device.entity.label == 'linode_instance_fw_device')
-    assert(firewall_device.entity.type == 'linode')
-    assert('/v4/linode/instances/' in firewall_device.entity.url)
-
+    assert firewall_device.entity.label == "linode_instance_fw_device"
+    assert firewall_device.entity.type == "linode"
+    assert "/v4/linode/instances/" in firewall_device.entity.url

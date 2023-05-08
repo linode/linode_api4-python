@@ -118,7 +118,14 @@ def create_domain(get_client):
     )
 
     # Create a SRV record
-    domain.record_create("SRV", target="rc_test", priority=10, weight=5, port=80, service="service_test")
+    domain.record_create(
+        "SRV",
+        target="rc_test",
+        priority=10,
+        weight=5,
+        port=80,
+        service="service_test",
+    )
 
     yield domain
 

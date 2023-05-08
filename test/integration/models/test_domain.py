@@ -1,7 +1,12 @@
 import re
 import time
+from test.integration.helpers import (
+    delete_all_test_instances,
+    wait_for_condition,
+)
+
 import pytest
-from test.integration.helpers import delete_all_test_instances, wait_for_condition
+
 from linode_api4.objects import Domain, DomainRecord
 
 
@@ -11,7 +16,9 @@ def teardown(get_client):
 
 
 def test_get_domain_record(get_client, create_domain):
-    dr = DomainRecord(get_client, create_domain.records.first().id, create_domain.id)
+    dr = DomainRecord(
+        get_client, create_domain.records.first().id, create_domain.id
+    )
 
     assert dr.id == create_domain.records.first().id
 
@@ -19,7 +26,7 @@ def test_get_domain_record(get_client, create_domain):
 def test_save_null_values_excluded(get_client, create_domain):
     domain = get_client.load(Domain, create_domain.id)
 
-    domain.type = 'master'
+    domain.type = "master"
     domain.master_ips = ["127.0.0.1"]
     res = domain.save()
 
@@ -35,8 +42,8 @@ def test_zone_file_view(get_client, create_domain):
 
     wait_for_condition(10, 100, get_zone_file_view)
 
-    assert (domain.domain in str(domain.zone_file_view()))
-    assert (re.search("ns[0-9].linode.com",  str(domain.zone_file_view())))
+    assert domain.domain in str(domain.zone_file_view())
+    assert re.search("ns[0-9].linode.com", str(domain.zone_file_view()))
 
 
 def test_clone(get_client, create_domain):
@@ -53,5 +60,7 @@ def test_clone(get_client, create_domain):
 
 
 def test_import(get_client, create_domain):
-    pytest.skip('Currently failing with message: linode_api4.errors.ApiError: 400: An unknown error occured. Please open a ticket for further assistance. Command: domain_import(domain, "google.ca")')
+    pytest.skip(
+        'Currently failing with message: linode_api4.errors.ApiError: 400: An unknown error occured. Please open a ticket for further assistance. Command: domain_import(domain, "google.ca")'
+    )
     domain = get_client.load(Domain, create_domain.id)

@@ -3,8 +3,8 @@ import time
 from typing import Callable
 
 from linode_api4 import PaginatedList
-from linode_api4.linode_client import LinodeClient
 from linode_api4.errors import ApiError
+from linode_api4.linode_client import LinodeClient
 
 
 def get_test_label():
@@ -74,9 +74,7 @@ def wait_for_condition(
 
 
 # Retry function to help in case of requests sending too quickly before instance is ready
-def retry_sending_request(
-    retries: int, condition: Callable, *args
-) -> object:
+def retry_sending_request(retries: int, condition: Callable, *args) -> object:
     curr_t = 0
     while curr_t < retries:
         try:
@@ -86,4 +84,3 @@ def retry_sending_request(
             if curr_t >= retries:
                 raise ApiError
         curr_t += 1
-

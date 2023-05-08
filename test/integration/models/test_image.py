@@ -1,7 +1,10 @@
-import pytest
 from io import BytesIO
+from test.integration.helpers import (
+    delete_instance_with_test_kw,
+    get_test_label,
+)
 
-from test.integration.helpers import get_test_label, delete_instance_with_test_kw
+import pytest
 
 from linode_api4.objects import Image
 
@@ -10,7 +13,9 @@ from linode_api4.objects import Image
 def image_upload(get_client):
     label = get_test_label() + "_image"
 
-    get_client.image_create_upload(label, "us-east", "integration test image upload")
+    get_client.image_create_upload(
+        label, "us-east", "integration test image upload"
+    )
 
     image = get_client.images()[0]
 
@@ -34,9 +39,12 @@ def test_image_create_upload(get_client):
     )
 
     label = get_test_label() + "_image"
-    image = get_client.image_upload(label, "us-east", BytesIO(test_image_content), description="integration test image upload")
+    image = get_client.image_upload(
+        label,
+        "us-east",
+        BytesIO(test_image_content),
+        description="integration test image upload",
+    )
 
-    assert(image.label == label)
-    assert(image.description == "integration test image upload")
-
-
+    assert image.label == label
+    assert image.description == "integration test image upload"
