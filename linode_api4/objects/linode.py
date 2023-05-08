@@ -403,14 +403,14 @@ class Instance(Base):
         "disks": Property(derived_class=Disk),
         "configs": Property(derived_class=Config),
         "type": Property(slug_relationship=Type),
-        "backups": Property(),
+        "backups": Property(mutable=True),
         "ipv4": Property(),
         "ipv6": Property(),
         "hypervisor": Property(),
         "specs": Property(),
         "tags": Property(mutable=True),
         "host_uuid": Property(),
-        "watchdog_enabled": Property(),
+        "watchdog_enabled": Property(mutable=True),
     }
 
     @property

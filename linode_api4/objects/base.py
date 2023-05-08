@@ -90,7 +90,18 @@ class MappedObject:
 
     @property
     def dict(self):
-        return dict(self.__dict__)
+        result = vars(self).copy()
+        cls = type(self)
+
+        for k, v in result.items():
+            if isinstance(v, cls):
+                result[k] = v.dict
+            elif isinstance(v, list):
+                result[k] = [
+                    item.dict if isinstance(item, cls) else item for item in v
+                ]
+
+        return result
 
 
 class Base(object, metaclass=FilterableMetaclass):
