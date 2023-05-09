@@ -5,15 +5,6 @@
       "deprecated": false,
       "disk": 25600,
       "engines": {
-        "mongodb": [
-          {
-            "price": {
-              "hourly": 0.03,
-              "monthly": 20
-            },
-            "quantity": 1
-          }
-        ],
         "mysql": [
           {
             "price": {
