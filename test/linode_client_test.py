@@ -1192,3 +1192,26 @@ class LinodeClientRateLimitRetryTest(TestCase):
         # it tried 5 times
         assert called == 1
         assert response == {}
+
+    def test_disable_retries(self):
+        """
+        Tests that disabling retries properly raises an error.
+        """
+        self.client.retry = False
+
+        called = 0
+
+        def test_method(*args, **kwargs):
+            nonlocal called
+            called += 1
+            return self._get_mock_response(408)
+
+        try:
+            self.client._api_call("/test", method=test_method)
+        except ApiError as e:
+            assert e.status == 408
+        else:
+            raise RuntimeError("Missing error from LinodeClient")
+
+        # it tried only once
+        assert called == 1
