@@ -234,7 +234,7 @@ class LinodeClient:
                 "Retry condition met; waiting {} seconds and retrying request (attempt {}/{})".format(
                     self.retry_rate_limit_interval,
                     attempt,
-                    self.linode,
+                    self.retry_max,
                 )
             )
             time.sleep(self.retry_rate_limit_interval)
