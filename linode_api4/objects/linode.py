@@ -563,7 +563,7 @@ class Instance(Base):
             rpass = Instance.generate_root_password()
 
         params = {
-            "password": rpass,
+            "root_pass": rpass,
         }
 
         self._client.post(
