@@ -128,9 +128,11 @@ class Domain(Base):
         """
         params = {"domain": domain}
 
-        self._client.post(
+        result = self._client.post(
             "{}/clone".format(self.api_endpoint), model=self, data=params
         )
+
+        return Domain(self, result["id"], result)
 
     def domain_import(self, domain, remote_nameserver):
         """
