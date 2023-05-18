@@ -96,6 +96,11 @@ class LinodeClient:
         if not isinstance(retry_max, int):
             raise ValueError("retry_max must be an int")
 
+        self.retry = retry
+        self.retry_rate_limit_interval = retry_rate_limit_interval
+        self.retry_max = retry_max
+        self.retry_statuses = retry_statuses
+
         # Initialize the HTTP client session
         self.session = requests.Session()
 
@@ -110,14 +115,6 @@ class LinodeClient:
 
         self.session.mount("http://", retry_adapter)
         self.session.mount("https://", retry_adapter)
-
-        # We don't want to call the __setattr__ override here
-        object.__setattr__(self, "retry", retry)
-        object.__setattr__(
-            self, "retry_rate_limit_interval", retry_rate_limit_interval
-        )
-        object.__setattr__(self, "retry_max", retry_max)
-        object.__setattr__(self, "retry_statuses", retry_forcelist)
 
         #: Access methods related to Linodes - see :any:`LinodeGroup` for
         #: more information
@@ -335,10 +332,10 @@ class LinodeClient:
         }
 
         handler = handlers.get(key)
-        if handler is not None:
+        if hasattr(self, "_retry_config") and handler is not None:
             handler()
 
-        super(LinodeClient, self).__setattr__(key, value)
+        super().__setattr__(key, value)
 
     def image_create(self, disk, label=None, description=None):
         """
