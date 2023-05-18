@@ -3,8 +3,6 @@ from test.base import ClientBaseCase
 from unittest import TestCase
 
 import httpretty
-import requests_mock
-from requests.exceptions import RetryError
 
 from linode_api4 import ApiError, LinodeClient, LongviewSubscription
 from linode_api4.objects.linode import Instance
