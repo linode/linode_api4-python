@@ -3,6 +3,7 @@ from test.base import ClientBaseCase
 from unittest import TestCase
 
 import httpretty
+import pytest
 
 from linode_api4 import ApiError, LinodeClient, LongviewSubscription
 from linode_api4.objects.linode import Instance
@@ -1076,6 +1077,12 @@ class LinodeClientRateLimitRetryTest(TestCase):
        (or else they will make real requests and those won't work).
     """
 
+    def get_retry_client(self):
+        client = LinodeClient("testing", base_url="https://localhost")
+        # sidestep the validation to do immediate retries so tests aren't slow
+        client.retry_rate_limit_interval = 0.1
+        return client
+
     @httpretty.activate
     def test_retry_statuses(self):
         """
@@ -1101,13 +1108,7 @@ class LinodeClientRateLimitRetryTest(TestCase):
             ],
         )
 
-        client = LinodeClient(
-            "testing",
-            base_url="https://localhost",
-            retry_rate_limit_interval=0.01,
-        )
-
-        client.get("/test")
+        self.get_retry_client().get("/test")
 
         assert len(httpretty.latest_requests()) == 3
 
@@ -1136,12 +1137,8 @@ class LinodeClientRateLimitRetryTest(TestCase):
             ],
         )
 
-        client = LinodeClient(
-            "testing",
-            base_url="https://localhost",
-            retry_rate_limit_interval=0.01,
-            retry_max=2,
-        )
+        client = self.get_retry_client()
+        client.retry_max = 2
 
         try:
             client.get("/test")
@@ -1171,9 +1168,8 @@ class LinodeClientRateLimitRetryTest(TestCase):
             ],
         )
 
-        client = LinodeClient(
-            "testing", base_url="https://localhost", retry=False
-        )
+        client = self.get_retry_client()
+        client.retry = False
 
         try:
             client.get("/test")

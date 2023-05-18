@@ -83,17 +83,13 @@ class LinodeClient:
         self.token = token
         self.page_size = page_size
 
-        #: NOTE: This field can no longer be modified after the client has been created.
-        #: This field only exists to prevent breaking downstream consumers.
-        self.retry_rate_limit_interval = retry_rate_limit_interval
-
         retry_forcelist = [408, 429]
 
         if retry_statuses is not None:
             retry_forcelist.extend(retry_statuses)
 
         # make sure we got a sane backoff
-        if not isinstance(self.retry_rate_limit_interval, float):
+        if not isinstance(retry_rate_limit_interval, float):
             raise ValueError("retry_rate_limit_interval must be a float")
 
         # Ensure the max retries value is valid
@@ -103,18 +99,25 @@ class LinodeClient:
         # Initialize the HTTP client session
         self.session = requests.Session()
 
-        if retry:
-            retry_config = LinearRetry(
-                total=retry_max,
-                status_forcelist=retry_forcelist,
-                respect_retry_after_header=True,
-                backoff_factor=retry_rate_limit_interval,
-                raise_on_status=False,
-            )
-            retry_adapter = HTTPAdapter(max_retries=retry_config)
+        self._retry_config = LinearRetry(
+            total=retry_max if retry else 0,
+            status_forcelist=retry_forcelist,
+            respect_retry_after_header=True,
+            backoff_factor=retry_rate_limit_interval,
+            raise_on_status=False,
+        )
+        retry_adapter = HTTPAdapter(max_retries=self._retry_config)
 
-            self.session.mount("http://", retry_adapter)
-            self.session.mount("https://", retry_adapter)
+        self.session.mount("http://", retry_adapter)
+        self.session.mount("https://", retry_adapter)
+
+        # We don't want to call the __setattr__ override here
+        object.__setattr__(self, "retry", retry)
+        object.__setattr__(
+            self, "retry_rate_limit_interval", retry_rate_limit_interval
+        )
+        object.__setattr__(self, "retry_max", retry_max)
+        object.__setattr__(self, "retry_statuses", retry_forcelist)
 
         #: Access methods related to Linodes - see :any:`LinodeGroup` for
         #: more information
@@ -313,6 +316,29 @@ class LinodeClient:
 
     def delete(self, *args, **kwargs):
         return self._api_call(*args, method=self.session.delete, **kwargs)
+
+    def __setattr__(self, key, value):
+        # Allow for dynamic updating of the retry config
+        handlers = {
+            "retry_rate_limit_interval": lambda: setattr(
+                self._retry_config, "backoff_factor", value
+            ),
+            "retry": lambda: setattr(
+                self._retry_config, "total", self.retry_max if value else 0
+            ),
+            "retry_max": lambda: setattr(
+                self._retry_config, "total", value if self.retry else 0
+            ),
+            "retry_statuses": lambda: setattr(
+                self._retry_config, "status_forcelist", value
+            ),
+        }
+
+        handler = handlers.get(key)
+        if handler is not None:
+            handler()
+
+        super(LinodeClient, self).__setattr__(key, value)
 
     def image_create(self, disk, label=None, description=None):
         """
