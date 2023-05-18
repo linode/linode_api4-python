@@ -1,9 +1,9 @@
 from datetime import datetime
-from http.client import HTTPMessage
 from test.base import ClientBaseCase
 from unittest import TestCase
-from unittest.mock import ANY, Mock, call, patch
 
+import httpretty
+import requests_mock
 from requests.exceptions import RetryError
 
 from linode_api4 import ApiError, LinodeClient, LongviewSubscription
@@ -1078,49 +1078,72 @@ class LinodeClientRateLimitRetryTest(TestCase):
        (or else they will make real requests and those won't work).
     """
 
-    # Hack to test urllib3 retries
-    @patch("urllib3.connectionpool.HTTPConnectionPool._get_conn")
-    def test_retry_statuses(self, getconn_mock):
+    @httpretty.activate
+    def test_retry_statuses(self):
         """
         Tests that retries work as expected on 408 and 429 responses.
         """
+
+        httpretty.register_uri(
+            httpretty.GET,
+            "https://localhost/test",
+            responses=[
+                httpretty.Response(
+                    body="{}",
+                    status=408,
+                ),
+                httpretty.Response(
+                    body="{}",
+                    status=429,
+                ),
+                httpretty.Response(
+                    body="{}",
+                    status=200,
+                ),
+            ],
+        )
+
         client = LinodeClient(
             "testing",
             base_url="https://localhost",
             retry_rate_limit_interval=0.01,
         )
 
-        getconn_mock.return_value.getresponse.side_effect = [
-            Mock(status=408, msg=HTTPMessage()),
-            Mock(status=429, msg=HTTPMessage()),
-            Mock(status=204, msg=HTTPMessage()),
-        ]
-
         client.get("/test")
 
-        assert getconn_mock.return_value.request.mock_calls == [
-            call("GET", "/test", body=None, headers=ANY),
-            call("GET", "/test", body=None, headers=ANY),
-            call("GET", "/test", body=None, headers=ANY),
-        ]
+        assert len(httpretty.latest_requests()) == 3
 
-    @patch("urllib3.connectionpool.HTTPConnectionPool._get_conn")
-    def test_retry_max(self, getconn_mock):
+    @httpretty.activate
+    def test_retry_max(self):
         """
         Tests that retries work as expected on 408 and 429 responses.
         """
+
+        httpretty.register_uri(
+            httpretty.GET,
+            "https://localhost/test",
+            responses=[
+                httpretty.Response(
+                    body="{}",
+                    status=408,
+                ),
+                httpretty.Response(
+                    body="{}",
+                    status=429,
+                ),
+                httpretty.Response(
+                    body="{}",
+                    status=429,
+                ),
+            ],
+        )
+
         client = LinodeClient(
             "testing",
             base_url="https://localhost",
             retry_rate_limit_interval=0.01,
             retry_max=2,
         )
-
-        getconn_mock.return_value.getresponse.side_effect = [
-            Mock(status=408, msg=HTTPMessage()),
-            Mock(status=429, msg=HTTPMessage()),
-            Mock(status=429, msg=HTTPMessage()),
-        ]
 
         try:
             client.get("/test")
@@ -1131,25 +1154,28 @@ class LinodeClientRateLimitRetryTest(TestCase):
                 "Expected retry error after exceeding max retries"
             )
 
-        assert getconn_mock.return_value.request.mock_calls == [
-            call("GET", "/test", body=None, headers=ANY),
-            call("GET", "/test", body=None, headers=ANY),
-            call("GET", "/test", body=None, headers=ANY),
-        ]
+        assert len(httpretty.latest_requests()) == 3
 
-    @patch("urllib3.connectionpool.HTTPConnectionPool._get_conn")
-    def test_retry_disable(self, getconn_mock):
+    @httpretty.activate
+    def test_retry_disable(self):
         """
         Tests that retries can be disabled.
         """
 
+        httpretty.register_uri(
+            httpretty.GET,
+            "https://localhost/test",
+            responses=[
+                httpretty.Response(
+                    body="{}",
+                    status=408,
+                ),
+            ],
+        )
+
         client = LinodeClient(
             "testing", base_url="https://localhost", retry=False
         )
-
-        getconn_mock.return_value.getresponse.side_effect = [
-            Mock(status=408, msg=HTTPMessage()),
-        ]
 
         try:
             client.get("/test")
@@ -1158,6 +1184,4 @@ class LinodeClientRateLimitRetryTest(TestCase):
         else:
             raise RuntimeError("Expected 408 error to be raised")
 
-        assert getconn_mock.return_value.request.mock_calls == [
-            call("GET", "/test", body=None, headers=ANY),
-        ]
+        assert len(httpretty.latest_requests()) == 1
