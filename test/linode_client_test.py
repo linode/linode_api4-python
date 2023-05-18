@@ -1,7 +1,10 @@
 from datetime import datetime
+from http.client import HTTPMessage
 from test.base import ClientBaseCase
 from unittest import TestCase
-from unittest.mock import MagicMock
+from unittest.mock import ANY, Mock, call, patch
+
+from requests.exceptions import RetryError
 
 from linode_api4 import ApiError, LinodeClient, LongviewSubscription
 from linode_api4.objects.linode import Instance
@@ -1066,152 +1069,95 @@ class NetworkingGroupTest(ClientBaseCase):
 
 class LinodeClientRateLimitRetryTest(TestCase):
     """
-    Tests for rate limiting errors.
+    Tests for retrying on intermittent errors.
 
     .. warning::
        This test class _does not_ follow normal testing conventions for this project,
        as requests are not automatically mocked.  Only add tests to this class if they
-       pertain to the 429 retry logic, and make sure you mock the requests calls yourself
+       pertain to the retry logic, and make sure you mock the requests calls yourself
        (or else they will make real requests and those won't work).
     """
 
-    def setUp(self):
-        self.client = LinodeClient(
-            "testing", base_url="/", retry_rate_limit_interval=1
+    # Hack to test urllib3 retries
+    @patch("urllib3.connectionpool.HTTPConnectionPool._get_conn")
+    def test_retry_statuses(self, getconn_mock):
+        """
+        Tests that retries work as expected on 408 and 429 responses.
+        """
+        client = LinodeClient(
+            "testing",
+            base_url="https://api.linode.com",
+            retry_rate_limit_interval=0.01,
         )
-        # sidestep the validation to do immediate retries so tests aren't slow
-        self.client.retry_rate_limit_interval = 0.1
 
-    def _get_mock_response(self, response_code):
+        getconn_mock.return_value.getresponse.side_effect = [
+            Mock(status=408, msg=HTTPMessage()),
+            Mock(status=429, msg=HTTPMessage()),
+            Mock(status=204, msg=HTTPMessage()),
+        ]
+
+        client.get("/test")
+
+        assert getconn_mock.return_value.request.mock_calls == [
+            call("GET", "/test", body=None, headers=ANY),
+            call("GET", "/test", body=None, headers=ANY),
+            call("GET", "/test", body=None, headers=ANY),
+        ]
+
+    @patch("urllib3.connectionpool.HTTPConnectionPool._get_conn")
+    def test_retry_max(self, getconn_mock):
         """
-        Helper function to return a mock response
+        Tests that retries work as expected on 408 and 429 responses.
         """
-        ret = MagicMock()
-        ret.status_code = response_code
-        ret.json.return_value = {}
+        client = LinodeClient(
+            "testing",
+            base_url="https://api.linode.com",
+            retry_rate_limit_interval=0.01,
+            retry_max=2,
+        )
 
-        return ret
-
-    def test_retry_429s(self):
-        """
-        Tests that 429 responses are automatically retried
-        """
-        called = 0
-
-        def test_method(*args, **kwargs):
-            nonlocal called
-            called += 1
-            if called < 2:
-                return self._get_mock_response(429)
-            return self._get_mock_response(200)
-
-        response = self.client._api_call("/test", method=test_method)
-
-        # it retried once, got the empty object
-        assert called == 2
-        assert response == {}, response
-
-    def test_retry_max_attempts(self):
-        """
-        Tests that a request will fail after 5 429 responses in a row
-        """
-        called = 0
-
-        def test_method(*args, **kwargs):
-            nonlocal called
-            called += 1
-            return self._get_mock_response(429)
+        getconn_mock.return_value.getresponse.side_effect = [
+            Mock(status=408, msg=HTTPMessage()),
+            Mock(status=429, msg=HTTPMessage()),
+            Mock(status=429, msg=HTTPMessage()),
+        ]
 
         try:
-            response = self.client._api_call("/test", method=test_method)
-            assert False, "Unexpectedly did not raise ApiError!"
-        except ApiError as e:
-            assert e.status == 429
+            client.get("/test")
+        except ApiError as err:
+            assert err.status == 429
+        else:
+            raise RuntimeError(
+                "Expected retry error after exceeding max retries"
+            )
 
-        # it tried 5 times
-        assert called == 5
+        assert getconn_mock.return_value.request.mock_calls == [
+            call("GET", "/test", body=None, headers=ANY),
+            call("GET", "/test", body=None, headers=ANY),
+            call("GET", "/test", body=None, headers=ANY),
+        ]
 
-    def test_api_error_with_retry(self):
+    @patch("urllib3.connectionpool.HTTPConnectionPool._get_conn")
+    def test_retry_disable(self, getconn_mock):
         """
-        Tests that a 300+ response still raises an ApiError even if retries are
-        enabled
+        Tests that retries can be disabled.
         """
-        called = 0
 
-        def test_method(*args, **kwargs):
-            nonlocal called
-            called += 1
-            return self._get_mock_response(400)
+        client = LinodeClient(
+            "testing", base_url="https://api.linode.com", retry=False
+        )
+
+        getconn_mock.return_value.getresponse.side_effect = [
+            Mock(status=408, msg=HTTPMessage()),
+        ]
 
         try:
-            response = self.client._api_call("/test", method=test_method)
-            assert False, "Unexpectedly did not raise ApiError!"
-        except ApiError as e:
-            assert e.status == 400
-
-        # it tried 5 times
-        assert called == 1
-
-    def test_api_error_on_retry(self):
-        """
-        Tests that we'll stop retrying and raise immediately if we get a 300+
-        response after a 429
-        """
-        called = 0
-
-        def test_method(*args, **kwargs):
-            nonlocal called
-            called += 1
-            if called < 2:
-                return self._get_mock_response(429)
-            return self._get_mock_response(400)
-
-        try:
-            response = self.client._api_call("/test", method=test_method)
-            assert False, "Unexpectedly did not raise ApiError!"
-        except ApiError as e:
-            assert e.status == 400
-
-        # it tried 5 times
-        assert called == 2
-
-    def test_works_first_time(self):
-        """
-        Tests that the response is handled correctly if we got a 200 on the first
-        try
-        """
-        called = 0
-
-        def test_method(*args, **kwargs):
-            nonlocal called
-            called += 1
-            return self._get_mock_response(200)
-
-        response = self.client._api_call("/test", method=test_method)
-
-        # it tried 5 times
-        assert called == 1
-        assert response == {}
-
-    def test_disable_retries(self):
-        """
-        Tests that disabling retries properly raises an error.
-        """
-        self.client.retry = False
-
-        called = 0
-
-        def test_method(*args, **kwargs):
-            nonlocal called
-            called += 1
-            return self._get_mock_response(408)
-
-        try:
-            self.client._api_call("/test", method=test_method)
+            client.get("/test")
         except ApiError as e:
             assert e.status == 408
         else:
-            raise RuntimeError("Missing error from LinodeClient")
+            raise RuntimeError("Expected 408 error to be raised")
 
-        # it tried only once
-        assert called == 1
+        assert getconn_mock.return_value.request.mock_calls == [
+            call("GET", "/test", body=None, headers=ANY),
+        ]

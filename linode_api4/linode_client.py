@@ -2,17 +2,16 @@ from __future__ import annotations
 
 import json
 import logging
-import time
 from typing import BinaryIO, Tuple
 
 import pkg_resources
 import requests
+from requests.adapters import HTTPAdapter, Retry
 
 from linode_api4.errors import ApiError, UnexpectedResponseError
 from linode_api4.groups import *
 from linode_api4.objects import *
 from linode_api4.objects.filtering import Filter
-from linode_api4.retries import *
 
 from .common import SSH_KEY_TYPES, load_and_validate_keys
 from .paginated_list import PaginatedList
@@ -31,8 +30,9 @@ class LinodeClient:
         user_agent=None,
         page_size=None,
         retry=True,
-        retry_rate_limit_interval=1,
+        retry_rate_limit_interval=1.0,
         retry_max=5,
+        retry_statuses=None,
     ):
         """
         The main interface to the Linode API.
@@ -57,41 +57,53 @@ class LinodeClient:
         :param retry: Whether API requests should automatically be retries on known
                       intermittent responses.
         :type retry: bool
-        :param retry_rate_limit_interval: If given, 429 responses will be automatically
-                                         retried up to 5 times with the given interval,
-                                         in seconds, between attempts.
-        :type retry_rate_limit_interval: int
+        :param retry_rate_limit_interval: The backoff factor to apply between retry attempts.
+        :type retry_rate_limit_interval: float
         :param retry_max: The number of request retries that should be attempted before
                           raising an API error.
         :type retry_max: int
+        :type retry_statuses: List of int
+        :param retry_statuses: Additional HTTP response statuses to retry on.
+                               By default, the client will retry on 408 and 429
+                               responses.
         """
         self.base_url = base_url
         self._add_user_agent = user_agent
         self.token = token
-        self.session = requests.Session()
         self.page_size = page_size
-        self.retry_rate_limit_interval = retry_rate_limit_interval
-        self.retry_max = retry_max
-        self.retry = retry
 
-        self._retry_conditions = []
+        #: NOTE: This field can no longer be modified after the client has been created.
+        #: This field only exists to prevent breaking downstream consumers.
+        self.retry_rate_limit_interval = retry_rate_limit_interval
+
+        retry_forcelist = [408, 429]
+
+        if retry_statuses is not None:
+            retry_forcelist.extend(retry_statuses)
 
         # make sure we got a sane backoff
-        if not isinstance(self.retry_rate_limit_interval, int):
-            raise ValueError("retry_rate_limit_interval must be an int")
-        if self.retry_rate_limit_interval < 1:
-            raise ValueError(
-                "retry_rate_limit_interval must not be less than 1"
-            )
+        if not isinstance(self.retry_rate_limit_interval, float):
+            raise ValueError("retry_rate_limit_interval must be a float")
 
         # Ensure the max retries value is valid
-        if not isinstance(self.retry_max, int):
+        if not isinstance(retry_max, int):
             raise ValueError("retry_max must be an int")
-        if self.retry_max < 0:
-            raise ValueError("retry_max must not be less than 0")
 
-        # Add the default retry conditions
-        self.add_retry_conditions(condition_408, condition_429)
+        # Initialize the HTTP client session
+        self.session = requests.Session()
+
+        if retry:
+            retry_config = Retry(
+                total=retry_max,
+                status_forcelist=retry_forcelist,
+                respect_retry_after_header=True,
+                backoff_factor=retry_rate_limit_interval,
+                raise_on_status=False,
+            )
+            retry_adapter = HTTPAdapter(max_retries=retry_config)
+
+            self.session.mount("http://", retry_adapter)
+            self.session.mount("https://", retry_adapter)
 
         #: Access methods related to Linodes - see :any:`LinodeGroup` for
         #: more information
@@ -217,27 +229,11 @@ class LinodeClient:
         if data is not None:
             body = json.dumps(data)
 
-        for attempt in range(self.retry_max):
-            response = method(url, headers=headers, data=body)
+        response = method(url, headers=headers, data=body)
 
-            warning = response.headers.get("Warning", None)
-            if warning:
-                logger.warning(
-                    "Received warning from server: {}".format(warning)
-                )
-
-            # Only retry if retries are enabled
-            if not self.retry or not self._should_retry(response):
-                break
-
-            logger.warning(
-                "Retry condition met; waiting {} seconds and retrying request (attempt {}/{})".format(
-                    self.retry_rate_limit_interval,
-                    attempt,
-                    self.retry_max,
-                )
-            )
-            time.sleep(self.retry_rate_limit_interval)
+        warning = response.headers.get("Warning", None)
+        if warning:
+            logger.warning("Received warning from server: {}".format(warning))
 
         if 399 < response.status_code < 600:
             j = None
@@ -306,12 +302,6 @@ class LinodeClient:
 
     def delete(self, *args, **kwargs):
         return self._api_call(*args, method=self.session.delete, **kwargs)
-
-    def add_retry_conditions(self, *conditions: RetryCondition):
-        """
-        Adds a condition for retrying on API request responses.
-        """
-        self._retry_conditions.extend(conditions)
 
     def image_create(self, disk, label=None, description=None):
         """
@@ -406,11 +396,3 @@ class LinodeClient:
             return self._get_objects(
                 obj_type.api_list(), obj_type, filters=parsed_filters
             )
-
-    def _should_retry(self, resp: Response) -> bool:
-        for condition in self._retry_conditions:
-            # We should retry on this request
-            if condition(self, resp):
-                return True
-
-        return False
