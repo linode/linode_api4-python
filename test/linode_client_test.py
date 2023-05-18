@@ -1086,7 +1086,7 @@ class LinodeClientRateLimitRetryTest(TestCase):
         """
         client = LinodeClient(
             "testing",
-            base_url="https://api.linode.com",
+            base_url="https://localhost",
             retry_rate_limit_interval=0.01,
         )
 
@@ -1111,7 +1111,7 @@ class LinodeClientRateLimitRetryTest(TestCase):
         """
         client = LinodeClient(
             "testing",
-            base_url="https://api.linode.com",
+            base_url="https://localhost",
             retry_rate_limit_interval=0.01,
             retry_max=2,
         )
@@ -1144,7 +1144,7 @@ class LinodeClientRateLimitRetryTest(TestCase):
         """
 
         client = LinodeClient(
-            "testing", base_url="https://api.linode.com", retry=False
+            "testing", base_url="https://localhost", retry=False
         )
 
         getconn_mock.return_value.getresponse.side_effect = [
