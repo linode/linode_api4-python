@@ -67,7 +67,8 @@ class LinodeClient:
         :param retry: Whether API requests should automatically be retries on known
                       intermittent responses.
         :type retry: bool
-        :param retry_rate_limit_interval: The backoff factor to apply between retry attempts.
+        :param retry_rate_limit_interval: The amount of time to wait between HTTP request
+                                          retries.
         :type retry_rate_limit_interval: float
         :param retry_max: The number of request retries that should be attempted before
                           raising an API error.
