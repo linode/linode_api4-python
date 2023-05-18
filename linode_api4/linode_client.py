@@ -22,6 +22,16 @@ package_version = pkg_resources.require("linode_api4")[0].version
 logger = logging.getLogger(__name__)
 
 
+class LinearRetry(Retry):
+    """
+    Linear retry is a subclass of Retry that uses a linear backoff strategy.
+    This is necessary to maintain backwards compatibility with the old retry system.
+    """
+
+    def get_backoff_time(self):
+        return self.backoff_factor
+
+
 class LinodeClient:
     def __init__(
         self,
@@ -93,7 +103,7 @@ class LinodeClient:
         self.session = requests.Session()
 
         if retry:
-            retry_config = Retry(
+            retry_config = LinearRetry(
                 total=retry_max,
                 status_forcelist=retry_forcelist,
                 respect_retry_after_header=True,
