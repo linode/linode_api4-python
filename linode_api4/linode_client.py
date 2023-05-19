@@ -75,7 +75,7 @@ class LinodeClient:
         :type retry_max: int
         :type retry_statuses: List of int
         :param retry_statuses: Additional HTTP response statuses to retry on.
-                               By default, the client will retry on 408 and 429
+                               By default, the client will retry on 408, 429, and 502
                                responses.
         """
         self.base_url = base_url
@@ -83,7 +83,7 @@ class LinodeClient:
         self.token = token
         self.page_size = page_size
 
-        retry_forcelist = [408, 429]
+        retry_forcelist = [408, 429, 502]
 
         if retry_statuses is not None:
             retry_forcelist.extend(retry_statuses)
