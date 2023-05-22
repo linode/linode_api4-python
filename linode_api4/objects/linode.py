@@ -465,7 +465,7 @@ class Instance(Base):
                 result["ipv6"]["link_local"],
             )
 
-            pools = [
+            ranges = [
                 IPv6Range(self._client, r["range"])
                 for r in result["ipv6"]["global"]
             ]
@@ -481,7 +481,7 @@ class Instance(Base):
                     "ipv6": {
                         "slaac": slaac,
                         "link_local": link_local,
-                        "pools": pools,
+                        "ranges": ranges,
                     },
                 }
             )
