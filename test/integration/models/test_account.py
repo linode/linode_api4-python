@@ -13,19 +13,21 @@ from linode_api4.objects import (
 
 def test_get_account(get_client):
     client = get_client
-    account = client.load(Account(client, "test-123@linode.com"))
+    account = client.account()
+    account_id = account.id
+    account_get = client.load(Account, account_id)
 
-    assert account.first_name == "Test"
-    assert account.last_name == "User"
-    assert account.email == "test-123@linode.com"
-    assert account.phone == "111-111-1111"
-    assert account.address_1 == "3rd & Arch St"
-    assert account.address_2 == "Unit 999"
-    assert account.city == "Philadelphia"
-    assert account.state == "PA"
-    assert account.country == "US"
-    assert account.zip == "19106"
-    assert account.tax_id == "999-99-9999"
+    assert account_get.first_name == account.first_name
+    assert account_get.last_name == account.last_name
+    assert account_get.email == account.email
+    assert account_get.phone == account.phone
+    assert account_get.address_1 == account.address_1
+    assert account_get.address_2 == account.address_2
+    assert account_get.city == account.city
+    assert account_get.state == account.state
+    assert account_get.country == account.country
+    assert account_get.zip == account.zip
+    assert account_get.tax_id == account.tax_id
 
 
 def test_get_login(get_client):
@@ -71,8 +73,7 @@ def test_latest_get_event(get_client):
 
     linode.delete()
 
-    assert "linode_" in latest_event
-    assert label in latest_event
+    assert label in latest_event["entity"]["label"]
 
 
 def test_get_oathclient(get_client, create_oauth_client):
@@ -91,7 +92,7 @@ def test_get_user(get_client):
 
     username = events._raw_json.get("data")[0]["username"]
 
-    user = client.laod(User, username)
+    user = client.load(User, username)
 
     assert username == user.username
     assert "email" in user._raw_json

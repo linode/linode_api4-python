@@ -48,7 +48,9 @@ def test_zone_file_view(get_client, create_domain):
 
 def test_clone(get_client, create_domain):
     domain = get_client.load(Domain, create_domain.id)
-    domain.clone("clone-example.IntTestSDK.org")
+    timestamp = str(int(time.time()))
+    dom = "clone-" + timestamp + "example.IntTestSDK.org"
+    domain.clone(dom)
 
     ds = get_client.domains()
 
@@ -56,7 +58,7 @@ def test_clone(get_client, create_domain):
 
     domains = [i.domain for i in ds]
 
-    assert "clone-example.IntTestSDK.org" in domains
+    assert dom in domains
 
 
 def test_import(get_client, create_domain):

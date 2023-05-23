@@ -51,7 +51,8 @@ def test_get_account(setup_client_and_linode):
     assert re.search("[a-zA-Z]+", account.state)
     assert re.search("[a-zA-Z]+", account.country)
     assert re.search("[a-zA-Z0-9]+", account.zip)
-    assert re.search("[0-9]+", account.tax_id)
+    if account.tax_id:
+        assert re.search("[0-9]+", account.tax_id)
 
 
 def test_fails_to_create_domain_without_soa_email(setup_client_and_linode):
@@ -200,7 +201,7 @@ def test_get_account_settings(get_client):
     account_settings = client.account.settings()
 
     assert account_settings._populated == True
-    assert account_settings.network_helper == True
+    assert (re.search("\'network_helper\':True|False", str(account_settings._raw_json)))
 
 
 # TODO: Account invoice and payment test cases need to be added

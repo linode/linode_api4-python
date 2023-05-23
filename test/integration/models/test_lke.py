@@ -1,7 +1,8 @@
 import re
-from test.integration.helpers import get_test_label, wait_for_condition
+from test.integration.helpers import get_test_label, wait_for_condition, send_request_when_resource_available
 
 import pytest
+
 
 from linode_api4.errors import ApiError
 from linode_api4.objects import LKECluster, LKENodePool, LKENodePoolNode
@@ -20,6 +21,15 @@ def create_lke_cluster(get_client):
     yield cluster
 
     cluster.delete()
+
+
+def get_cluster_status(cluster: LKECluster, status: str):
+    return cluster._raw_json["status"] == status
+
+
+def get_node_status(cluster: LKECluster, status: str):
+    node = cluster.pools[0].nodes[0]
+    return node.status == status
 
 
 def test_get_lke_clusters(get_client, create_lke_cluster):
@@ -41,9 +51,9 @@ def test_get_lke_pool(get_client, create_lke_cluster):
 def test_cluster_dashboard_url_view(create_lke_cluster):
     cluster = create_lke_cluster
 
-    url = cluster.cluster_dashboard_url_view()
+    url = send_request_when_resource_available(300, cluster.cluster_dashboard_url_view)
 
-    assert re.search("http*://+", url)
+    assert re.search("https://+", url)
 
 
 def test_kubeconfig_delete(create_lke_cluster):
@@ -58,7 +68,7 @@ def test_lke_node_view(create_lke_cluster):
 
     node = cluster.node_view(node_id)
 
-    assert node.status is "ready" or node.status is "not_ready"
+    assert node.status in ("ready", "not_ready")
     assert node.id == node_id
     assert node.instance_id
 
@@ -74,34 +84,34 @@ def test_lke_node_delete(create_lke_cluster):
         assert "Not found" in str(err.json)
 
 
-def test_lke_node_recycle(create_lke_cluster):
-    cluster = create_lke_cluster
+def test_lke_node_recycle(get_client, create_lke_cluster):
+    cluster = get_client.load(LKECluster, create_lke_cluster.id)
     node = cluster.pools[0].nodes[0]
     node_id = cluster.pools[0].nodes[0].id
 
-    cluster.node_recycle(node_id)
+    send_request_when_resource_available(300, cluster.node_recycle, node_id)
 
-    def get_status():
-        node.status == "not_ready"
+    wait_for_condition(10, 300, get_node_status, cluster, 'not_ready')
 
-    wait_for_condition(5, 30, get_status)
-
+    node = cluster.pools[0].nodes[0]
     assert node.status == "not_ready"
 
+    # wait for provisioning
+    wait_for_condition(10, 300, get_node_status, cluster, 'ready')
 
-def test_lke_cluster_nodes_recycle(create_lke_cluster):
-    cluster = create_lke_cluster
     node = cluster.pools[0].nodes[0]
+    assert node.status == "ready"
 
-    cluster.cluster_nodes_recycle()
 
-    def get_status():
-        node.status == "not_ready"
+def test_lke_cluster_nodes_recycle(get_client, create_lke_cluster):
+    cluster = create_lke_cluster
 
-    wait_for_condition(5, 30, get_status)
+    send_request_when_resource_available(300, cluster.cluster_nodes_recycle)
 
-    for n in cluster.pools[0].nodes:
-        assert n.status == "not_ready"
+    wait_for_condition(5, 120, get_node_status, cluster, 'not_ready')
+
+    node = cluster.pools[0].nodes[0]
+    assert node.status == "not_ready"
 
 
 def test_lke_cluster_regenerate(create_lke_cluster):

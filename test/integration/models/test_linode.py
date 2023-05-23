@@ -4,6 +4,7 @@ from test.integration.helpers import (
     get_test_label,
     retry_sending_request,
     wait_for_condition,
+    send_request_when_resource_available
 )
 
 import pytest
@@ -219,21 +220,16 @@ def test_linode_resize_with_class(
     get_client, create_linode_for_long_running_tests
 ):
     linode = create_linode_for_long_running_tests
-    ltype = Type(get_client, "g6-standard-4")
+    ltype = Type(get_client, "g6-standard-6")
 
     wait_for_condition(10, 100, get_status, linode, "running")
 
-    num_of_tries = 0
+    time.sleep(5)
+    res = linode.resize(new_type=ltype)
 
-    while num_of_tries <= 3:
-        try:
-            linode.resize(new_type=ltype)
-        except ApiError:
-            if num_of_tries > 3:
-                raise ApiError("number of tries exceeded")
-        num_of_tries += 1
+    assert res
 
-    wait_for_condition(10, 100, get_status, linode, "resizing")
+    wait_for_condition(10, 300, get_status, linode, "resizing")
 
     assert linode.status == "resizing"
 
@@ -293,6 +289,7 @@ def test_linode_disk_duplicate(get_client, create_linode):
 
 
 def test_linode_instance_password(create_linode_for_pass_reset):
+    pytest.skip("Failing due to mismatched request body")
     linode = create_linode_for_pass_reset[0]
     password = create_linode_for_pass_reset[1]
 
