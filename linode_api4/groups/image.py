@@ -27,7 +27,7 @@ class ImageGroup(Group):
         """
         return self.client._get_and_filter(Image, *filters)
 
-    def create(self, disk, label=None, description=None):
+    def create(self, disk, label=None, description=None, cloud_init=False):
         """
         Creates a new Image from a disk you own.
 
@@ -40,6 +40,8 @@ class ImageGroup(Group):
         :type label: str
         :param description: The description for the new Image.
         :type description: str
+        :param cloud_init: Whether this Image supports cloud-init.
+        :type cloud_init: bool
 
         :returns: The new Image.
         :rtype: Image
@@ -54,6 +56,9 @@ class ImageGroup(Group):
         if description is not None:
             params["description"] = description
 
+        if cloud_init:
+            params["cloud_init"] = cloud_init
+
         result = self.client.post("/images", data=params)
 
         if not "id" in result:
@@ -66,7 +71,11 @@ class ImageGroup(Group):
         return Image(self.client, result["id"], result)
 
     def create_upload(
-        self, label: str, region: str, description: str = None
+        self,
+        label: str,
+        region: str,
+        description: str = None,
+        cloud_init: bool = False,
     ) -> Tuple[Image, str]:
         """
         Creates a new Image and returns the corresponding upload URL.
@@ -79,11 +88,16 @@ class ImageGroup(Group):
         :type region: str
         :param description: The description for the new Image.
         :type description: str
+        :param cloud_init: Whether this Image supports cloud-init.
+        :type cloud_init: bool
 
         :returns: A tuple containing the new image and the image upload URL.
         :rtype: (Image, str)
         """
         params = {"label": label, "region": region, "description": description}
+
+        if cloud_init:
+            params["cloud_init"] = cloud_init
 
         result = self.client.post("/images/upload", data=drop_null_keys(params))
 
