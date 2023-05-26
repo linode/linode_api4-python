@@ -50,4 +50,4 @@ lint:
 
 @PHONEY: testint
 testint:
-	pytest test/integration/${INTEGRATION_TEST_PATH}
+	python3 -m pytest test/integration/
