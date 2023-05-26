@@ -5,7 +5,6 @@ from linode_api4.objects import (
     Database,
     DatabaseEngine,
     DatabaseType,
-    MongoDBDatabase,
     MySQLDatabase,
     PostgreSQLDatabase,
 )
@@ -199,68 +198,4 @@ class DatabaseGroup(Group):
             )
 
         d = PostgreSQLDatabase(self.client, result["id"], result)
-        return d
-
-    def mongodb_instances(self, *filters):
-        """
-        Returns a list of Managed MongoDB Databases active on this account.
-
-        API Documentation: https://www.linode.com/docs/api/databases/#managed-mongodb-databases-list
-
-        :param filters: Any number of filters to apply to this query.
-
-        :returns: A list of MongoDB databases that matched the query.
-        :rtype: PaginatedList of MongoDBDatabase
-        """
-        return self.client._get_and_filter(MongoDBDatabase, *filters)
-
-    def mongodb_create(self, label, region, engine, ltype, **kwargs):
-        """
-        Creates an :any:`MongoDBDatabase` on this account with
-        the given label, region, engine, and node type.  For example::
-
-           client = LinodeClient(TOKEN)
-
-           # look up Region and Types to use.  In this example I'm just using
-           # the first ones returned.
-           region = client.regions().first()
-           node_type = client.database.types()[0]
-           engine = client.database.engines(DatabaseEngine.engine == 'mongodb')[0]
-
-           new_database = client.database.mongodb_create(
-               "example-database",
-               region,
-               engine.id,
-               type.id
-            )
-
-        API Documentation: https://www.linode.com/docs/api/databases/#managed-mongodb-database-create
-
-        :param label: The name for this cluster
-        :type label: str
-        :param region: The region to deploy this cluster in
-        :type region: str or Region
-        :param engine: The engine to deploy this cluster with
-        :type engine: str or Engine
-        :param ltype: The Linode Type to use for this cluster
-        :type ltype: str or Type
-        """
-
-        params = {
-            "label": label,
-            "region": region.id if issubclass(type(region), Base) else region,
-            "engine": engine.id if issubclass(type(engine), Base) else engine,
-            "type": ltype.id if issubclass(type(ltype), Base) else ltype,
-        }
-        params.update(kwargs)
-
-        result = self.client.post("/databases/mongodb/instances", data=params)
-
-        if "id" not in result:
-            raise UnexpectedResponseError(
-                "Unexpected response when creating MongoDB Database",
-                json=result,
-            )
-
-        d = MongoDBDatabase(self.client, result["id"], result)
         return d

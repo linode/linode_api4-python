@@ -364,7 +364,7 @@ class LinodeClient:
         )
 
     # helper functions
-    def _get_and_filter(self, obj_type, *filters):
+    def _get_and_filter(self, obj_type, *filters, endpoint=None):
         parsed_filters = None
         if filters:
             if len(filters) > 1:
@@ -374,6 +374,10 @@ class LinodeClient:
             else:
                 parsed_filters = filters[0].dct
 
-        return self._get_objects(
-            obj_type.api_list(), obj_type, filters=parsed_filters
-        )
+        # Use sepcified endpoint
+        if endpoint:
+            return self._get_objects(endpoint, obj_type, filters=parsed_filters)
+        else:
+            return self._get_objects(
+                obj_type.api_list(), obj_type, filters=parsed_filters
+            )

@@ -1,0 +1,4 @@
+{
+    "acl": "public-read",
+    "acl_xml": "<AccessControlPolicy>...</AccessControlPolicy>"
+}

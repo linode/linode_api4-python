@@ -12,17 +12,23 @@ class IPv6Pool(Base):
 
     properties = {
         "range": Property(identifier=True),
-        "region": Property(slug_relationship=Region, filterable=True),
+        "region": Property(slug_relationship=Region),
     }
 
 
 class IPv6Range(Base):
+    """
+    An instance of a Linode IPv6 Range.
+
+    API Documentation: https://www.linode.com/docs/api/networking/#ipv6-range-view
+    """
+
     api_endpoint = "/networking/ipv6/ranges/{range}"
     id_attribute = "range"
 
     properties = {
         "range": Property(identifier=True),
-        "region": Property(slug_relationship=Region, filterable=True),
+        "region": Property(slug_relationship=Region),
         "prefix": Property(),
         "route_target": Property(),
     }
@@ -31,6 +37,19 @@ class IPv6Range(Base):
 class IPAddress(Base):
     """
     note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+
+    Represents a Linode IP address object.
+
+    When attempting to reset the `rdns` field to default, consider using the ExplicitNullValue class::
+
+        ip = IPAddress(client, "127.0.0.1")
+        ip.rdns = ExplicitNullValue
+        ip.save()
+
+        # Re-populate all attributes with new information from the API
+        ip.invalidate()
+
+    API Documentation: https://www.linode.com/docs/api/networking/#ip-address-view
     """
 
     api_endpoint = "/networking/ips/{address}"
@@ -45,7 +64,7 @@ class IPAddress(Base):
         "public": Property(),
         "rdns": Property(mutable=True),
         "linode_id": Property(),
-        "region": Property(slug_relationship=Region, filterable=True),
+        "region": Property(slug_relationship=Region),
     }
 
     @property
@@ -74,6 +93,12 @@ class VLAN(Base):
     """
     .. note:: At this time, the Linode API only supports listing VLANs.
     .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+
+    An instance of a Linode VLAN.
+    VLANs provide a mechanism for secure communication between two or more Linodes that are assigned to the same VLAN.
+    VLANs are implicitly created during Instance or Instance Config creation.
+
+    API Documentation: https://www.linode.com/docs/api/networking/#vlans-list
     """
 
     api_endpoint = "/networking/vlans/{}"
@@ -82,19 +107,25 @@ class VLAN(Base):
     properties = {
         "label": Property(identifier=True),
         "created": Property(is_datetime=True),
-        "linodes": Property(filterable=True),
-        "region": Property(slug_relationship=Region, filterable=True),
+        "linodes": Property(),
+        "region": Property(slug_relationship=Region),
     }
 
 
 class FirewallDevice(DerivedBase):
+    """
+    An object representing the assignment between a Linode Firewall and another Linode resource.
+
+    API Documentation: https://www.linode.com/docs/api/networking/#firewall-device-view
+    """
+
     api_endpoint = "/networking/firewalls/{firewall_id}/devices/{id}"
     derived_url_path = "devices"
     parent_id_name = "firewall_id"
 
     properties = {
-        "created": Property(filterable=True, is_datetime=True),
-        "updated": Property(filterable=True, is_datetime=True),
+        "created": Property(is_datetime=True),
+        "updated": Property(is_datetime=True),
         "entity": Property(),
         "id": Property(identifier=True),
     }
@@ -103,24 +134,33 @@ class FirewallDevice(DerivedBase):
 class Firewall(Base):
     """
     .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+
+    An instance of a Linode Cloud Firewall.
+
+    API Documentation: https://www.linode.com/docs/api/networking/#firewall-view
     """
 
     api_endpoint = "/networking/firewalls/{id}"
 
     properties = {
         "id": Property(identifier=True),
-        "label": Property(mutable=True, filterable=True),
-        "tags": Property(mutable=True, filterable=True),
+        "label": Property(mutable=True),
+        "tags": Property(mutable=True),
         "status": Property(mutable=True),
-        "created": Property(filterable=True, is_datetime=True),
-        "updated": Property(filterable=True, is_datetime=True),
+        "created": Property(is_datetime=True),
+        "updated": Property(is_datetime=True),
         "devices": Property(derived_class=FirewallDevice),
         "rules": Property(),
     }
 
     def update_rules(self, rules):
         """
-        Sets the JSON rules for this Firewall
+        Sets the JSON rules for this Firewall.
+
+        API Documentation: https://www.linode.com/docs/api/networking/#firewall-rules-update__request-samples
+
+        :param rules: The rules to apply to this Firewall.
+        :type rules: dict
         """
         self._client.put(
             "{}/rules".format(self.api_endpoint), model=self, data=rules
@@ -129,7 +169,12 @@ class Firewall(Base):
 
     def get_rules(self):
         """
-        Gets the JSON rules for this Firewall
+        Gets the JSON rules for this Firewall.
+
+        API Documentation: https://www.linode.com/docs/api/networking/#firewall-rules-update__request-samples
+
+        :returns: The rules that this Firewall is currently configured with.
+        :rtype: dict
         """
         return self._client.get(
             "{}/rules".format(self.api_endpoint), model=self
@@ -138,6 +183,8 @@ class Firewall(Base):
     def device_create(self, id, type="linode", **kwargs):
         """
         Creates and attaches a device to this Firewall
+
+        API Documentation: https://www.linode.com/docs/api/networking/#firewall-device-create
 
         :param id: The ID of the entity to create a device for.
         :type id: int

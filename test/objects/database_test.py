@@ -1,6 +1,6 @@
 from test.base import ClientBaseCase
 
-from linode_api4 import MongoDBDatabase, PostgreSQLDatabase
+from linode_api4 import PostgreSQLDatabase
 from linode_api4.objects import MySQLDatabase
 
 
@@ -18,7 +18,7 @@ class DatabaseTest(ClientBaseCase):
         self.assertEqual(len(types), 1)
         self.assertEqual(types[0].type_class, "nanode")
         self.assertEqual(types[0].id, "g6-nanode-1")
-        self.assertEqual(types[0].engines.mongodb[0].price.monthly, 20)
+        self.assertEqual(types[0].engines.mysql[0].price.monthly, 20)
 
     def test_get_engines(self):
         """

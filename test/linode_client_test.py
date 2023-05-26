@@ -6,6 +6,10 @@ from unittest.mock import MagicMock
 from linode_api4 import ApiError, LinodeClient, LongviewSubscription
 from linode_api4.objects.linode import Instance
 from linode_api4.objects.networking import IPAddress
+from linode_api4.objects.object_storage import (
+    ObjectStorageACL,
+    ObjectStorageCluster,
+)
 
 
 class LinodeClientGeneralTest(ClientBaseCase):
@@ -502,6 +506,21 @@ class LongviewGroupTest(ClientBaseCase):
             self.assertEqual(m.call_url, "/longview/clients")
             self.assertEqual(m.call_data, {"label": "test_client_1"})
 
+    def test_update_plan(self):
+        """
+        Tests that you can submit a correct longview plan update api request
+        """
+        with self.mock_post("/longview/plan") as m:
+            result = self.client.longview.longview_plan_update("longview-100")
+            self.assertEqual(m.call_url, "/longview/plan")
+            self.assertEqual(
+                m.call_data["longview_subscription"], "longview-100"
+            )
+            self.assertEqual(result.id, "longview-10")
+            self.assertEqual(result.clients_included, 10)
+            self.assertEqual(result.label, "Longview Pro 10 pack")
+            self.assertIsNotNone(result.price)
+
     def test_get_subscriptions(self):
         """
         Tests that Longview subscriptions can be retrieved
@@ -589,6 +608,86 @@ class ProfileGroupTest(ClientBaseCase):
     """
     Tests methods of the ProfileGroup
     """
+
+    def test_trusted_devices(self):
+        devices = self.client.profile.trusted_devices()
+        self.assertEqual(len(devices), 1)
+        self.assertEqual(devices[0].id, 123)
+
+    def test_logins(self):
+        logins = self.client.profile.logins()
+        self.assertEqual(len(logins), 1)
+        self.assertEqual(logins[0].id, 123)
+
+    def test_phone_number_delete(self):
+        with self.mock_delete() as m:
+            self.client.profile.phone_number_delete()
+            self.assertEqual(m.call_url, "/profile/phone-number")
+
+    def test_phone_number_verify(self):
+        with self.mock_post({}) as m:
+            self.client.profile.phone_number_verify("123456")
+            self.assertEqual(m.call_url, "/profile/phone-number/verify")
+            self.assertEqual(m.call_data["otp_code"], "123456")
+
+    def test_phone_number_verification_code_send(self):
+        with self.mock_post({}) as m:
+            self.client.profile.phone_number_verification_code_send(
+                "us", "1234567890"
+            )
+            self.assertEqual(m.call_url, "/profile/phone-number")
+            self.assertEqual(m.call_data["iso_code"], "us")
+            self.assertEqual(m.call_data["phone_number"], "1234567890")
+
+    def test_user_preferences(self):
+        with self.mock_get("/profile/preferences") as m:
+            result = self.client.profile.user_preferences()
+            self.assertEqual(m.call_url, "/profile/preferences")
+            self.assertEqual(result.key1, "value1")
+            self.assertEqual(result.key2, "value2")
+
+    def test_user_preferences_update(self):
+        with self.mock_put("/profile/preferences") as m:
+            self.client.profile.user_preferences_update(
+                key1="value3", key2="value4"
+            )
+            self.assertEqual(m.call_url, "/profile/preferences")
+            self.assertEqual(m.call_data["key1"], "value3")
+            self.assertEqual(m.call_data["key2"], "value4")
+
+    def test_security_questions(self):
+        with self.mock_get("/profile/security-questions") as m:
+            result = self.client.profile.security_questions()
+            self.assertEqual(m.call_url, "/profile/security-questions")
+            self.assertEqual(result.security_questions[0].id, 1)
+            self.assertEqual(
+                result.security_questions[0].question,
+                "In what city were you born?",
+            )
+            self.assertEqual(
+                result.security_questions[0].response, "Gotham City"
+            )
+
+    def test_security_questions_answer(self):
+        with self.mock_post("/profile/security-questions") as m:
+            self.client.profile.security_questions_answer(
+                [
+                    {"question_id": 1, "response": "secret answer 1"},
+                    {"question_id": 2, "response": "secret answer 2"},
+                    {"question_id": 3, "response": "secret answer 3"},
+                ]
+            )
+            self.assertEqual(m.call_url, "/profile/security-questions")
+
+            self.assertEqual(
+                m.call_data["security_questions"][0]["question_id"], 1
+            )
+            self.assertEqual(
+                m.call_data["security_questions"][1]["question_id"], 2
+            )
+            self.assertEqual(
+                m.call_data["security_questions"][2]["question_id"], 3
+            )
 
     def test_get_sshkeys(self):
         """
@@ -744,6 +843,115 @@ class ObjectStorageGroupTest(ClientBaseCase):
 
             self.assertEqual(m.call_url, "/object-storage/keys")
             self.assertEqual(m.call_data, {"label": "object-storage-key-1"})
+
+    def test_transfer(self):
+        """
+        Test that you can get the amount of outbound data transfer
+        used by your account’s Object Storage buckets
+        """
+        object_storage_transfer_url = "/object-storage/transfer"
+
+        with self.mock_get(object_storage_transfer_url) as m:
+            result = self.client.object_storage.transfer()
+            self.assertEqual(result.used, 12956600198)
+            self.assertEqual(m.call_url, object_storage_transfer_url)
+
+    def test_buckets(self):
+        """
+        Test that Object Storage Buckets can be reterived
+        """
+        object_storage_buckets_url = "/object-storage/buckets"
+
+        with self.mock_get(object_storage_buckets_url) as m:
+            buckets = self.client.object_storage.buckets()
+            self.assertIsNotNone(buckets)
+            bucket = buckets[0]
+
+            self.assertEqual(m.call_url, object_storage_buckets_url)
+            self.assertEqual(bucket.cluster, "us-east-1")
+            self.assertEqual(
+                bucket.created,
+                datetime(
+                    year=2019, month=1, day=1, hour=1, minute=23, second=45
+                ),
+            )
+            self.assertEqual(
+                bucket.hostname, "example-bucket.us-east-1.linodeobjects.com"
+            )
+            self.assertEqual(bucket.label, "example-bucket")
+            self.assertEqual(bucket.objects, 4)
+            self.assertEqual(bucket.size, 188318981)
+
+    def test_bucket_create(self):
+        """
+        Test that you can create a Object Storage Bucket
+        """
+        # buckets don't work like a normal RESTful collection, so we have to do this
+        with self.mock_post(
+            {"label": "example-bucket", "cluster": "us-east-1"}
+        ) as m:
+            b = self.client.object_storage.bucket_create(
+                "us-east-1", "example-bucket", ObjectStorageACL.PRIVATE, True
+            )
+            self.assertIsNotNone(b)
+            self.assertEqual(m.call_url, "/object-storage/buckets")
+            self.assertEqual(
+                m.call_data,
+                {
+                    "label": "example-bucket",
+                    "cluster": "us-east-1",
+                    "cors_enabled": True,
+                    "acl": "private",
+                },
+            )
+
+        """
+        Test that you can create a Object Storage Bucket passing a Cluster object
+        """
+        with self.mock_post(
+            {"label": "example-bucket", "cluster": "us-east-1"}
+        ) as m:
+            cluster = ObjectStorageCluster(self.client, "us-east-1")
+            b = self.client.object_storage.bucket_create(
+                cluster, "example-bucket", "private", True
+            )
+            self.assertIsNotNone(b)
+            self.assertEqual(m.call_url, "/object-storage/buckets")
+            self.assertEqual(
+                m.call_data,
+                {
+                    "label": "example-bucket",
+                    "cluster": "us-east-1",
+                    "cors_enabled": True,
+                    "acl": "private",
+                },
+            )
+
+    def test_object_url_create(self):
+        """
+        Test that you can create pre-signed URL to access a single Object in a bucket.
+        """
+        object_url_create_url = (
+            "/object-storage/buckets/us-east-1/example-bucket/object-url"
+        )
+        with self.mock_post(object_url_create_url) as m:
+            result = self.client.object_storage.object_url_create(
+                "us-east-1", "example-bucket", "GET", "example"
+            )
+            self.assertIsNotNone(result)
+            self.assertEqual(m.call_url, object_url_create_url)
+            self.assertEqual(
+                result.url,
+                "https://us-east-1.linodeobjects.com/example-bucket/example?Signature=qr98TEucCntPgEG%2BsZQGDsJg93c%3D&Expires=1567609905&AWSAccessKeyId=G4YAF81XWY61DQM94SE0",
+            )
+            self.assertEqual(
+                m.call_data,
+                {
+                    "method": "GET",
+                    "name": "example",
+                    "expires_in": 3600,
+                },
+            )
 
 
 class NetworkingGroupTest(ClientBaseCase):
