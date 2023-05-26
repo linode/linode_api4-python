@@ -138,7 +138,9 @@ def test_update_sql_db(get_client, test_create_sql_db):
 
     database = get_client.load(MySQLDatabase, test_create_sql_db.id)
 
-    wait_for_condition(30, 300, get_sql_db_status, get_client, test_create_sql_db.id, "active")
+    wait_for_condition(
+        30, 300, get_sql_db_status, get_client, test_create_sql_db.id, "active"
+    )
 
     assert res
     assert database.allow_list == new_allow_list
@@ -150,11 +152,20 @@ def test_create_sql_backup(get_client, test_create_sql_db):
     db = get_client.load(MySQLDatabase, test_create_sql_db.id)
     label = "database_backup_test"
 
-    wait_for_condition(30, 300, get_sql_db_status, get_client, test_create_sql_db.id, "active")
+    wait_for_condition(
+        30, 300, get_sql_db_status, get_client, test_create_sql_db.id, "active"
+    )
 
     db.backup_create(label=label, target="secondary")
 
-    wait_for_condition(10, 300, get_sql_db_status, get_client, test_create_sql_db.id, "backing_up")
+    wait_for_condition(
+        10,
+        300,
+        get_sql_db_status,
+        get_client,
+        test_create_sql_db.id,
+        "backing_up",
+    )
 
     assert db.status == "backing_up"
 
@@ -164,7 +175,9 @@ def test_create_sql_backup(get_client, test_create_sql_db):
     assert backup.label == label
     assert backup.database_id == test_create_sql_db.id
 
-    wait_for_condition(30, 300, get_sql_db_status, get_client, test_create_sql_db.id, "active")
+    wait_for_condition(
+        30, 300, get_sql_db_status, get_client, test_create_sql_db.id, "active"
+    )
 
     assert db.status == "active"
 
@@ -182,11 +195,20 @@ def test_sql_backup_restore(get_client, test_create_sql_db):
 
     backup.restore()
 
-    wait_for_condition(10, 300, get_sql_db_status, get_client,  test_create_sql_db.id, "restoring")
+    wait_for_condition(
+        10,
+        300,
+        get_sql_db_status,
+        get_client,
+        test_create_sql_db.id,
+        "restoring",
+    )
 
     assert db.status == "restoring"
 
-    wait_for_condition(30, 1000, get_sql_db_status, get_client,  test_create_sql_db.id, "active")
+    wait_for_condition(
+        30, 1000, get_sql_db_status, get_client, test_create_sql_db.id, "active"
+    )
 
     assert db.status == "active"
 
@@ -261,7 +283,14 @@ def test_update_postgres_db(get_client, test_create_postgres_db):
 
     database = get_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
 
-    wait_for_condition(30, 1000, get_postgres_db_status, get_client, test_create_postgres_db, "active")
+    wait_for_condition(
+        30,
+        1000,
+        get_postgres_db_status,
+        get_client,
+        test_create_postgres_db,
+        "active",
+    )
 
     assert res
     assert database.allow_list == new_allow_list
@@ -270,15 +299,31 @@ def test_update_postgres_db(get_client, test_create_postgres_db):
 
 
 def test_create_postgres_backup(get_client, test_create_postgres_db):
-    pytest.skip("Failing due to '400: The backup snapshot request failed, please contact support.'")
+    pytest.skip(
+        "Failing due to '400: The backup snapshot request failed, please contact support.'"
+    )
     db = get_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
     label = "database_backup_test"
 
-    wait_for_condition(30, 1000, get_postgres_db_status, get_client, test_create_postgres_db.id, "active")
+    wait_for_condition(
+        30,
+        1000,
+        get_postgres_db_status,
+        get_client,
+        test_create_postgres_db.id,
+        "active",
+    )
 
     db.backup_create(label=label, target="secondary")
 
-    wait_for_condition(30, 1000, get_postgres_db_status, get_client, test_create_postgres_db, "active")
+    wait_for_condition(
+        30,
+        1000,
+        get_postgres_db_status,
+        get_client,
+        test_create_postgres_db,
+        "active",
+    )
 
     # list backup and most recently created one is first element of the array
     backup = db.backups[0]
@@ -299,9 +344,23 @@ def test_postgres_backup_restore(get_client, test_create_postgres_db):
 
     backup.restore()
 
-    wait_for_condition(30, 1000, get_postgres_db_status, get_client, test_create_postgres_db.id, "restoring")
+    wait_for_condition(
+        30,
+        1000,
+        get_postgres_db_status,
+        get_client,
+        test_create_postgres_db.id,
+        "restoring",
+    )
 
-    wait_for_condition(30, 1000, get_postgres_db_status, get_client, test_create_postgres_db.id, "active")
+    wait_for_condition(
+        30,
+        1000,
+        get_postgres_db_status,
+        get_client,
+        test_create_postgres_db.id,
+        "active",
+    )
 
     assert db.status == "active"
 
@@ -317,11 +376,25 @@ def test_postgres_patch(get_client, test_create_postgres_db):
 
     db.patch()
 
-    wait_for_condition(10, 300, get_postgres_db_status, get_client, test_create_postgres_db.id, "updating")
+    wait_for_condition(
+        10,
+        300,
+        get_postgres_db_status,
+        get_client,
+        test_create_postgres_db.id,
+        "updating",
+    )
 
     assert db.status == "updating"
 
-    wait_for_condition(30, 600, get_postgres_db_status, get_client, test_create_postgres_db.id, "active")
+    wait_for_condition(
+        30,
+        600,
+        get_postgres_db_status,
+        get_client,
+        test_create_postgres_db.id,
+        "active",
+    )
 
     assert db.status == "active"
 

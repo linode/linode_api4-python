@@ -201,7 +201,9 @@ def test_get_account_settings(get_client):
     account_settings = client.account.settings()
 
     assert account_settings._populated == True
-    assert (re.search("\'network_helper\':True|False", str(account_settings._raw_json)))
+    assert re.search(
+        "'network_helper':True|False", str(account_settings._raw_json)
+    )
 
 
 # TODO: Account invoice and payment test cases need to be added

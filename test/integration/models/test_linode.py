@@ -1,10 +1,8 @@
 import time
 from test.integration.helpers import (
-    delete_instance_with_test_kw,
     get_test_label,
     retry_sending_request,
     wait_for_condition,
-    send_request_when_resource_available
 )
 
 import pytest
