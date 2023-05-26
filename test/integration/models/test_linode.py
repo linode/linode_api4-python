@@ -47,13 +47,15 @@ def create_linode_with_volume_firewall(get_client):
     firewall.device_create(int(linode_instance.id))
 
     yield linode_instance
-    linode_instance.delete()
+
     firewall.delete()
-    linodes = client.linode.instances()
-    delete_instance_with_test_kw(linodes)
+
+    linode_instance.delete()
+
     volume.detach()
     # wait for volume detach, can't currently get the attach/unattached status via SDK
     time.sleep(30)
+
     volume.delete()
 
 
@@ -112,10 +114,16 @@ def test_linode_rebuild(get_client):
 
     retry_sending_request(3, linode.rebuild, "linode/debian9")
 
-    wait_for_condition(10, 100, get_status, linode, "running")
+    wait_for_condition(10, 100, get_status, linode, "rebuilding")
+
+    assert linode.status == "rebuilding"
+    assert linode.image.id == "linode/debian9"
+
+    wait_for_condition(10, 300, get_status, linode, "running")
 
     assert linode.status == "running"
-    assert linode.image.id == "linode/debian9"
+
+    linode.delete()
 
 
 def test_linode_available_backups(create_linode):

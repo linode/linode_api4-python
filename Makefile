@@ -1,5 +1,7 @@
 PYTHON ?= python3
 
+INTEGRATION_TEST_PATH :=
+
 @PHONEY: clean
 clean:
 	mkdir -p dist
@@ -45,3 +47,7 @@ lint:
 	autoflake --check linode_api4 test
 	black --check --verbose linode_api4 test
 	pylint linode_api4
+
+@PHONEY: testint
+testint:
+	pytest test/integration/${INTEGRATION_TEST_PATH}
