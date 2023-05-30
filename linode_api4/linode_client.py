@@ -88,16 +88,12 @@ class LinodeClient:
         if retry_statuses is not None:
             retry_forcelist.extend(retry_statuses)
 
-        # make sure we got a sane backoff
-        if not isinstance(retry_rate_limit_interval, float):
-            raise ValueError("retry_rate_limit_interval must be a float")
-
         # Ensure the max retries value is valid
         if not isinstance(retry_max, int):
             raise ValueError("retry_max must be an int")
 
         self.retry = retry
-        self.retry_rate_limit_interval = retry_rate_limit_interval
+        self.retry_rate_limit_interval = float(retry_rate_limit_interval)
         self.retry_max = retry_max
         self.retry_statuses = retry_statuses
 
