@@ -147,9 +147,14 @@ class LinodeTest(ClientBaseCase):
                         "network_out": 5,
                         "transfer_quota": 80,
                     },
+                    "backups": {
+                        "enabled": True,
+                        "schedule": {"day": "Scheduling", "window": "W02"},
+                    },
                     "label": "NewLinodeLabel",
                     "group": "new_group",
                     "tags": ["something"],
+                    "watchdog_enabled": True,
                 },
             )
 

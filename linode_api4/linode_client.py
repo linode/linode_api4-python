@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import json
 import logging
-import time
 from typing import BinaryIO, Tuple
 
 import pkg_resources
 import requests
+from requests.adapters import HTTPAdapter, Retry
 
 from linode_api4.errors import ApiError, UnexpectedResponseError
 from linode_api4.groups import *
@@ -22,6 +22,16 @@ package_version = pkg_resources.require("linode_api4")[0].version
 logger = logging.getLogger(__name__)
 
 
+class LinearRetry(Retry):
+    """
+    Linear retry is a subclass of Retry that uses a linear backoff strategy.
+    This is necessary to maintain backwards compatibility with the old retry system.
+    """
+
+    def get_backoff_time(self):
+        return self.backoff_factor
+
+
 class LinodeClient:
     def __init__(
         self,
@@ -29,7 +39,10 @@ class LinodeClient:
         base_url="https://api.linode.com/v4",
         user_agent=None,
         page_size=None,
-        retry_rate_limit_interval=None,
+        retry=True,
+        retry_rate_limit_interval=1.0,
+        retry_max=5,
+        retry_statuses=None,
     ):
         """
         The main interface to the Linode API.
@@ -51,26 +64,57 @@ class LinodeClient:
                                   can be found in the API docs, but at time of writing
                                   are between 25 and 500.
         :type page_size: int
-        :param retry_rate_limit_interval: If given, 429 responses will be automatically
-                                         retried up to 5 times with the given interval,
-                                         in seconds, between attempts.
-        :type retry_rate_limit_interval: int
+        :param retry: Whether API requests should automatically be retries on known
+                      intermittent responses.
+        :type retry: bool
+        :param retry_rate_limit_interval: The amount of time to wait between HTTP request
+                                          retries.
+        :type retry_rate_limit_interval: float
+        :param retry_max: The number of request retries that should be attempted before
+                          raising an API error.
+        :type retry_max: int
+        :type retry_statuses: List of int
+        :param retry_statuses: Additional HTTP response statuses to retry on.
+                               By default, the client will retry on 408, 429, and 502
+                               responses.
         """
         self.base_url = base_url
         self._add_user_agent = user_agent
         self.token = token
-        self.session = requests.Session()
         self.page_size = page_size
-        self.retry_rate_limit_interval = retry_rate_limit_interval
+
+        retry_forcelist = [408, 429, 502]
+
+        if retry_statuses is not None:
+            retry_forcelist.extend(retry_statuses)
 
         # make sure we got a sane backoff
-        if self.retry_rate_limit_interval is not None:
-            if not isinstance(self.retry_rate_limit_interval, int):
-                raise ValueError("retry_rate_limit_interval must be an int")
-            if self.retry_rate_limit_interval < 1:
-                raise ValueError(
-                    "retry_rate_limit_interval must not be less than 1"
-                )
+        if not isinstance(retry_rate_limit_interval, float):
+            raise ValueError("retry_rate_limit_interval must be a float")
+
+        # Ensure the max retries value is valid
+        if not isinstance(retry_max, int):
+            raise ValueError("retry_max must be an int")
+
+        self.retry = retry
+        self.retry_rate_limit_interval = retry_rate_limit_interval
+        self.retry_max = retry_max
+        self.retry_statuses = retry_statuses
+
+        # Initialize the HTTP client session
+        self.session = requests.Session()
+
+        self._retry_config = LinearRetry(
+            total=retry_max if retry else 0,
+            status_forcelist=retry_forcelist,
+            respect_retry_after_header=True,
+            backoff_factor=retry_rate_limit_interval,
+            raise_on_status=False,
+        )
+        retry_adapter = HTTPAdapter(max_retries=self._retry_config)
+
+        self.session.mount("http://", retry_adapter)
+        self.session.mount("https://", retry_adapter)
 
         #: Access methods related to Linodes - see :any:`LinodeGroup` for
         #: more information
@@ -196,29 +240,11 @@ class LinodeClient:
         if data is not None:
             body = json.dumps(data)
 
-        # retry on 429 response
-        max_retries = 5 if self.retry_rate_limit_interval else 1
-        for attempt in range(max_retries):
-            response = method(url, headers=headers, data=body)
+        response = method(url, headers=headers, data=body)
 
-            warning = response.headers.get("Warning", None)
-            if warning:
-                logger.warning(
-                    "Received warning from server: {}".format(warning)
-                )
-
-            # if we were configured to retry 429s, and we got a 429, sleep briefly and then retry
-            if self.retry_rate_limit_interval and response.status_code == 429:
-                logger.warning(
-                    "Received 429 response; waiting {} seconds and retrying request (attempt {}/{})".format(
-                        self.retry_rate_limit_interval,
-                        attempt,
-                        max_retries,
-                    )
-                )
-                time.sleep(self.retry_rate_limit_interval)
-            else:
-                break
+        warning = response.headers.get("Warning", None)
+        if warning:
+            logger.warning("Received warning from server: {}".format(warning))
 
         if 399 < response.status_code < 600:
             j = None
@@ -287,6 +313,29 @@ class LinodeClient:
 
     def delete(self, *args, **kwargs):
         return self._api_call(*args, method=self.session.delete, **kwargs)
+
+    def __setattr__(self, key, value):
+        # Allow for dynamic updating of the retry config
+        handlers = {
+            "retry_rate_limit_interval": lambda: setattr(
+                self._retry_config, "backoff_factor", value
+            ),
+            "retry": lambda: setattr(
+                self._retry_config, "total", self.retry_max if value else 0
+            ),
+            "retry_max": lambda: setattr(
+                self._retry_config, "total", value if self.retry else 0
+            ),
+            "retry_statuses": lambda: setattr(
+                self._retry_config, "status_forcelist", value
+            ),
+        }
+
+        handler = handlers.get(key)
+        if hasattr(self, "_retry_config") and handler is not None:
+            handler()
+
+        super().__setattr__(key, value)
 
     def image_create(self, disk, label=None, description=None):
         """

@@ -1,6 +1,10 @@
 from test.base import ClientBaseCase
 
-from linode_api4.objects import NodeBalancerConfig, NodeBalancerNode
+from linode_api4.objects import (
+    NodeBalancer,
+    NodeBalancerConfig,
+    NodeBalancerNode,
+)
 from linode_api4.objects.base import MappedObject
 
 
@@ -128,3 +132,65 @@ class NodeBalancerNodeTest(ClientBaseCase):
             self.assertEqual(
                 m.call_url, "/nodebalancers/123456/configs/65432/nodes/54321"
             )
+
+    def test_config_rebuild(self):
+        """
+        Test that you can rebuild the cofig of a node balancer.
+        """
+        config_rebuild_url = "/nodebalancers/12345/configs/4567/rebuild"
+        with self.mock_post(config_rebuild_url) as m:
+            nb = NodeBalancer(self.client, 12345)
+            nodes = [
+                {
+                    "id": 54321,
+                    "address": "192.168.210.120:80",
+                    "label": "node1",
+                    "weight": 50,
+                    "mode": "accept",
+                }
+            ]
+
+            result = nb.config_rebuild(
+                4567,
+                nodes,
+                port=1234,
+                protocol="https",
+                algorithm="roundrobin",
+            )
+            self.assertIsNotNone(result)
+            self.assertEqual(result.id, 4567)
+            self.assertEqual(result.nodebalancer_id, 12345)
+            self.assertEqual(m.call_url, config_rebuild_url)
+            self.assertEqual(
+                m.call_data,
+                {
+                    "port": 1234,
+                    "protocol": "https",
+                    "algorithm": "roundrobin",
+                    "nodes": [
+                        {
+                            "id": 54321,
+                            "address": "192.168.210.120:80",
+                            "label": "node1",
+                            "weight": 50,
+                            "mode": "accept",
+                        },
+                    ],
+                },
+            )
+
+    def test_statistics(self):
+        """
+        Test that you can get the statistics about the requested NodeBalancer.
+        """
+        statistics_url = "/nodebalancers/12345/stats"
+        with self.mock_get(statistics_url) as m:
+            nb = NodeBalancer(self.client, 12345)
+            result = nb.statistics()
+
+            self.assertIsNotNone(result)
+            self.assertEqual(
+                result.title,
+                "linode.com - balancer12345 (12345) - day (5 min avg)",
+            )
+            self.assertEqual(m.call_url, statistics_url)
