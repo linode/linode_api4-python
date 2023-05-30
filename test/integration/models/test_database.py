@@ -1,6 +1,10 @@
 import re
 import time
-from test.integration.helpers import get_test_label, wait_for_condition
+from test.integration.helpers import (
+    get_test_label,
+    send_request_when_resource_available,
+    wait_for_condition,
+)
 
 import pytest
 
@@ -53,7 +57,7 @@ def test_create_sql_db(get_client):
 
     yield db
 
-    db.delete()
+    send_request_when_resource_available(300, db.delete)
 
 
 @pytest.fixture(scope="session")
@@ -80,7 +84,7 @@ def test_create_postgres_db(get_client):
 
     yield db
 
-    db.delete()
+    send_request_when_resource_available(300, db.delete)
 
 
 # ------- SQL DB Test cases -------
@@ -170,14 +174,14 @@ def test_create_sql_backup(get_client, test_create_sql_db):
     assert db.status == "backing_up"
 
     # list backup and most recently created one is first element of the array
+    wait_for_condition(
+        30, 600, get_sql_db_status, get_client, test_create_sql_db.id, "active"
+    )
+
     backup = db.backups[0]
 
     assert backup.label == label
     assert backup.database_id == test_create_sql_db.id
-
-    wait_for_condition(
-        30, 300, get_sql_db_status, get_client, test_create_sql_db.id, "active"
-    )
 
     assert db.status == "active"
 
@@ -224,11 +228,20 @@ def test_sql_patch(get_client, test_create_sql_db):
 
     db.patch()
 
-    wait_for_condition(10, 300, get_sql_db_status, get_client, "updating")
+    wait_for_condition(
+        10,
+        300,
+        get_sql_db_status,
+        get_client,
+        test_create_sql_db.id,
+        "updating",
+    )
 
     assert db.status == "updating"
 
-    wait_for_condition(30, 1000, get_sql_db_status, get_client, "active")
+    wait_for_condition(
+        30, 1000, get_sql_db_status, get_client, test_create_sql_db.id, "active"
+    )
 
     assert db.status == "active"
 
@@ -288,7 +301,7 @@ def test_update_postgres_db(get_client, test_create_postgres_db):
         1000,
         get_postgres_db_status,
         get_client,
-        test_create_postgres_db,
+        test_create_postgres_db.id,
         "active",
     )
 
@@ -316,12 +329,25 @@ def test_create_postgres_backup(get_client, test_create_postgres_db):
 
     db.backup_create(label=label, target="secondary")
 
+    # list backup and most recently created one is first element of the array
+    wait_for_condition(
+        10,
+        300,
+        get_sql_db_status,
+        get_client,
+        test_create_postgres_db.id,
+        "backing_up",
+    )
+
+    assert db.status == "backing_up"
+
+    # list backup and most recently created one is first element of the array
     wait_for_condition(
         30,
-        1000,
-        get_postgres_db_status,
+        600,
+        get_sql_db_status,
         get_client,
-        test_create_postgres_db,
+        test_create_postgres_db.id,
         "active",
     )
 

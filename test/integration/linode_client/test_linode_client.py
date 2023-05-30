@@ -1,15 +1,11 @@
 import re
 import time
-from test.integration.helpers import delete_all_test_instances, get_test_label
+from test.integration.helpers import get_test_label
 
 import pytest
 
 from linode_api4 import ApiError, LinodeClient
 from linode_api4.objects import (
-    Disk,
-    Domain,
-    Instance,
-    LongviewClient,
     ObjectStorageKeys,
 )
 
@@ -28,9 +24,6 @@ def setup_client_and_linode(get_client):
     yield client, linode_instance
 
     linode_instance.delete()
-
-    # delete all instances with test label
-    delete_all_test_instances(get_client)
 
 
 def test_get_account(setup_client_and_linode):
@@ -169,6 +162,8 @@ def test_create_tag_with_id(
 
     tag_label_list = [i.label for i in tags]
 
+    tag.delete()
+
     assert label in tag_label_list
 
 
@@ -191,6 +186,8 @@ def test_create_tag_with_entities(
     tags = client.tags()
 
     tag_label_list = [i.label for i in tags]
+
+    tag.delete()
 
     assert label in tag_label_list
 
@@ -221,7 +218,11 @@ def test_create_linode_instance_without_image(get_client):
     )
 
     assert linode_instance.label == label
-    assert linode_instance.image == None
+    assert linode_instance.image is None
+
+    res = linode_instance.delete()
+
+    assert res
 
 
 def test_create_linode_instance_with_image(setup_client_and_linode):
@@ -275,6 +276,10 @@ def test_cluster_create_with_api_objects(get_client):
 
     assert cluster.region.id == region.id
     assert cluster.k8s_version.id == version.id
+
+    res = cluster.delete()
+
+    assert res
 
 
 def test_fails_to_create_cluster_with_invalid_version(get_client):
@@ -355,7 +360,8 @@ def test_keys_create(get_client, create_ssh_keys_object_storage):
 # def test_get_vlans():
 
 
-def test_firewall_create_with_inbound_outbound_rules(get_client):
+@pytest.fixture
+def create_firewall_with_inbound_outbound_rules(get_client):
     client = get_client
     label = get_test_label() + "-firewall"
     rules = {
@@ -385,12 +391,18 @@ def test_firewall_create_with_inbound_outbound_rules(get_client):
         label, rules=rules, status="enabled"
     )
 
+    yield firewall
 
-def test_get_firewalls(get_client, create_firewall):
+    firewall.delete()
+
+
+def test_get_firewalls_with_inbound_outbound_rules(get_client, create_firewall_with_inbound_outbound_rules):
     client = get_client
     firewalls = client.networking.firewalls()
-    firewall = create_firewall
+    firewall = create_firewall_with_inbound_outbound_rules
 
     firewall_labels = [i.label for i in firewalls]
 
     assert firewall.label in firewall_labels
+    assert firewall.rules.inbound_policy == "ACCEPT"
+    assert firewall.rules.outbound_policy == "DROP"

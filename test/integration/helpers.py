@@ -78,12 +78,13 @@ def retry_sending_request(retries: int, condition: Callable, *args) -> object:
     curr_t = 0
     while curr_t < retries:
         try:
-            if condition(*args):
-                break
+            curr_t += 1
+            res = condition(*args)
+            return res
         except ApiError:
             if curr_t >= retries:
                 raise ApiError
-        curr_t += 1
+        time.sleep(5)
 
 
 def send_request_when_resource_available(
@@ -96,7 +97,11 @@ def send_request_when_resource_available(
             res = func(*args)
             return res
         except ApiError as e:
-            if e.status == 400 or "Please try again later" in str(e.__dict__):
+            if (
+                e.status == 400
+                or e.status == 500
+                or "Please try again later" in str(e.__dict__)
+            ):
                 if time.time() - start_time > timeout:
                     raise TimeoutError(
                         "Timeout Error: resource is not available in"

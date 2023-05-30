@@ -1,6 +1,6 @@
 import time
 from test.integration.conftest import get_token
-from test.integration.helpers import get_test_label, wait_for_condition
+from test.integration.helpers import get_test_label, wait_for_condition, retry_sending_request
 
 import pytest
 
@@ -55,7 +55,7 @@ def test_volume_resize(get_client, create_volume):
 
     wait_for_condition(10, 100, get_status, volume, "active")
 
-    res = volume.resize(21)
+    res = retry_sending_request(5, volume.resize, 21)
 
     assert res
 
@@ -66,13 +66,13 @@ def test_volume_clone_and_delete(get_client, create_volume):
 
     wait_for_condition(10, 100, get_status, volume, "active")
 
-    new_volume = volume.clone(label)
+    new_volume = retry_sending_request(5, volume.clone, label)
 
     assert label == new_volume.label
 
-    res = new_volume.delete()
+    res = retry_sending_request(5, new_volume.delete)
 
-    assert res, "deletion failed"
+    assert res, "new volume deletion failed"
 
 
 def test_attach_volume_to_linode(
@@ -81,7 +81,7 @@ def test_attach_volume_to_linode(
     volume = create_volume
     linode = create_linode_for_volume
 
-    res = volume.attach(linode.id)
+    res = retry_sending_request(5, volume.attach, linode.id)
 
     assert res
 
@@ -92,6 +92,9 @@ def test_detach_volume_to_linode(
     volume = create_volume
     linode = create_linode_for_volume
 
-    res = volume.detach()
+    res = retry_sending_request(5, volume.detach)
 
     assert res
+
+    # time wait for volume to detach before deletion occurs
+    time.sleep(30)

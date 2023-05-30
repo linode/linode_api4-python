@@ -1,18 +1,12 @@
 import re
 import time
 from test.integration.helpers import (
-    delete_all_test_instances,
     wait_for_condition,
 )
 
 import pytest
 
 from linode_api4.objects import Domain, DomainRecord
-
-
-@pytest.fixture(scope="session", autouse=True)
-def teardown(get_client):
-    delete_all_test_instances(get_client)
 
 
 def test_get_domain_record(get_client, create_domain):
