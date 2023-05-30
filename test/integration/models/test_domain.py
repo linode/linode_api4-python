@@ -1,8 +1,6 @@
 import re
 import time
-from test.integration.helpers import (
-    wait_for_condition,
-)
+from test.integration.helpers import wait_for_condition
 
 import pytest
 

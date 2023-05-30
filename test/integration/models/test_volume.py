@@ -1,6 +1,10 @@
 import time
 from test.integration.conftest import get_token
-from test.integration.helpers import get_test_label, wait_for_condition, retry_sending_request
+from test.integration.helpers import (
+    get_test_label,
+    retry_sending_request,
+    wait_for_condition,
+)
 
 import pytest
 

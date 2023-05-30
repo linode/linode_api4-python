@@ -5,9 +5,7 @@ from test.integration.helpers import get_test_label
 import pytest
 
 from linode_api4 import ApiError, LinodeClient
-from linode_api4.objects import (
-    ObjectStorageKeys,
-)
+from linode_api4.objects import ObjectStorageKeys
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -396,7 +394,9 @@ def create_firewall_with_inbound_outbound_rules(get_client):
     firewall.delete()
 
 
-def test_get_firewalls_with_inbound_outbound_rules(get_client, create_firewall_with_inbound_outbound_rules):
+def test_get_firewalls_with_inbound_outbound_rules(
+    get_client, create_firewall_with_inbound_outbound_rules
+):
     client = get_client
     firewalls = client.networking.firewalls()
     firewall = create_firewall_with_inbound_outbound_rules
