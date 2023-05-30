@@ -34,7 +34,7 @@ def test_get_account(setup_client_and_linode):
         "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", account.email
     )
     assert re.search(
-        "^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}$", account.phone
+        "^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$", account.phone
     )
     assert re.search("[a-zA-Z0-9]+", account.address_1)
     assert re.search("[a-zA-Z0-9]+", account.address_2)
