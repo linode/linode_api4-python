@@ -1,4 +1,3 @@
 httplib2
 enum34
 requests
-pytest
