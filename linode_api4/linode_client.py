@@ -108,7 +108,7 @@ class LinodeClient:
             raise_on_status=False,
             # By default, POST is not an allowed method.
             # We should explicitly include it.
-            allowed_methods={"DELETE", "GET", "POST", "PUT"}
+            allowed_methods={"DELETE", "GET", "POST", "PUT"},
         )
         retry_adapter = HTTPAdapter(max_retries=self._retry_config)
 
