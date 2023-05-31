@@ -95,7 +95,7 @@ class LinodeClient:
         self.retry = retry
         self.retry_rate_limit_interval = float(retry_rate_limit_interval)
         self.retry_max = retry_max
-        self.retry_statuses = retry_statuses
+        self.retry_statuses = retry_forcelist
 
         # Initialize the HTTP client session
         self.session = requests.Session()
