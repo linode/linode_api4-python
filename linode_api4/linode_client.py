@@ -102,10 +102,13 @@ class LinodeClient:
 
         self._retry_config = LinearRetry(
             total=retry_max if retry else 0,
-            status_forcelist=retry_forcelist,
+            status_forcelist=self.retry_statuses,
             respect_retry_after_header=True,
-            backoff_factor=retry_rate_limit_interval,
+            backoff_factor=self.retry_rate_limit_interval,
             raise_on_status=False,
+            # By default, POST is not an allowed method.
+            # We should explicitly include it.
+            allowed_methods={"DELETE", "GET", "POST", "PUT"}
         )
         retry_adapter = HTTPAdapter(max_retries=self._retry_config)
 
