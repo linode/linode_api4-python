@@ -1,7 +1,9 @@
 from datetime import datetime
 from test.base import ClientBaseCase
 from unittest import TestCase
-from unittest.mock import MagicMock
+
+import httpretty
+import pytest
 
 from linode_api4 import ApiError, LinodeClient, LongviewSubscription
 from linode_api4.objects.linode import Instance
@@ -1066,129 +1068,114 @@ class NetworkingGroupTest(ClientBaseCase):
 
 class LinodeClientRateLimitRetryTest(TestCase):
     """
-    Tests for rate limiting errors.
+    Tests for retrying on intermittent errors.
 
     .. warning::
        This test class _does not_ follow normal testing conventions for this project,
        as requests are not automatically mocked.  Only add tests to this class if they
-       pertain to the 429 retry logic, and make sure you mock the requests calls yourself
+       pertain to the retry logic, and make sure you mock the requests calls yourself
        (or else they will make real requests and those won't work).
     """
 
-    def setUp(self):
-        self.client = LinodeClient(
-            "testing", base_url="/", retry_rate_limit_interval=1
-        )
+    def get_retry_client(self):
+        client = LinodeClient("testing", base_url="https://localhost")
         # sidestep the validation to do immediate retries so tests aren't slow
-        self.client.retry_rate_limit_interval = 0.1
+        client.retry_rate_limit_interval = 0.1
+        return client
 
-    def _get_mock_response(self, response_code):
+    @httpretty.activate
+    def test_retry_statuses(self):
         """
-        Helper function to return a mock response
+        Tests that retries work as expected on 408 and 429 responses.
         """
-        ret = MagicMock()
-        ret.status_code = response_code
-        ret.json.return_value = {}
 
-        return ret
+        httpretty.register_uri(
+            httpretty.GET,
+            "https://localhost/test",
+            responses=[
+                httpretty.Response(
+                    body="{}",
+                    status=408,
+                ),
+                httpretty.Response(
+                    body="{}",
+                    status=429,
+                ),
+                httpretty.Response(
+                    body="{}",
+                    status=200,
+                ),
+            ],
+        )
 
-    def test_retry_429s(self):
+        self.get_retry_client().get("/test")
+
+        assert len(httpretty.latest_requests()) == 3
+
+    @httpretty.activate
+    def test_retry_max(self):
         """
-        Tests that 429 responses are automatically retried
+        Tests that retries work as expected on 408 and 429 responses.
         """
-        called = 0
 
-        def test_method(*args, **kwargs):
-            nonlocal called
-            called += 1
-            if called < 2:
-                return self._get_mock_response(429)
-            return self._get_mock_response(200)
+        httpretty.register_uri(
+            httpretty.GET,
+            "https://localhost/test",
+            responses=[
+                httpretty.Response(
+                    body="{}",
+                    status=408,
+                ),
+                httpretty.Response(
+                    body="{}",
+                    status=429,
+                ),
+                httpretty.Response(
+                    body="{}",
+                    status=429,
+                ),
+            ],
+        )
 
-        response = self.client._api_call("/test", method=test_method)
-
-        # it retried once, got the empty object
-        assert called == 2
-        assert response == {}, response
-
-    def test_retry_max_attempts(self):
-        """
-        Tests that a request will fail after 5 429 responses in a row
-        """
-        called = 0
-
-        def test_method(*args, **kwargs):
-            nonlocal called
-            called += 1
-            return self._get_mock_response(429)
+        client = self.get_retry_client()
+        client.retry_max = 2
 
         try:
-            response = self.client._api_call("/test", method=test_method)
-            assert False, "Unexpectedly did not raise ApiError!"
-        except ApiError as e:
-            assert e.status == 429
+            client.get("/test")
+        except ApiError as err:
+            assert err.status == 429
+        else:
+            raise RuntimeError(
+                "Expected retry error after exceeding max retries"
+            )
 
-        # it tried 5 times
-        assert called == 5
+        assert len(httpretty.latest_requests()) == 3
 
-    def test_api_error_with_retry(self):
+    @httpretty.activate
+    def test_retry_disable(self):
         """
-        Tests that a 300+ response still raises an ApiError even if retries are
-        enabled
+        Tests that retries can be disabled.
         """
-        called = 0
 
-        def test_method(*args, **kwargs):
-            nonlocal called
-            called += 1
-            return self._get_mock_response(400)
+        httpretty.register_uri(
+            httpretty.GET,
+            "https://localhost/test",
+            responses=[
+                httpretty.Response(
+                    body="{}",
+                    status=408,
+                ),
+            ],
+        )
+
+        client = self.get_retry_client()
+        client.retry = False
 
         try:
-            response = self.client._api_call("/test", method=test_method)
-            assert False, "Unexpectedly did not raise ApiError!"
+            client.get("/test")
         except ApiError as e:
-            assert e.status == 400
+            assert e.status == 408
+        else:
+            raise RuntimeError("Expected 408 error to be raised")
 
-        # it tried 5 times
-        assert called == 1
-
-    def test_api_error_on_retry(self):
-        """
-        Tests that we'll stop retrying and raise immediately if we get a 300+
-        response after a 429
-        """
-        called = 0
-
-        def test_method(*args, **kwargs):
-            nonlocal called
-            called += 1
-            if called < 2:
-                return self._get_mock_response(429)
-            return self._get_mock_response(400)
-
-        try:
-            response = self.client._api_call("/test", method=test_method)
-            assert False, "Unexpectedly did not raise ApiError!"
-        except ApiError as e:
-            assert e.status == 400
-
-        # it tried 5 times
-        assert called == 2
-
-    def test_works_first_time(self):
-        """
-        Tests that the response is handled correctly if we got a 200 on the first
-        try
-        """
-        called = 0
-
-        def test_method(*args, **kwargs):
-            nonlocal called
-            called += 1
-            return self._get_mock_response(200)
-
-        response = self.client._api_call("/test", method=test_method)
-
-        # it tried 5 times
-        assert called == 1
-        assert response == {}
+        assert len(httpretty.latest_requests()) == 1
