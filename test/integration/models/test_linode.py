@@ -319,7 +319,7 @@ def test_linode_ips(create_linode):
 
     ips = linode.ips
 
-    assert ips.ipv4 == linode.ipv4
+    assert ips.ipv4.public[0].address == linode.ipv4[0]
 
 
 def test_linode_initate_migration(get_client):

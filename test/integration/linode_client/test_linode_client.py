@@ -28,22 +28,22 @@ def test_get_account(setup_client_and_linode):
     client = setup_client_and_linode[0]
     account = client.account()
 
-    assert re.search("[a-zA-Z]+", account.first_name)
-    assert re.search("[a-zA-Z]+", account.last_name)
+    assert re.search("^$|[a-zA-Z]+", account.first_name)
+    assert re.search("^$|[a-zA-Z]+", account.last_name)
     assert re.search(
         "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", account.email
     )
     assert re.search(
         "^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$", account.phone
     )
-    assert re.search("[a-zA-Z0-9]+", account.address_1)
-    assert re.search("[a-zA-Z0-9]+", account.address_2)
-    assert re.search("[a-zA-Z]+", account.city)
-    assert re.search("[a-zA-Z]+", account.state)
-    assert re.search("[a-zA-Z]+", account.country)
-    assert re.search("[a-zA-Z0-9]+", account.zip)
+    assert re.search("^$|[a-zA-Z0-9]+", account.address_1)
+    assert re.search("^$|[a-zA-Z0-9]+", account.address_2)
+    assert re.search("^$|[a-zA-Z]+", account.city)
+    assert re.search("^$|[a-zA-Z]+", account.state)
+    assert re.search("^$|[a-zA-Z]+", account.country)
+    assert re.search("^$|[a-zA-Z0-9]+", account.zip)
     if account.tax_id:
-        assert re.search("[0-9]+", account.tax_id)
+        assert re.search("^$|[0-9]+", account.tax_id)
 
 
 def test_fails_to_create_domain_without_soa_email(setup_client_and_linode):

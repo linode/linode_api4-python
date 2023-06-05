@@ -41,7 +41,7 @@ def test_zone_file_view(get_client, create_domain):
 def test_clone(get_client, create_domain):
     domain = get_client.load(Domain, create_domain.id)
     timestamp = str(int(time.time()))
-    dom = "clone-" + timestamp + "example.IntTestSDK.org"
+    dom = "example.clone-" + timestamp + "-IntTestSDK.org"
     domain.clone(dom)
 
     ds = get_client.domains()
