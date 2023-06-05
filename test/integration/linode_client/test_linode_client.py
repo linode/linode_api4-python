@@ -243,9 +243,15 @@ def test_get_longview_clients(get_client, create_longview_client):
 def test_client_create_with_label(get_client):
     client = get_client
     label = get_test_label()
-    longview_clilent = client.longview.client_create(label=label)
+    longview_client = client.longview.client_create(label=label)
 
-    assert label == longview_clilent.label
+    assert label == longview_client.label
+
+    time.sleep(5)
+
+    res = longview_client.delete()
+
+    assert res
 
 
 # TODO: Subscription related test cases need to be added, currently returns a 404
@@ -307,14 +313,6 @@ def test_get_sshkeys(get_client, upload_sshkey):
     ssh_labels = [i.label for i in ssh_keys]
 
     assert upload_sshkey.label in ssh_labels
-
-
-def test_client_create(get_client):
-    client = get_client
-    label = get_test_label() + "-lv"
-    lv_client = client.longview.client_create(label=label)
-
-    assert re.search("[0-9]+", str(lv_client.id))
 
 
 def test_ssh_key_create(upload_sshkey, ssh_key_gen):

@@ -1,4 +1,5 @@
 import re
+import time
 
 from linode_api4.objects import LongviewClient, LongviewSubscription
 
@@ -26,6 +27,8 @@ def test_delete_client(get_client, create_longview_client):
     client = get_client
     label = "TestSDK-longview"
     longview_client = client.longview.client_create(label=label)
+
+    time.sleep(5)
 
     res = longview_client.delete()
 
