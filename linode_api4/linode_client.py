@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from typing import BinaryIO, Tuple
+from urllib import parse
 
 import pkg_resources
 import requests
@@ -225,7 +226,10 @@ class LinodeClient:
             raise ValueError("Method is required for API calls!")
 
         if model:
-            endpoint = endpoint.format(**vars(model))
+            endpoint = endpoint.format(
+                **{k: parse.quote(str(v)) for k, v in vars(model).items()}
+            )
+
         url = "{}{}".format(self.base_url, endpoint)
         headers = {
             "Authorization": "Bearer {}".format(self.token),
