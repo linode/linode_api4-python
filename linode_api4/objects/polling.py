@@ -1,7 +1,9 @@
 import datetime
 from typing import Any, Dict, List, Optional
 
-from linode_api4 import Event, polling
+import polling
+
+from linode_api4.objects import Event
 
 
 class TimeoutContext:
