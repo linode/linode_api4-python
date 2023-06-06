@@ -168,6 +168,9 @@ class LinodeClient:
         #: Access methods related to Images - See :any:`ImageGroup` for more information.
         self.images = ImageGroup(self)
 
+        #: Access methods related to Event polling - See :any:`PollingGroup` for more information.
+        self.polling = PollingGroup(self)
+
     @property
     def _user_agent(self):
         return "{}python-linode_api4/{} {}".format(
