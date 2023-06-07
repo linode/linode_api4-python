@@ -37,5 +37,6 @@ Table of Contents
    linode_api4/linode_client
    linode_api4/login_client
    linode_api4/objects/models
+   linode_api4/polling
    linode_api4/paginated_list
    linode_api4/objects/filtering
