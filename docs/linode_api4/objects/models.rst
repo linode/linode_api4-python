@@ -140,3 +140,10 @@ Volume Models
    :undoc-members:
    :inherited-members:
 
+Polling Classes
+---------------
+
+.. automodule:: linode_api4.objects.polling
+   :members:
+   :undoc-members:
+   :inherited-members:
