@@ -15,8 +15,7 @@ class PollingGroup(Group):
         entity_type: str,
         action: str,
         entity_id: int = None,
-        poll_interval: int = 5,
-    ):
+    ) -> EventPoller:
         """
         Creates a new instance of the EventPoller class.
 
@@ -36,19 +35,18 @@ class PollingGroup(Group):
         """
 
         return EventPoller(
-            self,
+            self.client,
             entity_type,
             action,
             entity_id=entity_id,
-            poll_interval=poll_interval,
         )
 
     def wait_for_entity_free(
         self,
         entity_type: str,
         entity_id: int,
-        timeout: int,
-        interval: int,
+        timeout: int = 240,
+        interval: int = 5,
     ):
         """
         Waits for all events relevant events to not be scheduled or in-progress.

@@ -85,13 +85,11 @@ class EventPoller:
         entity_type: str,
         action: str,
         entity_id: int = None,
-        poll_interval: int = 5,
     ):
         self._client = client
         self._entity_type = entity_type
         self._entity_id = entity_id
         self._action = action
-        self._poll_interval = poll_interval
 
         # Initialize with an empty cache if no entity is specified
         if self._entity_id is None:
@@ -150,13 +148,17 @@ class EventPoller:
 
         return None
 
-    def wait_for_next_event(self, timeout: int) -> Event:
+    def wait_for_next_event(
+        self, timeout: int = 240, interval: int = 5
+    ) -> Event:
         """
         Waits for and returns the next event matching the
         poller's configuration.
 
         :param timeout: The timeout in seconds before this polling operation will fail.
         :type timeout: int
+        :param interval: The time in seconds to wait between polls.
+        :type interval: int
 
         :returns: The resulting event.
         :rtype: Event
@@ -184,18 +186,22 @@ class EventPoller:
 
         polling.poll(
             poll_func,
-            step=self._poll_interval,
+            step=interval,
             timeout=timeout,
         )
 
         return Event(self._client, result_event["id"], json=result_event)
 
-    def wait_for_next_event_finished(self, timeout: int) -> Event:
+    def wait_for_next_event_finished(
+        self, timeout: int = 240, interval: int = 5
+    ) -> Event:
         """
         Waits for the next event to enter status `finished` or `notification`.
 
         :param timeout: The timeout in seconds before this polling operation will fail.
         :type timeout: int
+        :param interval: The time in seconds to wait between polls.
+        :type interval: int
 
         :returns: The resulting event.
         :rtype: Event
@@ -213,7 +219,7 @@ class EventPoller:
 
         polling.poll(
             poll_func,
-            step=self._poll_interval,
+            step=interval,
             timeout=timeout_ctx.seconds_remaining,
         )
 
