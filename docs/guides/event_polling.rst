@@ -32,7 +32,7 @@ method::
         entity_id=my_instance.id,  # The ID of your Linode Instance
     )
 
-The valid values for the `type` and `action` fields can be found in the `Events Response Documentation`_.
+Valid values for the `type` and `action` fields can be found in the `Events Response Documentation`_.
 
 .. _Events Response Documentation: https://www.linode.com/docs/api/account/#events-list__responses
 
@@ -73,3 +73,32 @@ Bringing this together, we get the following::
     poller.wait_for_next_event_finished()
 
     print("Linode has been successfully shutdown!")
+
+Polling for an Entity to be Free
+--------------------------------
+
+In many cases, certain operations cannot be run until any other operations running on a resource have
+been completed. To ensure these operation are run reliably and do not encounter conflicts,
+you can use the
+:meth:`LinodeClient.polling.wait_for_entity_free(...) <PollingGroup.wait_for_entity_free>` method
+to wait until a resource has no running or queued operations.
+
+For example::
+
+    # Construct a client
+    client = LinodeClient("MY_LINODE_TOKEN")
+
+    # Load an existing instance
+    my_instance = client.load(Instance, 12345)
+
+    # Wait until the Linode is not busy
+    client.polling.wait_for_entity_free(
+        "linode",
+        my_instance.id
+    )
+
+    # Boot the Instance
+    my_instance.boot()
+
+The :py:class:`timeout` and :py:class:`interval` arguments can optionally be used to configure the timeout
+and poll frequency for this operation.
