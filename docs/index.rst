@@ -32,6 +32,7 @@ Table of Contents
 
    guides/getting_started
    guides/core_concepts
+   guides/event_polling
    guides/oauth
    linode_api4/linode_client
    linode_api4/login_client
