@@ -1,6 +1,8 @@
+from test.integration.conftest import get_token
+
 import httpretty
 
-from linode_api4 import LinodeClient, ApiError
+from linode_api4 import ApiError, LinodeClient
 
 """
 Tests for retrying on intermittent errors.
@@ -28,7 +30,7 @@ ERROR_RESPONSES = [
 
 
 def get_retry_client():
-    client = LinodeClient("testing", base_url="https://localhost")
+    client = LinodeClient(token=get_token(), base_url="https://localhost")
     # sidestep the validation to do immediate retries so tests aren't slow
     client.retry_rate_limit_interval = 0.1
     return client
@@ -41,9 +43,7 @@ def test_get_retry_statuses():
     """
 
     httpretty.register_uri(
-        httpretty.GET,
-        "https://localhost/test",
-        responses=ERROR_RESPONSES
+        httpretty.GET, "https://localhost/test", responses=ERROR_RESPONSES
     )
 
     get_retry_client().get("/test")
@@ -58,9 +58,7 @@ def test_put_retry_statuses():
     """
 
     httpretty.register_uri(
-        httpretty.PUT,
-        "https://localhost/test",
-        responses=ERROR_RESPONSES
+        httpretty.PUT, "https://localhost/test", responses=ERROR_RESPONSES
     )
 
     get_retry_client().put("/test")
@@ -71,9 +69,7 @@ def test_put_retry_statuses():
 @httpretty.activate
 def test_post_retry_statuses():
     httpretty.register_uri(
-        httpretty.POST,
-        "https://localhost/test",
-        responses=ERROR_RESPONSES
+        httpretty.POST, "https://localhost/test", responses=ERROR_RESPONSES
     )
 
     get_retry_client.post("/test")
@@ -84,9 +80,7 @@ def test_post_retry_statuses():
 @httpretty.activate
 def test_delete_retry_statuses():
     httpretty.register_uri(
-        httpretty.DELETE,
-        "https://localhost/test",
-        responses=ERROR_RESPONSES
+        httpretty.DELETE, "https://localhost/test", responses=ERROR_RESPONSES
     )
 
     get_retry_client().delete("/test")
@@ -127,9 +121,7 @@ def test_retry_max():
     except ApiError as err:
         assert err.status == 429
     else:
-        raise RuntimeError(
-            "Expected retry error after exceeding max retries"
-        )
+        raise RuntimeError("Expected retry error after exceeding max retries")
 
     assert len(httpretty.latest_requests()) == 3
 
@@ -171,9 +163,7 @@ def test_retry_works_with_integer_interval_value():
     """
 
     httpretty.register_uri(
-        httpretty.GET,
-        "https://localhost/test",
-        responses=ERROR_RESPONSES
+        httpretty.GET, "https://localhost/test", responses=ERROR_RESPONSES
     )
 
     client = get_retry_client()

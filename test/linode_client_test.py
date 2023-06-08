@@ -1,11 +1,7 @@
 from datetime import datetime
 from test.base import ClientBaseCase
-from unittest import TestCase
 
-import httpretty
-import pytest
-
-from linode_api4 import ApiError, LinodeClient, LongviewSubscription
+from linode_api4 import LongviewSubscription
 from linode_api4.objects.linode import Instance
 from linode_api4.objects.networking import IPAddress
 from linode_api4.objects.object_storage import (
