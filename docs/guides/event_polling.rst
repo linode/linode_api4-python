@@ -46,7 +46,7 @@ method::
 
     poller.wait_for_next_event_finished()
 
-The :py:class:`timeout` and :py:class:`interval` arguments can optionally be used to configure the timeout
+The :py:class:`timeout` (default 240) and :py:class:`interval` (default 5) arguments can optionally be used to configure the timeout
 and poll frequency for this operation.
 
 Bringing this together, we get the following::
@@ -100,5 +100,5 @@ For example::
     # Boot the Instance
     my_instance.boot()
 
-The :py:class:`timeout` and :py:class:`interval` arguments can optionally be used to configure the timeout
+The :py:class:`timeout` (default 240) and :py:class:`interval` (default 5) arguments can optionally be used to configure the timeout
 and poll frequency for this operation.
