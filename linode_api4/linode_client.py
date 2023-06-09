@@ -69,7 +69,7 @@ class LinodeClient:
         :type retry: bool
         :param retry_rate_limit_interval: The amount of time to wait between HTTP request
                                           retries.
-        :type retry_rate_limit_interval: float
+        :type retry_rate_limit_interval: Union[float, int]
         :param retry_max: The number of request retries that should be attempted before
                           raising an API error.
         :type retry_max: int
@@ -88,28 +88,27 @@ class LinodeClient:
         if retry_statuses is not None:
             retry_forcelist.extend(retry_statuses)
 
-        # make sure we got a sane backoff
-        if not isinstance(retry_rate_limit_interval, float):
-            raise ValueError("retry_rate_limit_interval must be a float")
-
         # Ensure the max retries value is valid
         if not isinstance(retry_max, int):
             raise ValueError("retry_max must be an int")
 
         self.retry = retry
-        self.retry_rate_limit_interval = retry_rate_limit_interval
+        self.retry_rate_limit_interval = float(retry_rate_limit_interval)
         self.retry_max = retry_max
-        self.retry_statuses = retry_statuses
+        self.retry_statuses = retry_forcelist
 
         # Initialize the HTTP client session
         self.session = requests.Session()
 
         self._retry_config = LinearRetry(
             total=retry_max if retry else 0,
-            status_forcelist=retry_forcelist,
+            status_forcelist=self.retry_statuses,
             respect_retry_after_header=True,
-            backoff_factor=retry_rate_limit_interval,
+            backoff_factor=self.retry_rate_limit_interval,
             raise_on_status=False,
+            # By default, POST is not an allowed method.
+            # We should explicitly include it.
+            allowed_methods={"DELETE", "GET", "POST", "PUT"},
         )
         retry_adapter = HTTPAdapter(max_retries=self._retry_config)
 
