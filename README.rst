@@ -140,7 +140,7 @@ Integration tests live in the ``test/integration`` directory.
 
 Pre-requisite
 ^^^^^^^^^^^^^^^^^
-Export Linode API token as `LINODE_CLI_TOKEN before running integration tests::
+Export Linode API token as `LINODE_CLI_TOKEN` before running integration tests::
 
     export LINODE_TOKEN = $(your_token)
 
