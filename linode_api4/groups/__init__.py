@@ -11,6 +11,7 @@ from .longview import *
 from .networking import *
 from .nodebalancer import *
 from .object_storage import *
+from .polling import *
 from .profile import *
 from .region import *
 from .support import *

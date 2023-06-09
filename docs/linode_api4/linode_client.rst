@@ -146,6 +146,15 @@ with buckets and objects, use the s3 API directly with a library like `boto3`_.
 
 .. _boto3: https://github.com/boto/boto3
 
+PollingGroup
+^^^^^^^^^^^^
+
+Includes methods related to account event polling.
+
+.. autoclass:: linode_api4.linode_client.PollingGroup
+   :members:
+   :special-members:
+
 ProfileGroup
 ^^^^^^^^^^^^
 
