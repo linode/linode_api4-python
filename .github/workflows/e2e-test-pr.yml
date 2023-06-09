@@ -3,10 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       test_path:
-        description: 'The test directory to be tested. Use this to test entire directory e.g. linode_client, models'
-        required: false
-      model:
-        description: 'Specific Test model to be tested. Enter test file name in test/models dir e.g. test_account.py'
+        description: 'Enter specific test path. E.g. linode_client/test_linode_client.py, models/test_account.py'
         required: false
       sha:
         description: 'The hash value of the commit.'
@@ -56,7 +53,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: make INTEGRATION_TEST_PATH="${{ inputs.test_path }}" TEST_MODEL="${{ inputs.model }}" testint
+      - run: make INTEGRATION_TEST_PATH="${{ inputs.test_path }}" testint
         if: ${{ steps.validate-tests.outputs.match == '' }}
         env:
           LINODE_CLI_TOKEN: ${{ secrets.LINODE_TOKEN }}
