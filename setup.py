@@ -121,6 +121,7 @@ setup(
 
     install_requires=[
         "requests",
+        "polling"
     ],
 
     extras_require={
