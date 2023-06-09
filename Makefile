@@ -1,6 +1,16 @@
 PYTHON ?= python3
 
 INTEGRATION_TEST_PATH :=
+TEST_CASE_COMMAND :=
+MODEL_COMMAND :=
+
+ifdef TEST_CASE
+TEST_CASE_COMMAND = -k $(TEST_CASE)
+endif
+
+ifdef TEST_MODEL
+MODEL_COMMAND = models/$(TEST_MODEL)
+endif
 
 @PHONEY: clean
 clean:
@@ -50,4 +60,4 @@ lint:
 
 @PHONEY: testint
 testint:
-	python3 -m pytest test/integration/
+	python3 -m pytest test/integration/${INTEGRATION_TEST_PATH}${MODEL_COMMAND} ${TEST_CASE_COMMAND}
