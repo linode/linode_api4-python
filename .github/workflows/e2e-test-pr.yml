@@ -24,7 +24,7 @@ jobs:
       - uses: actions-ecosystem/action-regex-match@v2
         id: validate-tests
         with:
-          text: ${{ github.event.client_payload.slash_command.tests }}
+          text: ${{ inputs.test_path }}
           regex: '[^a-z0-9-:.\/_]'  # Tests validation
           flags: gi
 
@@ -33,6 +33,31 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ inputs.sha }}
+
+      - name: Get the hash value of the latest commit from the PR branch
+        uses: octokit/graphql-action@v2.x
+        id: commit-hash
+        if: ${{ inputs.pull_request_number != '' }}
+        with:
+          query: |
+            query PRHeadCommitHash($owner: String!, $repo: String!, $pr_num: Int!) {
+              repository(owner:$owner, name:$repo) {
+                pullRequest(number: $pr_num) {
+                  headRef {
+                    target {
+                      ... on Commit {
+                        oid
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          owner: ${{ github.event.repository.owner.login }}
+          repo: ${{ github.event.repository.name }}
+          pr_num: ${{ fromJSON(inputs.pull_request_number) }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update system packages
         run: sudo apt-get update -y
@@ -60,7 +85,7 @@ jobs:
 
       - uses: actions/github-script@v6
         id: update-check-run
-        if: ${{ inputs.pull_request_number != '' }}
+        if: ${{ inputs.pull_request_number != '' && fromJson(steps.commit-hash.outputs.data).repository.pullRequest.headRef.target.oid == inputs.sha }}
         env:
           number: ${{ inputs.pull_request_number }}
           job: ${{ github.job }}
