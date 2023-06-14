@@ -1,11 +1,10 @@
-from test.base import ClientBaseCase
+from test.unit.base import ClientBaseCase
 
 from linode_api4.objects import (
     NodeBalancer,
     NodeBalancerConfig,
     NodeBalancerNode,
 )
-from linode_api4.objects.base import MappedObject
 
 
 class NodeBalancerConfigTest(ClientBaseCase):

@@ -1,5 +1,5 @@
 from datetime import datetime
-from test.base import ClientBaseCase
+from test.unit.base import ClientBaseCase
 
 from linode_api4 import LongviewSubscription
 from linode_api4.objects.linode import Instance

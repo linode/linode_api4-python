@@ -1,7 +1,7 @@
-from test.base import ClientBaseCase
+from test.unit.base import ClientBaseCase
 
 from linode_api4 import ExplicitNullValue
-from linode_api4.objects import Firewall, IPAddress, IPv6Pool, IPv6Range
+from linode_api4.objects import Firewall, IPAddress, IPv6Range
 
 
 class NetworkingTest(ClientBaseCase):
