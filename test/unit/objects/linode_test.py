@@ -1,5 +1,5 @@
 from datetime import datetime
-from test.base import ClientBaseCase
+from test.unit.base import ClientBaseCase
 
 from linode_api4.objects import Config, Disk, Image, Instance, StackScript, Type
 
@@ -345,7 +345,7 @@ class LinodeTest(ClientBaseCase):
         self.assertIsNotNone(ips.ipv4.reserved)
         self.assertIsNotNone(ips.ipv6.slaac)
         self.assertIsNotNone(ips.ipv6.link_local)
-        self.assertIsNotNone(ips.ipv6.pools)
+        self.assertIsNotNone(ips.ipv6.ranges)
 
     def test_initiate_migration(self):
         """

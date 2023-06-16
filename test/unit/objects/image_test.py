@@ -1,6 +1,6 @@
 from datetime import datetime
 from io import BytesIO
-from test.base import ClientBaseCase
+from test.unit.base import ClientBaseCase
 from typing import BinaryIO
 from unittest.mock import patch
 

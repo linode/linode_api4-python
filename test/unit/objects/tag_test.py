@@ -1,6 +1,6 @@
-from test.base import ClientBaseCase
+from test.unit.base import ClientBaseCase
 
-from linode_api4.objects import Instance, Tag
+from linode_api4.objects import Tag
 
 
 class TagTest(ClientBaseCase):
