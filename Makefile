@@ -20,8 +20,7 @@ clean:
 
 @PHONEY: build
 build: clean
-	$(PYTHON) setup.py sdist
-	$(PYTHON) setup.py bdist_wheel
+	$(PYTHON) -m build  --wheel --sdist
 
 
 @PHONEY: release
@@ -30,7 +29,7 @@ release: build
 
 
 install: clean
-	python3 setup.py install
+	python3 -m pip install .
 
 
 requirements:
