@@ -18,7 +18,7 @@ If you prefer, you can clone the package from github_ and install it from source
 
    git clone git@github.com:Linode/linode_api4-python
    cd linode_api4
-   python -m pip instal .
+   python -m pip install .
 
 Authentication
 --------------
