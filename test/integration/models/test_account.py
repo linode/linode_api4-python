@@ -1,3 +1,4 @@
+import pytest
 import time
 from test.integration.helpers import get_test_label
 
@@ -11,6 +12,7 @@ from linode_api4.objects import (
 )
 
 
+@pytest.mark.smoke
 def test_get_account(get_client):
     client = get_client
     account = client.account()
@@ -56,6 +58,7 @@ def test_get_account_settings(get_client):
     assert "object_storage" in str(account_settings._raw_json)
 
 
+@pytest.mark.smoke
 def test_latest_get_event(get_client):
     client = get_client
 

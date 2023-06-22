@@ -35,6 +35,7 @@ def get_status(volume: Volume, status: str):
     return volume.status == status
 
 
+@pytest.mark.smoke
 def test_get_volume(get_client, create_volume):
     volume = get_client.load(Volume, create_volume.id)
 

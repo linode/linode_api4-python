@@ -26,6 +26,7 @@ def image_upload(get_client):
     delete_instance_with_test_kw(images)
 
 
+@pytest.mark.smoke
 def test_get_image(get_client, image_upload):
     image = get_client.load(Image, image_upload.id)
 

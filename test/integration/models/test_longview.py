@@ -1,9 +1,11 @@
 import re
 import time
+import pytest
 
 from linode_api4.objects import LongviewClient, LongviewSubscription
 
 
+@pytest.mark.smoke
 def test_get_longview_client(get_client, create_longview_client):
     longview = get_client.load(LongviewClient, create_longview_client.id)
 

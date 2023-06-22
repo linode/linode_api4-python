@@ -51,6 +51,7 @@ def test_get_nodebalancer_config(get_client, create_nb_config):
     )
 
 
+@pytest.mark.smoke
 def test_create_nb_node(
     get_client, create_nb_config, create_linode_with_private_ip
 ):
