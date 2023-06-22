@@ -27,7 +27,7 @@ Building from Source
 To build and install this package:
 
 - Clone this repository
-- ``./setup.py install``
+- ``python3 -m pip install .``
 
 Usage
 =====
