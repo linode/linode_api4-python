@@ -481,8 +481,9 @@ class ObjectStorageCluster(Base):
 
         API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-buckets-in-cluster-list
 
-        :param cluster_id: The ID of the cluster this bucket exists in.
-        :type cluster_id: str
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of Object Storage Buckets that in the requested cluster.
         :rtype: PaginatedList of ObjectStorageBucket

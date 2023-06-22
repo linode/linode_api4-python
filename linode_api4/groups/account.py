@@ -49,6 +49,8 @@ class AccountGroup(Group):
         API Documentation: https://www.linode.com/docs/api/account/#events-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of events on the current account matching the given filters.
         :rtype: PaginatedList of Event
@@ -124,6 +126,8 @@ class AccountGroup(Group):
         API Documentation: https://www.linode.com/docs/api/account/#oauth-clients-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of OAuth Clients associated with this account.
         :rtype: PaginatedList of OAuthClient
@@ -167,6 +171,8 @@ class AccountGroup(Group):
         API Documentation: https://www.linode.com/docs/api/account/#users-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of users on this account.
         :rtype: PaginatedList of User

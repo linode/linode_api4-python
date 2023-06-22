@@ -20,6 +20,8 @@ class LongviewGroup(Group):
         API Documentation: https://www.linode.com/docs/api/longview/#longview-clients-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of Longview Clients matching the given filters.
         :rtype: PaginatedList of LongviewClient
@@ -59,6 +61,8 @@ class LongviewGroup(Group):
         API Documentation: https://www.linode.com/docs/api/longview/#longview-subscriptions-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of Longview Subscriptions matching the given filters.
         :rtype: PaginatedList of LongviewSubscription

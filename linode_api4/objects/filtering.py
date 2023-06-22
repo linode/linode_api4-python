@@ -6,6 +6,12 @@ SQLAlchemy-like syntax.  When calling any "get" method of the :any:`LinodeClient
 class of one of its groups, any number of filters may be passed in as boolean
 comparisons between attributes of the model returned by the collection.
 
+When filtering on API responses for list endpoints, you will first need
+to import the corresponding object class.
+For example, to filter on instances you must first Import :any:`Instance`::
+
+    from linode_api4 import Instance
+
 For example, calling :any:`instances` returns a list of :any:`Instance`
 objects, so we can use properties of :any:`Instance` to filter the results::
 

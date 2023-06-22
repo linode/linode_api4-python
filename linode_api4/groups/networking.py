@@ -24,6 +24,8 @@ class NetworkingGroup(Group):
         API Documentation: https://www.linode.com/docs/api/networking/#firewalls-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of Firewalls the acting user can access.
         :rtype: PaginatedList of Firewall
@@ -98,6 +100,8 @@ class NetworkingGroup(Group):
         API Documentation: https://www.linode.com/docs/api/networking/#ip-addresses-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of IP addresses on this account.
         :rtype: PaginatedList of IPAddress
@@ -111,6 +115,8 @@ class NetworkingGroup(Group):
         API Documentation: https://www.linode.com/docs/api/networking/#ipv6-ranges-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of IPv6 ranges on this account.
         :rtype: PaginatedList of IPv6Range
@@ -124,6 +130,8 @@ class NetworkingGroup(Group):
         API Documentation: https://www.linode.com/docs/api/networking/#ipv6-pools-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of IPv6 pools on this account.
         :rtype: PaginatedList of IPv6Pool
@@ -140,6 +148,8 @@ class NetworkingGroup(Group):
         API Documentation: https://www.linode.com/docs/api/networking/#vlans-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A List of VLANs on your account.
         :rtype: PaginatedList of VLAN

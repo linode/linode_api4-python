@@ -49,12 +49,13 @@ certain group.  This library implements filtering with a SQLAlchemy-like
 syntax, where a model's attributes may be used in comparisons to generate
 filters.  For example::
 
+   from linode_api4 import Instance
+
    prod_linodes = client.linode.instances(Instance.group == "production")
 
 Filters may be combined using boolean operators similar to SQLAlchemy::
 
    # and_ and or_ can be imported from the linode package to combine filters
-   from linode_api4 import or_
    prod_or_staging = client.linode.instances(or_(Instance.group == "production",
                                                      Instance.group == "staging"))
 
@@ -66,7 +67,7 @@ Filters may be combined using boolean operators similar to SQLAlchemy::
 Filters are generally only applicable for the type of model you are querying,
 but can be combined to your heart's content.  For numeric fields, the standard
 numeric comparisons are accepted, and work as you'd expect.  See
-:doc:`Filtering Collections<../linode/objects/filtering>` for full details.
+:doc:`Filtering Collections</linode_api4/objects/filtering>` for full details.
 
 Models
 ------

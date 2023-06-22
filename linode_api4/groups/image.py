@@ -20,7 +20,9 @@ class ImageGroup(Group):
 
         API Documentation: https://www.linode.com/docs/api/images/#images-list
 
-        :param filters: Any number of filters to apply to the query.
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of available Images.
         :rtype: PaginatedList of Image
