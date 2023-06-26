@@ -9,3 +9,4 @@ sphinx-autobuild>=2021.3.14
 sphinxcontrib-fulltoc>=1.2.0
 pytest>=7.3.1
 httpretty>=1.1.4
+build>=0.10.0
