@@ -135,7 +135,7 @@ from the api base url that should be returned, for example::
 
 
 Integration Tests
------------
+-----------------
 Integration tests live in the ``test/integration`` directory.
 
 Pre-requisite
