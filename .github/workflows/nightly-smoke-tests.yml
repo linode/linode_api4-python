@@ -30,3 +30,5 @@ jobs:
       - name: Run smoke tests
         run: |
           make smoketest
+        env:
+          LINODE_CLI_TOKEN: ${{ secrets.LINODE_TOKEN }}

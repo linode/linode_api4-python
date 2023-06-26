@@ -1,7 +1,7 @@
 from test.integration.conftest import get_token
 
-import pytest
 import httpretty
+import pytest
 
 from linode_api4 import ApiError, LinodeClient
 

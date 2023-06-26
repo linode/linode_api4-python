@@ -1,4 +1,5 @@
 import pytest
+
 from linode_api4.objects import Firewall, IPAddress, IPv6Pool, IPv6Range
 
 

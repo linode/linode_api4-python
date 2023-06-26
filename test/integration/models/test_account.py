@@ -1,6 +1,7 @@
-import pytest
 import time
 from test.integration.helpers import get_test_label
+
+import pytest
 
 from linode_api4.objects import (
     Account,

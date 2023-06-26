@@ -57,6 +57,7 @@ def test_fails_to_create_domain_without_soa_email(setup_client_and_linode):
     except ApiError as e:
         assert e.status == 400
 
+
 @pytest.mark.smoke
 def test_get_domains(get_client, create_domain):
     client = get_client
@@ -206,6 +207,7 @@ def test_get_account_settings(get_client):
 
 # TODO: Account invoice and payment test cases need to be added
 
+
 # LinodeGroupTests
 def test_create_linode_instance_without_image(get_client):
     client = get_client
@@ -223,6 +225,7 @@ def test_create_linode_instance_without_image(get_client):
     res = linode_instance.delete()
 
     assert res
+
 
 @pytest.mark.smoke
 def test_create_linode_instance_with_image(setup_client_and_linode):

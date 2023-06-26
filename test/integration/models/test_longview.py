@@ -1,5 +1,6 @@
 import re
 import time
+
 import pytest
 
 from linode_api4.objects import LongviewClient, LongviewSubscription
