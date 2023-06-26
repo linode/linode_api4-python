@@ -27,7 +27,7 @@ Building from Source
 To build and install this package:
 
 - Clone this repository
-- ``./setup.py install``
+- ``python3 -m pip install .``
 
 Usage
 =====
@@ -101,7 +101,7 @@ Contributing
 Tests
 -----
 
-Tests live in the ``tests`` directory.  When invoking tests, make sure you are
+Tests live in the ``test`` directory.  When invoking tests, make sure you are
 in the root directory of this project.  To run the full suite across all
 supported python versions, use tox_:
 
@@ -132,6 +132,35 @@ from the api base url that should be returned, for example::
      self.assertEqual(linode.id, 123) # passes
 
 .. _tox: http://tox.readthedocs.io
+
+
+Integration Tests
+-----------
+Integration tests live in the ``test/integration`` directory.
+
+Pre-requisite
+^^^^^^^^^^^^^^^^^
+Export Linode API token as `LINODE_CLI_TOKEN` before running integration tests::
+
+    export LINODE_TOKEN = $(your_token)
+
+Running the tests
+^^^^^^^^^^^^^^^^^
+Run the tests locally using the make command. Run the entire test suite using command below::
+
+    make testint
+
+To run a specific package, use environment variable `INTEGRATION_TEST_PATH` with `testint` command::
+
+    make INTEGRATION_TEST_PATH="linode_client" testint
+
+To run a specific model test suite, set the environment variable `TEST_MODEL` using file name in `integration/models`::
+
+    make TEST_MODEL="test_account.py" testint
+
+Lastly to run a specific test case use environment variable `TEST_CASE` with `testint` command::
+
+    make TEST_CASE=test_get_domain_record testint
 
 Documentation
 -------------

@@ -139,4 +139,3 @@ Volume Models
    :exclude-members: api_endpoint, properties, derived_url_path, id_attribute, parent_id_name
    :undoc-members:
    :inherited-members:
-

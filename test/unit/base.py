@@ -1,11 +1,10 @@
 import json
+from test.unit.fixtures import TestFixtures
 from unittest import TestCase
 
 from mock import patch
 
 from linode_api4 import LinodeClient
-
-from .fixtures import TestFixtures
 
 FIXTURES = TestFixtures()
 
