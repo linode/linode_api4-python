@@ -18,7 +18,7 @@ jobs:
           python-version: '3.x'
 
       - name: install dependencies
-        run: pip3 install -r requirements-dev.txt -r requirements.txt
+        run: make requirements
 
       - name: run linter
         run: make lint
