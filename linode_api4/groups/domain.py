@@ -16,6 +16,8 @@ class DomainGroup(Group):
         API Documentation: https://www.linode.com/docs/api/domains/#domains-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of Domains the acting user can access.
         :rtype: PaginatedList of Domain

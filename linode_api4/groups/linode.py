@@ -41,7 +41,9 @@ class LinodeGroup(Group):
 
         API documentation: https://www.linode.com/docs/api/linode-types/#types-list
 
-        :param filters: Any number of filters to apply to the query.
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of types that match the query.
         :rtype: PaginatedList of Type
@@ -58,6 +60,8 @@ class LinodeGroup(Group):
         API Documentation: https://www.linode.com/docs/api/linode-instances/#linodes-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of Instances that matched the query.
         :rtype: PaginatedList of Instance
@@ -76,6 +80,8 @@ class LinodeGroup(Group):
         API Documentation: https://www.linode.com/docs/api/stackscripts/#stackscripts-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
         :param mine_only: If True, returns only private StackScripts
         :type mine_only: bool
 
@@ -111,6 +117,8 @@ class LinodeGroup(Group):
         API Documentation: https://www.linode.com/docs/api/linode-instances/#kernels-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of available kernels that match the query.
         :rtype: PaginatedList of Kernel
