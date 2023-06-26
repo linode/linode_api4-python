@@ -72,6 +72,7 @@ setup(
 
     description='The official python SDK for Linode API v4',
     long_description=long_description,
+    long_description_content_type="text/x-rst",
 
     # The project's main homepage.
     url='https://github.com/linode/linode_api4-python',
