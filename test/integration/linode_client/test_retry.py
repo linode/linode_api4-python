@@ -74,7 +74,7 @@ def test_post_retry_statuses():
         httpretty.POST, "https://localhost/test", responses=ERROR_RESPONSES
     )
 
-    get_retry_client.post("/test")
+    get_retry_client().post("/test")
 
     assert len(httpretty.latest_requests()) == 3
 
