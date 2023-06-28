@@ -1,3 +1,5 @@
+from urllib import parse
+
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
@@ -327,7 +329,7 @@ class ObjectStorageGroup(Group):
 
         result = self.client.post(
             "/object-storage/buckets/{}/{}/object-url".format(
-                cluster_id, bucket
+                parse.quote(str(cluster_id)), parse.quote(str(bucket))
             ),
             data=drop_null_keys(params),
         )

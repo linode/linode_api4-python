@@ -1,4 +1,5 @@
 import os
+from urllib import parse
 
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import (
@@ -271,7 +272,7 @@ class NodeBalancer(Base):
 
         result = self._client.post(
             "{}/configs/{}/rebuild".format(
-                NodeBalancer.api_endpoint, config_id
+                NodeBalancer.api_endpoint, parse.quote(str(config_id))
             ),
             model=self,
             data=params,
