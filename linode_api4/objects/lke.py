@@ -73,7 +73,7 @@ class LKENodePool(DerivedBase):
         "nodes": Property(
             volatile=True
         ),  # this is formatted in _populate below
-        "autoscaler": Property(),
+        "autoscaler": Property(mutable=True),
         "tags": Property(mutable=True),
     }
 
@@ -119,9 +119,9 @@ class LKECluster(Base):
         "tags": Property(mutable=True),
         "updated": Property(is_datetime=True),
         "region": Property(slug_relationship=Region),
-        "k8s_version": Property(slug_relationship=KubeVersion),
+        "k8s_version": Property(slug_relationship=KubeVersion, mutable=True),
         "pools": Property(derived_class=LKENodePool),
-        "control_plane": Property(),
+        "control_plane": Property(mutable=True),
     }
 
     @property
