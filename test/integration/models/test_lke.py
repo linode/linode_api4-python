@@ -35,6 +35,7 @@ def get_node_status(cluster: LKECluster, status: str):
     return node.status == status
 
 
+@pytest.mark.smoke
 def test_get_lke_clusters(get_client, create_lke_cluster):
     cluster = get_client.load(LKECluster, create_lke_cluster.id)
 

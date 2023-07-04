@@ -61,3 +61,7 @@ lint: build
 @PHONEY: testint
 testint:
 	python3 -m pytest test/integration/${INTEGRATION_TEST_PATH}${MODEL_COMMAND} ${TEST_CASE_COMMAND}
+
+@PHONEY: smoketest
+smoketest:
+	pytest -m smoke test/integration --disable-warnings
