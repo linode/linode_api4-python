@@ -61,7 +61,7 @@ def test_create_nb_node(
         create_nb_config.nodebalancer_id,
     )
     linode = create_linode_with_private_ip
-    address = [a for a in linode.ipv4 if re.search("192.+", a)][0]
+    address = [a for a in linode.ipv4 if re.search("192.168.+", a)][0]
     node = config.node_create(
         "node_test", address + ":80", weight=50, mode="accept"
     )
