@@ -1,6 +1,7 @@
 from test.integration.conftest import get_token
 
 import httpretty
+import pytest
 
 from linode_api4 import ApiError, LinodeClient
 
@@ -36,6 +37,7 @@ def get_retry_client():
     return client
 
 
+@pytest.mark.smoke
 @httpretty.activate
 def test_get_retry_statuses():
     """
@@ -72,7 +74,7 @@ def test_post_retry_statuses():
         httpretty.POST, "https://localhost/test", responses=ERROR_RESPONSES
     )
 
-    get_retry_client.post("/test")
+    get_retry_client().post("/test")
 
     assert len(httpretty.latest_requests()) == 3
 

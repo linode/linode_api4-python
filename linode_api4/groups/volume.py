@@ -16,6 +16,8 @@ class VolumeGroup(Group):
         API Documentation: https://www.linode.com/docs/api/volumes/#volumes-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of Volumes the acting user can access.
         :rtype: PaginatedList of Volume

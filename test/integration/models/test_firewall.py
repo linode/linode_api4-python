@@ -21,6 +21,7 @@ def create_linode_fw(get_client):
     linode_instance.delete()
 
 
+@pytest.mark.smoke
 def test_get_firewall_rules(get_client, create_firewall):
     firewall = get_client.load(Firewall, create_firewall.id)
     rules = firewall.rules
@@ -29,6 +30,7 @@ def test_get_firewall_rules(get_client, create_firewall):
     assert rules.outbound_policy in ["ACCEPT", "DROP"]
 
 
+@pytest.mark.smoke
 def test_update_firewall_rules(get_client, create_firewall):
     firewall = get_client.load(Firewall, create_firewall.id)
     new_rules = {

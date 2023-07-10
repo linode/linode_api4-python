@@ -7,6 +7,7 @@ import pytest
 from linode_api4.objects import Domain, DomainRecord
 
 
+@pytest.mark.smoke
 def test_get_domain_record(get_client, create_domain):
     dr = DomainRecord(
         get_client, create_domain.records.first().id, create_domain.id

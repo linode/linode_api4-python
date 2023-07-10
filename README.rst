@@ -27,7 +27,7 @@ Building from Source
 To build and install this package:
 
 - Clone this repository
-- ``./setup.py install``
+- ``python3 -m pip install .``
 
 Usage
 =====
@@ -135,12 +135,12 @@ from the api base url that should be returned, for example::
 
 
 Integration Tests
------------
+-----------------
 Integration tests live in the ``test/integration`` directory.
 
 Pre-requisite
 ^^^^^^^^^^^^^^^^^
-Export Linode API token as `LINODE_CLI_TOKEN` before running integration tests::
+Export Linode API token as `LINODE_TOKEN` before running integration tests::
 
     export LINODE_TOKEN = $(your_token)
 

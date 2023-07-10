@@ -1,3 +1,5 @@
+from urllib import parse
+
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
@@ -27,6 +29,8 @@ class ObjectStorageGroup(Group):
         API Documentation: https://www.linode.com/docs/api/object-storage/#clusters-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of Object Storage Clusters that matched the query.
         :rtype: PaginatedList of ObjectStorageCluster
@@ -41,6 +45,8 @@ class ObjectStorageGroup(Group):
         API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-keys-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of Object Storage Keys that matched the query.
         :rtype: PaginatedList of ObjectStorageKeys
@@ -173,6 +179,10 @@ class ObjectStorageGroup(Group):
         It is recommended that instead you use the more fully-featured S3 API directly.
 
         API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-buckets-list
+
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of Object Storage Buckets that matched the query.
         :rtype: PaginatedList of ObjectStorageBucket
@@ -319,7 +329,7 @@ class ObjectStorageGroup(Group):
 
         result = self.client.post(
             "/object-storage/buckets/{}/{}/object-url".format(
-                cluster_id, bucket
+                parse.quote(str(cluster_id)), parse.quote(str(bucket))
             ),
             data=drop_null_keys(params),
         )

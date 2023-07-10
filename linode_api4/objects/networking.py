@@ -7,7 +7,7 @@ class IPv6Pool(Base):
     DEPRECATED
     """
 
-    api_endpoint = "/networking/ipv6/pools/{}"
+    api_endpoint = "/networking/ipv6/pools/{range}"
     id_attribute = "range"
 
     properties = {
@@ -101,7 +101,7 @@ class VLAN(Base):
     API Documentation: https://www.linode.com/docs/api/networking/#vlans-list
     """
 
-    api_endpoint = "/networking/vlans/{}"
+    api_endpoint = "/networking/vlans/{label}"
     id_attribute = "label"
 
     properties = {

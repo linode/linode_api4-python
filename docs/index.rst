@@ -19,7 +19,7 @@ To install from source::
 
   git clone https://github.com/linode/linode_api4-python
   cd linode_api4
-  python setup.py install
+  python -m pip install .
 
 For more information, see our :doc:`Getting Started<guides/getting_started>`
 guide.

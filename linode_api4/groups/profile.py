@@ -227,6 +227,8 @@ class ProfileGroup(Group):
         API Documentation: https://www.linode.com/docs/api/profile/#personal-access-tokens-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of tokens that matches the query.
         :rtype: PaginatedList of PersonalAccessToken
@@ -276,6 +278,8 @@ class ProfileGroup(Group):
         API Documentation: https://www.linode.com/docs/api/profile/#authorized-apps-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of Authorized Applications for this user
         :rtype: PaginatedList of AuthorizedApp
@@ -289,6 +293,8 @@ class ProfileGroup(Group):
         API Documentation: https://www.linode.com/docs/api/profile/#ssh-keys-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of SSH Keys for this profile.
         :rtype: PaginatedList of SSHKey

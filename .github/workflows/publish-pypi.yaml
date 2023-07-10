@@ -22,10 +22,7 @@ jobs:
           python-version: '3.x'
 
       - name: Install Python deps
-        run: pip install wheel
-
-      - name: Install package requirements
-        run: make requirements
+        run: pip install -U wheel build certifi
 
       - name: Build the package
         run: make build

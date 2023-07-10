@@ -33,7 +33,9 @@ class DatabaseGroup(Group):
 
         API Documentation: https://www.linode.com/docs/api/databases/#managed-database-types-list
 
-        :param filters: Any number of filters to apply to the query.
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of types that match the query.
         :rtype: PaginatedList of DatabaseType
@@ -51,7 +53,9 @@ class DatabaseGroup(Group):
 
         API Documentation: https://www.linode.com/docs/api/databases/#managed-database-engines-list
 
-        :param filters: Any number of filters to apply to the query.
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of types that match the query.
         :rtype: PaginatedList of DatabaseEngine
@@ -65,6 +69,8 @@ class DatabaseGroup(Group):
         API Documentation: https://www.linode.com/docs/api/databases/#managed-databases-list-all
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of databases that matched the query.
         :rtype: PaginatedList of Database
@@ -78,6 +84,8 @@ class DatabaseGroup(Group):
         API Documentation: https://www.linode.com/docs/api/databases/#managed-mysql-databases-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of MySQL databases that matched the query.
         :rtype: PaginatedList of MySQLDatabase
@@ -141,6 +149,8 @@ class DatabaseGroup(Group):
         API Documentation: https://www.linode.com/docs/api/databases/#managed-postgresql-databases-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of PostgreSQL databases that matched the query.
         :rtype: PaginatedList of PostgreSQLDatabase
