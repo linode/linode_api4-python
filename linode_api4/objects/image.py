@@ -25,4 +25,5 @@ class Image(Base):
         "vendor": Property(),
         "size": Property(),
         "deprecated": Property(),
+        "capabilities": Property(),
     }

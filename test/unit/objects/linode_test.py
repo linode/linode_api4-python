@@ -387,6 +387,45 @@ class LinodeTest(ClientBaseCase):
 
         assert disk.id == 12345
 
+    def test_instance_create_with_user_data(self):
+        """
+        Tests that the metadata field is populated on Linode create.
+        """
+
+        with self.mock_post("linode/instances/123") as m:
+            self.client.linode.instance_create(
+                "g6-nanode-1",
+                "us-southeast",
+                metadata=self.client.linode.build_instance_metadata(
+                    user_data="cool"
+                ),
+            )
+
+            self.assertEqual(
+                m.call_data,
+                {
+                    "region": "us-southeast",
+                    "type": "g6-nanode-1",
+                    "metadata": {"user_data": "Y29vbA=="},
+                },
+            )
+
+    def test_build_instance_metadata(self):
+        """
+        Tests that the metadata field is built correctly.
+        """
+        self.assertEqual(
+            self.client.linode.build_instance_metadata(user_data="cool"),
+            {"user_data": "Y29vbA=="},
+        )
+
+        self.assertEqual(
+            self.client.linode.build_instance_metadata(
+                user_data="cool", encode_user_data=False
+            ),
+            {"user_data": "cool"},
+        )
+
 
 class DiskTest(ClientBaseCase):
     """

@@ -412,6 +412,7 @@ class Instance(Base):
         "tags": Property(mutable=True),
         "host_uuid": Property(),
         "watchdog_enabled": Property(mutable=True),
+        "has_user_data": Property(),
     }
 
     @property
