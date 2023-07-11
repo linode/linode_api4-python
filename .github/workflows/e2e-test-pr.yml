@@ -81,7 +81,7 @@ jobs:
       - run: make INTEGRATION_TEST_PATH="${{ inputs.test_path }}" testint
         if: ${{ steps.validate-tests.outputs.match == '' }}
         env:
-          LINODE_CLI_TOKEN: ${{ secrets.LINODE_TOKEN }}
+          LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
 
       - uses: actions/github-script@v6
         id: update-check-run

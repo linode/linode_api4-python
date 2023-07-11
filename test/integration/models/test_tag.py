@@ -15,6 +15,7 @@ def create_tag(get_client):
     tag.delete()
 
 
+@pytest.mark.smoke
 def test_get_tag(get_client, create_tag):
     tag = get_client.load(Tag, create_tag.id)
 

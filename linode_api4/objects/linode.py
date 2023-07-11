@@ -4,6 +4,7 @@ from datetime import datetime
 from enum import Enum
 from os import urandom
 from random import randint
+from urllib import parse
 
 from linode_api4 import util
 from linode_api4.common import load_and_validate_keys
@@ -411,6 +412,7 @@ class Instance(Base):
         "tags": Property(mutable=True),
         "host_uuid": Property(),
         "watchdog_enabled": Property(mutable=True),
+        "has_user_data": Property(),
     }
 
     @property
@@ -590,7 +592,11 @@ class Instance(Base):
         """
 
         result = self._client.get(
-            "{}/transfer/{}/{}".format(Instance.api_endpoint, year, month),
+            "{}/transfer/{}/{}".format(
+                Instance.api_endpoint,
+                parse.quote(str(year)),
+                parse.quote(str(month)),
+            ),
             model=self,
         )
 
@@ -1415,7 +1421,9 @@ class Instance(Base):
         if not isinstance(dt, datetime):
             raise TypeError("stats_for requires a datetime object!")
         return self._client.get(
-            "{}/stats/{}".format(Instance.api_endpoint, dt.strftime("%Y/%m")),
+            "{}/stats/{}".format(
+                Instance.api_endpoint, parse.quote(dt.strftime("%Y/%m"))
+            ),
             model=self,
         )
 

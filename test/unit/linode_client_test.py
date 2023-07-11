@@ -129,6 +129,7 @@ class LinodeClientGeneralTest(ClientBaseCase):
 
             self.assertIsNotNone(i)
             self.assertEqual(i.id, "private/123")
+            self.assertEqual(i.capabilities[0], "cloud-init")
 
             self.assertEqual(m.call_url, "/images")
 

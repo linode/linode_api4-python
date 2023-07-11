@@ -1,3 +1,5 @@
+from urllib import parse
+
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import (
     Base,
@@ -71,7 +73,7 @@ class LKENodePool(DerivedBase):
         "nodes": Property(
             volatile=True
         ),  # this is formatted in _populate below
-        "autoscaler": Property(),
+        "autoscaler": Property(mutable=True),
         "tags": Property(mutable=True),
     }
 
@@ -117,9 +119,9 @@ class LKECluster(Base):
         "tags": Property(mutable=True),
         "updated": Property(is_datetime=True),
         "region": Property(slug_relationship=Region),
-        "k8s_version": Property(slug_relationship=KubeVersion),
+        "k8s_version": Property(slug_relationship=KubeVersion, mutable=True),
         "pools": Property(derived_class=LKENodePool),
-        "control_plane": Property(),
+        "control_plane": Property(mutable=True),
     }
 
     @property
@@ -254,7 +256,10 @@ class LKECluster(Base):
         """
 
         node = self._client.get(
-            "{}/nodes/{}".format(LKECluster.api_endpoint, nodeId), model=self
+            "{}/nodes/{}".format(
+                LKECluster.api_endpoint, parse.quote(str(nodeId))
+            ),
+            model=self,
         )
 
         return LKENodePoolNode(self._client, node)
@@ -270,7 +275,10 @@ class LKECluster(Base):
         """
 
         self._client.delete(
-            "{}/nodes/{}".format(LKECluster.api_endpoint, nodeId), model=self
+            "{}/nodes/{}".format(
+                LKECluster.api_endpoint, parse.quote(str(nodeId))
+            ),
+            model=self,
         )
 
     def node_recycle(self, nodeId):
@@ -284,7 +292,9 @@ class LKECluster(Base):
         """
 
         self._client.post(
-            "{}/nodes/{}/recycle".format(LKECluster.api_endpoint, nodeId),
+            "{}/nodes/{}/recycle".format(
+                LKECluster.api_endpoint, parse.quote(str(nodeId))
+            ),
             model=self,
         )
 

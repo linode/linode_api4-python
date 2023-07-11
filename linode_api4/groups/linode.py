@@ -1,3 +1,4 @@
+import base64
 import os
 
 from linode_api4 import Profile
@@ -41,7 +42,9 @@ class LinodeGroup(Group):
 
         API documentation: https://www.linode.com/docs/api/linode-types/#types-list
 
-        :param filters: Any number of filters to apply to the query.
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of types that match the query.
         :rtype: PaginatedList of Type
@@ -58,6 +61,8 @@ class LinodeGroup(Group):
         API Documentation: https://www.linode.com/docs/api/linode-instances/#linodes-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of Instances that matched the query.
         :rtype: PaginatedList of Instance
@@ -76,6 +81,8 @@ class LinodeGroup(Group):
         API Documentation: https://www.linode.com/docs/api/stackscripts/#stackscripts-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
         :param mine_only: If True, returns only private StackScripts
         :type mine_only: bool
 
@@ -111,6 +118,8 @@ class LinodeGroup(Group):
         API Documentation: https://www.linode.com/docs/api/linode-instances/#kernels-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of available kernels that match the query.
         :rtype: PaginatedList of Kernel
@@ -237,6 +246,10 @@ class LinodeGroup(Group):
         :param private_ip: Whether the new Instance should have private networking
                            enabled and assigned a private IPv4 address.
         :type private_ip: bool
+        :param metadata: Metadata-related fields to use when creating the new Instance.
+                         The contents of this field can be built using the
+                         :any:`build_instance_metadata` method.
+        :type metadata: dict
 
         :returns: A new Instance object, or a tuple containing the new Instance and
                   the generated password.
@@ -292,6 +305,40 @@ class LinodeGroup(Group):
         if not ret_pass:
             return l
         return l, ret_pass
+
+    @staticmethod
+    def build_instance_metadata(user_data=None, encode_user_data=True):
+        """
+        Builds the contents of the ``metadata`` field to be passed into
+        the :any:`instance_create` method. This helper can also be used
+        when cloning and rebuilding Instances.
+        **Creating an Instance with User Data**::
+            new_linode, password = client.linode.instance_create(
+                "g6-standard-2",
+                "us-east",
+                image="linode/ubuntu22.04",
+                metadata=client.linode.build_instance_metadata(user_data="myuserdata")
+            )
+        :param user_data: User-defined data to provide to the Linode Instance through
+                          the Metadata service.
+        :type user_data: str
+        :param encode_user_data: If true, the provided user_data field will be automatically
+                                 encoded to a valid base64 string. This field should only
+                                 be set to false if the user_data param is already base64-encoded.
+        :type encode_user_data: bool
+        :returns: The built ``metadata`` structure.
+        :rtype: dict
+        """
+        result = {}
+
+        if user_data is not None:
+            result["user_data"] = (
+                base64.b64encode(user_data.encode()).decode()
+                if encode_user_data
+                else user_data
+            )
+
+        return result
 
     def stackscript_create(
         self, label, script, images, desc=None, public=False, **kwargs

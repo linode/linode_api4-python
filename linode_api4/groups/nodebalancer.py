@@ -16,6 +16,8 @@ class NodeBalancerGroup(Group):
         API Documentation: https://www.linode.com/docs/api/nodebalancers/#nodebalancers-list
 
         :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of NodeBalancers the acting user can access.
         :rtype: PaginatedList of NodeBalancers

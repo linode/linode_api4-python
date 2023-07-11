@@ -22,7 +22,9 @@ class LKEGroup(Group):
 
         API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubernetes-versions-list
 
-        :param filters: Any number of filters to apply to the query.
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A Paginated List of kube versions that match the query.
         :rtype: PaginatedList of KubeVersion
@@ -36,7 +38,9 @@ class LKEGroup(Group):
 
         https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubernetes-clusters-list
 
-        :param filters: Any number of filters to apply to the query.
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A Paginated List of LKE clusters that match the query.
         :rtype: PaginatedList of LKECluster

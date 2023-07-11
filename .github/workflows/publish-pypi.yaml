@@ -24,9 +24,6 @@ jobs:
       - name: Install Python deps
         run: pip install -U wheel build certifi
 
-      - name: Install package requirements
-        run: make requirements
-
       - name: Build the package
         run: make build
         env:

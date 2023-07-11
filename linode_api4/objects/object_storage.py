@@ -1,3 +1,5 @@
+from urllib import parse
+
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import (
     Base,
@@ -99,7 +101,7 @@ class ObjectStorageBucket(DerivedBase):
 
         resp = self._client.post(
             "/object-storage/buckets/{}/{}/access".format(
-                self.cluster, self.id
+                parse.quote(str(self.cluster)), parse.quote(str(self.id))
             ),
             data=drop_null_keys(params),
         )
@@ -147,7 +149,7 @@ class ObjectStorageBucket(DerivedBase):
 
         resp = self._client.put(
             "/object-storage/buckets/{}/{}/access".format(
-                self.cluster, self.id
+                parse.quote(str(self.cluster)), parse.quote(str(self.id))
             ),
             data=drop_null_keys(params),
         )
@@ -177,7 +179,9 @@ class ObjectStorageBucket(DerivedBase):
         """
 
         resp = self._client.delete(
-            "/object-storage/buckets/{}/{}/ssl".format(self.cluster, self.id)
+            "/object-storage/buckets/{}/{}/ssl".format(
+                parse.quote(str(self.cluster)), parse.quote(str(self.id))
+            )
         )
 
         if "error" in resp:
@@ -206,7 +210,9 @@ class ObjectStorageBucket(DerivedBase):
         :rtype: MappedObject
         """
         result = self._client.get(
-            "/object-storage/buckets/{}/{}/ssl".format(self.cluster, self.id)
+            "/object-storage/buckets/{}/{}/ssl".format(
+                parse.quote(str(self.cluster)), parse.quote(str(self.id))
+            )
         )
 
         if not "ssl" in result:
@@ -253,7 +259,9 @@ class ObjectStorageBucket(DerivedBase):
             "private_key": private_key,
         }
         result = self._client.post(
-            "/object-storage/buckets/{}/{}/ssl".format(self.cluster, self.id),
+            "/object-storage/buckets/{}/{}/ssl".format(
+                parse.quote(str(self.cluster)), parse.quote(str(self.id))
+            ),
             data=params,
         )
 
@@ -325,7 +333,7 @@ class ObjectStorageBucket(DerivedBase):
         }
         result = self._client.get(
             "/object-storage/buckets/{}/{}/object-list".format(
-                self.cluster, self.id
+                parse.quote(str(self.cluster)), parse.quote(str(self.id))
             ),
             data=drop_null_keys(params),
         )
@@ -481,8 +489,9 @@ class ObjectStorageCluster(Base):
 
         API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-buckets-in-cluster-list
 
-        :param cluster_id: The ID of the cluster this bucket exists in.
-        :type cluster_id: str
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
 
         :returns: A list of Object Storage Buckets that in the requested cluster.
         :rtype: PaginatedList of ObjectStorageBucket
@@ -491,7 +500,9 @@ class ObjectStorageCluster(Base):
         return self._client._get_and_filter(
             ObjectStorageBucket,
             *filters,
-            endpoint="/object-storage/buckets/{}".format(self.id),
+            endpoint="/object-storage/buckets/{}".format(
+                parse.quote(str(self.id))
+            ),
         )
 
 

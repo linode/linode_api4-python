@@ -46,6 +46,7 @@ def test_get_account(setup_client_and_linode):
         assert re.search("^$|[0-9]+", account.tax_id)
 
 
+@pytest.mark.smoke
 def test_fails_to_create_domain_without_soa_email(setup_client_and_linode):
     client = setup_client_and_linode[0]
 
@@ -57,6 +58,7 @@ def test_fails_to_create_domain_without_soa_email(setup_client_and_linode):
         assert e.status == 400
 
 
+@pytest.mark.smoke
 def test_get_domains(get_client, create_domain):
     client = get_client
     domain = create_domain
@@ -67,6 +69,7 @@ def test_get_domains(get_client, create_domain):
     assert domain.domain in dom_list
 
 
+@pytest.mark.smoke
 def test_image_create(setup_client_and_linode):
     client = setup_client_and_linode[0]
     linode = setup_client_and_linode[1]
@@ -165,6 +168,7 @@ def test_create_tag_with_id(
     assert label in tag_label_list
 
 
+@pytest.mark.smoke
 def test_create_tag_with_entities(
     setup_client_and_linode, create_nodebalancer, create_domain, create_volume
 ):
@@ -223,6 +227,7 @@ def test_create_linode_instance_without_image(get_client):
     assert res
 
 
+@pytest.mark.smoke
 def test_create_linode_instance_with_image(setup_client_and_linode):
     linode = setup_client_and_linode[1]
 
