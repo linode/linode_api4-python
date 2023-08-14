@@ -289,6 +289,8 @@ class NetworkingGroup(Group):
         primary Linode becomes unresponsive. This means that requests to the primary Linode’s
         IP address can be automatically rerouted to secondary Linodes at the configured shared IP addresses.
 
+        API Documentation: https://www.linode.com/docs/api/networking/#ip-addresses-share
+
         :param linode: The id of the Instance or the Instance to share the IPAddresses with.
                           This Instance will be able to bring up the given addresses.
         :type: linode: int or Instance
