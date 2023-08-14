@@ -284,7 +284,7 @@ class NetworkingGroup(Group):
 
     def ip_addresses_share(self, ips, linode):
         """
-        Configure shared IPs. P sharing allows IP address reassignment
+        Configure shared IPs. IP sharing allows IP address reassignment
         (also referred to as IP failover) from one Linode to another if the
         primary Linode becomes unresponsive. This means that requests to the primary Linode’s
         IP address can be automatically rerouted to secondary Linodes at the configured shared IP addresses.
@@ -292,14 +292,22 @@ class NetworkingGroup(Group):
         :param linode: The id of the Instance or the Instance to share the IPAddresses with.
                           This Instance will be able to bring up the given addresses.
         :type: linode: int or Instance
-        :param ips: Any number of IPAddresses to share to the Instance.
+        :param ips: Any number of IPAddresses to share to the Instance. Enter an empty array to 
+                    remove all shared IP addresses.
         :type ips: str or IPAddress
         """
 
+        shared_ips = []
+        for ip in ips:
+            if isinstance(ip, str):
+                shared_ips.append(ip)
+            elif isinstance(ip, IPAddress):
+                shared_ips.append(ip.address)
+            else:
+                shared_ips.append(str(ip))  # and hope that works
+
         params = {
-            "ips": ips
-            if not isinstance(ips[0], IPAddress)
-            else [ip.address for ip in ips],
+            "ips": shared_ips,
             "linode_id": linode
             if not isinstance(linode, Instance)
             else linode.id,
