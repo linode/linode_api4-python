@@ -294,7 +294,7 @@ class NetworkingGroup(Group):
         :param linode: The id of the Instance or the Instance to share the IPAddresses with.
                           This Instance will be able to bring up the given addresses.
         :type: linode: int or Instance
-        :param ips: Any number of IPAddresses to share to the Instance. Enter an empty array to 
+        :param ips: Any number of IPAddresses to share to the Instance. Enter an empty array to
                     remove all shared IP addresses.
         :type ips: str or IPAddress
         """
