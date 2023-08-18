@@ -12,6 +12,9 @@ class DerivedBase(Base):
     parent_id_name = "parent_id"  # override in child classes
 
     def __init__(self, client, id, parent_id, json={}):
+        # Allow accessing the parent ID during population
+        self._set(type(self).parent_id_name, parent_id)
+
         Base.__init__(self, client, id, json=json)
 
         self._set(type(self).parent_id_name, parent_id)

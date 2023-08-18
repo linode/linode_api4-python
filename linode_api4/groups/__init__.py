@@ -17,3 +17,4 @@ from .region import *
 from .support import *
 from .tag import *
 from .volume import *
+from .vpc import *

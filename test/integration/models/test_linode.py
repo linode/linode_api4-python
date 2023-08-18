@@ -1,4 +1,5 @@
 import time
+from test.integration.conftest import get_region
 from test.integration.helpers import (
     get_test_label,
     retry_sending_request,
@@ -8,7 +9,15 @@ from test.integration.helpers import (
 import pytest
 
 from linode_api4.errors import ApiError
-from linode_api4.objects import Config, Disk, Image, Instance, Type
+from linode_api4.objects import (
+    Config,
+    ConfigInterface,
+    ConfigInterfaceIPv4,
+    Disk,
+    Image,
+    Instance,
+    Type,
+)
 
 
 @pytest.fixture(scope="session")
@@ -61,13 +70,11 @@ def create_linode_with_volume_firewall(get_client):
 @pytest.fixture
 def create_linode_for_long_running_tests(get_client):
     client = get_client
-    available_regions = client.regions()
-    chosen_region = available_regions[0]
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
         "g5-standard-4",
-        chosen_region,
+        get_region(client),
         image="linode/debian9",
         label=label + "_long_tests",
     )
@@ -325,12 +332,17 @@ def test_linode_ips(create_linode):
 
 def test_linode_initate_migration(get_client):
     client = get_client
-    available_regions = client.regions()
-    chosen_region = available_regions[0]
+    creation_region = get_region(client)
+    migration_region = get_region(client)
+
+    # Ensure we get a different region
+    while migration_region == creation_region:
+        migration_region = get_region(client)
+
     label = get_test_label() + "_migration"
 
     linode, password = client.linode.instance_create(
-        "g5-standard-4", chosen_region, image="linode/debian9", label=label
+        "g5-standard-4", get_region(client), image="linode/debian9", label=label
     )
 
     wait_for_condition(10, 100, get_status, linode, "running")
@@ -358,19 +370,24 @@ def test_disk_resize():
 
 def test_config_update_interfaces(create_linode):
     linode = create_linode
-    new_interfaces = [
-        {"purpose": "public"},
-        {"purpose": "vlan", "label": "cool-vlan"},
-    ]
-
     config = linode.configs[0]
 
+    new_interfaces = [
+        {"purpose": "public"},
+        ConfigInterface(
+            purpose="vlan", label="cool-vlan", ipam_address="10.0.0.4/32"
+        ),
+    ]
     config.interfaces = new_interfaces
 
     res = config.save()
+    config.invalidate()
 
     assert res
-    assert "cool-vlan" in str(config.interfaces)
+    assert config.interfaces[0].purpose == "public"
+    assert config.interfaces[1].purpose == "vlan"
+    assert config.interfaces[1].label == "cool-vlan"
+    assert config.interfaces[1].ipam_address == "10.0.0.4/32"
 
 
 def test_get_config(get_client, create_linode):
@@ -430,3 +447,116 @@ def test_save_linode_force(get_client, create_linode):
     linode = get_client.load(Instance, linode.id)
 
     assert old_label != linode.label
+
+
+class TestNetworkInterface:
+    def test_list(self, create_linode):
+        linode = create_linode
+
+        config: Config = linode.configs[0]
+
+        config.interface_create_public(
+            primary=True,
+        )
+        config.interface_create_vlan(
+            label="testvlan", ipam_address="10.0.0.3/32"
+        )
+
+        interface = config.network_interfaces
+
+        assert interface[0].purpose == "public"
+        assert interface[0].primary
+        assert interface[1].purpose == "vlan"
+        assert interface[1].label == "testvlan"
+        assert interface[1].ipam_address == "10.0.0.3/32"
+
+    def test_create_public(self, create_linode):
+        linode = create_linode
+
+        config: Config = linode.configs[0]
+
+        config.interfaces = []
+        config.save()
+
+        interface = config.interface_create_public(
+            primary=True,
+        )
+
+        config.invalidate()
+
+        assert interface.id == config.interfaces[0].id
+        assert interface.purpose == "public"
+        assert interface.primary
+
+    def test_create_vlan(self, create_linode):
+        linode = create_linode
+
+        config: Config = linode.configs[0]
+
+        config.interfaces = []
+        config.save()
+
+        interface = config.interface_create_vlan(
+            label="testvlan", ipam_address="10.0.0.2/32"
+        )
+
+        config.invalidate()
+
+        assert interface.id == config.interfaces[0].id
+        assert interface.purpose == "vlan"
+        assert interface.label == "testvlan"
+        assert interface.ipam_address == "10.0.0.2/32"
+
+    def test_create_vpc(self, create_linode, create_vpc_with_subnet_and_linode):
+        vpc, subnet, linode, _ = create_vpc_with_subnet_and_linode
+
+        config: Config = linode.configs[0]
+
+        config.interfaces = []
+        config.save()
+
+        interface = config.interface_create_vpc(
+            subnet=subnet,
+            primary=True,
+            ipv4=ConfigInterfaceIPv4(vpc="10.0.0.2", nat_1_1="any"),
+            ip_ranges=["10.0.0.5/32"],
+        )
+
+        config.invalidate()
+
+        assert interface.id == config.interfaces[0].id
+        assert interface.subnet.id == subnet.id
+        assert interface.purpose == "vpc"
+        assert interface.ipv4.vpc == "10.0.0.2"
+        assert interface.ipv4.nat_1_1 == linode.ipv4[0]
+        assert interface.ip_ranges == ["10.0.0.5/32"]
+
+    def test_update_vpc(self, create_linode, create_vpc_with_subnet_and_linode):
+        vpc, subnet, linode, _ = create_vpc_with_subnet_and_linode
+
+        config: Config = linode.configs[0]
+
+        config.interfaces = []
+        config.save()
+
+        interface = config.interface_create_vpc(
+            subnet=subnet,
+            primary=True,
+            ip_ranges=["10.0.0.5/32"],
+        )
+
+        interface.primary = False
+        interface.ip_ranges = ["10.0.0.6/32"]
+        interface.ipv4.vpc = "10.0.0.3"
+        interface.ipv4.nat_1_1 = "any"
+
+        interface.save()
+        interface.invalidate()
+        config.invalidate()
+
+        assert interface.id == config.interfaces[0].id
+        assert interface.subnet.id == subnet.id
+        assert interface.purpose == "vpc"
+        assert interface.ipv4.vpc == "10.0.0.3"
+        assert interface.ipv4.nat_1_1 == linode.ipv4[0]
+        assert interface.ip_ranges == ["10.0.0.6/32"]

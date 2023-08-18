@@ -1,16 +1,42 @@
 import os
+import random
 import time
+from typing import Set
 
 import pytest
 
-from linode_api4.linode_client import LinodeClient, LongviewSubscription
+from linode_api4.linode_client import LinodeClient
+from linode_api4.objects import Region
 
 ENV_TOKEN_NAME = "LINODE_TOKEN"
+ENV_API_URL_NAME = "LINODE_API_URL"
+ENV_REGION_OVERRIDE = "LINODE_TEST_REGION_OVERRIDE"
 RUN_LONG_TESTS = "RUN_LONG_TESTS"
 
 
 def get_token():
     return os.environ.get(ENV_TOKEN_NAME, None)
+
+
+def get_api_url():
+    return os.environ.get(ENV_API_URL_NAME, "https://api.linode.com/v4beta")
+
+
+def get_region(client: LinodeClient, capabilities: Set[str] = None):
+    region_override = os.environ.get(ENV_REGION_OVERRIDE)
+
+    # Allow overriding the target test region
+    if region_override is not None:
+        return Region(client, region_override)
+
+    regions = client.regions()
+
+    if capabilities is not None:
+        regions = [
+            v for v in regions if set(capabilities).issubset(v.capabilities)
+        ]
+
+    return random.choice(regions)
 
 
 def run_long_tests():
@@ -20,13 +46,14 @@ def run_long_tests():
 @pytest.fixture(scope="session")
 def create_linode(get_client):
     client = get_client
-    available_regions = client.regions()
-    chosen_region = available_regions[0]
     timestamp = str(int(time.time()))
     label = "TestSDK-" + timestamp
 
     linode_instance, password = client.linode.instance_create(
-        "g5-standard-4", chosen_region, image="linode/debian9", label=label
+        "g5-standard-4",
+        get_region(client),
+        image="linode/debian9",
+        label=label,
     )
 
     yield linode_instance
@@ -37,13 +64,14 @@ def create_linode(get_client):
 @pytest.fixture
 def create_linode_for_pass_reset(get_client):
     client = get_client
-    available_regions = client.regions()
-    chosen_region = available_regions[0]
     timestamp = str(int(time.time()))
     label = "TestSDK-" + timestamp
 
     linode_instance, password = client.linode.instance_create(
-        "g5-standard-4", chosen_region, image="linode/debian9", label=label
+        "g5-standard-4",
+        get_region(get_client),
+        image="linode/debian9",
+        label=label,
     )
 
     yield linode_instance, password
@@ -71,7 +99,8 @@ def ssh_key_gen():
 @pytest.fixture(scope="session")
 def get_client():
     token = get_token()
-    client = LinodeClient(token)
+    api_url = get_api_url()
+    client = LinodeClient(token, base_url=api_url)
     return client
 
 
@@ -118,7 +147,9 @@ def create_volume(get_client):
     timestamp = str(int(time.time()))
     label = "TestSDK-" + timestamp
 
-    volume = client.volume_create(label=label, region="ap-west")
+    volume = client.volume_create(
+        label=label, region=get_region(client, {"Block Storage"})
+    )
 
     yield volume
 
@@ -146,7 +177,9 @@ def create_nodebalancer(get_client):
     timestamp = str(int(time.time()))
     label = "TestSDK-" + timestamp
 
-    nodebalancer = client.nodebalancer_create(region="us-east", label=label)
+    nodebalancer = client.nodebalancer_create(
+        region=get_region(client), label=label
+    )
 
     yield nodebalancer
 
@@ -216,3 +249,44 @@ def create_oauth_client(get_client):
     yield oauth_client
 
     oauth_client.delete()
+
+
+@pytest.fixture(scope="session")
+def create_vpc(get_client):
+    client = get_client
+
+    timestamp = str(int(time.time()))
+
+    vpc = client.vpcs.create(
+        "pythonsdk-" + timestamp,
+        get_region(get_client, {"VPCs"}),
+        description="test description",
+    )
+    yield vpc
+
+    vpc.delete()
+
+
+@pytest.fixture(scope="session")
+def create_vpc_with_subnet(get_client, create_vpc):
+    subnet = create_vpc.subnet_create("test-subnet", ipv4="10.0.0.0/24")
+
+    yield create_vpc, subnet
+
+    subnet.delete()
+
+
+@pytest.fixture(scope="session")
+def create_vpc_with_subnet_and_linode(get_client, create_vpc_with_subnet):
+    vpc, subnet = create_vpc_with_subnet
+
+    timestamp = str(int(time.time()))
+    label = "TestSDK-" + timestamp
+
+    instance, password = get_client.linode.instance_create(
+        "g5-standard-4", vpc.region, image="linode/debian11", label=label
+    )
+
+    yield vpc, subnet, instance, password
+
+    instance.delete()
