@@ -31,6 +31,8 @@ class IPv6Range(Base):
         "region": Property(slug_relationship=Region),
         "prefix": Property(),
         "route_target": Property(),
+        "linodes": Property(),
+        "is_bgp": Property(),
     }
 
 
