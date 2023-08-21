@@ -20,6 +20,8 @@ class NetworkingTest(ClientBaseCase):
         self.assertEqual(ipv6Range.range, "2600:3c01::")
         self.assertEqual(ipv6Range.prefix, 64)
         self.assertEqual(ipv6Range.region.id, "us-east")
+        self.assertEqual(ipv6Range.linodes[0], 123)
+        self.assertEqual(ipv6Range.is_bgp, False)
 
         ranges = self.client.networking.ipv6_ranges()
 
