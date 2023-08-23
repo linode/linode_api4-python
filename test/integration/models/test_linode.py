@@ -579,4 +579,7 @@ class TestNetworkInterface:
         config.interface_reorder(interfaces)
         config.invalidate()
 
-        assert [v.id for v in config.interfaces] == [vlan_interface.id, pub_interface.id]
+        assert [v.id for v in config.interfaces] == [
+            vlan_interface.id,
+            pub_interface.id,
+        ]
