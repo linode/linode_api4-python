@@ -254,7 +254,6 @@ class LinodeClient:
             )
 
         url = "{}{}".format(self.base_url, endpoint)
-        print(url)
         headers = {
             "Authorization": "Bearer {}".format(self.token),
             "Content-Type": "application/json",
