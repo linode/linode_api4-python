@@ -800,3 +800,22 @@ class TestNetworkInterface(ClientBaseCase):
 
         for v in interfaces:
             assert isinstance(v, NetworkInterface)
+
+    def test_reorder(self):
+        config = Config(self.client, 456789, 123)
+        config._api_get()
+        interfaces = config.network_interfaces
+
+        with self.mock_post({}) as m:
+            interfaces.reverse()
+            # Let's make sure it supports both IDs and NetworkInterfaces
+            interfaces[2] = interfaces[2].id
+
+            config.interface_reorder(interfaces)
+
+            assert (
+                m.call_url
+                == "/linode/instances/123/configs/456789/interfaces/order"
+            )
+
+            assert m.call_data == {"ids": [321, 123, 456]}
