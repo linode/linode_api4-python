@@ -331,6 +331,15 @@ class NetworkInterface(DerivedBase):
 
 @dataclass
 class ConfigInterface(JSONObject):
+    """
+    Represents a single interface in a Configuration Profile.
+    This class only contains data about a config interface.
+    If you would like to access a config interface directly,
+    consider using :any:`NetworkInterface`.
+
+    API Documentation: TODO
+    """
+
     purpose: str = "public"
 
     # Public/VPC-specific
@@ -479,6 +488,15 @@ class Config(DerivedBase):
     def interface_create_public(self, primary=False) -> NetworkInterface:
         """
         Creates a public interface for this Configuration Profile.
+
+        API Documentation: TODO
+
+        :param primary: Whether this interface is a primary interface.
+        :type primary: bool
+
+        :returns: The newly created NetworkInterface.
+        :rtype: NetworkInterface
+
         """
         return self._interface_create({"purpose": "public", "primary": primary})
 
@@ -487,6 +505,16 @@ class Config(DerivedBase):
     ) -> NetworkInterface:
         """
         Creates a VLAN interface for this Configuration Profile.
+
+        API Documentation: TODO
+
+        :param label: The label of the VLAN to associate this interface with.
+        :type label: str
+        :param ipam_address: The IPAM address of this interface for the associated VLAN.
+        :type ipam_address: str
+
+        :returns: The newly created NetworkInterface.
+        :rtype: NetworkInterface
         """
         params = {
             "purpose": "vlan",
@@ -508,6 +536,20 @@ class Config(DerivedBase):
         Creates a VPC interface for this Configuration Profile.
 
         API Documentation: TODO
+
+        :param subnet: The VPC subnet to associate this interface with.
+        :type subnet: int or VPCSubnet
+        :param primary: Whether this is a primary interface.
+        :type primary: bool
+        :param ipv4: The IPv4 configuration of the interface for the associated subnet.
+        :type ipv4: Dict or ConfigInterfaceIPv4
+        :param ip_ranges: A list of IPs or IP ranges in the VPC subnet.
+                          Packets to these CIDRs are routed through the
+                          VPC network interface.
+        :type ip_ranges: List of str
+
+        :returns: The newly created NetworkInterface.
+        :rtype: NetworkInterface
         """
         params = {
             "purpose": "vpc",
@@ -530,10 +572,13 @@ class Config(DerivedBase):
         Change the order of the interfaces for this Configuration Profile.
 
         API Documentation: TODO
+
+        :param interfaces: A list of interfaces in the desired order.
+        :type interfaces: List of str or NetworkInterface
         """
-        ids = {
+        ids = [
             v.id if isinstance(v, NetworkInterface) else v for v in interfaces
-        }
+        ]
 
         self._client.post(
             "{}/interfaces/order".format(Config.api_endpoint),
