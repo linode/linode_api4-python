@@ -129,10 +129,6 @@ class Base(object, metaclass=FilterableMetaclass):
         self._set("_raw_json", None)
 
         for k, prop in type(self).properties.items():
-            # Don't override pre-populated ID values
-            if prop.identifier:
-                continue
-
             self._set(k, None)
 
         self._set("id", id)
