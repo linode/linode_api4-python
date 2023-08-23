@@ -128,7 +128,7 @@ class Base(object, metaclass=FilterableMetaclass):
         #: be updated on access.
         self._set("_raw_json", None)
 
-        for k, prop in type(self).properties.items():
+        for k in type(self).properties:
             self._set(k, None)
 
         self._set("id", id)
@@ -294,7 +294,7 @@ class Base(object, metaclass=FilterableMetaclass):
 
             value = getattr(self, k)
 
-            if not v.nullable and (value is None or value == ""):
+            if not value is None:
                 continue
 
             # Let's allow explicit null values as both classes and instances
