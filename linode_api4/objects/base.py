@@ -294,7 +294,7 @@ class Base(object, metaclass=FilterableMetaclass):
 
             value = getattr(self, k)
 
-            if not value is None:
+            if not v.nullable and (value is None or value == ""):
                 continue
 
             # Let's allow explicit null values as both classes and instances
