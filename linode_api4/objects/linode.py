@@ -1090,7 +1090,7 @@ class Instance(Base):
         param_interfaces = []
         for interface in interfaces:
             if isinstance(interface, ConfigInterface):
-                interface = interface._serialize_post()
+                interface = interface._serialize()
             param_interfaces.append(interface)
 
         params = {
