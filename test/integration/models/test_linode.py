@@ -560,3 +560,23 @@ class TestNetworkInterface:
         assert interface.ipv4.vpc == "10.0.0.3"
         assert interface.ipv4.nat_1_1 == linode.ipv4[0]
         assert interface.ip_ranges == ["10.0.0.6/32"]
+
+    def test_reorder(self, create_linode):
+        linode = create_linode
+
+        config: Config = linode.configs[0]
+
+        pub_interface = config.interface_create_public(
+            primary=True,
+        )
+        vlan_interface = config.interface_create_vlan(
+            label="testvlan", ipam_address="10.0.0.3/32"
+        )
+
+        interfaces = config.network_interfaces
+        interfaces.reverse()
+
+        config.interface_reorder(interfaces)
+        config.invalidate()
+
+        assert [v.id for v in config.interfaces] == [vlan_interface.id, pub_interface.id]
