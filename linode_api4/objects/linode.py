@@ -322,9 +322,12 @@ class NetworkInterface(DerivedBase):
         return f"Interface: {self.purpose} {self.id}"
 
     @property
-    def subnet(self):
+    def subnet(self) -> VPCSubnet:
         """
         Get the subnet this VPC is referencing.
+
+        :returns: The VPCSubnet associated with this interface.
+        :rtype: VPCSubnet
         """
         return VPCSubnet(self._client, self.subnet_id, self.vpc_id)
 
