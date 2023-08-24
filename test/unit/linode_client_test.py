@@ -411,6 +411,35 @@ class AccountGroupTest(ClientBaseCase):
         self.assertEqual(payment.date, datetime(2015, 1, 1, 5, 1, 2))
         self.assertEqual(payment.usd, 1000)
 
+    def test_enrolled_betas(self):
+        """
+        Tests that enrolled beta programs can be retrieved
+        """
+        enrolled_betas = self.client.account.enrolled_betas()
+
+        self.assertEqual(len(enrolled_betas), 1)
+        beta = enrolled_betas[0]
+
+        self.assertEqual(beta.id, "cool")
+        self.assertEqual(beta.enrolled, datetime(2018, 1, 2, 3, 4, 5))
+        self.assertEqual(beta.started, datetime(2018, 1, 2, 3, 4, 5))
+        self.assertEqual(beta.ended, datetime(2018, 1, 2, 3, 4, 5))
+
+    def test_join_beta_program(self):
+        """
+        Tests that user can join a beta program
+        """
+        join_beta_url = "/account/betas"
+        with self.mock_post({}) as m:
+            self.client.account.join_beta_program("cool_beta")
+            self.assertEqual(
+                m.call_data,
+                {
+                    "id": "cool_beta",
+                },
+            )
+            self.assertEqual(m.call_url, join_beta_url)
+
 
 class LinodeGroupTest(ClientBaseCase):
     """

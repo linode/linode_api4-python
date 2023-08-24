@@ -3,6 +3,7 @@ from test.unit.base import ClientBaseCase
 
 from linode_api4.objects import (
     Account,
+    AccountBetaProgram,
     AccountSettings,
     Database,
     Domain,
@@ -240,3 +241,22 @@ class InvoiceTest(ClientBaseCase):
             self.assertEqual(
                 m.call_url, "/account/service-transfers/12345/accept"
             )
+
+
+class AccountBetaProgramTest(ClientBaseCase):
+    """
+    Tests methods of the AccountBetaProgram
+    """
+
+    def test_account_beta_program_api_get(self):
+        beta_id = "cool"
+        account_beta_url = "/account/betas/{}".format(beta_id)
+
+        with self.mock_get(account_beta_url) as m:
+            beta = AccountBetaProgram(self.client, beta_id)
+            self.assertEqual(beta.id, beta_id)
+            self.assertEqual(beta.enrolled, datetime(2018, 1, 2, 3, 4, 5))
+            self.assertEqual(beta.started, datetime(2018, 1, 2, 3, 4, 5))
+            self.assertEqual(beta.ended, datetime(2018, 1, 2, 3, 4, 5))
+
+            self.assertEqual(m.call_url, account_beta_url)

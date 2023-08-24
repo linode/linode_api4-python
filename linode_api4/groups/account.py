@@ -2,6 +2,7 @@ from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
     Account,
+    AccountBetaProgram,
     AccountSettings,
     Event,
     Invoice,
@@ -448,3 +449,31 @@ class AccountGroup(Group):
 
         u = User(self.client, result["username"], result)
         return u
+
+    def enrolled_betas(self, *filters):
+        """
+        Returns a list of all Beta Programs an account is enrolled in.
+
+        API doc: TBD
+
+        :returns: a list of Beta Programs.
+        :rtype: MappedObject
+        """
+        return self.client._get_and_filter(AccountBetaProgram, *filters)
+
+    def join_beta_program(self, id):
+        """
+        Enrolls an account into a beta program.
+
+        API doc: TBD
+
+        :param id: The id of the beta program to join.
+        :type id: str
+
+        :returns: The details of the beta program and enrollment.
+        :rtype: AccountBetaProgram
+        """
+
+        self.client.post("/account/betas", data={"id": id})
+
+        return True
