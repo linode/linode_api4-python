@@ -457,7 +457,7 @@ class AccountGroup(Group):
         API doc: TBD
 
         :returns: a list of Beta Programs.
-        :rtype: MappedObject
+        :rtype: PaginatedList of AccountBetaProgram
         """
         return self.client._get_and_filter(AccountBetaProgram, *filters)
 
@@ -471,7 +471,7 @@ class AccountGroup(Group):
         :type id: str
 
         :returns: The details of the beta program and enrollment.
-        :rtype: AccountBetaProgram
+        :rtype: bool
         """
 
         self.client.post("/account/betas", data={"id": id})
