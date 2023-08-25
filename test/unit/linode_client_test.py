@@ -440,10 +440,12 @@ class AccountGroupTest(ClientBaseCase):
                 },
             )
             self.assertEqual(m.call_url, join_beta_url)
-            
+
         # Test that user can join a beta program with an BetaProgram object
         with self.mock_post({}) as m:
-            self.client.account.join_beta_program(BetaProgram(self.client, "cool_beta"))
+            self.client.account.join_beta_program(
+                BetaProgram(self.client, "cool_beta")
+            )
             self.assertEqual(
                 m.call_data,
                 {
@@ -451,7 +453,6 @@ class AccountGroupTest(ClientBaseCase):
                 },
             )
             self.assertEqual(m.call_url, join_beta_url)
-        
 
 
 class BetaProgramGroupTest(ClientBaseCase):

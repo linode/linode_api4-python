@@ -475,6 +475,9 @@ class AccountGroup(Group):
         :rtype: bool
         """
 
-        self.client.post("/account/betas", data={"id": beta.id if issubclass(type(beta), Base) else beta})
+        self.client.post(
+            "/account/betas",
+            data={"id": beta.id if issubclass(type(beta), Base) else beta},
+        )
 
         return True
