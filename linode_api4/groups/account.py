@@ -471,7 +471,7 @@ class AccountGroup(Group):
         :param beta: The object or id of a beta program to join.
         :type beta: BetaProgram or str
 
-        :returns: The details of the beta program and enrollment.
+        :returns: A boolean indicating whether the account joined a beta program successfully.
         :rtype: bool
         """
 
