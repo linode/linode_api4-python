@@ -4,6 +4,7 @@ from linode_api4.objects import (
     Account,
     AccountBetaProgram,
     AccountSettings,
+    Base,
     Event,
     Invoice,
     Login,
@@ -461,19 +462,19 @@ class AccountGroup(Group):
         """
         return self.client._get_and_filter(AccountBetaProgram, *filters)
 
-    def join_beta_program(self, id):
+    def join_beta_program(self, beta):
         """
         Enrolls an account into a beta program.
 
         API doc: TBD
 
-        :param id: The id of the beta program to join.
-        :type id: str
+        :param beta: The object or id of a beta program to join.
+        :type beta: BetaProgram or str
 
         :returns: The details of the beta program and enrollment.
         :rtype: bool
         """
 
-        self.client.post("/account/betas", data={"id": id})
+        self.client.post("/account/betas", data={"id": beta.id if issubclass(type(beta), Base) else beta})
 
         return True

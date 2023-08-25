@@ -2,6 +2,7 @@ from datetime import datetime
 from test.unit.base import ClientBaseCase
 
 from linode_api4 import LongviewSubscription
+from linode_api4.objects.beta import BetaProgram
 from linode_api4.objects.linode import Instance
 from linode_api4.objects.networking import IPAddress
 from linode_api4.objects.object_storage import (
@@ -439,6 +440,18 @@ class AccountGroupTest(ClientBaseCase):
                 },
             )
             self.assertEqual(m.call_url, join_beta_url)
+            
+        # Test that user can join a beta program with an BetaProgram object
+        with self.mock_post({}) as m:
+            self.client.account.join_beta_program(BetaProgram(self.client, "cool_beta"))
+            self.assertEqual(
+                m.call_data,
+                {
+                    "id": "cool_beta",
+                },
+            )
+            self.assertEqual(m.call_url, join_beta_url)
+        
 
 
 class LinodeGroupTest(ClientBaseCase):
