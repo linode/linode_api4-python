@@ -1,10 +1,12 @@
+from typing import Union
+
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
     Account,
     AccountBetaProgram,
     AccountSettings,
-    Base,
+    BetaProgram,
     Event,
     Invoice,
     Login,
@@ -462,7 +464,7 @@ class AccountGroup(Group):
         """
         return self.client._get_and_filter(AccountBetaProgram, *filters)
 
-    def join_beta_program(self, beta):
+    def join_beta_program(self, beta: Union[str, BetaProgram]):
         """
         Enrolls an account into a beta program.
 
@@ -477,7 +479,7 @@ class AccountGroup(Group):
 
         self.client.post(
             "/account/betas",
-            data={"id": beta.id if issubclass(type(beta), Base) else beta},
+            data={"id": beta.id if isinstance(beta, BetaProgram) else beta},
         )
 
         return True
