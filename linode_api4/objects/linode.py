@@ -1,18 +1,28 @@
 import string
 import sys
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from os import urandom
 from random import randint
+from typing import Any, Dict, List, Optional, Union
 from urllib import parse
 
 from linode_api4 import util
 from linode_api4.common import load_and_validate_keys
 from linode_api4.errors import UnexpectedResponseError
-from linode_api4.objects import Base, DerivedBase, Image, Property, Region
+from linode_api4.objects import (
+    Base,
+    DerivedBase,
+    Image,
+    JSONObject,
+    Property,
+    Region,
+)
 from linode_api4.objects.base import MappedObject
 from linode_api4.objects.filtering import FilterableAttribute
 from linode_api4.objects.networking import IPAddress, IPv6Range
+from linode_api4.objects.vpc import VPC, VPCSubnet
 from linode_api4.paginated_list import PaginatedList
 
 PASSWORD_CHARS = string.ascii_letters + string.digits + string.punctuation
@@ -256,42 +266,132 @@ class Type(Base):
     type_class = FilterableAttribute("class")
 
 
-class ConfigInterface:
+@dataclass
+class ConfigInterfaceIPv4(JSONObject):
+    vpc: str = ""
+    nat_1_1: str = ""
+
+
+class NetworkInterface(DerivedBase):
     """
-    This is a helper class used to populate 'interfaces' in the Config calss
-    below.
+    This class represents a Configuration Profile's network interface object.
+    NOTE: This class cannot be used for the `interfaces` attribute on Config
+    POST and PUT requests.
+
+    API Documentation: TODO
     """
 
-    def __init__(self, purpose, label="", ipam_address=""):
-        """
-        Creates a new ConfigInterface
-        """
-        #: The Label for the VLAN this interface is connected to.  Blank for public
-        #: interfaces.
-        self.label = label
+    api_endpoint = (
+        "/linode/instances/{instance_id}/configs/{config_id}/interfaces/{id}"
+    )
+    derived_url_path = "interfaces"
+    parent_id_name = "config_id"
 
-        #: The IPAM Address this interface will bring up.  Blank for public interfaces.
-        self.ipam_address = ipam_address
+    properties = {
+        "id": Property(identifier=True),
+        "purpose": Property(),
+        "label": Property(),
+        "ipam_address": Property(),
+        "primary": Property(mutable=True),
+        "vpc_id": Property(id_relationship=VPC),
+        "subnet_id": Property(),
+        "ipv4": Property(mutable=True, json_object=ConfigInterfaceIPv4),
+        "ip_ranges": Property(mutable=True),
+    }
 
-        #: The purpose of this interface.  "public" means this interface can access
-        #: the internet, "vlan" means it is a VLAN interface.
-        self.purpose = purpose
+    def __init__(self, client, id, parent_id, instance_id=None, json=None):
+        """
+        We need a special constructor here because this object's parent
+        has a parent itself.
+        """
+        if not instance_id and not isinstance(parent_id, tuple):
+            raise ValueError(
+                "ConfigInterface must either be created with a instance_id or a tuple of "
+                "(config_id, instance_id) for parent_id!"
+            )
+
+        if isinstance(parent_id, tuple):
+            instance_id = parent_id[1]
+            parent_id = parent_id[0]
+
+        DerivedBase.__init__(self, client, id, parent_id, json=json)
+
+        self._set("instance_id", instance_id)
 
     def __repr__(self):
-        if self.purpose == "public":
-            return "Public Interface"
-        return "Interface {}; purpose: {}; ipam_address: {}".format(
-            self.label, self.purpose, self.ipam_address
-        )
+        return f"Interface: {self.purpose} {self.id}"
+
+    @property
+    def subnet(self) -> VPCSubnet:
+        """
+        Get the subnet this VPC is referencing.
+
+        :returns: The VPCSubnet associated with this interface.
+        :rtype: VPCSubnet
+        """
+        return VPCSubnet(self._client, self.subnet_id, self.vpc_id)
+
+
+@dataclass
+class ConfigInterface(JSONObject):
+    """
+    Represents a single interface in a Configuration Profile.
+    This class only contains data about a config interface.
+    If you would like to access a config interface directly,
+    consider using :any:`NetworkInterface`.
+
+    API Documentation: TODO
+    """
+
+    purpose: str = "public"
+
+    # Public/VPC-specific
+    primary: Optional[bool] = None
+
+    # VLAN-specific
+    label: Optional[str] = None
+    ipam_address: Optional[str] = None
+
+    # VPC-specific
+    vpc_id: Optional[int] = None
+    subnet_id: Optional[int] = None
+    ipv4: Optional[Union[ConfigInterfaceIPv4, Dict[str, Any]]] = None
+    ip_ranges: Optional[List[str]] = None
+
+    # Computed
+    id: int = 0
+
+    def __repr__(self):
+        return f"Interface: {self.purpose}"
 
     def _serialize(self):
-        """
-        Returns this object as a dict
-        """
+        purpose_formats = {
+            "public": {"purpose": "public", "primary": self.primary},
+            "vlan": {
+                "purpose": "vlan",
+                "label": self.label,
+                "ipam_address": self.ipam_address,
+            },
+            "vpc": {
+                "purpose": "vpc",
+                "primary": self.primary,
+                "subnet_id": self.subnet_id,
+                "ipv4": self.ipv4.dict
+                if isinstance(self.ipv4, ConfigInterfaceIPv4)
+                else self.ipv4,
+                "ip_ranges": self.ip_ranges,
+            },
+        }
+
+        if self.purpose not in purpose_formats:
+            raise ValueError(
+                f"Unknown interface purpose: {self.purpose}",
+            )
+
         return {
-            "label": self.label,
-            "ipam_address": self.ipam_address,
-            "purpose": self.purpose,
+            k: v
+            for k, v in purpose_formats[self.purpose].items()
+            if v is not None
         }
 
 
@@ -309,7 +409,7 @@ class Config(DerivedBase):
     properties = {
         "id": Property(identifier=True),
         "linode_id": Property(identifier=True),
-        "helpers": Property(),  # TODO: mutable=True),
+        "helpers": Property(mutable=True),
         "created": Property(is_datetime=True),
         "root_device": Property(mutable=True),
         "kernel": Property(relationship=Kernel, mutable=True),
@@ -321,14 +421,33 @@ class Config(DerivedBase):
         "run_level": Property(mutable=True),
         "virt_mode": Property(mutable=True),
         "memory_limit": Property(mutable=True),
-        "interfaces": Property(mutable=True),  # gets setup in _populate below
-        "helpers": Property(mutable=True),
+        "interfaces": Property(mutable=True, json_object=ConfigInterface),
     }
+
+    @property
+    def network_interfaces(self):
+        """
+        Returns the Network Interfaces for this Configuration Profile.
+        This differs from the `interfaces` field as each NetworkInterface
+        object is treated as its own API object.
+
+        API Documentation: TODO
+        """
+
+        return [
+            NetworkInterface(
+                self._client, v.id, self.id, instance_id=self.linode_id
+            )
+            for v in self.interfaces
+        ]
 
     def _populate(self, json):
         """
         Map devices more nicely while populating.
         """
+        if json is None or len(json) < 1:
+            return
+
         # needed here to avoid circular imports
         from .volume import Volume  # pylint: disable=import-outside-toplevel
 
@@ -353,19 +472,6 @@ class Config(DerivedBase):
 
         self._set("devices", MappedObject(**devices))
 
-        interfaces = []
-        if "interfaces" in json:
-            interfaces = [
-                ConfigInterface(
-                    c["purpose"],
-                    label=c["label"],
-                    ipam_address=c["ipam_address"],
-                )
-                for c in json["interfaces"]
-            ]
-
-        self._set("interfaces", interfaces)
-
     def _serialize(self):
         """
         Overrides _serialize to transform interfaces into json
@@ -381,6 +487,127 @@ class Config(DerivedBase):
 
         partial["interfaces"] = interfaces
         return partial
+
+    def interface_create_public(self, primary=False) -> NetworkInterface:
+        """
+        Creates a public interface for this Configuration Profile.
+
+        API Documentation: TODO
+
+        :param primary: Whether this interface is a primary interface.
+        :type primary: bool
+
+        :returns: The newly created NetworkInterface.
+        :rtype: NetworkInterface
+
+        """
+        return self._interface_create({"purpose": "public", "primary": primary})
+
+    def interface_create_vlan(
+        self, label: str, ipam_address=None
+    ) -> NetworkInterface:
+        """
+        Creates a VLAN interface for this Configuration Profile.
+
+        API Documentation: TODO
+
+        :param label: The label of the VLAN to associate this interface with.
+        :type label: str
+        :param ipam_address: The IPAM address of this interface for the associated VLAN.
+        :type ipam_address: str
+
+        :returns: The newly created NetworkInterface.
+        :rtype: NetworkInterface
+        """
+        params = {
+            "purpose": "vlan",
+            "label": label,
+        }
+        if ipam_address is not None:
+            params["ipam_address"] = ipam_address
+
+        return self._interface_create(params)
+
+    def interface_create_vpc(
+        self,
+        subnet: Union[int, VPCSubnet],
+        primary=False,
+        ipv4: Union[Dict[str, Any], ConfigInterfaceIPv4] = None,
+        ip_ranges: Optional[List[str]] = None,
+    ) -> NetworkInterface:
+        """
+        Creates a VPC interface for this Configuration Profile.
+
+        API Documentation: TODO
+
+        :param subnet: The VPC subnet to associate this interface with.
+        :type subnet: int or VPCSubnet
+        :param primary: Whether this is a primary interface.
+        :type primary: bool
+        :param ipv4: The IPv4 configuration of the interface for the associated subnet.
+        :type ipv4: Dict or ConfigInterfaceIPv4
+        :param ip_ranges: A list of IPs or IP ranges in the VPC subnet.
+                          Packets to these CIDRs are routed through the
+                          VPC network interface.
+        :type ip_ranges: List of str
+
+        :returns: The newly created NetworkInterface.
+        :rtype: NetworkInterface
+        """
+        params = {
+            "purpose": "vpc",
+            "subnet_id": subnet.id if isinstance(subnet, VPCSubnet) else subnet,
+            "primary": primary,
+        }
+
+        if ipv4 is not None:
+            params["ipv4"] = (
+                ipv4.dict if isinstance(ipv4, ConfigInterfaceIPv4) else ipv4
+            )
+
+        if ip_ranges is not None:
+            params["ip_ranges"] = ip_ranges
+
+        return self._interface_create(params)
+
+    def interface_reorder(self, interfaces: List[Union[int, NetworkInterface]]):
+        """
+        Change the order of the interfaces for this Configuration Profile.
+
+        API Documentation: TODO
+
+        :param interfaces: A list of interfaces in the desired order.
+        :type interfaces: List of str or NetworkInterface
+        """
+        ids = [
+            v.id if isinstance(v, NetworkInterface) else v for v in interfaces
+        ]
+
+        self._client.post(
+            "{}/interfaces/order".format(Config.api_endpoint),
+            model=self,
+            data={"ids": ids},
+        )
+        self.invalidate()
+
+    def _interface_create(self, body: Dict[str, Any]) -> NetworkInterface:
+        """
+        The underlying ConfigInterface creation API call.
+        """
+        result = self._client.post(
+            "{}/interfaces".format(Config.api_endpoint), model=self, data=body
+        )
+        self.invalidate()
+
+        if not "id" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response creating Interface", json=result
+            )
+
+        i = NetworkInterface(
+            self._client, result["id"], self.id, self.linode_id, result
+        )
+        return i
 
 
 class Instance(Base):
@@ -789,6 +1016,7 @@ class Instance(Base):
         devices=[],
         disks=[],
         volumes=[],
+        interfaces=[],
         **kwargs,
     ):
         """
@@ -862,12 +1090,19 @@ class Instance(Base):
             else:
                 raise TypeError("Disk or Volume expected!")
 
+        param_interfaces = []
+        for interface in interfaces:
+            if isinstance(interface, ConfigInterface):
+                interface = interface._serialize()
+            param_interfaces.append(interface)
+
         params = {
             "kernel": kernel.id if issubclass(type(kernel), Base) else kernel,
             "label": label
             if label
             else "{}_config_{}".format(self.label, len(self.configs)),
             "devices": device_map,
+            "interfaces": param_interfaces,
         }
         params.update(kwargs)
 

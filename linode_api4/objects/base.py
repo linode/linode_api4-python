@@ -1,6 +1,8 @@
 import time
 from datetime import datetime, timedelta
 
+from linode_api4.objects.serializable import JSONObject
+
 from .filtering import FilterableMetaclass
 
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%S"
@@ -30,6 +32,7 @@ class Property:
         id_relationship=False,
         slug_relationship=False,
         nullable=False,
+        json_object=None,
     ):
         """
         A Property is an attribute returned from the API, and defines metadata
@@ -56,6 +59,8 @@ class Property:
         self.is_datetime = is_datetime
         self.id_relationship = id_relationship
         self.slug_relationship = slug_relationship
+        self.nullable = nullable
+        self.json_class = json_object
 
 
 class MappedObject:
@@ -111,7 +116,7 @@ class Base(object, metaclass=FilterableMetaclass):
 
     properties = {}
 
-    def __init__(self, client, id, json={}):
+    def __init__(self, client: object, id: object, json: object = {}) -> object:
         self._set("_populated", False)
         self._set("_last_updated", datetime.min)
         self._set("_client", client)
@@ -123,8 +128,8 @@ class Base(object, metaclass=FilterableMetaclass):
         #: be updated on access.
         self._set("_raw_json", None)
 
-        for prop in type(self).properties:
-            self._set(prop, None)
+        for k in type(self).properties:
+            self._set(k, None)
 
         self._set("id", id)
         if hasattr(type(self), "id_attribute"):
@@ -289,7 +294,7 @@ class Base(object, metaclass=FilterableMetaclass):
 
             value = getattr(self, k)
 
-            if not value:
+            if not v.nullable and (value is None or value == ""):
                 continue
 
             # Let's allow explicit null values as both classes and instances
@@ -305,7 +310,7 @@ class Base(object, metaclass=FilterableMetaclass):
         for k, v in result.items():
             if isinstance(v, Base):
                 result[k] = v.id
-            elif isinstance(v, MappedObject):
+            elif isinstance(v, MappedObject) or issubclass(type(v), JSONObject):
                 result[k] = v.dict
 
         return result
@@ -376,6 +381,18 @@ class Base(object, metaclass=FilterableMetaclass):
                         .properties[key]
                         .slug_relationship(self._client, json[key]),
                     )
+                elif type(self).properties[key].json_class:
+                    json_class = type(self).properties[key].json_class
+                    json_value = json[key]
+
+                    # build JSON object
+                    if isinstance(json_value, list):
+                        # We need special handling for list responses
+                        value = [json_class.from_json(v) for v in json_value]
+                    else:
+                        value = json_class.from_json(json_value)
+
+                    self._set(key, value)
                 elif type(json[key]) is dict:
                     self._set(key, MappedObject(**json[key]))
                 elif type(json[key]) is list:

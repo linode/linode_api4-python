@@ -28,6 +28,7 @@ from linode_api4.groups import (
     SupportGroup,
     TagGroup,
     VolumeGroup,
+    VPCGroup,
 )
 from linode_api4.objects import Image, and_
 from linode_api4.objects.filtering import Filter
@@ -185,6 +186,9 @@ class LinodeClient:
 
         #: Access methods related to Images - See :any:`ImageGroup` for more information.
         self.images = ImageGroup(self)
+
+        #: Access methods related to VPCs - See :any:`VPCGroup` for more information.
+        self.vpcs = VPCGroup(self)
 
         #: Access methods related to Event polling - See :any:`PollingGroup` for more information.
         self.polling = PollingGroup(self)
