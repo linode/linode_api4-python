@@ -1,0 +1,24 @@
+{
+    "data": [
+        {
+            "id": "active_closed", 
+            "label": "active closed beta", 
+            "description": "An active closed beta", 
+            "started": "2023-07-19T15:23:43", 
+            "ended": null, 
+            "greenlight_only": true, 
+            "more_info": "a link with even more info"
+        }, 
+        {
+            "id": "limited",
+            "label": "limited beta", 
+            "description": "An active limited beta", 
+            "started": "2023-07-19T15:23:43", 
+            "ended": null, "greenlight_only": false, 
+            "more_info": "a link with even more info"
+        }
+    ], 
+    "page": 1, 
+    "pages": 1, 
+    "results": 2
+}

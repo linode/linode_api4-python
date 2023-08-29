@@ -12,6 +12,7 @@ from requests.adapters import HTTPAdapter, Retry
 from linode_api4.errors import ApiError, UnexpectedResponseError
 from linode_api4.groups import (
     AccountGroup,
+    BetaProgramGroup,
     DatabaseGroup,
     DomainGroup,
     ImageGroup,
@@ -191,6 +192,9 @@ class LinodeClient:
 
         #: Access methods related to Event polling - See :any:`PollingGroup` for more information.
         self.polling = PollingGroup(self)
+
+        #: Access methods related to Beta Program - See :any:`BetaProgramGroup` for more information.
+        self.beta = BetaProgramGroup(self)
 
     @property
     def _user_agent(self):

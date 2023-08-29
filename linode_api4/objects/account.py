@@ -637,3 +637,20 @@ class UserGrants:
         self._populate(result)
 
         return True
+
+
+class AccountBetaProgram(Base):
+    """
+    The details and enrollment information of a Beta program that an account is enrolled in.
+    """
+
+    api_endpoint = "/account/betas/{id}"
+
+    properties = {
+        "id": Property(identifier=True),
+        "label": Property(),
+        "description": Property(),
+        "started": Property(is_datetime=True),
+        "ended": Property(is_datetime=True),
+        "enrolled": Property(is_datetime=True),
+    }

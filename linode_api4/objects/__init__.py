@@ -19,3 +19,4 @@ from .object_storage import *
 from .lke import *
 from .database import *
 from .vpc import *
+from .beta import *
