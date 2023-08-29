@@ -55,7 +55,7 @@ class VPCGroup(Group):
         """
         params = {
             "label": label,
-            "region": region.id if isinstance(region, Base) else region,
+            "region": region.id if isinstance(region, Region) else region,
         }
 
         if description is not None:

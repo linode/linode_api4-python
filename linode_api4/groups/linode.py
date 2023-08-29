@@ -289,8 +289,8 @@ class LinodeGroup(Group):
             del kwargs["backup"]
 
         if "firewall" in kwargs:
-            fw = kwargs["firewall"]
-            kwargs["firewall"] = fw.id if isinstance(fw, Firewall) else fw
+            fw = kwargs.pop("firewall")
+            kwargs["firewall_id"] = fw.id if isinstance(fw, Firewall) else fw
 
         params = {
             "type": ltype.id if issubclass(type(ltype), Base) else ltype,
