@@ -1,0 +1,14 @@
+{
+    "quota": 471,
+    "used": 737373,
+    "billable": 0,
+
+    "region_transfers": [
+        {
+            "id": "ap-west",
+            "used": 1,
+            "quota": 5010,
+            "billable": 0
+        }
+    ]
+}
