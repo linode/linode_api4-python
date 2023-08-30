@@ -470,7 +470,7 @@ class AccountGroupTest(ClientBaseCase):
         self.assertEqual(transfer.region_transfers[0].quota, 5010)
         self.assertEqual(transfer.region_transfers[0].billable, 0)
 
-        
+
 class BetaProgramGroupTest(ClientBaseCase):
     """
     Tests methods of the BetaProgramGroup
