@@ -533,6 +533,8 @@ class TypeTest(ClientBaseCase):
             self.assertIsNotNone(t.type_class)
             self.assertIsNotNone(t.gpus)
             self.assertIsNone(t.successor)
+            self.assertIsNotNone(t.region_prices)
+            self.assertIsNotNone(t.addons.backups.region_prices)
 
     def test_get_type_by_id(self):
         """
@@ -546,6 +548,7 @@ class TypeTest(ClientBaseCase):
         self.assertEqual(t.label, "Linode 1024")
         self.assertEqual(t.disk, 20480)
         self.assertEqual(t.type_class, "nanode")
+        self.assertEqual(t.region_prices[0].id, "us-east")
 
     def test_get_type_gpu(self):
         """
