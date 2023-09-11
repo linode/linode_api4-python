@@ -36,7 +36,7 @@ def load_json(url):
     return FIXTURES.get_fixture(formatted_url)
 
 
-def mock_get(url, headers=None, data=None):
+def mock_get(url, headers=None, data=None, **kwargs):
     """
     Loads the response from a JSON file
     """
