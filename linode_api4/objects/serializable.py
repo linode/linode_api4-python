@@ -1,6 +1,5 @@
-import copy
 import inspect
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import Any, Dict, get_type_hints
 
 
@@ -53,13 +52,7 @@ class JSONObject:
         """
         Serializes this object into a JSON dict.
         """
-        results = copy.deepcopy(vars(self))
-
-        for k, v in results.items():
-            if issubclass(type(v), JSONObject):
-                results[k] = v._serialize()
-
-        return results
+        return asdict(self)
 
     @property
     def dict(self) -> Dict[str, Any]:
