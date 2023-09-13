@@ -97,7 +97,7 @@ jobs:
           echo $RELEASE_VERSION
           echo ${{ env.RELEASE_VERSION }}
           filename=$(ls | grep -E '^[0-9]{12}_sdk_test_report\.xml$') 
-          python scripts/add_to_xml_test_report.py \
+          python test/script/add_to_xml_test_report.py \
           --branch_name "${{ env.RELEASE_VERSION }}" \
           --gha_run_id "$GITHUB_RUN_ID" \
           --gha_run_number "$GITHUB_RUN_NUMBER" \
