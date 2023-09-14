@@ -33,4 +33,8 @@ if __name__ == '__main__':
 
     file_name = sys.argv[1]
 
+    if not file_name:
+        print('Error: The provided file name is empty or invalid.')
+        sys.exit(1)
+
     upload_to_linode_object_storage(file_name)
