@@ -15,16 +15,10 @@ linode_obj_config = {
 
 
 def upload_to_linode_object_storage(file_name):
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-
-    report_file_path = os.path.join(script_dir, '..', '..', file_name)
-
     try:
         s3 = boto3.client('s3', **linode_obj_config)
 
-        print(file_name)
-
-        s3.upload_file(Filename=report_file_path, Bucket=BUCKET_NAME, Key=file_name)
+        s3.upload_file(Filename=file_name, Bucket=BUCKET_NAME, Key=file_name)
 
         print(f'Successfully uploaded {file_name} to Linode Object Storage.')
 
