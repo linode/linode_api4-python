@@ -163,7 +163,7 @@ class LinodeGroup(Group):
         To output the IPv4 address of the new Linode:
             print(new_linode.ipv4)
 
-        To delete the new_linode:
+        To delete the new_linode (WARNING: this immediately destroys the Linode):
             new_linode.delete()
 
         **Create an Instance from StackScript**
