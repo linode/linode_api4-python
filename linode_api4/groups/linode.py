@@ -139,7 +139,9 @@ class LinodeGroup(Group):
         a :any:`Type`, a :any:`Region`, and an :any:`Image`.  All three of
         these fields may be provided as either the ID or the appropriate object.
         In this mode, a root password will be generated and returned with the
-        new Instance object.  For example::
+        new Instance object.
+        
+        For example::
 
            new_linode, password = client.linode.instance_create(
                "g6-standard-2",
@@ -154,6 +156,15 @@ class LinodeGroup(Group):
                ltype,
                region,
                image=image)
+
+        To output the password from the above example:
+            print(password)
+
+        To output the IPv4 address of the new Linode:
+            print(new_linode.ipv4)
+
+        To delete the new_linode:
+            new_linode.delete()
 
         **Create an Instance from StackScript**
 
