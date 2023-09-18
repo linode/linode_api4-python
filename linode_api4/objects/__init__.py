@@ -17,3 +17,4 @@ from .tag import Tag
 from .object_storage import *
 from .lke import *
 from .database import *
+from .beta import *
