@@ -3,7 +3,7 @@ import time
 
 import pytest
 
-from linode_api4.linode_client import LinodeClient, LongviewSubscription
+from linode_api4.linode_client import LinodeClient
 
 ENV_TOKEN_NAME = "LINODE_TOKEN"
 RUN_LONG_TESTS = "RUN_LONG_TESTS"
