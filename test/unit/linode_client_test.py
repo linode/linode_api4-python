@@ -258,6 +258,28 @@ class LinodeClientGeneralTest(ClientBaseCase):
                 },
             )
 
+    def test_override_ca(self):
+        """
+        Tests that the CA file used for API requests can be overridden.
+        """
+        self.client.ca_path = "foobar"
+
+        called = False
+
+        old_get = self.client.session.get
+
+        def get_mock(*params, verify=True, **kwargs):
+            nonlocal called
+            called = True
+            assert verify == "foobar"
+            return old_get(*params, **kwargs)
+
+        self.client.session.get = get_mock
+
+        self.client.linode.instances()
+
+        assert called
+
 
 class AccountGroupTest(ClientBaseCase):
     """
