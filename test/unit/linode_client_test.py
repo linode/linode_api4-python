@@ -476,6 +476,22 @@ class AccountGroupTest(ClientBaseCase):
             )
             self.assertEqual(m.call_url, join_beta_url)
 
+    def test_account_transfer(self):
+        """
+        Tests that payments can be retrieved
+        """
+        transfer = self.client.account.transfer()
+
+        self.assertEqual(transfer.quota, 471)
+        self.assertEqual(transfer.used, 737373)
+        self.assertEqual(transfer.billable, 0)
+
+        self.assertEqual(len(transfer.region_transfers), 1)
+        self.assertEqual(transfer.region_transfers[0].id, "ap-west")
+        self.assertEqual(transfer.region_transfers[0].used, 1)
+        self.assertEqual(transfer.region_transfers[0].quota, 5010)
+        self.assertEqual(transfer.region_transfers[0].billable, 0)
+
 
 class BetaProgramGroupTest(ClientBaseCase):
     """

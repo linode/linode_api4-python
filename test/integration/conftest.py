@@ -6,11 +6,22 @@ import pytest
 from linode_api4.linode_client import LinodeClient
 
 ENV_TOKEN_NAME = "LINODE_TOKEN"
+ENV_API_URL_NAME = "LINODE_API_URL"
+ENV_API_CA_NAME = "LINODE_API_CA"
 RUN_LONG_TESTS = "RUN_LONG_TESTS"
 
 
 def get_token():
     return os.environ.get(ENV_TOKEN_NAME, None)
+
+
+def get_api_url():
+    return os.environ.get(ENV_API_URL_NAME, "https://api.linode.com/v4beta")
+
+
+def get_api_ca_file():
+    result = os.environ.get(ENV_API_CA_NAME, None)
+    return result if result != "" else None
 
 
 def run_long_tests():
@@ -71,7 +82,13 @@ def ssh_key_gen():
 @pytest.fixture(scope="session")
 def get_client():
     token = get_token()
-    client = LinodeClient(token)
+    api_url = get_api_url()
+    api_ca_file = get_api_ca_file()
+    client = LinodeClient(
+        token,
+        base_url=api_url,
+        ca_path=api_ca_file,
+    )
     return client
 
 

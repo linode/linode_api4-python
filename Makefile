@@ -28,7 +28,7 @@ release: build
 	twine upload dist/*
 
 @PHONEY: install
-install: clean
+install: clean requirements
 	python3 -m pip install .
 
 @PHONEY: requirements
