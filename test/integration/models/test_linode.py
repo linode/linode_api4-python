@@ -584,7 +584,9 @@ class TestNetworkInterface:
             pub_interface.id,
         ]
 
-    def test_delete_interface_containing_vpc(self, create_vpc_with_subnet_and_linode):
+    def test_delete_interface_containing_vpc(
+        self, create_vpc_with_subnet_and_linode
+    ):
         vpc, subnet, linode, _ = create_vpc_with_subnet_and_linode
 
         config: Config = linode.configs[0]

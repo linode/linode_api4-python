@@ -1,5 +1,6 @@
-from linode_api4 import VPC, VPCSubnet, ApiError
 from test.integration.conftest import get_region
+
+from linode_api4 import VPC, ApiError, VPCSubnet
 
 
 def test_get_vpc(get_client, create_vpc):
@@ -44,10 +45,17 @@ def test_update_subnet(get_client, create_vpc_with_subnet):
 
 def test_fails_create_vpc_invalid_data(get_client):
     try:
-       get_client.vpcs.create(label="invalid_label!!", region=get_region(get_client, {"VPCs"}), description="test description")
+        get_client.vpcs.create(
+            label="invalid_label!!",
+            region=get_region(get_client, {"VPCs"}),
+            description="test description",
+        )
     except ApiError as e:
         assert e.status == 400
-        assert 'Label must include only ASCII letters, numbers, and dashes' in str(e.json)
+        assert (
+            "Label must include only ASCII letters, numbers, and dashes"
+            in str(e.json)
+        )
 
 
 def test_get_all_vpcs(get_client, create_multiple_vpcs):
@@ -69,7 +77,10 @@ def test_fails_update_vpc_invalid_data(create_vpc):
         vpc.save()
     except ApiError as e:
         assert e.status == 400
-        assert 'Label must include only ASCII letters, numbers, and dashes' in str(e.json)
+        assert (
+            "Label must include only ASCII letters, numbers, and dashes"
+            in str(e.json)
+        )
 
 
 def test_fails_create_subnet_invalid_data(create_vpc):
@@ -78,7 +89,10 @@ def test_fails_create_subnet_invalid_data(create_vpc):
         create_vpc.subnet_create("test-subnet", ipv4=invalid_ipv4)
     except ApiError as e:
         assert e.status == 400
-        assert 'ipv4 must be an IPv4 network with at least 8 addresses, but it had only 1' in str(e.json)
+        assert (
+            "ipv4 must be an IPv4 network with at least 8 addresses, but it had only 1"
+            in str(e.json)
+        )
 
 
 def test_fails_update_subnet_invalid_data(create_vpc_with_subnet):
@@ -89,6 +103,7 @@ def test_fails_update_subnet_invalid_data(create_vpc_with_subnet):
         subnet.save()
     except ApiError as e:
         assert e.status == 400
-        assert 'Label must include only ASCII letters, numbers, and dashes' in str(e.json)
-
-
+        assert (
+            "Label must include only ASCII letters, numbers, and dashes"
+            in str(e.json)
+        )
