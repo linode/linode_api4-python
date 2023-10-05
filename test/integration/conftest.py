@@ -290,3 +290,46 @@ def create_vpc_with_subnet_and_linode(get_client, create_vpc_with_subnet):
     yield vpc, subnet, instance, password
 
     instance.delete()
+
+
+@pytest.fixture(scope="session")
+def create_vpc(get_client):
+    client = get_client
+
+    timestamp = str(int(time.time()))
+
+    vpc = client.vpcs.create(
+        "pythonsdk-" + timestamp,
+        get_region(get_client, {"VPCs"}),
+        description="test description",
+    )
+    yield vpc
+
+    vpc.delete()
+
+
+@pytest.fixture(scope="session")
+def create_multiple_vpcs(get_client):
+    client = get_client
+
+    timestamp = str(int(time.time()) + random.randint)
+
+    timestamp_2 = str(int(time.time()) + random.randint)
+
+    vpc_1 = client.vpcs.create(
+        "pythonsdk-" + timestamp,
+        get_region(get_client, {"VPCs"}),
+        description="test description",
+    )
+
+    vpc_2 = client.vpcs.create(
+        "pythonsdk-" + timestamp_2,
+        get_region(get_client, {"VPCs"}),
+        description="test description",
+    )
+
+    yield vpc_1, vpc_2
+
+    vpc_1.delete()
+
+    vpc_1.delete()

@@ -583,3 +583,22 @@ class TestNetworkInterface:
             vlan_interface.id,
             pub_interface.id,
         ]
+
+    def test_delete_interface_containing_vpc(self, create_vpc_with_subnet_and_linode):
+        vpc, subnet, linode, _ = create_vpc_with_subnet_and_linode
+
+        config: Config = linode.configs[0]
+
+        config.interfaces = []
+        config.save()
+
+        interface = config.interface_create_vpc(
+            subnet=subnet,
+            primary=True,
+            ip_ranges=["10.0.0.8/32"],
+        )
+
+        result = interface.delete()
+
+        # returns true when delete successful
+        assert result
