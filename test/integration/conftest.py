@@ -11,6 +11,7 @@ from linode_api4.objects import Region
 ENV_TOKEN_NAME = "LINODE_TOKEN"
 ENV_API_URL_NAME = "LINODE_API_URL"
 ENV_REGION_OVERRIDE = "LINODE_TEST_REGION_OVERRIDE"
+ENV_API_CA_NAME = "LINODE_API_CA"
 RUN_LONG_TESTS = "RUN_LONG_TESTS"
 
 
@@ -37,6 +38,10 @@ def get_region(client: LinodeClient, capabilities: Set[str] = None):
         ]
 
     return random.choice(regions)
+
+def get_api_ca_file():
+    result = os.environ.get(ENV_API_CA_NAME, None)
+    return result if result != "" else None
 
 
 def run_long_tests():
@@ -100,7 +105,12 @@ def ssh_key_gen():
 def get_client():
     token = get_token()
     api_url = get_api_url()
-    client = LinodeClient(token, base_url=api_url)
+    api_ca_file = get_api_ca_file()
+    client = LinodeClient(
+        token,
+        base_url=api_url,
+        ca_path=api_ca_file,
+    )
     return client
 
 

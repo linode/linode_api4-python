@@ -415,6 +415,22 @@ def test_get_linode_types(get_client):
     assert "g6-nanode-1" in ids
 
 
+def test_get_linode_types_overrides(get_client):
+    types = get_client.linode.types()
+
+    target_types = [
+        v
+        for v in types
+        if len(v.region_prices) > 0 and v.region_prices[0].hourly > 0
+    ]
+
+    assert len(target_types) > 0
+
+    for linode_type in target_types:
+        assert linode_type.region_prices[0].hourly >= 0
+        assert linode_type.region_prices[0].monthly >= 0
+
+
 def test_get_linode_type_by_id(get_client):
     pytest.skip(
         "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
