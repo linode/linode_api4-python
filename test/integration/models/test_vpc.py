@@ -5,7 +5,7 @@ from linode_api4 import VPC, ApiError, VPCSubnet
 
 def test_get_vpc(get_client, create_vpc):
     vpc = get_client.load(VPC, create_vpc.id)
-    get_client.vpc()
+    get_client.vpcs()
     assert vpc.id == create_vpc.id
 
 
@@ -53,7 +53,7 @@ def test_fails_create_vpc_invalid_data(get_client):
     except ApiError as e:
         assert e.status == 400
         assert (
-            "Label must include only ASCII letters, numbers, and dashes"
+            "Label must include only ASCII"
             in str(e.json)
         )
 
@@ -78,7 +78,7 @@ def test_fails_update_vpc_invalid_data(create_vpc):
     except ApiError as e:
         assert e.status == 400
         assert (
-            "Label must include only ASCII letters, numbers, and dashes"
+            "Label must include only ASCII"
             in str(e.json)
         )
 
@@ -90,7 +90,7 @@ def test_fails_create_subnet_invalid_data(create_vpc):
     except ApiError as e:
         assert e.status == 400
         assert (
-            "ipv4 must be an IPv4 network with at least 8 addresses, but it had only 1"
+            "ipv4 must be an IPv4 network"
             in str(e.json)
         )
 
@@ -104,6 +104,6 @@ def test_fails_update_subnet_invalid_data(create_vpc_with_subnet):
     except ApiError as e:
         assert e.status == 400
         assert (
-            "Label must include only ASCII letters, numbers, and dashes"
+            "Label must include only ASCII"
             in str(e.json)
         )

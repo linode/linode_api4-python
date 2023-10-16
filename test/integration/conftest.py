@@ -296,7 +296,7 @@ def create_vpc_with_subnet_and_linode(get_client, create_vpc_with_subnet):
 def create_vpc(get_client):
     client = get_client
 
-    timestamp = int(time.time_ns() % 10**10)
+    timestamp = str(int(time.time_ns() % 10**10))
 
     vpc = client.vpcs.create(
         "pythonsdk-" + timestamp,
@@ -312,9 +312,9 @@ def create_vpc(get_client):
 def create_multiple_vpcs(get_client):
     client = get_client
 
-    timestamp = int(time.time_ns() % 10**10)
+    timestamp = str(int(time.time_ns() % 10**10))
 
-    timestamp_2 = int(time.time_ns() % 10**10)
+    timestamp_2 = str(int(time.time_ns() % 10**10))
 
     vpc_1 = client.vpcs.create(
         "pythonsdk-" + timestamp,
@@ -332,4 +332,4 @@ def create_multiple_vpcs(get_client):
 
     vpc_1.delete()
 
-    vpc_1.delete()
+    vpc_2.delete()
