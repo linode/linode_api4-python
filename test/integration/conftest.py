@@ -39,6 +39,7 @@ def get_region(client: LinodeClient, capabilities: Set[str] = None):
 
     return random.choice(regions)
 
+
 def get_api_ca_file():
     result = os.environ.get(ENV_API_CA_NAME, None)
     return result if result != "" else None
