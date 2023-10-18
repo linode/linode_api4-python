@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import json
 import logging
+from importlib.metadata import version
 from typing import BinaryIO, Tuple
 from urllib import parse
 
-import pkg_resources
 import requests
 from requests.adapters import HTTPAdapter, Retry
 
@@ -36,7 +36,7 @@ from .common import SSH_KEY_TYPES, load_and_validate_keys
 from .paginated_list import PaginatedList
 from .util import drop_null_keys
 
-package_version = pkg_resources.require("linode_api4")[0].version
+package_version = version("linode_api4")
 
 logger = logging.getLogger(__name__)
 
