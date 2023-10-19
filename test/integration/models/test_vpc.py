@@ -1,5 +1,7 @@
 from test.integration.conftest import get_region
 
+import pytest
+
 from linode_api4 import VPC, ApiError, VPCSubnet
 
 
@@ -44,15 +46,14 @@ def test_update_subnet(get_client, create_vpc_with_subnet):
 
 
 def test_fails_create_vpc_invalid_data(get_client):
-    try:
+    with pytest.raises(ApiError) as excinfo:
         get_client.vpcs.create(
             label="invalid_label!!",
             region=get_region(get_client, {"VPCs"}),
             description="test description",
         )
-    except ApiError as e:
-        assert e.status == 400
-        assert "Label must include only ASCII" in str(e.json)
+    assert excinfo.value.status == 400
+    assert "Label must include only ASCII" in str(excinfo.value.json)
 
 
 def test_get_all_vpcs(get_client, create_multiple_vpcs):
@@ -68,30 +69,32 @@ def test_fails_update_vpc_invalid_data(create_vpc):
     vpc = create_vpc
 
     invalid_label = "invalid!!"
+    vpc.label = invalid_label
 
-    try:
-        vpc.label = invalid_label
+    with pytest.raises(ApiError) as excinfo:
         vpc.save()
-    except ApiError as e:
-        assert e.status == 400
-        assert "Label must include only ASCII" in str(e.json)
+
+    assert excinfo.value.status == 400
+    assert "Label must include only ASCII" in str(excinfo.value.json)
 
 
 def test_fails_create_subnet_invalid_data(create_vpc):
     invalid_ipv4 = "10.0.0.0"
-    try:
+
+    with pytest.raises(ApiError) as excinfo:
         create_vpc.subnet_create("test-subnet", ipv4=invalid_ipv4)
-    except ApiError as e:
-        assert e.status == 400
-        assert "ipv4 must be an IPv4 network" in str(e.json)
+
+    assert excinfo.value.status == 400
+    assert "ipv4 must be an IPv4 network" in str(excinfo.value.json)
 
 
 def test_fails_update_subnet_invalid_data(create_vpc_with_subnet):
     invalid_label = "invalid_subnet_label!!"
     vpc, subnet = create_vpc_with_subnet
-    try:
-        subnet.label = invalid_label
+    subnet.label = invalid_label
+
+    with pytest.raises(ApiError) as excinfo:
         subnet.save()
-    except ApiError as e:
-        assert e.status == 400
-        assert "Label must include only ASCII" in str(e.json)
+
+    assert excinfo.value.status == 400
+    assert "Label must include only ASCII" in str(excinfo.value.json)
