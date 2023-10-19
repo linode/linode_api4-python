@@ -242,6 +242,7 @@ class Type(Base):
         "label": Property(),
         "network_out": Property(),
         "price": Property(),
+        "region_prices": Property(),
         "addons": Property(),
         "memory": Property(),
         "transfer": Property(),
