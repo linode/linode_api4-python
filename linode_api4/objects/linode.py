@@ -720,7 +720,7 @@ class Instance(Base):
             return False
         return True
 
-    def resize(self, new_type, allow_auto_disk_resize=True, **kwargs):
+    def resize(self, new_type, allow_auto_disk_resize=True, migration_type="cold", **kwargs):
         """
         Resizes a Linode you have the read_write permission to a different Type. If any
         actions are currently running or queued, those actions must be completed first
@@ -751,6 +751,7 @@ class Instance(Base):
         params = {
             "type": new_type,
             "allow_auto_disk_resize": allow_auto_disk_resize,
+            "migration_type": migration_type,
         }
         params.update(kwargs)
 
@@ -1202,7 +1203,7 @@ class Instance(Base):
 
         return True
 
-    def initiate_migration(self, region=None, upgrade=None):
+    def initiate_migration(self, region=None, upgrade=None, type="cold"):
         """
         Initiates a pending migration that is already scheduled for this Linode
         Instance
@@ -1227,6 +1228,7 @@ class Instance(Base):
         params = {
             "region": region.id if issubclass(type(region), Base) else region,
             "upgrade": upgrade,
+            "type": type,
         }
 
         util.drop_null_keys(params)
