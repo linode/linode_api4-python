@@ -39,7 +39,7 @@ def test_ip_addresses_share(get_client):
 
     client.networking.ip_addresses_share(ips, linode_instance.id)
 
-    # Test that entering an empty IP array is allowed.
+    # Test entering an empty IP to unshare.
     client.networking.ip_addresses_share([], linode_instance.id)
 
     linode_instance.delete()
