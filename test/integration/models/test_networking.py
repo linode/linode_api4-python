@@ -16,7 +16,6 @@ def test_get_networking_rules(get_client, create_firewall):
 
 
 @pytest.mark.smoke
-@pytest.fixture
 def test_ip_addresses_share(get_client):
     """
     Test that you can share IP addresses with Linode.
