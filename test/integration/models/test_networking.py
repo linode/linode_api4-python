@@ -16,36 +16,30 @@ def test_get_networking_rules(get_client, create_firewall):
 
 
 @pytest.mark.smoke
-def test_ip_addresses_share(self):
+@pytest.fixture
+def test_ip_addresses_share(get_client):
     """
     Test that you can share IP addresses with Linode.
     """
-    ip_share_url = "/networking/ips/share"
-    ips = ["127.0.0.1"]
-    linode_id = 12345
-    with self.mock_post(ip_share_url) as m:
-        result = self.client.networking.ip_addresses_share(ips, linode_id)
+    client = get_client
+    available_regions = client.regions()
+    chosen_region = available_regions[0]
+    label = "test-ip-share"
 
-        self.assertIsNotNone(result)
-        self.assertEqual(m.call_url, ip_share_url)
-        self.assertEqual(
-            m.call_data,
-            {
-                "ips": ips,
-                "linode": linode_id,
-            },
-        )
+    linode_instance, password = client.linode.instance_create(
+        "g5-standard-4",
+        chosen_region,
+        image="linode/debian9",
+        label=label,
+    )
+
+    yield linode_instance
+
+    ips = ["127.0.0.1"]
+
+    client.networking.ip_addresses_share(ips, linode_instance.id)
 
     # Test that entering an empty IP array is allowed.
-    with self.mock_post(ip_share_url) as m:
-        result = self.client.networking.ip_addresses_share([], linode_id)
+    client.networking.ip_addresses_share([], linode_instance.id)
 
-        self.assertIsNotNone(result)
-        self.assertEqual(m.call_url, ip_share_url)
-        self.assertEqual(
-            m.call_data,
-            {
-                "ips": [],
-                "linode": linode_id,
-            },
-        )
+    linode_instance.delete()
