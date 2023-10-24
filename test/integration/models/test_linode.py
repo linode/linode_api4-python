@@ -58,7 +58,6 @@ def create_linode_with_volume_firewall(get_client):
 
 
 @pytest.mark.smoke
-@pytest.fixture
 def create_linode_for_long_running_tests(get_client):
     client = get_client
     available_regions = client.regions()
