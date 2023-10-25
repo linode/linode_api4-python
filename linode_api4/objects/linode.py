@@ -720,7 +720,13 @@ class Instance(Base):
             return False
         return True
 
-    def resize(self, new_type, allow_auto_disk_resize=True, migration_type="cold", **kwargs):
+    def resize(
+        self,
+        new_type,
+        allow_auto_disk_resize=True,
+        migration_type="cold",
+        **kwargs,
+    ):
         """
         Resizes a Linode you have the read_write permission to a different Type. If any
         actions are currently running or queued, those actions must be completed first
@@ -1203,7 +1209,9 @@ class Instance(Base):
 
         return True
 
-    def initiate_migration(self, region=None, upgrade=None, migration_type="cold"):
+    def initiate_migration(
+        self, region=None, upgrade=None, migration_type="cold"
+    ):
         """
         Initiates a pending migration that is already scheduled for this Linode
         Instance
