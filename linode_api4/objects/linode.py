@@ -1203,7 +1203,7 @@ class Instance(Base):
 
         return True
 
-    def initiate_migration(self, region=None, upgrade=None, type="cold"):
+    def initiate_migration(self, region=None, upgrade=None, migration_type="cold"):
         """
         Initiates a pending migration that is already scheduled for this Linode
         Instance
@@ -1228,7 +1228,7 @@ class Instance(Base):
         params = {
             "region": region.id if issubclass(type(region), Base) else region,
             "upgrade": upgrade,
-            "type": type,
+            "type": migration_type,
         }
 
         util.drop_null_keys(params)

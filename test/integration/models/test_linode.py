@@ -335,7 +335,7 @@ def test_linode_initate_migration(get_client):
 
     wait_for_condition(10, 100, get_status, linode, "running")
     # Says it could take up to ~6 hrs for migration to fully complete
-    linode.initiate_migration(region="us-central", type="warm")
+    linode.initiate_migration(region="us-central")
 
     res = linode.delete()
 
