@@ -1,3 +1,6 @@
+import random
+import time
+
 import pytest
 
 from linode_api4.objects import Firewall, IPAddress, IPv6Pool, IPv6Range
@@ -15,30 +18,85 @@ def test_get_networking_rules(get_client, create_firewall):
     assert "outbound_policy" in str(rules)
 
 
-@pytest.mark.smoke
-def test_ip_addresses_share(get_client):
-    """
-    Test that you can share IP addresses with Linode.
-    """
+def create_linode(get_client):
     client = get_client
     available_regions = client.regions()
     chosen_region = available_regions[0]
-    label = "test-ip-share"
+    label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
-        "g5-standard-4",
+        "g6-nanode-1",
         chosen_region,
-        image="linode/debian9",
+        image="linode/debian12",
         label=label,
     )
 
-    yield linode_instance
+    return linode_instance
 
-    ips = ["127.0.0.1"]
 
-    client.networking.ip_addresses_share(ips, linode_instance.id)
+@pytest.fixture
+def create_linode_for_ip_share(get_client):
+    linode = create_linode(get_client)
 
-    # Test entering an empty IP to unshare.
-    client.networking.ip_addresses_share([], linode_instance.id)
+    yield linode
 
-    linode_instance.delete()
+    linode.delete()
+
+
+@pytest.fixture
+def create_linode_to_be_shared_with_ips(get_client):
+    linode = create_linode(get_client)
+
+    yield linode
+
+    linode.delete()
+
+
+@pytest.mark.smoke
+def test_ip_addresses_share(
+    get_client, create_linode_for_ip_share, create_linode_to_be_shared_with_ips
+):
+    """
+    Test that you can share IP addresses with Linode.
+    """
+
+    # create two linode instances and share the ip of instance1 with instance2
+    linode_instance1 = create_linode_for_ip_share
+    linode_instance2 = create_linode_to_be_shared_with_ips
+
+    get_client.networking.ip_addresses_share(
+        [linode_instance1.ips.ipv4.public[0]], linode_instance2.id
+    )
+
+    assert (
+        linode_instance1.ips.ipv4.public[0].address
+        == linode_instance2.ips.ipv4.shared[0].address
+    )
+
+
+@pytest.mark.smoke
+def test_ip_addresses_unshare(
+    get_client, create_linode_for_ip_share, create_linode_to_be_shared_with_ips
+):
+    """
+    Test that you can unshare IP addresses with Linode.
+    """
+
+    # create two linode instances and share the ip of instance1 with instance2
+    linode_instance1 = create_linode_for_ip_share
+    linode_instance2 = create_linode_to_be_shared_with_ips
+
+    get_client.networking.ip_addresses_share(
+        [linode_instance1.ips.ipv4.public[0]], linode_instance2.id
+    )
+
+    # unshared the ip with instance2
+    get_client.networking.ip_addresses_share([], linode_instance2.id)
+
+    assert [] == linode_instance2.ips.ipv4.shared
+
+
+def get_test_label():
+    unique_timestamp = str(int(time.time()) + random.randint(0, 1000))
+    label = "IntTestSDK_" + unique_timestamp
+    return label
