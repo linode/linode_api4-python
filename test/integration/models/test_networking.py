@@ -1,4 +1,4 @@
-from test.integration.helpers import get_test_label
+from test.integration.helpers import get_rand_nanosec_test_label
 
 import pytest
 
@@ -21,7 +21,7 @@ def create_linode(get_client):
     client = get_client
     available_regions = client.regions()
     chosen_region = available_regions[0]
-    label = get_test_label()
+    label = get_rand_nanosec_test_label()
 
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",

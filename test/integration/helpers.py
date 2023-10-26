@@ -8,7 +8,13 @@ from linode_api4.linode_client import LinodeClient
 
 
 def get_test_label():
-    unique_timestamp = str(int(time.time_ns()))
+    unique_timestamp = str(int(time.time()) + random.randint(0, 1000))
+    label = "IntTestSDK_" + unique_timestamp
+    return label
+
+
+def get_rand_nanosec_test_label():
+    unique_timestamp = str(time.time_ns())
     label = "IntTestSDK_" + unique_timestamp
     return label
 
