@@ -1,9 +1,8 @@
-import random
-import time
+from test.integration.helpers import get_test_label
 
 import pytest
 
-from linode_api4.objects import Firewall, IPAddress, IPv6Pool, IPv6Range
+from linode_api4.objects import Firewall
 
 
 @pytest.mark.smoke
@@ -94,9 +93,3 @@ def test_ip_addresses_unshare(
     get_client.networking.ip_addresses_share([], linode_instance2.id)
 
     assert [] == linode_instance2.ips.ipv4.shared
-
-
-def get_test_label():
-    unique_timestamp = str(int(time.time()) + random.randint(0, 1000))
-    label = "IntTestSDK_" + unique_timestamp
-    return label
