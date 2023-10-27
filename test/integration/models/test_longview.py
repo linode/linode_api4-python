@@ -7,14 +7,14 @@ from linode_api4.objects import LongviewClient, LongviewSubscription
 
 
 @pytest.mark.smoke
-def test_get_longview_client(get_client, create_longview_client):
-    longview = get_client.load(LongviewClient, create_longview_client.id)
+def test_get_longview_client(test_linode_client, test_longview_client):
+    longview = test_linode_client.load(LongviewClient, test_longview_client.id)
 
-    assert longview.id == create_longview_client.id
+    assert longview.id == test_longview_client.id
 
 
-def test_update_longview_label(get_client, create_longview_client):
-    longview = get_client.load(LongviewClient, create_longview_client.id)
+def test_update_longview_label(test_linode_client, test_longview_client):
+    longview = test_linode_client.load(LongviewClient, test_longview_client.id)
     old_label = longview.label
 
     label = "updated_longview_label"
@@ -26,8 +26,8 @@ def test_update_longview_label(get_client, create_longview_client):
     assert longview.label != old_label
 
 
-def test_delete_client(get_client, create_longview_client):
-    client = get_client
+def test_delete_client(test_linode_client, test_longview_client):
+    client = test_linode_client
     label = "TestSDK-longview"
     longview_client = client.longview.client_create(label=label)
 
@@ -38,9 +38,9 @@ def test_delete_client(get_client, create_longview_client):
     assert res
 
 
-def test_get_longview_subscription(get_client, create_longview_client):
-    subs = get_client.longview.subscriptions()
-    sub = get_client.load(LongviewSubscription, subs[0].id)
+def test_get_longview_subscription(test_linode_client, test_longview_client):
+    subs = test_linode_client.longview.subscriptions()
+    sub = test_linode_client.load(LongviewSubscription, subs[0].id)
 
     assert "clients_included" in str(subs.first().__dict__)
 

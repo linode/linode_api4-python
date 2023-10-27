@@ -4,8 +4,8 @@ from linode_api4.objects import Firewall, IPAddress, IPv6Pool, IPv6Range
 
 
 @pytest.mark.smoke
-def test_get_networking_rules(get_client, create_firewall):
-    firewall = get_client.load(Firewall, create_firewall.id)
+def test_get_networking_rules(test_linode_client, test_firewall):
+    firewall = test_linode_client.load(Firewall, test_firewall.id)
 
     rules = firewall.get_rules()
 

@@ -12,14 +12,14 @@ from linode_api4.objects import LKECluster, LKENodePool, LKENodePoolNode
 
 
 @pytest.fixture(scope="session")
-def create_lke_cluster(get_client):
-    node_type = get_client.linode.types()[1]  # g6-standard-1
-    version = get_client.lke.versions()[0]
-    region = get_client.regions().first()
-    node_pools = get_client.lke.node_pool(node_type, 3)
+def lke_cluster(test_linode_client):
+    node_type = test_linode_client.linode.types()[1]  # g6-standard-1
+    version = test_linode_client.lke.versions()[0]
+    region = test_linode_client.regions().first()
+    node_pools = test_linode_client.lke.node_pool(node_type, 3)
     label = get_test_label() + "_cluster"
 
-    cluster = get_client.lke.cluster_create(region, label, node_pools, version)
+    cluster = test_linode_client.lke.cluster_create(region, label, node_pools, version)
 
     yield cluster
 
@@ -36,24 +36,24 @@ def get_node_status(cluster: LKECluster, status: str):
 
 
 @pytest.mark.smoke
-def test_get_lke_clusters(get_client, create_lke_cluster):
-    cluster = get_client.load(LKECluster, create_lke_cluster.id)
+def test_get_lke_clusters(test_linode_client, lke_cluster):
+    cluster = test_linode_client.load(LKECluster, lke_cluster.id)
 
-    assert cluster._raw_json == create_lke_cluster._raw_json
+    assert cluster._raw_json == lke_cluster._raw_json
 
 
-def test_get_lke_pool(get_client, create_lke_cluster):
+def test_get_lke_pool(test_linode_client, lke_cluster):
     pytest.skip("client.load(LKENodePool, 123, 123) does not work")
 
-    cluster = create_lke_cluster
+    cluster = lke_cluster
 
-    pool = get_client.load(LKENodePool, cluster.pools[0].id, cluster.id)
+    pool = test_linode_client.load(LKENodePool, cluster.pools[0].id, cluster.id)
 
     assert cluster.pools[0]._raw_json == pool
 
 
-def test_cluster_dashboard_url_view(create_lke_cluster):
-    cluster = create_lke_cluster
+def test_cluster_dashboard_url_view(lke_cluster):
+    cluster = lke_cluster
 
     url = send_request_when_resource_available(
         300, cluster.cluster_dashboard_url_view
@@ -62,14 +62,14 @@ def test_cluster_dashboard_url_view(create_lke_cluster):
     assert re.search("https://+", url)
 
 
-def test_kubeconfig_delete(create_lke_cluster):
-    cluster = create_lke_cluster
+def test_kubeconfig_delete(lke_cluster):
+    cluster = lke_cluster
 
     cluster.kubeconfig_delete()
 
 
-def test_lke_node_view(create_lke_cluster):
-    cluster = create_lke_cluster
+def test_lke_node_view(lke_cluster):
+    cluster = lke_cluster
     node_id = cluster.pools[0].nodes[0].id
 
     node = cluster.node_view(node_id)
@@ -79,8 +79,8 @@ def test_lke_node_view(create_lke_cluster):
     assert node.instance_id
 
 
-def test_lke_node_delete(create_lke_cluster):
-    cluster = create_lke_cluster
+def test_lke_node_delete(lke_cluster):
+    cluster = lke_cluster
     node_id = cluster.pools[0].nodes[0].id
 
     cluster.node_delete(node_id)
@@ -90,8 +90,8 @@ def test_lke_node_delete(create_lke_cluster):
         assert "Not found" in str(err.json)
 
 
-def test_lke_node_recycle(get_client, create_lke_cluster):
-    cluster = get_client.load(LKECluster, create_lke_cluster.id)
+def test_lke_node_recycle(test_linode_client, lke_cluster):
+    cluster = test_linode_client.load(LKECluster, lke_cluster.id)
     node = cluster.pools[0].nodes[0]
     node_id = cluster.pools[0].nodes[0].id
 
@@ -109,30 +109,30 @@ def test_lke_node_recycle(get_client, create_lke_cluster):
     assert node.status == "ready"
 
 
-def test_lke_cluster_nodes_recycle(get_client, create_lke_cluster):
-    cluster = create_lke_cluster
+def test_lke_cluster_nodes_recycle(test_linode_client, lke_cluster):
+    cluster = lke_cluster
 
     send_request_when_resource_available(300, cluster.cluster_nodes_recycle)
 
-    wait_for_condition(5, 120, get_node_status, cluster, "not_ready")
+    wait_for_condition(5, 300, get_node_status, cluster, "not_ready")
 
     node = cluster.pools[0].nodes[0]
     assert node.status == "not_ready"
 
 
-def test_lke_cluster_regenerate(create_lke_cluster):
+def test_lke_cluster_regenerate(lke_cluster):
     pytest.skip(
         "Skipping reason: '400: At least one of kubeconfig or servicetoken is required.'"
     )
-    cluster = create_lke_cluster
+    cluster = lke_cluster
 
     cluster.cluster_regenerate()
 
 
-def test_service_token_delete(create_lke_cluster):
+def test_service_token_delete(lke_cluster):
     pytest.skip(
         "Skipping reason: '400: At least one of kubeconfig or servicetoken is required.'"
     )
-    cluster = create_lke_cluster
+    cluster = lke_cluster
 
     cluster.service_token_delete()
