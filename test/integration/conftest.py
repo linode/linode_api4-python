@@ -3,10 +3,8 @@ import time
 
 import pytest
 
-from linode_api4.linode_client import LinodeClient
-
 from linode_api4 import ApiError
-
+from linode_api4.linode_client import LinodeClient
 
 ENV_TOKEN_NAME = "LINODE_TOKEN"
 ENV_API_URL_NAME = "LINODE_API_URL"

@@ -164,7 +164,12 @@ def test_update_sql_db(test_linode_client, test_create_sql_db):
     database = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
 
     wait_for_condition(
-        30, 300, get_sql_db_status, test_linode_client, test_create_sql_db.id, "active"
+        30,
+        300,
+        get_sql_db_status,
+        test_linode_client,
+        test_create_sql_db.id,
+        "active",
     )
 
     assert res
@@ -181,7 +186,12 @@ def test_create_sql_backup(test_linode_client, test_create_sql_db):
     label = "database_backup_test"
 
     wait_for_condition(
-        30, 300, get_sql_db_status, test_linode_client, test_create_sql_db.id, "active"
+        30,
+        300,
+        get_sql_db_status,
+        test_linode_client,
+        test_create_sql_db.id,
+        "active",
     )
 
     db.backup_create(label=label, target="secondary")
@@ -199,7 +209,12 @@ def test_create_sql_backup(test_linode_client, test_create_sql_db):
 
     # list backup and most recently created one is first element of the array
     wait_for_condition(
-        30, 600, get_sql_db_status, test_linode_client, test_create_sql_db.id, "active"
+        30,
+        600,
+        get_sql_db_status,
+        test_linode_client,
+        test_create_sql_db.id,
+        "active",
     )
 
     backup = db.backups[0]
@@ -238,7 +253,12 @@ def test_sql_backup_restore(test_linode_client, test_create_sql_db):
     assert db.status == "restoring"
 
     wait_for_condition(
-        30, 1000, get_sql_db_status, test_linode_client, test_create_sql_db.id, "active"
+        30,
+        1000,
+        get_sql_db_status,
+        test_linode_client,
+        test_create_sql_db.id,
+        "active",
     )
 
     assert db.status == "active"
@@ -273,7 +293,12 @@ def test_sql_patch(test_linode_client, test_create_sql_db):
     assert db.status == "updating"
 
     wait_for_condition(
-        30, 1000, get_sql_db_status, test_linode_client, test_create_sql_db.id, "active"
+        30,
+        1000,
+        get_sql_db_status,
+        test_linode_client,
+        test_create_sql_db.id,
+        "active",
     )
 
     assert db.status == "active"
@@ -339,7 +364,9 @@ def test_update_postgres_db(test_linode_client, test_create_postgres_db):
 
     res = db.save()
 
-    database = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
+    database = test_linode_client.load(
+        PostgreSQLDatabase, test_create_postgres_db.id
+    )
 
     wait_for_condition(
         30,
@@ -492,7 +519,9 @@ def test_get_postgres_credentials(test_linode_client, test_create_postgres_db):
     assert db.credentials.password
 
 
-def test_reset_postgres_credentials(test_linode_client, test_create_postgres_db):
+def test_reset_postgres_credentials(
+    test_linode_client, test_create_postgres_db
+):
     pytest.skip(
         "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
     )

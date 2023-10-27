@@ -19,7 +19,9 @@ def lke_cluster(test_linode_client):
     node_pools = test_linode_client.lke.node_pool(node_type, 3)
     label = get_test_label() + "_cluster"
 
-    cluster = test_linode_client.lke.cluster_create(region, label, node_pools, version)
+    cluster = test_linode_client.lke.cluster_create(
+        region, label, node_pools, version
+    )
 
     yield cluster
 

@@ -48,13 +48,13 @@ def linode_with_volume_firewall(test_linode_client):
 
     firewall.delete()
 
-    linode_instance.delete()
-
     volume.detach()
-    # wait for volume detach, can't currently get the attach/unattached status via SDK
+    # wait for volume detach, can't currently get the attached/unattached status via SDK
     time.sleep(30)
 
     volume.delete()
+
+    linode_instance.delete()
 
 
 @pytest.mark.smoke
@@ -384,7 +384,9 @@ def test_get_config(test_linode_client, create_linode):
         + "/configs/"
         + str(linode.configs[0].id)
     )
-    config = Config(test_linode_client, linode.id, linode.configs[0].id, json=json)
+    config = Config(
+        test_linode_client, linode.id, linode.configs[0].id, json=json
+    )
 
     assert config.id == linode.configs[0].id
 

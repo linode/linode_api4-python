@@ -352,7 +352,9 @@ def test_get_keys(test_linode_client, ssh_keys_object_storage):
 def test_keys_create(test_linode_client, ssh_keys_object_storage):
     key = ssh_keys_object_storage
 
-    assert type(key) == type(ObjectStorageKeys(client=test_linode_client, id="123"))
+    assert type(key) == type(
+        ObjectStorageKeys(client=test_linode_client, id="123")
+    )
 
 
 # NetworkingGroupTests
