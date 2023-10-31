@@ -67,6 +67,7 @@ class IPAddress(Base):
         "rdns": Property(mutable=True),
         "linode_id": Property(),
         "region": Property(slug_relationship=Region),
+        "vpc_nat_1_1": Property(),
     }
 
     @property

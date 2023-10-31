@@ -72,3 +72,15 @@ class NetworkingTest(ClientBaseCase):
             self.assertEqual(m.call_url, "/networking/ips/127.0.0.1")
 
             self.assertEqual(m.call_data_raw, '{"rdns": null}')
+
+    def test_vpc_nat_1_1(self):
+        """
+        Tests that the vpc_nat_1_1 of an IP can be retrieved.
+        """
+
+        ip = IPAddress(self.client, "127.0.0.1")
+
+        self.assertEqual(ip.vpc_nat_1_1.vpc_id, 242)
+        self.assertEqual(ip.vpc_nat_1_1.subnet_id, 194)
+        self.assertEqual(ip.vpc_nat_1_1.address, "139.144.244.36")
+
