@@ -83,4 +83,3 @@ class NetworkingTest(ClientBaseCase):
         self.assertEqual(ip.vpc_nat_1_1.vpc_id, 242)
         self.assertEqual(ip.vpc_nat_1_1.subnet_id, 194)
         self.assertEqual(ip.vpc_nat_1_1.address, "139.144.244.36")
-
