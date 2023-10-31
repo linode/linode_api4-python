@@ -1,7 +1,18 @@
 from datetime import datetime
 from test.unit.base import ClientBaseCase
 
-from linode_api4.objects import Config, Disk, Image, Instance, StackScript, Type
+from linode_api4 import NetworkInterface
+from linode_api4.objects import (
+    Config,
+    ConfigInterface,
+    ConfigInterfaceIPv4,
+    Disk,
+    Image,
+    Instance,
+    StackScript,
+    Type,
+    VPCSubnet,
+)
 
 
 class LinodeTest(ClientBaseCase):
@@ -464,16 +475,17 @@ class ConfigTest(ClientBaseCase):
 
         with self.mock_put("/linode/instances/123/configs/456789") as m:
             new_interfaces = [
-                {"purpose": "public"},
-                {"purpose": "vlan", "label": "cool-vlan"},
+                {"purpose": "public", "primary": True},
+                ConfigInterface("vlan", label="cool-vlan"),
             ]
+            expected_body = [new_interfaces[0], new_interfaces[1]._serialize()]
 
             config.interfaces = new_interfaces
 
             config.save()
 
             self.assertEqual(m.call_url, "/linode/instances/123/configs/456789")
-            self.assertEqual(m.call_data.get("interfaces"), new_interfaces)
+            self.assertEqual(m.call_data.get("interfaces"), expected_body)
 
     def test_get_config(self):
         json = self.client.get("/linode/instances/123/configs/456789")
@@ -494,6 +506,14 @@ class ConfigTest(ClientBaseCase):
         self.assertIsNone(config.initrd)
         self.assertEqual(config.virt_mode, "paravirt")
         self.assertIsNotNone(config.devices)
+
+    def test_interface_ipv4(self):
+        json = {"vpc": "10.0.0.1", "nat_1_1": "any"}
+
+        ipv4 = ConfigInterfaceIPv4.from_json(json)
+
+        self.assertEqual(ipv4.vpc, "10.0.0.1")
+        self.assertEqual(ipv4.nat_1_1, "any")
 
 
 class StackScriptTest(ClientBaseCase):
@@ -602,3 +622,203 @@ class TypeTest(ClientBaseCase):
         with self.mock_put("linode/instances") as m:
             linode.save()
             assert m.called
+
+
+class ConfigInterfaceTest(ClientBaseCase):
+    def test_list(self):
+        config = Config(self.client, 456789, 123)
+        config._api_get()
+        assert {v.id for v in config.interfaces} == {123, 321, 456}
+        assert {v.purpose for v in config.interfaces} == {
+            "vlan",
+            "vpc",
+            "public",
+        }
+
+    def test_update(self):
+        config = Config(self.client, 456789, 123)
+        config._api_get()
+        config.interfaces = [
+            {"purpose": "public"},
+            ConfigInterface(
+                purpose="vlan", label="cool-vlan", ipam_address="10.0.0.4/32"
+            ),
+        ]
+
+        with self.mock_put("linode/instances/123/configs/456789") as m:
+            config.save()
+            assert m.call_url == "/linode/instances/123/configs/456789"
+            assert m.call_data["interfaces"] == [
+                {"purpose": "public"},
+                {
+                    "purpose": "vlan",
+                    "label": "cool-vlan",
+                    "ipam_address": "10.0.0.4/32",
+                },
+            ]
+
+
+class TestNetworkInterface(ClientBaseCase):
+    def test_create_interface_public(self):
+        config = Config(self.client, 456789, 123)
+        config._api_get()
+
+        with self.mock_post(
+            "linode/instances/123/configs/456789/interfaces/456"
+        ) as m:
+            interface = config.interface_create_public(primary=True)
+
+            assert m.called
+            assert (
+                m.call_url == "/linode/instances/123/configs/456789/interfaces"
+            )
+            assert m.method == "post"
+            assert m.call_data == {"purpose": "public", "primary": True}
+
+            assert interface.id == 456
+            assert interface.purpose == "public"
+            assert interface.primary
+
+    def test_create_interface_vlan(self):
+        config = Config(self.client, 456789, 123)
+        config._api_get()
+
+        with self.mock_post(
+            "linode/instances/123/configs/456789/interfaces/321"
+        ) as m:
+            interface = config.interface_create_vlan(
+                "test-interface", ipam_address="10.0.0.2/32"
+            )
+
+            assert m.called
+            assert (
+                m.call_url == "/linode/instances/123/configs/456789/interfaces"
+            )
+            assert m.method == "post"
+            assert m.call_data == {
+                "purpose": "vlan",
+                "label": "test-interface",
+                "ipam_address": "10.0.0.2/32",
+            }
+
+            assert interface.id == 321
+            assert interface.purpose == "vlan"
+            assert not interface.primary
+            assert interface.label == "test-interface"
+            assert interface.ipam_address == "10.0.0.2"
+
+    def test_create_interface_vpc(self):
+        config = Config(self.client, 456789, 123)
+        config._api_get()
+
+        with self.mock_post(
+            "linode/instances/123/configs/456789/interfaces/123"
+        ) as m:
+            interface = config.interface_create_vpc(
+                subnet=VPCSubnet(self.client, 789, 123456),
+                primary=True,
+                ipv4=ConfigInterfaceIPv4(vpc="10.0.0.4", nat_1_1="any"),
+                ip_ranges=["10.0.0.0/24"],
+            )
+
+            assert m.called
+            assert (
+                m.call_url == "/linode/instances/123/configs/456789/interfaces"
+            )
+            assert m.method == "post"
+            assert m.call_data == {
+                "purpose": "vpc",
+                "primary": True,
+                "subnet_id": 789,
+                "ipv4": {"vpc": "10.0.0.4", "nat_1_1": "any"},
+                "ip_ranges": ["10.0.0.0/24"],
+            }
+
+            assert interface.id == 123
+            assert interface.purpose == "vpc"
+            assert interface.primary
+            assert interface.vpc.id == 123456
+            assert interface.subnet.id == 789
+            assert interface.ipv4.vpc == "10.0.0.2"
+            assert interface.ipv4.nat_1_1 == "any"
+            assert interface.ip_ranges == ["10.0.0.0/24"]
+
+    def test_update(self):
+        interface = NetworkInterface(self.client, 123, 456789, 123)
+        interface._api_get()
+
+        interface.ipv4.vpc = "10.0.0.3"
+        interface.primary = False
+        interface.ip_ranges = ["10.0.0.2/32"]
+
+        with self.mock_put(
+            "linode/instances/123/configs/456789/interfaces/123/put"
+        ) as m:
+            interface.save()
+
+            assert m.called
+            assert (
+                m.call_url
+                == "/linode/instances/123/configs/456789/interfaces/123"
+            )
+            assert m.method == "put"
+            assert m.call_data == {
+                "primary": False,
+                "ipv4": {"vpc": "10.0.0.3", "nat_1_1": "any"},
+                "ip_ranges": ["10.0.0.2/32"],
+            }
+
+    def test_get_vlan(self):
+        interface = NetworkInterface(self.client, 321, 456789, instance_id=123)
+        interface._api_get()
+
+        self.assertEqual(interface.id, 321)
+        self.assertEqual(interface.ipam_address, "10.0.0.2")
+        self.assertEqual(interface.purpose, "vlan")
+        self.assertEqual(interface.label, "test-interface")
+
+    def test_get_vpc(self):
+        interface = NetworkInterface(self.client, 123, 456789, instance_id=123)
+        interface._api_get()
+
+        self.assertEqual(interface.id, 123)
+        self.assertEqual(interface.purpose, "vpc")
+        self.assertEqual(interface.vpc.id, 123456)
+        self.assertEqual(interface.subnet.id, 789)
+        self.assertEqual(interface.ipv4.vpc, "10.0.0.2")
+        self.assertEqual(interface.ipv4.nat_1_1, "any")
+        self.assertEqual(interface.ip_ranges, ["10.0.0.0/24"])
+
+    def test_list(self):
+        config = Config(self.client, 456789, 123)
+        config._api_get()
+        interfaces = config.network_interfaces
+
+        assert {v.id for v in interfaces} == {123, 321, 456}
+        assert {v.purpose for v in interfaces} == {
+            "vlan",
+            "vpc",
+            "public",
+        }
+
+        for v in interfaces:
+            assert isinstance(v, NetworkInterface)
+
+    def test_reorder(self):
+        config = Config(self.client, 456789, 123)
+        config._api_get()
+        interfaces = config.network_interfaces
+
+        with self.mock_post({}) as m:
+            interfaces.reverse()
+            # Let's make sure it supports both IDs and NetworkInterfaces
+            interfaces[2] = interfaces[2].id
+
+            config.interface_reorder(interfaces)
+
+            assert (
+                m.call_url
+                == "/linode/instances/123/configs/456789/interfaces/order"
+            )
+
+            assert m.call_data == {"ids": [321, 123, 456]}

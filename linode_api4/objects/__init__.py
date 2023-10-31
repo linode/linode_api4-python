@@ -1,6 +1,7 @@
 # isort: skip_file
 from .base import Base, Property, MappedObject, DATE_FORMAT, ExplicitNullValue
 from .dbase import DerivedBase
+from .serializable import JSONObject
 from .filtering import and_, or_
 from .region import Region
 from .image import Image
@@ -17,4 +18,5 @@ from .tag import Tag
 from .object_storage import *
 from .lke import *
 from .database import *
+from .vpc import *
 from .beta import *
