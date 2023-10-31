@@ -1,5 +1,7 @@
+from dataclasses import dataclass
+
 from linode_api4.errors import UnexpectedResponseError
-from linode_api4.objects import Base, DerivedBase, Property, Region
+from linode_api4.objects import Base, DerivedBase, JSONObject, Property, Region
 
 
 class IPv6Pool(Base):
@@ -36,6 +38,18 @@ class IPv6Range(Base):
     }
 
 
+@dataclass
+class InstanceIPNAT1To1(JSONObject):
+    """
+    InstanceIPNAT1To1 contains information about the NAT 1:1 mapping
+    of VPC IP together with the VPC and subnet ids.
+    """
+
+    address: str = ""
+    subnet_id: int = 0
+    vpc_id: int = 0
+
+
 class IPAddress(Base):
     """
     note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
@@ -67,7 +81,7 @@ class IPAddress(Base):
         "rdns": Property(mutable=True),
         "linode_id": Property(),
         "region": Property(slug_relationship=Region),
-        "vpc_nat_1_1": Property(),
+        "vpc_nat_1_1": Property(json_object=InstanceIPNAT1To1),
     }
 
     @property
