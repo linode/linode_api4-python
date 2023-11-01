@@ -22,6 +22,7 @@
          "id": 123,
          "purpose": "vpc",
          "primary": true,
+         "active": true,
          "vpc_id": 123456,
          "subnet_id": 789,
          "ipv4": {

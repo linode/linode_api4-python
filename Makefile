@@ -64,7 +64,7 @@ testint:
 
 @PHONEY: testunit
 testunit:
-	python3 -m python test/unit
+	$(PYTHON) -m pytest test/unit
 
 @PHONEY: smoketest
 smoketest:
