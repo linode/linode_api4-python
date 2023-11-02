@@ -25,7 +25,10 @@ class VPCSubnetLinode(JSONObject):
         interfaces = []
 
         for c in self.interfaces:
-            interfaces.append(VPCSubnetLinodeInterface(c))
+            if isinstance(c, VPCSubnetLinodeInterface):
+                interfaces.append(c.dict)
+            else:
+                interfaces.append(c)
 
         partial["interfaces"] = interfaces
         return partial
@@ -46,10 +49,23 @@ class VPCSubnet(DerivedBase):
         "id": Property(identifier=True),
         "label": Property(mutable=True),
         "ipv4": Property(),
-        "linodes": Property(json_object=VPCSubnetLinode),
+        "linodes": Property(),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),
     }
+
+    def _serialize(self):
+        """
+        Overrides _serialize to transform linodes into json
+        """
+        partial = DerivedBase._serialize(self)
+
+        partial["linodes"] = (
+            self.linodes.dict
+            if isinstance(self.linodes, VPCSubnetLinode)
+            else self.linodes
+        )
+        return partial
 
 
 class VPC(Base):

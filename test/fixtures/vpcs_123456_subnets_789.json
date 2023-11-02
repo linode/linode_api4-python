@@ -9,6 +9,10 @@
         {
           "id": 678,
           "active": true
+        },
+        {
+          "id": 543,
+          "active": false
         }
       ]
     }
