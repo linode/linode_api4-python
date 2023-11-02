@@ -17,7 +17,7 @@ def linode_for_volume(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[0]
-    timestamp = str(int(time.time_ns()))
+    timestamp = str(time.time_ns())
     label = "TestSDK-" + timestamp
 
     linode_instance, password = client.linode.instance_create(

@@ -50,7 +50,7 @@ def test_get_account(setup_client_and_linode):
 def test_fails_to_create_domain_without_soa_email(setup_client_and_linode):
     client = setup_client_and_linode[0]
 
-    timestamp = str(int(time.time_ns()))
+    timestamp = str(time.time_ns())
     domain_addr = timestamp + "example.com"
     try:
         domain = client.domain_create(domain=domain_addr)

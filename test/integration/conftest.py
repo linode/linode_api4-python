@@ -34,7 +34,7 @@ def create_linode(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[0]
-    timestamp = str(int(time.time_ns()))
+    timestamp = str(time.time_ns())
     label = "TestSDK-" + timestamp
 
     linode_instance, password = client.linode.instance_create(
@@ -51,7 +51,7 @@ def create_linode_for_pass_reset(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[0]
-    timestamp = str(int(time.time_ns()))
+    timestamp = str(time.time_ns())
     label = "TestSDK-" + timestamp
 
     linode_instance, password = client.linode.instance_create(
@@ -107,7 +107,7 @@ def test_account_settings(test_linode_client):
 def test_domain(test_linode_client):
     client = test_linode_client
 
-    timestamp = str(int(time.time_ns()))
+    timestamp = str(time.time_ns())
     domain_addr = timestamp + "-example.com"
     soa_email = "pathiel-test123@linode.com"
 
@@ -133,7 +133,7 @@ def test_domain(test_linode_client):
 @pytest.fixture(scope="session")
 def test_volume(test_linode_client):
     client = test_linode_client
-    timestamp = str(int(time.time_ns()))
+    timestamp = str(time.time_ns())
     label = "TestSDK-" + timestamp
 
     volume = client.volume_create(label=label, region="ap-west")
@@ -160,7 +160,7 @@ def test_volume(test_linode_client):
 def test_tag(test_linode_client):
     client = test_linode_client
 
-    timestamp = str(int(time.time_ns()))
+    timestamp = str(time.time_ns())
     label = "TestSDK-" + timestamp
 
     tag = client.tag_create(label=label)
@@ -174,7 +174,7 @@ def test_tag(test_linode_client):
 def test_nodebalancer(test_linode_client):
     client = test_linode_client
 
-    timestamp = str(int(time.time_ns()))
+    timestamp = str(time.time_ns())
     label = "TestSDK-" + timestamp
 
     nodebalancer = client.nodebalancer_create(region="us-east", label=label)
@@ -187,7 +187,7 @@ def test_nodebalancer(test_linode_client):
 @pytest.fixture
 def test_longview_client(test_linode_client):
     client = test_linode_client
-    timestamp = str(int(time.time_ns()))
+    timestamp = str(time.time_ns())
     label = "TestSDK-" + timestamp
     longview_client = client.longview.client_create(label=label)
 

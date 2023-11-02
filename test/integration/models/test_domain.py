@@ -41,7 +41,7 @@ def test_zone_file_view(test_linode_client, test_domain):
 
 def test_clone(test_linode_client, test_domain):
     domain = test_linode_client.load(Domain, test_domain.id)
-    timestamp = str(int(time.time_ns()))
+    timestamp = str(time.time_ns())
     dom = "example.clone-" + timestamp + "-IntTestSDK.org"
     domain.clone(dom)
 
