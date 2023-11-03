@@ -17,8 +17,8 @@ def test_get_networking_rules(test_linode_client, test_firewall):
     assert "outbound_policy" in str(rules)
 
 
-def create_linode(get_client):
-    client = get_client
+def create_linode(test_linode_client):
+    client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[0]
     label = get_rand_nanosec_test_label()
@@ -34,8 +34,8 @@ def create_linode(get_client):
 
 
 @pytest.fixture
-def create_linode_for_ip_share(get_client):
-    linode = create_linode(get_client)
+def create_linode_for_ip_share(test_linode_client):
+    linode = create_linode(test_linode_client)
 
     yield linode
 
@@ -43,8 +43,8 @@ def create_linode_for_ip_share(get_client):
 
 
 @pytest.fixture
-def create_linode_to_be_shared_with_ips(get_client):
-    linode = create_linode(get_client)
+def create_linode_to_be_shared_with_ips(test_linode_client):
+    linode = create_linode(test_linode_client)
 
     yield linode
 
@@ -53,7 +53,9 @@ def create_linode_to_be_shared_with_ips(get_client):
 
 @pytest.mark.smoke
 def test_ip_addresses_share(
-    get_client, create_linode_for_ip_share, create_linode_to_be_shared_with_ips
+    test_linode_client,
+    create_linode_for_ip_share,
+    create_linode_to_be_shared_with_ips,
 ):
     """
     Test that you can share IP addresses with Linode.
@@ -63,7 +65,7 @@ def test_ip_addresses_share(
     linode_instance1 = create_linode_for_ip_share
     linode_instance2 = create_linode_to_be_shared_with_ips
 
-    get_client.networking.ip_addresses_share(
+    test_linode_client.networking.ip_addresses_share(
         [linode_instance1.ips.ipv4.public[0]], linode_instance2.id
     )
 
@@ -75,7 +77,9 @@ def test_ip_addresses_share(
 
 @pytest.mark.smoke
 def test_ip_addresses_unshare(
-    get_client, create_linode_for_ip_share, create_linode_to_be_shared_with_ips
+    test_linode_client,
+    create_linode_for_ip_share,
+    create_linode_to_be_shared_with_ips,
 ):
     """
     Test that you can unshare IP addresses with Linode.
@@ -85,11 +89,11 @@ def test_ip_addresses_unshare(
     linode_instance1 = create_linode_for_ip_share
     linode_instance2 = create_linode_to_be_shared_with_ips
 
-    get_client.networking.ip_addresses_share(
+    test_linode_client.networking.ip_addresses_share(
         [linode_instance1.ips.ipv4.public[0]], linode_instance2.id
     )
 
     # unshared the ip with instance2
-    get_client.networking.ip_addresses_share([], linode_instance2.id)
+    test_linode_client.networking.ip_addresses_share([], linode_instance2.id)
 
     assert [] == linode_instance2.ips.ipv4.shared
