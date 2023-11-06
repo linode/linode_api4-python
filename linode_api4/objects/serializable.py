@@ -22,9 +22,38 @@ class JSONObject:
 
     @staticmethod
     def _try_from_json(json_value: Any, field_type: type):
+        """
+        Determines whether a JSON dict is an instance of a field type.
+        """
         if inspect.isclass(field_type) and issubclass(field_type, JSONObject):
             return field_type.from_json(json_value)
         return json_value
+
+    @classmethod
+    def _parse_attr_list(cls, json_value, field_type):
+        """
+        Attempts to parse a list attribute with a given value and field type.
+        """
+
+        type_hint_args = get_args(field_type)
+
+        if len(type_hint_args) < 1:
+            return cls._try_from_json(json_value, field_type)
+
+        return [
+            cls._try_from_json(item, type_hint_args[0]) for item in json_value
+        ]
+
+    @classmethod
+    def _parse_attr(cls, json_value, field_type):
+        """
+        Attempts to parse an attribute with a given value and field type.
+        """
+
+        if list in (field_type, get_origin(field_type)):
+            return cls._parse_attr_list(json_value, field_type)
+
+        return cls._try_from_json(json_value, field_type)
 
     @classmethod
     def from_json(cls, json: Dict[str, Any]) -> "JSONObject":
@@ -36,22 +65,7 @@ class JSONObject:
         type_hints = get_type_hints(cls)
 
         for k in vars(obj):
-            json_value = json.get(k)
-            field_type = type_hints.get(k)
-            if list in (field_type, get_origin(field_type)):
-                type_hint_args = get_args(field_type)
-                if len(type_hint_args) > 0:
-                    list_item_type = type_hint_args[0]
-                    setattr(
-                        obj,
-                        k,
-                        [
-                            cls._try_from_json(item, list_item_type)
-                            for item in json_value
-                        ],
-                    )
-                    continue
-            setattr(obj, k, cls._try_from_json(json_value, field_type))
+            setattr(obj, k, cls._parse_attr(json.get(k), type_hints.get(k)))
 
         return obj
 
