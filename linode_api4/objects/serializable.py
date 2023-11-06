@@ -25,6 +25,8 @@ class JSONObject:
         """
         Creates an instance of this class from a JSON dict.
         """
+        if json is None:
+            return
         obj = cls()
 
         type_hints = get_type_hints(cls)
