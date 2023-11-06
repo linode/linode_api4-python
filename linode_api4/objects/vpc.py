@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import List, Optional
 
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import Base, DerivedBase, Property, Region
@@ -15,7 +15,7 @@ class VPCSubnetLinodeInterface(JSONObject):
 @dataclass
 class VPCSubnetLinode(JSONObject):
     id: int = 0
-    interfaces: [VPCSubnetLinodeInterface] = None
+    interfaces: List[VPCSubnetLinodeInterface] = None
 
 
 class VPCSubnet(DerivedBase):
