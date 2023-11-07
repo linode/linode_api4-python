@@ -1,5 +1,4 @@
 import time
-from test.integration.conftest import get_region
 from test.integration.helpers import (
     get_test_label,
     retry_sending_request,
