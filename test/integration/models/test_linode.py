@@ -21,8 +21,8 @@ from linode_api4.objects import (
 
 
 @pytest.fixture(scope="session")
-def create_linode_with_volume_firewall(get_client):
-    client = get_client
+def linode_with_volume_firewall(test_linode_client):
+    client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[0]
     label = get_test_label()
@@ -35,9 +35,9 @@ def create_linode_with_volume_firewall(get_client):
     }
 
     linode_instance, password = client.linode.instance_create(
-        "g5-standard-4",
+        "g6-nanode-1",
         chosen_region,
-        image="linode/debian9",
+        image="linode/debian10",
         label=label + "_modlinode",
     )
 
@@ -57,25 +57,27 @@ def create_linode_with_volume_firewall(get_client):
 
     firewall.delete()
 
-    linode_instance.delete()
-
     volume.detach()
-    # wait for volume detach, can't currently get the attach/unattached status via SDK
+    # wait for volume detach, can't currently get the attached/unattached status via SDK
     time.sleep(30)
 
     volume.delete()
 
+    linode_instance.delete()
+
 
 @pytest.mark.smoke
 @pytest.fixture
-def create_linode_for_long_running_tests(get_client):
-    client = get_client
+def create_linode_for_long_running_tests(test_linode_client):
+    client = test_linode_client
+    available_regions = client.regions()
+    chosen_region = available_regions[0]
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
-        "g5-standard-4",
-        get_region(client),
-        image="linode/debian9",
+        "g6-nanode-1",
+        chosen_region,
+        image="linode/debian10",
         label=label + "_long_tests",
     )
 
@@ -89,15 +91,15 @@ def get_status(linode: Instance, status: str):
     return linode.status == status
 
 
-def test_get_linode(get_client, create_linode_with_volume_firewall):
-    linode = get_client.load(Instance, create_linode_with_volume_firewall.id)
+def test_get_linode(test_linode_client, linode_with_volume_firewall):
+    linode = test_linode_client.load(Instance, linode_with_volume_firewall.id)
 
-    assert linode.label == create_linode_with_volume_firewall.label
-    assert linode.id == create_linode_with_volume_firewall.id
+    assert linode.label == linode_with_volume_firewall.label
+    assert linode.id == linode_with_volume_firewall.id
 
 
-def test_linode_transfer(get_client, create_linode_with_volume_firewall):
-    linode = get_client.load(Instance, create_linode_with_volume_firewall.id)
+def test_linode_transfer(test_linode_client, linode_with_volume_firewall):
+    linode = test_linode_client.load(Instance, linode_with_volume_firewall.id)
 
     transfer = linode.transfer
 
@@ -106,24 +108,24 @@ def test_linode_transfer(get_client, create_linode_with_volume_firewall):
     assert "billable" in str(transfer)
 
 
-def test_linode_rebuild(get_client):
-    client = get_client
+def test_linode_rebuild(test_linode_client):
+    client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[0]
     label = get_test_label() + "_rebuild"
 
     linode, password = client.linode.instance_create(
-        "g5-standard-4", chosen_region, image="linode/debian9", label=label
+        "g6-nanode-1", chosen_region, image="linode/debian10", label=label
     )
 
     wait_for_condition(10, 100, get_status, linode, "running")
 
-    retry_sending_request(3, linode.rebuild, "linode/debian9")
+    retry_sending_request(3, linode.rebuild, "linode/debian10")
 
     wait_for_condition(10, 100, get_status, linode, "rebuilding")
 
     assert linode.status == "rebuilding"
-    assert linode.image.id == "linode/debian9"
+    assert linode.image.id == "linode/debian10"
 
     wait_for_condition(10, 300, get_status, linode, "running")
 
@@ -156,16 +158,16 @@ def test_update_linode(create_linode):
     assert linode.label == new_label
 
 
-def test_delete_linode(get_client):
-    client = get_client
+def test_delete_linode(test_linode_client):
+    client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[0]
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
-        "g5-standard-4",
+        "g6-nanode-1",
         chosen_region,
-        image="linode/debian9",
+        image="linode/debian10",
         label=label + "_linode",
     )
 
@@ -231,10 +233,10 @@ def test_linode_resize(create_linode_for_long_running_tests):
 
 
 def test_linode_resize_with_class(
-    get_client, create_linode_for_long_running_tests
+    test_linode_client, create_linode_for_long_running_tests
 ):
     linode = create_linode_for_long_running_tests
-    ltype = Type(get_client, "g6-standard-6")
+    ltype = Type(test_linode_client, "g6-standard-6")
 
     wait_for_condition(10, 100, get_status, linode, "running")
 
@@ -270,8 +272,8 @@ def test_linode_boot_with_config(create_linode):
     assert linode.status == "running"
 
 
-def test_linode_firewalls(create_linode_with_volume_firewall):
-    linode = create_linode_with_volume_firewall
+def test_linode_firewalls(linode_with_volume_firewall):
+    linode = linode_with_volume_firewall
 
     firewalls = linode.firewalls()
 
@@ -279,8 +281,8 @@ def test_linode_firewalls(create_linode_with_volume_firewall):
     assert "TestSDK" in firewalls[0].label
 
 
-def test_linode_volumes(create_linode_with_volume_firewall):
-    linode = create_linode_with_volume_firewall
+def test_linode_volumes(linode_with_volume_firewall):
+    linode = linode_with_volume_firewall
 
     volumes = linode.volumes()
 
@@ -288,11 +290,11 @@ def test_linode_volumes(create_linode_with_volume_firewall):
     assert "TestSDK" in volumes[0].label
 
 
-def test_linode_disk_duplicate(get_client, create_linode):
+def test_linode_disk_duplicate(test_linode_client, create_linode):
     pytest.skip("Need to find out the space sizing when duplicating disks")
     linode = create_linode
 
-    disk = get_client.load(Disk, linode.disks[0].id, linode.id)
+    disk = test_linode_client.load(Disk, linode.disks[0].id, linode.id)
 
     try:
         dup_disk = disk.duplicate()
@@ -330,19 +332,14 @@ def test_linode_ips(create_linode):
     assert ips.ipv4.public[0].address == linode.ipv4[0]
 
 
-def test_linode_initate_migration(get_client):
-    client = get_client
-    creation_region = get_region(client)
-    migration_region = get_region(client)
-
-    # Ensure we get a different region
-    while migration_region == creation_region:
-        migration_region = get_region(client)
-
+def test_linode_initate_migration(test_linode_client):
+    client = test_linode_client
+    available_regions = client.regions()
+    chosen_region = available_regions[0]
     label = get_test_label() + "_migration"
 
     linode, password = client.linode.instance_create(
-        "g5-standard-4", get_region(client), image="linode/debian9", label=label
+        "g6-nanode-1", chosen_region, image="linode/debian10", label=label
     )
 
     wait_for_condition(10, 100, get_status, linode, "running")
@@ -390,24 +387,26 @@ def test_config_update_interfaces(create_linode):
     assert config.interfaces[1].ipam_address == "10.0.0.4/32"
 
 
-def test_get_config(get_client, create_linode):
+def test_get_config(test_linode_client, create_linode):
     pytest.skip(
         "Model get method: client.load(Config, 123, 123) does not work..."
     )
     linode = create_linode
-    json = get_client.get(
+    json = test_linode_client.get(
         "linode/instances/"
         + str(linode.id)
         + "/configs/"
         + str(linode.configs[0].id)
     )
-    config = Config(get_client, linode.id, linode.configs[0].id, json=json)
+    config = Config(
+        test_linode_client, linode.id, linode.configs[0].id, json=json
+    )
 
     assert config.id == linode.configs[0].id
 
 
-def test_get_linode_types(get_client):
-    types = get_client.linode.types()
+def test_get_linode_types(test_linode_client):
+    types = test_linode_client.linode.types()
 
     ids = [i.id for i in types]
 
@@ -415,8 +414,8 @@ def test_get_linode_types(get_client):
     assert "g6-nanode-1" in ids
 
 
-def test_get_linode_types_overrides(get_client):
-    types = get_client.linode.types()
+def test_get_linode_types_overrides(test_linode_client):
+    types = test_linode_client.linode.types()
 
     target_types = [
         v
@@ -431,7 +430,7 @@ def test_get_linode_types_overrides(get_client):
         assert linode_type.region_prices[0].monthly >= 0
 
 
-def test_get_linode_type_by_id(get_client):
+def test_get_linode_type_by_id(test_linode_client):
     pytest.skip(
         "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
     )
@@ -443,24 +442,24 @@ def test_get_linode_type_gpu():
     )
 
 
-def test_save_linode_noforce(get_client, create_linode):
+def test_save_linode_noforce(test_linode_client, create_linode):
     linode = create_linode
     old_label = linode.label
     linode.label = "updated_no_force_label"
     linode.save(force=False)
 
-    linode = get_client.load(Instance, linode.id)
+    linode = test_linode_client.load(Instance, linode.id)
 
     assert old_label != linode.label
 
 
-def test_save_linode_force(get_client, create_linode):
+def test_save_linode_force(test_linode_client, create_linode):
     linode = create_linode
     old_label = linode.label
     linode.label = "updated_force_label"
     linode.save(force=False)
 
-    linode = get_client.load(Instance, linode.id)
+    linode = test_linode_client.load(Instance, linode.id)
 
     assert old_label != linode.label
 

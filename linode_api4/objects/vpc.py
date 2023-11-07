@@ -1,7 +1,21 @@
-from typing import Optional
+from dataclasses import dataclass
+from typing import List, Optional
 
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import Base, DerivedBase, Property, Region
+from linode_api4.objects.serializable import JSONObject
+
+
+@dataclass
+class VPCSubnetLinodeInterface(JSONObject):
+    id: int = 0
+    active: bool = False
+
+
+@dataclass
+class VPCSubnetLinode(JSONObject):
+    id: int = 0
+    interfaces: List[VPCSubnetLinodeInterface] = None
 
 
 class VPCSubnet(DerivedBase):
@@ -19,30 +33,10 @@ class VPCSubnet(DerivedBase):
         "id": Property(identifier=True),
         "label": Property(mutable=True),
         "ipv4": Property(),
-        "linodes": Property(),
+        "linodes": Property(json_object=VPCSubnetLinode),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),
     }
-
-    def _populate(self, json):
-        """
-        Map linodes more nicely while populating.
-        """
-
-        if json is None:
-            return
-
-        # Necessary to prevent a circular import
-        from linode_api4.objects.linode import (  # pylint: disable=import-outside-toplevel
-            Instance,
-        )
-
-        DerivedBase._populate(self, json)
-
-        self._set(
-            "linodes",
-            [Instance(self._client, v) for v in json.get("linodes", [])],
-        )
 
 
 class VPC(Base):
