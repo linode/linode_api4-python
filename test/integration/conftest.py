@@ -275,14 +275,14 @@ def test_oauth_client(test_linode_client):
 
 
 @pytest.fixture(scope="session")
-def create_vpc(get_client):
-    client = get_client
+def create_vpc(test_linode_client):
+    client = test_linode_client
 
     timestamp = str(int(time.time()))
 
     vpc = client.vpcs.create(
         "pythonsdk-" + timestamp,
-        get_region(get_client, {"VPCs"}),
+        get_region(test_linode_client, {"VPCs"}),
         description="test description",
     )
     yield vpc
@@ -291,7 +291,7 @@ def create_vpc(get_client):
 
 
 @pytest.fixture(scope="session")
-def create_vpc_with_subnet(get_client, create_vpc):
+def create_vpc_with_subnet(test_linode_client, create_vpc):
     subnet = create_vpc.subnet_create("test-subnet", ipv4="10.0.0.0/24")
 
     yield create_vpc, subnet
@@ -300,13 +300,15 @@ def create_vpc_with_subnet(get_client, create_vpc):
 
 
 @pytest.fixture(scope="session")
-def create_vpc_with_subnet_and_linode(get_client, create_vpc_with_subnet):
+def create_vpc_with_subnet_and_linode(
+    test_linode_client, create_vpc_with_subnet
+):
     vpc, subnet = create_vpc_with_subnet
 
     timestamp = str(int(time.time()))
     label = "TestSDK-" + timestamp
 
-    instance, password = get_client.linode.instance_create(
+    instance, password = test_linode_client.linode.instance_create(
         "g5-standard-4", vpc.region, image="linode/debian11", label=label
     )
 
@@ -316,14 +318,14 @@ def create_vpc_with_subnet_and_linode(get_client, create_vpc_with_subnet):
 
 
 @pytest.fixture(scope="session")
-def create_vpc(get_client):
-    client = get_client
+def create_vpc(test_linode_client):
+    client = test_linode_client
 
     timestamp = str(int(time.time_ns() % 10**10))
 
     vpc = client.vpcs.create(
         "pythonsdk-" + timestamp,
-        get_region(get_client, {"VPCs"}),
+        get_region(test_linode_client, {"VPCs"}),
         description="test description",
     )
     yield vpc
@@ -332,8 +334,8 @@ def create_vpc(get_client):
 
 
 @pytest.fixture(scope="session")
-def create_multiple_vpcs(get_client):
-    client = get_client
+def create_multiple_vpcs(test_linode_client):
+    client = test_linode_client
 
     timestamp = str(int(time.time_ns() % 10**10))
 
@@ -341,13 +343,13 @@ def create_multiple_vpcs(get_client):
 
     vpc_1 = client.vpcs.create(
         "pythonsdk-" + timestamp,
-        get_region(get_client, {"VPCs"}),
+        get_region(test_linode_client, {"VPCs"}),
         description="test description",
     )
 
     vpc_2 = client.vpcs.create(
         "pythonsdk-" + timestamp_2,
-        get_region(get_client, {"VPCs"}),
+        get_region(test_linode_client, {"VPCs"}),
         description="test description",
     )
 
