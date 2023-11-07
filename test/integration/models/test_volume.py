@@ -8,25 +8,39 @@ from test.integration.helpers import (
 
 import pytest
 
-from linode_api4 import LinodeClient
+from linode_api4 import ApiError, LinodeClient
 from linode_api4.objects import Volume
 
 
 @pytest.fixture(scope="session")
-def create_linode_for_volume(get_client):
-    client = get_client
+def linode_for_volume(test_linode_client):
+    client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[0]
-    timestamp = str(int(time.time()))
+    timestamp = str(time.time_ns())
     label = "TestSDK-" + timestamp
 
     linode_instance, password = client.linode.instance_create(
-        "g5-standard-4", chosen_region, image="linode/debian9", label=label
+        "g6-nanode-1", chosen_region, image="linode/debian10", label=label
     )
 
     yield linode_instance
 
-    linode_instance.delete()
+    timeout = 100  # give 100s for volume to be detached before deletion
+
+    start_time = time.time()
+
+    while time.time() - start_time < timeout:
+        try:
+            res = linode_instance.delete()
+
+            if res:
+                break
+            else:
+                time.sleep(3)
+        except ApiError as e:
+            if time.time() - start_time > timeout:
+                raise e
 
 
 def get_status(volume: Volume, status: str):
@@ -36,27 +50,27 @@ def get_status(volume: Volume, status: str):
 
 
 @pytest.mark.smoke
-def test_get_volume(get_client, create_volume):
-    volume = get_client.load(Volume, create_volume.id)
+def test_get_volume(test_linode_client, test_volume):
+    volume = test_linode_client.load(Volume, test_volume.id)
 
-    assert volume.id == create_volume.id
+    assert volume.id == test_volume.id
 
 
-def test_update_volume_tag(get_client, create_volume):
-    volume = create_volume
+def test_update_volume_tag(test_linode_client, test_volume):
+    volume = test_volume
     tag_1 = "volume_test_tag1"
     tag_2 = "volume_test_tag2"
 
     volume.tags = [tag_1, tag_2]
     volume.save()
 
-    volume = get_client.load(Volume, create_volume.id)
+    volume = test_linode_client.load(Volume, test_volume.id)
 
     assert [tag_1, tag_2] == volume.tags
 
 
-def test_volume_resize(get_client, create_volume):
-    volume = get_client.load(Volume, create_volume.id)
+def test_volume_resize(test_linode_client, test_volume):
+    volume = test_linode_client.load(Volume, test_volume.id)
 
     wait_for_condition(10, 100, get_status, volume, "active")
 
@@ -65,8 +79,8 @@ def test_volume_resize(get_client, create_volume):
     assert res
 
 
-def test_volume_clone_and_delete(get_client, create_volume):
-    volume = get_client.load(Volume, create_volume.id)
+def test_volume_clone_and_delete(test_linode_client, test_volume):
+    volume = test_linode_client.load(Volume, test_volume.id)
     label = get_test_label()
 
     wait_for_condition(10, 100, get_status, volume, "active")
@@ -81,10 +95,10 @@ def test_volume_clone_and_delete(get_client, create_volume):
 
 
 def test_attach_volume_to_linode(
-    get_client, create_volume, create_linode_for_volume
+    test_linode_client, test_volume, linode_for_volume
 ):
-    volume = create_volume
-    linode = create_linode_for_volume
+    volume = test_volume
+    linode = linode_for_volume
 
     res = retry_sending_request(5, volume.attach, linode.id)
 
@@ -92,10 +106,10 @@ def test_attach_volume_to_linode(
 
 
 def test_detach_volume_to_linode(
-    get_client, create_volume, create_linode_for_volume
+    test_linode_client, test_volume, linode_for_volume
 ):
-    volume = create_volume
-    linode = create_linode_for_volume
+    volume = test_volume
+    linode = linode_for_volume
 
     res = retry_sending_request(5, volume.detach)
 
