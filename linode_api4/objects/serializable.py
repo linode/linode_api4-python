@@ -1,6 +1,6 @@
 import inspect
 from dataclasses import asdict, dataclass
-from typing import Any, Dict, get_args, get_origin, get_type_hints
+from typing import Any, Dict, Optional, get_args, get_origin, get_type_hints
 
 
 @dataclass
