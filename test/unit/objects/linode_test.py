@@ -788,6 +788,7 @@ class TestNetworkInterface(ClientBaseCase):
         self.assertEqual(interface.ipv4.vpc, "10.0.0.2")
         self.assertEqual(interface.ipv4.nat_1_1, "any")
         self.assertEqual(interface.ip_ranges, ["10.0.0.0/24"])
+        self.assertEqual(interface.active, True)
 
     def test_list(self):
         config = Config(self.client, 456789, 123)

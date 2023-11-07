@@ -294,6 +294,7 @@ class NetworkInterface(DerivedBase):
         "label": Property(),
         "ipam_address": Property(),
         "primary": Property(mutable=True),
+        "active": Property(),
         "vpc_id": Property(id_relationship=VPC),
         "subnet_id": Property(),
         "ipv4": Property(mutable=True, json_object=ConfigInterfaceIPv4),
