@@ -748,6 +748,10 @@ class Instance(Base):
                                        data must fit within the smaller disk size. Defaults to true.
         :type: allow_auto_disk_resize: bool
 
+        :param migration_type: Type of migration to be used when resizing a Linode.
+                               Customers can choose between warm and cold, the default type is cold.
+        :type: migration_type: str
+
         :returns: True if the operation was successful.
         :rtype: bool
         """
@@ -1232,6 +1236,11 @@ class Instance(Base):
                         region field does not allow upgrades, then the endpoint will return a 400 error
                         code and the migration will not be performed.
         :type: upgrade: bool
+
+        :param migration_type: The type of migration that will be used for this Linode migration.
+                               Customers can only use this param when activating a support-created migration.
+                               Customers can choose between a cold and warm migration, cold is the default type.
+        :type: mirgation_type: str
         """
         params = {
             "region": region.id if issubclass(type(region), Base) else region,
