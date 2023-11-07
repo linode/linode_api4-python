@@ -5,13 +5,13 @@ import pytest
 from linode_api4 import VPC, ApiError, VPCSubnet
 
 
-def test_get_vpc(get_client, create_vpc):
-    vpc = get_client.load(VPC, create_vpc.id)
-    get_client.vpcs()
+def test_get_vpc(test_linode_client, create_vpc):
+    vpc = test_linode_client.load(VPC, create_vpc.id)
+    test_linode_client.vpcs()
     assert vpc.id == create_vpc.id
 
 
-def test_update_vpc(get_client, create_vpc):
+def test_update_vpc(test_linode_client, create_vpc):
     vpc = create_vpc
     new_label = create_vpc.label + "-updated"
     new_desc = "updated description"
@@ -20,46 +20,46 @@ def test_update_vpc(get_client, create_vpc):
     vpc.description = new_desc
     vpc.save()
 
-    vpc = get_client.load(VPC, create_vpc.id)
+    vpc = test_linode_client.load(VPC, create_vpc.id)
 
     assert vpc.label == new_label
     assert vpc.description == new_desc
 
 
-def test_get_subnet(get_client, create_vpc_with_subnet):
+def test_get_subnet(test_linode_client, create_vpc_with_subnet):
     vpc, subnet = create_vpc_with_subnet
-    loaded_subnet = get_client.load(VPCSubnet, subnet.id, vpc.id)
+    loaded_subnet = test_linode_client.load(VPCSubnet, subnet.id, vpc.id)
 
     assert loaded_subnet.id == subnet.id
 
 
-def test_update_subnet(get_client, create_vpc_with_subnet):
+def test_update_subnet(test_linode_client, create_vpc_with_subnet):
     vpc, subnet = create_vpc_with_subnet
     new_label = subnet.label + "-updated"
 
     subnet.label = new_label
     subnet.save()
 
-    subnet = get_client.load(VPCSubnet, subnet.id, vpc.id)
+    subnet = test_linode_client.load(VPCSubnet, subnet.id, vpc.id)
 
     assert subnet.label == new_label
 
 
-def test_fails_create_vpc_invalid_data(get_client):
+def test_fails_create_vpc_invalid_data(test_linode_client):
     with pytest.raises(ApiError) as excinfo:
-        get_client.vpcs.create(
+        test_linode_client.vpcs.create(
             label="invalid_label!!",
-            region=get_region(get_client, {"VPCs"}),
+            region=get_region(test_linode_client, {"VPCs"}),
             description="test description",
         )
     assert excinfo.value.status == 400
     assert "Label must include only ASCII" in str(excinfo.value.json)
 
 
-def test_get_all_vpcs(get_client, create_multiple_vpcs):
+def test_get_all_vpcs(test_linode_client, create_multiple_vpcs):
     vpc_1, vpc_2 = create_multiple_vpcs
 
-    all_vpcs = get_client.vpcs()
+    all_vpcs = test_linode_client.vpcs()
 
     assert str(vpc_1) in str(all_vpcs.lists)
     assert str(vpc_2) in str(all_vpcs.lists)
