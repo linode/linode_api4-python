@@ -2,7 +2,7 @@ from test.integration.helpers import get_rand_nanosec_test_label
 
 import pytest
 
-from linode_api4.objects import Firewall, Config, ConfigInterfaceIPv4, IPAddress
+from linode_api4.objects import Config, ConfigInterfaceIPv4, Firewall, IPAddress
 
 
 @pytest.mark.smoke
@@ -93,6 +93,7 @@ def test_ip_addresses_unshare(
     get_client.networking.ip_addresses_share([], linode_instance2.id)
 
     assert [] == linode_instance2.ips.ipv4.shared
+
 
 def test_ip_info_vpc(get_client, create_vpc_with_subnet_and_linode):
     vpc, subnet, linode, _ = create_vpc_with_subnet_and_linode
