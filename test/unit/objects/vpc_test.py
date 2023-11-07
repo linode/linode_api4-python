@@ -91,6 +91,10 @@ class VPCTest(ClientBaseCase):
 
         self.validate_vpc_subnet_789(subnet)
         self.assertEqual(subnet._populated, True)
+        self.assertEqual(subnet.linodes[0].id, 12345)
+        self.assertEqual(subnet.linodes[0].interfaces[0].id, 678)
+        self.assertEqual(len(subnet.linodes[0].interfaces), 2)
+        self.assertEqual(subnet.linodes[0].interfaces[1].active, False)
 
     def test_list_subnets(self):
         """
