@@ -99,7 +99,7 @@ def test_ip_addresses_unshare(
     assert [] == linode_instance2.ips.ipv4.shared
 
 
-def test_ip_info_vpc(get_client, create_vpc_with_subnet_and_linode):
+def test_ip_info_vpc(test_linode_client, create_vpc_with_subnet_and_linode):
     vpc, subnet, linode, _ = create_vpc_with_subnet_and_linode
 
     config: Config = linode.configs[0]
@@ -116,7 +116,7 @@ def test_ip_info_vpc(get_client, create_vpc_with_subnet_and_linode):
 
     config.invalidate()
 
-    ip_info = get_client.load(IPAddress, linode.ipv4[0])
+    ip_info = test_linode_client.load(IPAddress, linode.ipv4[0])
 
     assert ip_info.vpc_nat_1_1.address == "10.0.0.2"
     assert ip_info.vpc_nat_1_1.vpc_id == vpc.id
