@@ -245,6 +245,7 @@ def test_linode_resize_with_class(
 
     assert linode.status == "running"
 
+
 def test_linode_resize_with_migration_type(
     get_client, create_linode_for_long_running_tests
 ):
