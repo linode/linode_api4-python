@@ -1,0 +1,15 @@
+{
+  "data": [
+    {
+      "label": "test-vpc",
+      "id": 123456,
+      "description": "A very real VPC.",
+      "region": "us-southeast",
+      "created": "2018-01-01T00:01:01",
+      "updated": "2018-01-01T00:01:01"
+    }
+  ],
+  "results": 1,
+  "page": 1,
+  "pages": 1
+}

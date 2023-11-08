@@ -1,0 +1,7 @@
+{
+   "id": 321,
+   "primary": false,
+   "ipam_address":"10.0.0.2",
+   "label":"test-interface",
+   "purpose":"vlan"
+}

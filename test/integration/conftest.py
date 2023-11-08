@@ -1,13 +1,17 @@
 import os
+import random
 import time
+from typing import Set
 
 import pytest
 
 from linode_api4 import ApiError
 from linode_api4.linode_client import LinodeClient
+from linode_api4.objects import Region
 
 ENV_TOKEN_NAME = "LINODE_TOKEN"
 ENV_API_URL_NAME = "LINODE_API_URL"
+ENV_REGION_OVERRIDE = "LINODE_TEST_REGION_OVERRIDE"
 ENV_API_CA_NAME = "LINODE_API_CA"
 RUN_LONG_TESTS = "RUN_LONG_TESTS"
 
@@ -18,6 +22,23 @@ def get_token():
 
 def get_api_url():
     return os.environ.get(ENV_API_URL_NAME, "https://api.linode.com/v4beta")
+
+
+def get_region(client: LinodeClient, capabilities: Set[str] = None):
+    region_override = os.environ.get(ENV_REGION_OVERRIDE)
+
+    # Allow overriding the target test region
+    if region_override is not None:
+        return Region(client, region_override)
+
+    regions = client.regions()
+
+    if capabilities is not None:
+        regions = [
+            v for v in regions if set(capabilities).issubset(v.capabilities)
+        ]
+
+    return random.choice(regions)
 
 
 def get_api_ca_file():
@@ -136,7 +157,9 @@ def test_volume(test_linode_client):
     timestamp = str(time.time_ns())
     label = "TestSDK-" + timestamp
 
-    volume = client.volume_create(label=label, region="ap-west")
+    volume = client.volume_create(
+        label=label, region=get_region(client, {"Block Storage"})
+    )
 
     yield volume
 
@@ -177,7 +200,9 @@ def test_nodebalancer(test_linode_client):
     timestamp = str(time.time_ns())
     label = "TestSDK-" + timestamp
 
-    nodebalancer = client.nodebalancer_create(region="us-east", label=label)
+    nodebalancer = client.nodebalancer_create(
+        region=get_region(client), label=label
+    )
 
     yield nodebalancer
 
@@ -247,3 +272,89 @@ def test_oauth_client(test_linode_client):
     yield oauth_client
 
     oauth_client.delete()
+
+
+@pytest.fixture(scope="session")
+def create_vpc(test_linode_client):
+    client = test_linode_client
+
+    timestamp = str(int(time.time()))
+
+    vpc = client.vpcs.create(
+        "pythonsdk-" + timestamp,
+        get_region(test_linode_client, {"VPCs"}),
+        description="test description",
+    )
+    yield vpc
+
+    vpc.delete()
+
+
+@pytest.fixture(scope="session")
+def create_vpc_with_subnet(test_linode_client, create_vpc):
+    subnet = create_vpc.subnet_create("test-subnet", ipv4="10.0.0.0/24")
+
+    yield create_vpc, subnet
+
+    subnet.delete()
+
+
+@pytest.fixture(scope="session")
+def create_vpc_with_subnet_and_linode(
+    test_linode_client, create_vpc_with_subnet
+):
+    vpc, subnet = create_vpc_with_subnet
+
+    timestamp = str(int(time.time()))
+    label = "TestSDK-" + timestamp
+
+    instance, password = test_linode_client.linode.instance_create(
+        "g5-standard-4", vpc.region, image="linode/debian11", label=label
+    )
+
+    yield vpc, subnet, instance, password
+
+    instance.delete()
+
+
+@pytest.fixture(scope="session")
+def create_vpc(test_linode_client):
+    client = test_linode_client
+
+    timestamp = str(int(time.time_ns() % 10**10))
+
+    vpc = client.vpcs.create(
+        "pythonsdk-" + timestamp,
+        get_region(test_linode_client, {"VPCs"}),
+        description="test description",
+    )
+    yield vpc
+
+    vpc.delete()
+
+
+@pytest.fixture(scope="session")
+def create_multiple_vpcs(test_linode_client):
+    client = test_linode_client
+
+    timestamp = str(int(time.time_ns() % 10**10))
+
+    timestamp_2 = str(int(time.time_ns() % 10**10))
+
+    vpc_1 = client.vpcs.create(
+        "pythonsdk-" + timestamp,
+        get_region(test_linode_client, {"VPCs"}),
+        description="test description",
+    )
+
+    vpc_2 = client.vpcs.create(
+        "pythonsdk-" + timestamp_2,
+        get_region(test_linode_client, {"VPCs"}),
+        description="test description",
+    )
+
+    yield vpc_1, vpc_2
+
+    vpc_1.delete()
+
+    vpc_2.delete()
