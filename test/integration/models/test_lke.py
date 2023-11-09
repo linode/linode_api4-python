@@ -97,15 +97,15 @@ def test_lke_node_recycle(test_linode_client, lke_cluster):
     node = cluster.pools[0].nodes[0]
     node_id = cluster.pools[0].nodes[0].id
 
-    send_request_when_resource_available(300, cluster.node_recycle, node_id)
+    send_request_when_resource_available(500, cluster.node_recycle, node_id)
 
-    wait_for_condition(10, 300, get_node_status, cluster, "not_ready")
+    wait_for_condition(10, 500, get_node_status, cluster, "not_ready")
 
     node = cluster.pools[0].nodes[0]
     assert node.status == "not_ready"
 
     # wait for provisioning
-    wait_for_condition(10, 300, get_node_status, cluster, "ready")
+    wait_for_condition(10, 500, get_node_status, cluster, "ready")
 
     node = cluster.pools[0].nodes[0]
     assert node.status == "ready"
@@ -114,9 +114,9 @@ def test_lke_node_recycle(test_linode_client, lke_cluster):
 def test_lke_cluster_nodes_recycle(test_linode_client, lke_cluster):
     cluster = lke_cluster
 
-    send_request_when_resource_available(300, cluster.cluster_nodes_recycle)
+    send_request_when_resource_available(500, cluster.cluster_nodes_recycle)
 
-    wait_for_condition(5, 300, get_node_status, cluster, "not_ready")
+    wait_for_condition(5, 500, get_node_status, cluster, "not_ready")
 
     node = cluster.pools[0].nodes[0]
     assert node.status == "not_ready"
