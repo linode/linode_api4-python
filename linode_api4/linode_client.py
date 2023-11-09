@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import json
 import logging
+from importlib.metadata import version
 from typing import BinaryIO, Tuple
 from urllib import parse
 
-import pkg_resources
 import requests
 from requests.adapters import HTTPAdapter, Retry
 
@@ -28,6 +28,7 @@ from linode_api4.groups import (
     SupportGroup,
     TagGroup,
     VolumeGroup,
+    VPCGroup,
 )
 from linode_api4.objects import Image, and_
 from linode_api4.objects.filtering import Filter
@@ -36,7 +37,7 @@ from .common import SSH_KEY_TYPES, load_and_validate_keys
 from .paginated_list import PaginatedList
 from .util import drop_null_keys
 
-package_version = pkg_resources.require("linode_api4")[0].version
+package_version = version("linode_api4")
 
 logger = logging.getLogger(__name__)
 
@@ -189,6 +190,9 @@ class LinodeClient:
 
         #: Access methods related to Images - See :any:`ImageGroup` for more information.
         self.images = ImageGroup(self)
+
+        #: Access methods related to VPCs - See :any:`VPCGroup` for more information.
+        self.vpcs = VPCGroup(self)
 
         #: Access methods related to Event polling - See :any:`PollingGroup` for more information.
         self.polling = PollingGroup(self)

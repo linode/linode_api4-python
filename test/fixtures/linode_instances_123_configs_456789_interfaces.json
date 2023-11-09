@@ -1,0 +1,34 @@
+{
+   "data": [
+      {
+         "id": 456,
+         "purpose": "public",
+         "primary": true
+      },
+      {
+         "id": 123,
+         "purpose": "vpc",
+         "primary": true,
+         "active": true,
+         "vpc_id": 123456,
+         "subnet_id": 789,
+         "ipv4": {
+            "vpc": "10.0.0.2",
+            "nat_1_1": "any"
+         },
+         "ip_ranges": [
+            "10.0.0.0/24"
+         ]
+      },
+      {
+         "id": 321,
+         "primary": false,
+         "ipam_address":"10.0.0.2",
+         "label":"test-interface",
+         "purpose":"vlan"
+      }
+   ],
+   "page": 1,
+   "pages": 1,
+   "results": 1
+}

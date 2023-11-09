@@ -8,12 +8,20 @@ from test.integration.helpers import (
 import pytest
 
 from linode_api4.errors import ApiError
-from linode_api4.objects import Config, Disk, Image, Instance, Type
+from linode_api4.objects import (
+    Config,
+    ConfigInterface,
+    ConfigInterfaceIPv4,
+    Disk,
+    Image,
+    Instance,
+    Type,
+)
 
 
 @pytest.fixture(scope="session")
-def create_linode_with_volume_firewall(get_client):
-    client = get_client
+def linode_with_volume_firewall(test_linode_client):
+    client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[0]
     label = get_test_label()
@@ -26,9 +34,9 @@ def create_linode_with_volume_firewall(get_client):
     }
 
     linode_instance, password = client.linode.instance_create(
-        "g5-standard-4",
+        "g6-nanode-1",
         chosen_region,
-        image="linode/debian9",
+        image="linode/debian10",
         label=label + "_modlinode",
     )
 
@@ -48,27 +56,27 @@ def create_linode_with_volume_firewall(get_client):
 
     firewall.delete()
 
-    linode_instance.delete()
-
     volume.detach()
-    # wait for volume detach, can't currently get the attach/unattached status via SDK
+    # wait for volume detach, can't currently get the attached/unattached status via SDK
     time.sleep(30)
 
     volume.delete()
 
+    linode_instance.delete()
+
 
 @pytest.mark.smoke
 @pytest.fixture
-def create_linode_for_long_running_tests(get_client):
-    client = get_client
+def create_linode_for_long_running_tests(test_linode_client):
+    client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[0]
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
-        "g5-standard-4",
+        "g6-nanode-1",
         chosen_region,
-        image="linode/debian9",
+        image="linode/debian10",
         label=label + "_long_tests",
     )
 
@@ -82,15 +90,15 @@ def get_status(linode: Instance, status: str):
     return linode.status == status
 
 
-def test_get_linode(get_client, create_linode_with_volume_firewall):
-    linode = get_client.load(Instance, create_linode_with_volume_firewall.id)
+def test_get_linode(test_linode_client, linode_with_volume_firewall):
+    linode = test_linode_client.load(Instance, linode_with_volume_firewall.id)
 
-    assert linode.label == create_linode_with_volume_firewall.label
-    assert linode.id == create_linode_with_volume_firewall.id
+    assert linode.label == linode_with_volume_firewall.label
+    assert linode.id == linode_with_volume_firewall.id
 
 
-def test_linode_transfer(get_client, create_linode_with_volume_firewall):
-    linode = get_client.load(Instance, create_linode_with_volume_firewall.id)
+def test_linode_transfer(test_linode_client, linode_with_volume_firewall):
+    linode = test_linode_client.load(Instance, linode_with_volume_firewall.id)
 
     transfer = linode.transfer
 
@@ -99,24 +107,24 @@ def test_linode_transfer(get_client, create_linode_with_volume_firewall):
     assert "billable" in str(transfer)
 
 
-def test_linode_rebuild(get_client):
-    client = get_client
+def test_linode_rebuild(test_linode_client):
+    client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[0]
     label = get_test_label() + "_rebuild"
 
     linode, password = client.linode.instance_create(
-        "g5-standard-4", chosen_region, image="linode/debian9", label=label
+        "g6-nanode-1", chosen_region, image="linode/debian10", label=label
     )
 
     wait_for_condition(10, 100, get_status, linode, "running")
 
-    retry_sending_request(3, linode.rebuild, "linode/debian9")
+    retry_sending_request(3, linode.rebuild, "linode/debian10")
 
     wait_for_condition(10, 100, get_status, linode, "rebuilding")
 
     assert linode.status == "rebuilding"
-    assert linode.image.id == "linode/debian9"
+    assert linode.image.id == "linode/debian10"
 
     wait_for_condition(10, 300, get_status, linode, "running")
 
@@ -149,16 +157,16 @@ def test_update_linode(create_linode):
     assert linode.label == new_label
 
 
-def test_delete_linode(get_client):
-    client = get_client
+def test_delete_linode(test_linode_client):
+    client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[0]
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
-        "g5-standard-4",
+        "g6-nanode-1",
         chosen_region,
-        image="linode/debian9",
+        image="linode/debian10",
         label=label + "_linode",
     )
 
@@ -224,10 +232,10 @@ def test_linode_resize(create_linode_for_long_running_tests):
 
 
 def test_linode_resize_with_class(
-    get_client, create_linode_for_long_running_tests
+    test_linode_client, create_linode_for_long_running_tests
 ):
     linode = create_linode_for_long_running_tests
-    ltype = Type(get_client, "g6-standard-6")
+    ltype = Type(test_linode_client, "g6-standard-6")
 
     wait_for_condition(10, 100, get_status, linode, "running")
 
@@ -263,8 +271,8 @@ def test_linode_boot_with_config(create_linode):
     assert linode.status == "running"
 
 
-def test_linode_firewalls(create_linode_with_volume_firewall):
-    linode = create_linode_with_volume_firewall
+def test_linode_firewalls(linode_with_volume_firewall):
+    linode = linode_with_volume_firewall
 
     firewalls = linode.firewalls()
 
@@ -272,8 +280,8 @@ def test_linode_firewalls(create_linode_with_volume_firewall):
     assert "TestSDK" in firewalls[0].label
 
 
-def test_linode_volumes(create_linode_with_volume_firewall):
-    linode = create_linode_with_volume_firewall
+def test_linode_volumes(linode_with_volume_firewall):
+    linode = linode_with_volume_firewall
 
     volumes = linode.volumes()
 
@@ -281,11 +289,11 @@ def test_linode_volumes(create_linode_with_volume_firewall):
     assert "TestSDK" in volumes[0].label
 
 
-def test_linode_disk_duplicate(get_client, create_linode):
+def test_linode_disk_duplicate(test_linode_client, create_linode):
     pytest.skip("Need to find out the space sizing when duplicating disks")
     linode = create_linode
 
-    disk = get_client.load(Disk, linode.disks[0].id, linode.id)
+    disk = test_linode_client.load(Disk, linode.disks[0].id, linode.id)
 
     try:
         dup_disk = disk.duplicate()
@@ -323,14 +331,14 @@ def test_linode_ips(create_linode):
     assert ips.ipv4.public[0].address == linode.ipv4[0]
 
 
-def test_linode_initate_migration(get_client):
-    client = get_client
+def test_linode_initate_migration(test_linode_client):
+    client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[0]
     label = get_test_label() + "_migration"
 
     linode, password = client.linode.instance_create(
-        "g5-standard-4", chosen_region, image="linode/debian9", label=label
+        "g6-nanode-1", chosen_region, image="linode/debian10", label=label
     )
 
     wait_for_condition(10, 100, get_status, linode, "running")
@@ -358,39 +366,46 @@ def test_disk_resize():
 
 def test_config_update_interfaces(create_linode):
     linode = create_linode
-    new_interfaces = [
-        {"purpose": "public"},
-        {"purpose": "vlan", "label": "cool-vlan"},
-    ]
-
     config = linode.configs[0]
 
+    new_interfaces = [
+        {"purpose": "public"},
+        ConfigInterface(
+            purpose="vlan", label="cool-vlan", ipam_address="10.0.0.4/32"
+        ),
+    ]
     config.interfaces = new_interfaces
 
     res = config.save()
+    config.invalidate()
 
     assert res
-    assert "cool-vlan" in str(config.interfaces)
+    assert config.interfaces[0].purpose == "public"
+    assert config.interfaces[1].purpose == "vlan"
+    assert config.interfaces[1].label == "cool-vlan"
+    assert config.interfaces[1].ipam_address == "10.0.0.4/32"
 
 
-def test_get_config(get_client, create_linode):
+def test_get_config(test_linode_client, create_linode):
     pytest.skip(
         "Model get method: client.load(Config, 123, 123) does not work..."
     )
     linode = create_linode
-    json = get_client.get(
+    json = test_linode_client.get(
         "linode/instances/"
         + str(linode.id)
         + "/configs/"
         + str(linode.configs[0].id)
     )
-    config = Config(get_client, linode.id, linode.configs[0].id, json=json)
+    config = Config(
+        test_linode_client, linode.id, linode.configs[0].id, json=json
+    )
 
     assert config.id == linode.configs[0].id
 
 
-def test_get_linode_types(get_client):
-    types = get_client.linode.types()
+def test_get_linode_types(test_linode_client):
+    types = test_linode_client.linode.types()
 
     ids = [i.id for i in types]
 
@@ -398,8 +413,8 @@ def test_get_linode_types(get_client):
     assert "g6-nanode-1" in ids
 
 
-def test_get_linode_types_overrides(get_client):
-    types = get_client.linode.types()
+def test_get_linode_types_overrides(test_linode_client):
+    types = test_linode_client.linode.types()
 
     target_types = [
         v
@@ -414,7 +429,7 @@ def test_get_linode_types_overrides(get_client):
         assert linode_type.region_prices[0].monthly >= 0
 
 
-def test_get_linode_type_by_id(get_client):
+def test_get_linode_type_by_id(test_linode_client):
     pytest.skip(
         "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
     )
@@ -426,23 +441,180 @@ def test_get_linode_type_gpu():
     )
 
 
-def test_save_linode_noforce(get_client, create_linode):
+def test_save_linode_noforce(test_linode_client, create_linode):
     linode = create_linode
     old_label = linode.label
     linode.label = "updated_no_force_label"
     linode.save(force=False)
 
-    linode = get_client.load(Instance, linode.id)
+    linode = test_linode_client.load(Instance, linode.id)
 
     assert old_label != linode.label
 
 
-def test_save_linode_force(get_client, create_linode):
+def test_save_linode_force(test_linode_client, create_linode):
     linode = create_linode
     old_label = linode.label
     linode.label = "updated_force_label"
     linode.save(force=False)
 
-    linode = get_client.load(Instance, linode.id)
+    linode = test_linode_client.load(Instance, linode.id)
 
     assert old_label != linode.label
+
+
+class TestNetworkInterface:
+    def test_list(self, create_linode):
+        linode = create_linode
+
+        config: Config = linode.configs[0]
+
+        config.interface_create_public(
+            primary=True,
+        )
+        config.interface_create_vlan(
+            label="testvlan", ipam_address="10.0.0.3/32"
+        )
+
+        interface = config.network_interfaces
+
+        assert interface[0].purpose == "public"
+        assert interface[0].primary
+        assert interface[1].purpose == "vlan"
+        assert interface[1].label == "testvlan"
+        assert interface[1].ipam_address == "10.0.0.3/32"
+
+    def test_create_public(self, create_linode):
+        linode = create_linode
+
+        config: Config = linode.configs[0]
+
+        config.interfaces = []
+        config.save()
+
+        interface = config.interface_create_public(
+            primary=True,
+        )
+
+        config.invalidate()
+
+        assert interface.id == config.interfaces[0].id
+        assert interface.purpose == "public"
+        assert interface.primary
+
+    def test_create_vlan(self, create_linode):
+        linode = create_linode
+
+        config: Config = linode.configs[0]
+
+        config.interfaces = []
+        config.save()
+
+        interface = config.interface_create_vlan(
+            label="testvlan", ipam_address="10.0.0.2/32"
+        )
+
+        config.invalidate()
+
+        assert interface.id == config.interfaces[0].id
+        assert interface.purpose == "vlan"
+        assert interface.label == "testvlan"
+        assert interface.ipam_address == "10.0.0.2/32"
+
+    def test_create_vpc(self, create_linode, create_vpc_with_subnet_and_linode):
+        vpc, subnet, linode, _ = create_vpc_with_subnet_and_linode
+
+        config: Config = linode.configs[0]
+
+        config.interfaces = []
+        config.save()
+
+        interface = config.interface_create_vpc(
+            subnet=subnet,
+            primary=True,
+            ipv4=ConfigInterfaceIPv4(vpc="10.0.0.2", nat_1_1="any"),
+            ip_ranges=["10.0.0.5/32"],
+        )
+
+        config.invalidate()
+
+        assert interface.id == config.interfaces[0].id
+        assert interface.subnet.id == subnet.id
+        assert interface.purpose == "vpc"
+        assert interface.ipv4.vpc == "10.0.0.2"
+        assert interface.ipv4.nat_1_1 == linode.ipv4[0]
+        assert interface.ip_ranges == ["10.0.0.5/32"]
+
+    def test_update_vpc(self, create_linode, create_vpc_with_subnet_and_linode):
+        vpc, subnet, linode, _ = create_vpc_with_subnet_and_linode
+
+        config: Config = linode.configs[0]
+
+        config.interfaces = []
+        config.save()
+
+        interface = config.interface_create_vpc(
+            subnet=subnet,
+            primary=True,
+            ip_ranges=["10.0.0.5/32"],
+        )
+
+        interface.primary = False
+        interface.ip_ranges = ["10.0.0.6/32"]
+        interface.ipv4.vpc = "10.0.0.3"
+        interface.ipv4.nat_1_1 = "any"
+
+        interface.save()
+        interface.invalidate()
+        config.invalidate()
+
+        assert interface.id == config.interfaces[0].id
+        assert interface.subnet.id == subnet.id
+        assert interface.purpose == "vpc"
+        assert interface.ipv4.vpc == "10.0.0.3"
+        assert interface.ipv4.nat_1_1 == linode.ipv4[0]
+        assert interface.ip_ranges == ["10.0.0.6/32"]
+
+    def test_reorder(self, create_linode):
+        linode = create_linode
+
+        config: Config = linode.configs[0]
+
+        pub_interface = config.interface_create_public(
+            primary=True,
+        )
+        vlan_interface = config.interface_create_vlan(
+            label="testvlan", ipam_address="10.0.0.3/32"
+        )
+
+        interfaces = config.network_interfaces
+        interfaces.reverse()
+
+        config.interface_reorder(interfaces)
+        config.invalidate()
+
+        assert [v.id for v in config.interfaces] == [
+            vlan_interface.id,
+            pub_interface.id,
+        ]
+
+    def test_delete_interface_containing_vpc(
+        self, create_vpc_with_subnet_and_linode
+    ):
+        vpc, subnet, linode, _ = create_vpc_with_subnet_and_linode
+
+        config: Config = linode.configs[0]
+
+        config.interfaces = []
+        config.save()
+
+        interface = config.interface_create_vpc(
+            subnet=subnet,
+            primary=True,
+            ip_ranges=["10.0.0.8/32"],
+        )
+
+        result = interface.delete()
+
+        # returns true when delete successful
+        assert result
