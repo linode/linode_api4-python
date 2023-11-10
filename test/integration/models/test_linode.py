@@ -304,7 +304,6 @@ def test_linode_disk_duplicate(test_linode_client, create_linode):
 
 
 def test_linode_instance_password(create_linode_for_pass_reset):
-    pytest.skip("Failing due to mismatched request body")
     linode = create_linode_for_pass_reset[0]
     password = create_linode_for_pass_reset[1]
 
@@ -387,19 +386,9 @@ def test_config_update_interfaces(create_linode):
 
 
 def test_get_config(test_linode_client, create_linode):
-    pytest.skip(
-        "Model get method: client.load(Config, 123, 123) does not work..."
-    )
     linode = create_linode
-    json = test_linode_client.get(
-        "linode/instances/"
-        + str(linode.id)
-        + "/configs/"
-        + str(linode.configs[0].id)
-    )
-    config = Config(
-        test_linode_client, linode.id, linode.configs[0].id, json=json
-    )
+
+    config = test_linode_client.load(Config, linode.configs[0].id, linode.id)
 
     assert config.id == linode.configs[0].id
 
@@ -427,18 +416,6 @@ def test_get_linode_types_overrides(test_linode_client):
     for linode_type in target_types:
         assert linode_type.region_prices[0].hourly >= 0
         assert linode_type.region_prices[0].monthly >= 0
-
-
-def test_get_linode_type_by_id(test_linode_client):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
-
-
-def test_get_linode_type_gpu():
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
 
 
 def test_save_linode_noforce(test_linode_client, create_linode):
