@@ -1,5 +1,6 @@
 from linode_api4.groups import Group
 from linode_api4.objects import Region
+from linode_api4.objects.region import RegionAvailabilityEntry
 
 
 class RegionGroup(Group):
@@ -23,3 +24,8 @@ class RegionGroup(Group):
         """
 
         return self.client._get_and_filter(Region, *filters)
+
+    def availability(self, *filters):
+        return self.client._get_and_filter(
+            RegionAvailabilityEntry, *filters, endpoint="/regions/availability"
+        )

@@ -1,16 +1,57 @@
 import inspect
 from dataclasses import asdict, dataclass
-from typing import Any, Dict, Optional, get_args, get_origin, get_type_hints
+from types import SimpleNamespace
+from typing import (
+    Any,
+    ClassVar,
+    Dict,
+    Optional,
+    get_args,
+    get_origin,
+    get_type_hints,
+)
+
+from linode_api4.objects.filtering import FilterableAttribute
+
+# Wraps the SimpleNamespace class and allows for
+# SQLAlchemy-style filter generation on JSONObjects.
+JSONFilterGroup = SimpleNamespace
+
+
+class JSONFilterableMetaclass(type):
+    def __init__(cls, name, bases, dct):
+        setattr(
+            cls,
+            "filters",
+            JSONFilterGroup(
+                **{
+                    k: FilterableAttribute(k)
+                    for k in cls.__annotations__.keys()
+                }
+            ),
+        )
+
+        super().__init__(name, bases, dct)
 
 
 @dataclass
-class JSONObject:
+class JSONObject(metaclass=JSONFilterableMetaclass):
     """
     A simple helper class for serializable API objects.
     This is typically used for nested object values.
 
     This class act similarly to MappedObject but with explicit
     fields and static typing.
+    """
+
+    filters: ClassVar[JSONFilterGroup] = None
+    """
+    A group containing FilterableAttributes used to create SQLAlchemy-style filters.
+
+    Example usage::
+        self.client.regions.availability(
+            RegionAvailabilityEntry.filters.plan == "premium4096.7"
+        )
     """
 
     def __init__(self):

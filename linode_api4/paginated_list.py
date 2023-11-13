@@ -1,5 +1,7 @@
 import math
 
+from linode_api4.objects.serializable import JSONObject
+
 
 class PaginatedList(object):
     """
@@ -205,6 +207,10 @@ class PaginatedList(object):
 
         for obj in json_arr:
             id_val = None
+            # Special handling for JSON objects
+            if issubclass(cls, JSONObject):
+                result.append(cls.from_json(obj))
+                continue
 
             if "id" in obj:
                 id_val = obj["id"]
