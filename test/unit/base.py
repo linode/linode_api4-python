@@ -134,6 +134,13 @@ class MethodMock:
         """
         return self.mock.called
 
+    @property
+    def call_count(self):
+        """
+        A shortcut to check how many times the mock function was called.
+        """
+        return self.mock.call_count
+
 
 class ClientBaseCase(TestCase):
     def setUp(self):
