@@ -81,6 +81,7 @@ def linode_for_network_interface_tests(test_linode_client):
 
     linode_instance.delete()
 
+
 @pytest.fixture(scope="session", autouse=True)
 def linode_for_disk_tests(test_linode_client):
     client = test_linode_client
@@ -516,9 +517,7 @@ class TestNetworkInterface:
 
         label = str(time.time_ns()) + "vlabel"
 
-        config.interface_create_vlan(
-            label=label, ipam_address="10.0.0.3/32"
-        )
+        config.interface_create_vlan(label=label, ipam_address="10.0.0.3/32")
 
         interface = config.network_interfaces
 
@@ -565,7 +564,11 @@ class TestNetworkInterface:
         assert interface.label == "testvlan"
         assert interface.ipam_address == "10.0.0.2/32"
 
-    def test_create_vpc(self, linode_for_network_interface_tests, create_vpc_with_subnet_and_linode):
+    def test_create_vpc(
+        self,
+        linode_for_network_interface_tests,
+        create_vpc_with_subnet_and_linode,
+    ):
         vpc, subnet, linode, _ = create_vpc_with_subnet_and_linode
 
         config: Config = linode.configs[0]
@@ -589,7 +592,11 @@ class TestNetworkInterface:
         assert interface.ipv4.nat_1_1 == linode.ipv4[0]
         assert interface.ip_ranges == ["10.0.0.5/32"]
 
-    def test_update_vpc(self, linode_for_network_interface_tests, create_vpc_with_subnet_and_linode):
+    def test_update_vpc(
+        self,
+        linode_for_network_interface_tests,
+        create_vpc_with_subnet_and_linode,
+    ):
         vpc, subnet, linode, _ = create_vpc_with_subnet_and_linode
 
         config: Config = linode.configs[0]
