@@ -45,8 +45,7 @@ def test_get_lke_clusters(test_linode_client, lke_cluster):
 
 
 def test_get_lke_pool(test_linode_client, lke_cluster):
-    pytest.skip("client.load(LKENodePool, 123, 123) does not work")
-
+    pytest.skip("TPT-2511")
     cluster = lke_cluster
 
     pool = test_linode_client.load(LKENodePool, cluster.pools[0].id, cluster.id)
@@ -122,19 +121,9 @@ def test_lke_cluster_nodes_recycle(test_linode_client, lke_cluster):
     assert node.status == "not_ready"
 
 
-def test_lke_cluster_regenerate(lke_cluster):
-    pytest.skip(
-        "Skipping reason: '400: At least one of kubeconfig or servicetoken is required.'"
-    )
-    cluster = lke_cluster
-
-    cluster.cluster_regenerate()
-
-
 def test_service_token_delete(lke_cluster):
-    pytest.skip(
-        "Skipping reason: '400: At least one of kubeconfig or servicetoken is required.'"
-    )
     cluster = lke_cluster
 
-    cluster.service_token_delete()
+    res = cluster.service_token_delete()
+
+    assert res is None

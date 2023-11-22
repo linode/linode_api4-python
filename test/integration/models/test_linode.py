@@ -65,6 +65,52 @@ def linode_with_volume_firewall(test_linode_client):
     linode_instance.delete()
 
 
+@pytest.fixture(scope="session")
+def linode_for_network_interface_tests(test_linode_client):
+    client = test_linode_client
+    available_regions = client.regions()
+    chosen_region = available_regions[0]
+    timestamp = str(time.time_ns())
+    label = "TestSDK-" + timestamp
+
+    linode_instance, password = client.linode.instance_create(
+        "g6-nanode-1", chosen_region, image="linode/debian10", label=label
+    )
+
+    yield linode_instance
+
+    linode_instance.delete()
+
+@pytest.fixture(scope="session", autouse=True)
+def linode_for_disk_tests(test_linode_client):
+    client = test_linode_client
+    available_regions = client.regions()
+    chosen_region = available_regions[0]
+    label = get_test_label()
+
+    linode_instance, password = client.linode.instance_create(
+        "g6-nanode-1",
+        chosen_region,
+        image="linode/debian10",
+        label=label + "_long_tests",
+    )
+
+    time.sleep(10)
+
+    # Provisioning time
+    wait_for_condition(10, 300, get_status, linode_instance, "running")
+
+    time.sleep(10)
+
+    linode_instance.shutdown()
+
+    wait_for_condition(10, 100, get_status, linode_instance, "offline")
+
+    yield linode_instance
+
+    linode_instance.delete()
+
+
 @pytest.mark.smoke
 @pytest.fixture
 def create_linode_for_long_running_tests(test_linode_client):
@@ -289,18 +335,50 @@ def test_linode_volumes(linode_with_volume_firewall):
     assert "TestSDK" in volumes[0].label
 
 
-def test_linode_disk_duplicate(test_linode_client, create_linode):
-    pytest.skip("Need to find out the space sizing when duplicating disks")
-    linode = create_linode
+def wait_for_disk_status(disk: Disk, timeout):
+    start_time = time.time()
+    while True:
+        try:
+            if disk.status == "ready":
+                return disk.status
+        except ApiError:
+            if time.time() - start_time > timeout:
+                raise TimeoutError("Wait for condition timeout error")
+
+
+@pytest.mark.dependency()
+def test_disk_resize_and_duplicate(test_linode_client, linode_for_disk_tests):
+    linode = linode_for_disk_tests
+
+    disk = linode.disks[0]
+
+    disk.resize(5000)
+
+    # Using hard sleep instead of wait as the status shows ready when it is resizing
+    time.sleep(120)
 
     disk = test_linode_client.load(Disk, linode.disks[0].id, linode.id)
 
-    try:
-        dup_disk = disk.duplicate()
-        assert dup_disk.linode_id == linode.id
-    except ApiError as e:
-        assert e.status == 400
-        assert "Insufficient space" in str(e.json)
+    assert disk.size == 5000
+
+    dup_disk = disk.duplicate()
+
+    time.sleep(40)
+
+    wait_for_disk_status(dup_disk, 120)
+
+    assert dup_disk.linode_id == linode.id
+
+
+@pytest.mark.dependency(depends=["test_disk_resize_and_duplicate"])
+def test_linode_create_disk(test_linode_client, linode_for_disk_tests):
+    linode = test_linode_client.load(Instance, linode_for_disk_tests.id)
+
+    disk = linode.disk_create(size=500)
+
+    wait_for_disk_status(disk, 120)
+
+    assert disk.linode_id == linode.id
 
 
 def test_linode_instance_password(create_linode_for_pass_reset):
@@ -347,20 +425,6 @@ def test_linode_initate_migration(test_linode_client):
     res = linode.delete()
 
     assert res
-
-
-def test_linode_create_disk(create_linode):
-    pytest.skip(
-        "Pre-requisite for the test account need to comply with this test"
-    )
-    linode = create_linode
-    disk, gen_pass = linode.disk_create()
-
-
-def test_disk_resize():
-    pytest.skip(
-        "Pre-requisite for the test account need to comply with this test"
-    )
 
 
 def test_config_update_interfaces(create_linode):
@@ -441,16 +505,19 @@ def test_save_linode_force(test_linode_client, create_linode):
 
 
 class TestNetworkInterface:
-    def test_list(self, create_linode):
-        linode = create_linode
+    def test_list(self, linode_for_network_interface_tests):
+        linode = linode_for_network_interface_tests
 
         config: Config = linode.configs[0]
 
         config.interface_create_public(
             primary=True,
         )
+
+        label = str(time.time_ns()) + "vlabel"
+
         config.interface_create_vlan(
-            label="testvlan", ipam_address="10.0.0.3/32"
+            label=label, ipam_address="10.0.0.3/32"
         )
 
         interface = config.network_interfaces
@@ -458,11 +525,11 @@ class TestNetworkInterface:
         assert interface[0].purpose == "public"
         assert interface[0].primary
         assert interface[1].purpose == "vlan"
-        assert interface[1].label == "testvlan"
+        assert interface[1].label == label
         assert interface[1].ipam_address == "10.0.0.3/32"
 
-    def test_create_public(self, create_linode):
-        linode = create_linode
+    def test_create_public(self, linode_for_network_interface_tests):
+        linode = linode_for_network_interface_tests
 
         config: Config = linode.configs[0]
 
@@ -479,8 +546,8 @@ class TestNetworkInterface:
         assert interface.purpose == "public"
         assert interface.primary
 
-    def test_create_vlan(self, create_linode):
-        linode = create_linode
+    def test_create_vlan(self, linode_for_network_interface_tests):
+        linode = linode_for_network_interface_tests
 
         config: Config = linode.configs[0]
 
@@ -498,7 +565,7 @@ class TestNetworkInterface:
         assert interface.label == "testvlan"
         assert interface.ipam_address == "10.0.0.2/32"
 
-    def test_create_vpc(self, create_linode, create_vpc_with_subnet_and_linode):
+    def test_create_vpc(self, linode_for_network_interface_tests, create_vpc_with_subnet_and_linode):
         vpc, subnet, linode, _ = create_vpc_with_subnet_and_linode
 
         config: Config = linode.configs[0]
@@ -522,7 +589,7 @@ class TestNetworkInterface:
         assert interface.ipv4.nat_1_1 == linode.ipv4[0]
         assert interface.ip_ranges == ["10.0.0.5/32"]
 
-    def test_update_vpc(self, create_linode, create_vpc_with_subnet_and_linode):
+    def test_update_vpc(self, linode_for_network_interface_tests, create_vpc_with_subnet_and_linode):
         vpc, subnet, linode, _ = create_vpc_with_subnet_and_linode
 
         config: Config = linode.configs[0]
@@ -552,16 +619,18 @@ class TestNetworkInterface:
         assert interface.ipv4.nat_1_1 == linode.ipv4[0]
         assert interface.ip_ranges == ["10.0.0.6/32"]
 
-    def test_reorder(self, create_linode):
-        linode = create_linode
+    def test_reorder(self, linode_for_network_interface_tests):
+        linode = linode_for_network_interface_tests
 
         config: Config = linode.configs[0]
 
         pub_interface = config.interface_create_public(
             primary=True,
         )
+
+        label = str(time.time_ns()) + "vlabel"
         vlan_interface = config.interface_create_vlan(
-            label="testvlan", ipam_address="10.0.0.3/32"
+            label=label, ipam_address="10.0.0.3/32"
         )
 
         interfaces = config.network_interfaces
@@ -570,7 +639,7 @@ class TestNetworkInterface:
         config.interface_reorder(interfaces)
         config.invalidate()
 
-        assert [v.id for v in config.interfaces] == [
+        assert [v.id for v in config.interfaces[:2]] == [
             vlan_interface.id,
             pub_interface.id,
         ]
