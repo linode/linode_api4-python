@@ -66,7 +66,9 @@ def test_cluster_dashboard_url_view(lke_cluster):
 def test_kubeconfig_delete(lke_cluster):
     cluster = lke_cluster
 
-    cluster.kubeconfig_delete()
+    res = send_request_when_resource_available(300, cluster.kubeconfig_delete)
+
+    assert res is None
 
 
 def test_lke_node_view(lke_cluster):

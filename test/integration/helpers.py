@@ -111,7 +111,7 @@ def send_request_when_resource_available(
                 if time.time() - start_time > timeout:
                     raise TimeoutError(
                         "Timeout Error: resource is not available in"
-                        + timeout
+                        + str(timeout)
                         + "seconds"
                     )
                 time.sleep(10)
