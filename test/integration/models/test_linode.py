@@ -422,7 +422,10 @@ def test_linode_initate_migration(test_linode_client):
 
     wait_for_condition(10, 100, get_status, linode, "running")
     # Says it could take up to ~6 hrs for migration to fully complete
-    linode.initiate_migration(region="us-central")
+
+    send_request_when_resource_available(
+        300, linode.initiate_migration, "us-central"
+    )
 
     res = linode.delete()
 
@@ -664,7 +667,11 @@ class TestNetworkInterface:
         config: Config = linode.configs[0]
 
         config.interfaces = []
-        config.save()
+
+        # must power off linode before saving
+        send_request_when_resource_available(300, linode.shutdown)
+
+        send_request_when_resource_available(60, config.save)
 
         interface = config.interface_create_vpc(
             subnet=subnet,
