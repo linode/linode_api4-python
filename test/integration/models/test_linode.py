@@ -2,6 +2,7 @@ import time
 from test.integration.helpers import (
     get_test_label,
     retry_sending_request,
+    send_request_when_resource_available,
     wait_for_condition,
 )
 
@@ -640,10 +641,14 @@ class TestNetworkInterface:
             label=label, ipam_address="10.0.0.3/32"
         )
 
+        send_request_when_resource_available(300, linode.shutdown)
+
         interfaces = config.network_interfaces
         interfaces.reverse()
 
-        config.interface_reorder(interfaces)
+        send_request_when_resource_available(
+            300, config.interface_reorder, interfaces
+        )
         config.invalidate()
 
         assert [v.id for v in config.interfaces[:2]] == [
