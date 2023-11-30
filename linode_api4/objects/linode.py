@@ -727,7 +727,7 @@ class Instance(Base):
         self,
         new_type,
         allow_auto_disk_resize=True,
-        migration_type: MigrationType = "cold",
+        migration_type: MigrationType = MigrationType.COLD,
         **kwargs,
     ):
         """
@@ -1217,7 +1217,7 @@ class Instance(Base):
         return True
 
     def initiate_migration(
-        self, region=None, upgrade=None, migration_type: MigrationType = "cold"
+        self, region=None, upgrade=None, migration_type: MigrationType = MigrationType.COLD
     ):
         """
         Initiates a pending migration that is already scheduled for this Linode
