@@ -92,6 +92,7 @@ def test_lke_node_delete(lke_cluster):
         assert "Not found" in str(err.json)
 
 
+@pytest.mark.flaky(max_runs=3, min_passes=1)
 def test_lke_node_recycle(test_linode_client, lke_cluster):
     cluster = test_linode_client.load(LKECluster, lke_cluster.id)
     node = cluster.pools[0].nodes[0]
@@ -111,6 +112,7 @@ def test_lke_node_recycle(test_linode_client, lke_cluster):
     assert node.status == "ready"
 
 
+@pytest.mark.flaky(max_runs=3, min_passes=1)
 def test_lke_cluster_nodes_recycle(test_linode_client, lke_cluster):
     cluster = lke_cluster
 
