@@ -383,6 +383,9 @@ class Config(DerivedBase):
         partial["interfaces"] = interfaces
         return partial
 
+class MigrationType:
+    COLD = "cold"
+    WARM = "warm"
 
 class Instance(Base):
     """
@@ -724,7 +727,7 @@ class Instance(Base):
         self,
         new_type,
         allow_auto_disk_resize=True,
-        migration_type="cold",
+        migration_type: MigrationType = "cold",
         **kwargs,
     ):
         """
@@ -1214,7 +1217,7 @@ class Instance(Base):
         return True
 
     def initiate_migration(
-        self, region=None, upgrade=None, migration_type="cold"
+        self, region=None, upgrade=None, migration_type: MigrationType = "cold"
     ):
         """
         Initiates a pending migration that is already scheduled for this Linode

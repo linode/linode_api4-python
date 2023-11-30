@@ -255,7 +255,7 @@ def test_linode_resize_with_migration_type(
     wait_for_condition(10, 100, get_status, linode, "running")
 
     time.sleep(5)
-    res = linode.resize(migration_type=m_type)
+    res = linode.resize(new_type="g6-standard-1", migration_type=m_type)
 
     assert res
 
@@ -358,7 +358,7 @@ def test_linode_initate_migration(get_client):
 
     wait_for_condition(10, 100, get_status, linode, "running")
     # Says it could take up to ~6 hrs for migration to fully complete
-    linode.initiate_migration(region="us-central", migration_type="warm")
+    linode.initiate_migration(region="us-central", migration_type="cold")
 
     res = linode.delete()
 
