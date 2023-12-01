@@ -276,7 +276,10 @@ class LinodeClient:
             body = json.dumps(data)
 
         response = method(
-            url, headers=headers, data=body, verify=self.ca_path or True
+            url,
+            headers=headers,
+            data=body,
+            verify=self.ca_path or self.session.verify,
         )
 
         warning = response.headers.get("Warning", None)

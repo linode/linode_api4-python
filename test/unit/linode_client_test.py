@@ -280,6 +280,28 @@ class LinodeClientGeneralTest(ClientBaseCase):
 
         assert called
 
+    def test_custom_verify(self):
+        """
+        If we set a custom `verify` value on our session,
+        we want it preserved.
+        """
+        called = False
+
+        self.client.session.verify = False
+        old_get = self.client.session.get
+
+        def get_mock(*params, verify=True, **kwargs):
+            nonlocal called
+            called = True
+            assert verify is False
+            return old_get(*params, **kwargs)
+
+        self.client.session.get = get_mock
+
+        self.client.linode.instances()
+
+        assert called
+
 
 class AccountGroupTest(ClientBaseCase):
     """
