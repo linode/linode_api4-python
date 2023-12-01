@@ -1,4 +1,4 @@
 {
-  "id": "us-east",
-  "unavailable": ["Linodes"]
+  "dc": "us-east",
+  "unavailable": []
 }

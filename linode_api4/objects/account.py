@@ -659,11 +659,14 @@ class AccountBetaProgram(Base):
 class AccountAvailability(Base):
     """
     The resources information in a region which are NOT available to an account.
+
+    API doc: TBD
     """
 
-    api_endpoint = "/account/availability/{id}"
+    api_endpoint = "/account/availability/{dc}"
+    id_attribute = "dc"
 
     properties = {
-        "id": Property(identifier=True),
+        "dc": Property(identifier=True),
         "unavailable": Property(),
     }

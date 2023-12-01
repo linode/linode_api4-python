@@ -498,11 +498,12 @@ class AccountGroupTest(ClientBaseCase):
         """
         availabilities = self.client.account.availabilities()
 
-        self.assertEqual(len(availabilities), 2)
+        self.assertEqual(len(availabilities), 11)
+        print(availabilities)
         availability = availabilities[0]
 
-        self.assertEqual(availability.id, "us-east")
-        self.assertEqual(availability.unavailable, ["Linodes"])
+        self.assertEqual(availability.dc, "ap-west")
+        self.assertEqual(availability.unavailable, [])
 
 
 class BetaProgramGroupTest(ClientBaseCase):

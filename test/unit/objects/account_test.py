@@ -274,7 +274,7 @@ class AccountAvailabilityTest(ClientBaseCase):
 
         with self.mock_get(account_availability_url) as m:
             availability = AccountAvailability(self.client, region_id)
-            self.assertEqual(availability.id, region_id)
-            self.assertEqual(availability.unavailable, ["Linodes"])
+            self.assertEqual(availability.dc, region_id)
+            self.assertEqual(availability.unavailable, [])
 
             self.assertEqual(m.call_url, account_availability_url)
