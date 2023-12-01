@@ -3,6 +3,7 @@ from test.unit.base import ClientBaseCase
 
 from linode_api4.objects import (
     Account,
+    AccountAvailability,
     AccountBetaProgram,
     AccountSettings,
     Database,
@@ -260,3 +261,20 @@ class AccountBetaProgramTest(ClientBaseCase):
             self.assertEqual(beta.ended, datetime(2018, 1, 2, 3, 4, 5))
 
             self.assertEqual(m.call_url, account_beta_url)
+
+
+class AccountAvailabilityTest(ClientBaseCase):
+    """
+    Test methods of the AccountAvailability
+    """
+
+    def test_account_availability_api_get(self):
+        region_id = "us-east"
+        account_availability_url = "/account/availability/{}".format(region_id)
+
+        with self.mock_get(account_availability_url) as m:
+            availability = AccountAvailability(self.client, region_id)
+            self.assertEqual(availability.id, region_id)
+            self.assertEqual(availability.unavailable, ["Linodes"])
+
+            self.assertEqual(m.call_url, account_availability_url)
