@@ -17,6 +17,7 @@ from linode_api4.objects import (
     Instance,
     Type,
 )
+from linode_api4.objects.linode import MigrationType
 
 
 @pytest.fixture(scope="session")
@@ -254,6 +255,29 @@ def test_linode_resize_with_class(
     assert linode.status == "running"
 
 
+def test_linode_resize_with_migration_type(
+    get_client, create_linode_for_long_running_tests
+):
+    linode = create_linode_for_long_running_tests
+    m_type = MigrationType.WARM
+
+    wait_for_condition(10, 100, get_status, linode, "running")
+
+    time.sleep(5)
+    res = linode.resize(new_type="g6-standard-1", migration_type=m_type)
+
+    assert res
+
+    wait_for_condition(10, 300, get_status, linode, "resizing")
+
+    assert linode.status == "resizing"
+
+    # Takes about 3-5 minute to resize, sometimes longer...
+    wait_for_condition(30, 600, get_status, linode, "running")
+
+    assert linode.status == "running"
+
+
 def test_linode_boot_with_config(create_linode):
     linode = create_linode
 
@@ -343,7 +367,9 @@ def test_linode_initate_migration(test_linode_client):
 
     wait_for_condition(10, 100, get_status, linode, "running")
     # Says it could take up to ~6 hrs for migration to fully complete
-    linode.initiate_migration(region="us-central")
+    linode.initiate_migration(
+        region="us-central", migration_type=MigrationType.COLD
+    )
 
     res = linode.delete()
 
