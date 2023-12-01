@@ -20,7 +20,6 @@ class DomainGeneralTest(ClientBaseCase):
             domain.type = "slave"
             domain.master_ips = ["127.0.0.1"]
             domain.save()
-
             self.assertTrue("group" not in m.call_data.keys())
 
     def test_zone_file_view(self):

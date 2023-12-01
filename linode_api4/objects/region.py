@@ -1,4 +1,10 @@
-from linode_api4.objects import Base, Property
+from dataclasses import dataclass
+from typing import List
+
+from linode_api4.errors import UnexpectedResponseError
+from linode_api4.objects.base import Base, JSONObject, Property
+from linode_api4.objects.filtering import FilterableAttribute
+from linode_api4.objects.serializable import JSONFilterableMetaclass
 
 
 class Region(Base):
@@ -17,3 +23,29 @@ class Region(Base):
         "resolvers": Property(),
         "label": Property(),
     }
+
+    @property
+    def availability(self) -> List["RegionAvailabilityEntry"]:
+        result = self._client.get(
+            f"{self.api_endpoint}/availability", model=self
+        )
+
+        if result is None:
+            raise UnexpectedResponseError(
+                "Expected availability data, got None."
+            )
+
+        return [RegionAvailabilityEntry.from_json(v) for v in result]
+
+
+@dataclass
+class RegionAvailabilityEntry(JSONObject):
+    """
+    Represents the availability of a Linode type within a region.
+
+    API Documentation: https://www.linode.com/docs/api/regions/#region-availability-view
+    """
+
+    region: str = None
+    plan: str = None
+    available: bool = False
