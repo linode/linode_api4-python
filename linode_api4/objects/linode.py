@@ -610,13 +610,13 @@ class Config(DerivedBase):
             self._client, result["id"], self.id, self.linode_id, result
         )
         return i
-     
+
 
 class MigrationType:
     COLD = "cold"
     WARM = "warm"
 
-    
+
 class Instance(Base):
     """
     A Linode Instance.
@@ -1455,7 +1455,10 @@ class Instance(Base):
         return True
 
     def initiate_migration(
-        self, region=None, upgrade=None, migration_type: MigrationType = MigrationType.COLD
+        self,
+        region=None,
+        upgrade=None,
+        migration_type: MigrationType = MigrationType.COLD,
     ):
         """
         Initiates a pending migration that is already scheduled for this Linode

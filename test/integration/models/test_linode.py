@@ -1,5 +1,4 @@
 import time
-from linode_api4.objects.linode import MigrationType
 from test.integration.helpers import (
     get_test_label,
     retry_sending_request,
@@ -18,6 +17,7 @@ from linode_api4.objects import (
     Instance,
     Type,
 )
+from linode_api4.objects.linode import MigrationType
 
 
 @pytest.fixture(scope="session")
@@ -367,7 +367,9 @@ def test_linode_initate_migration(test_linode_client):
 
     wait_for_condition(10, 100, get_status, linode, "running")
     # Says it could take up to ~6 hrs for migration to fully complete
-    linode.initiate_migration(region="us-central", migration_type=MigrationType.COLD)
+    linode.initiate_migration(
+        region="us-central", migration_type=MigrationType.COLD
+    )
 
     res = linode.delete()
 
