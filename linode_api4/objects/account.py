@@ -642,6 +642,8 @@ class UserGrants:
 class AccountBetaProgram(Base):
     """
     The details and enrollment information of a Beta program that an account is enrolled in.
+
+    API Documentation: https://www.linode.com/docs/api/beta-programs/#enrolled-beta-program-view
     """
 
     api_endpoint = "/account/betas/{id}"

@@ -12,7 +12,7 @@ class BetaProgramGroup(Group):
         """
         Returns a list of available active Beta Programs.
 
-        API Documentation: TBD
+        API Documentation: https://www.linode.com/docs/api/beta-programs/#beta-programs-list
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
