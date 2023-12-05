@@ -663,10 +663,10 @@ class AccountAvailability(Base):
     API doc: TBD
     """
 
-    api_endpoint = "/account/availability/{dc}"
-    id_attribute = "dc"
+    api_endpoint = "/account/availability/{region}"
+    id_attribute = "region"
 
     properties = {
-        "dc": Property(identifier=True),
+        "region": Property(identifier=True),
         "unavailable": Property(),
     }

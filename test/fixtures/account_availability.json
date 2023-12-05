@@ -1,47 +1,47 @@
 {
   "data": [
     {
-      "dc": "ap-west",
+      "region": "ap-west",
       "unavailable": []
     },
     {
-      "dc": "ca-central",
+      "region": "ca-central",
       "unavailable": []
     },
     {
-      "dc": "ap-southeast",
+      "region": "ap-southeast",
       "unavailable": []
     },
     {
-      "dc": "us-central",
+      "region": "us-central",
       "unavailable": []
     },
     {
-      "dc": "us-west",
+      "region": "us-west",
       "unavailable": []
     },
     {
-      "dc": "us-southeast",
+      "region": "us-southeast",
       "unavailable": []
     },
     {
-      "dc": "us-east",
+      "region": "us-east",
       "unavailable": []
     },
     {
-      "dc": "eu-west",
+      "region": "eu-west",
       "unavailable": []
     },
     {
-      "dc": "ap-south",
+      "region": "ap-south",
       "unavailable": []
     },
     {
-      "dc": "eu-central",
+      "region": "eu-central",
       "unavailable": []
     },
     {
-      "dc": "ap-northeast",
+      "region": "ap-northeast",
       "unavailable": []
     }
   ],

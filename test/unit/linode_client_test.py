@@ -499,10 +499,9 @@ class AccountGroupTest(ClientBaseCase):
         availabilities = self.client.account.availabilities()
 
         self.assertEqual(len(availabilities), 11)
-        print(availabilities)
         availability = availabilities[0]
 
-        self.assertEqual(availability.dc, "ap-west")
+        self.assertEqual(availability.region, "ap-west")
         self.assertEqual(availability.unavailable, [])
 
 
