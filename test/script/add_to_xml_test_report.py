@@ -2,7 +2,7 @@ import argparse
 import xml.etree.ElementTree as ET
 import requests
 
-latest_release_url = "https://api.github.com/repos/linode/linode-cli/releases/latest"
+latest_release_url = "https://api.github.com/repos/linode/linode_api4-python/releases/latest"
 
 
 def get_release_version():
