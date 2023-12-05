@@ -193,3 +193,15 @@ class NodeBalancerNodeTest(ClientBaseCase):
                 "linode.com - balancer12345 (12345) - day (5 min avg)",
             )
             self.assertEqual(m.call_url, statistics_url)
+
+    def test_firewalls(self):
+        """
+        Test that you can get the firewalls for the requested NodeBalancer.
+        """
+        nb = NodeBalancer(self.client, 12345)
+        firewalls_url = "/nodebalancers/12345/firewalls"
+
+        with self.mock_get(firewalls_url) as m:
+            result = nb.firewalls()
+            self.assertEqual(m.call_url, firewalls_url)
+            self.assertEqual(len(result), 1)
