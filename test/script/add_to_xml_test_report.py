@@ -1,8 +1,11 @@
 import argparse
 import xml.etree.ElementTree as ET
+
 import requests
 
-latest_release_url = "https://api.github.com/repos/linode/linode_api4-python/releases/latest"
+latest_release_url = (
+    "https://api.github.com/repos/linode/linode_api4-python/releases/latest"
+)
 
 
 def get_release_version():
@@ -28,12 +31,16 @@ def get_release_version():
 
 
 # Parse command-line arguments
-parser = argparse.ArgumentParser(description='Modify XML with workflow information')
-parser.add_argument('--branch_name', required=True)
-parser.add_argument('--gha_run_id', required=True)
-parser.add_argument('--gha_run_number', required=True)
-parser.add_argument('--release_tag', required=False)
-parser.add_argument('--xmlfile', required=True)  # Added argument for XML file path
+parser = argparse.ArgumentParser(
+    description="Modify XML with workflow information"
+)
+parser.add_argument("--branch_name", required=True)
+parser.add_argument("--gha_run_id", required=True)
+parser.add_argument("--gha_run_number", required=True)
+parser.add_argument("--release_tag", required=False)
+parser.add_argument(
+    "--xmlfile", required=True
+)  # Added argument for XML file path
 
 args = parser.parse_args()
 
@@ -43,16 +50,16 @@ tree = ET.parse(xml_file_path)
 root = tree.getroot()
 
 # Create new elements for the information
-branch_name_element = ET.Element('branch_name')
+branch_name_element = ET.Element("branch_name")
 branch_name_element.text = args.branch_name
 
-gha_run_id_element = ET.Element('gha_run_id')
+gha_run_id_element = ET.Element("gha_run_id")
 gha_run_id_element.text = args.gha_run_id
 
-gha_run_number_element = ET.Element('gha_run_number')
+gha_run_number_element = ET.Element("gha_run_number")
 gha_run_number_element.text = args.gha_run_number
 
-gha_release_tag_element = ET.Element('release_tag')
+gha_release_tag_element = ET.Element("release_tag")
 gha_release_tag_element.text = get_release_version()
 
 # Add the new elements to the root of the XML
@@ -65,4 +72,4 @@ root.append(gha_release_tag_element)
 modified_xml_file_path = xml_file_path  # Overwrite it
 tree.write(modified_xml_file_path)
 
-print(f'Modified XML saved to {modified_xml_file_path}')
+print(f"Modified XML saved to {modified_xml_file_path}")
