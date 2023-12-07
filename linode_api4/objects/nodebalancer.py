@@ -9,7 +9,7 @@ from linode_api4.objects import (
     Property,
     Region,
 )
-from linode_api4.objects.networking import IPAddress
+from linode_api4.objects.networking import IPAddress, Firewall
 
 
 class NodeBalancerNode(DerivedBase):
@@ -313,10 +313,6 @@ class NodeBalancer(Base):
         :returns: A List of Firewalls of the Linode NodeBalancer.
         :rtype: List[Firewall]
         """
-        from linode_api4.objects import (  # pylint: disable=import-outside-toplevel
-            Firewall,
-        )
-
         result = self._client.get(
             "{}/firewalls".format(NodeBalancer.api_endpoint), model=self
         )
