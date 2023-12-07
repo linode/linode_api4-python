@@ -24,7 +24,7 @@ from linode_api4.objects import (
 def linode_with_volume_firewall(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     label = get_test_label()
 
     rules = {
@@ -70,7 +70,7 @@ def linode_with_volume_firewall(test_linode_client):
 def linode_for_network_interface_tests(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     timestamp = str(time.time_ns())
     label = "TestSDK-" + timestamp
 
@@ -87,7 +87,7 @@ def linode_for_network_interface_tests(test_linode_client):
 def linode_for_disk_tests(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
@@ -118,7 +118,7 @@ def linode_for_disk_tests(test_linode_client):
 def create_linode_for_long_running_tests(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
@@ -158,7 +158,7 @@ def test_linode_transfer(test_linode_client, linode_with_volume_firewall):
 def test_linode_rebuild(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     label = get_test_label() + "_rebuild"
 
     linode, password = client.linode.instance_create(
@@ -208,7 +208,7 @@ def test_update_linode(create_linode):
 def test_delete_linode(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
@@ -413,7 +413,7 @@ def test_linode_ips(create_linode):
 def test_linode_initate_migration(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     label = get_test_label() + "_migration"
 
     linode, password = client.linode.instance_create(
@@ -424,7 +424,7 @@ def test_linode_initate_migration(test_linode_client):
     # Says it could take up to ~6 hrs for migration to fully complete
 
     send_request_when_resource_available(
-        300, linode.initiate_migration, "us-central"
+        300, linode.initiate_migration, "us-mia"
     )
 
     res = linode.delete()
