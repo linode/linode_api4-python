@@ -4,6 +4,7 @@ from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
     Account,
+    AccountAvailability,
     AccountBetaProgram,
     AccountSettings,
     BetaProgram,
@@ -483,3 +484,15 @@ class AccountGroup(Group):
         )
 
         return True
+
+    def availabilities(self, *filters):
+        """
+        Returns a list of all available regions and the resources which are NOT available
+        to the account.
+
+        API doc: TBD
+
+        :returns: a list of region availability information.
+        :rtype: PaginatedList of AccountAvailability
+        """
+        return self.client._get_and_filter(AccountAvailability, *filters)

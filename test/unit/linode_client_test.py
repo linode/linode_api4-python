@@ -492,6 +492,18 @@ class AccountGroupTest(ClientBaseCase):
         self.assertEqual(transfer.region_transfers[0].quota, 5010)
         self.assertEqual(transfer.region_transfers[0].billable, 0)
 
+    def test_account_availabilities(self):
+        """
+        Tests that account availabilities can be retrieved
+        """
+        availabilities = self.client.account.availabilities()
+
+        self.assertEqual(len(availabilities), 11)
+        availability = availabilities[0]
+
+        self.assertEqual(availability.region, "ap-west")
+        self.assertEqual(availability.unavailable, [])
+
 
 class BetaProgramGroupTest(ClientBaseCase):
     """
