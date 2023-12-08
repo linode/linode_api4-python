@@ -155,7 +155,7 @@ def test_domain(test_linode_client):
 def test_volume(test_linode_client):
     client = test_linode_client
     timestamp = str(time.time_ns())
-    region = client.regions()[0]
+    region = client.regions()[4]
     label = "TestSDK-" + timestamp
 
     volume = client.volume_create(label=label, region=region)
