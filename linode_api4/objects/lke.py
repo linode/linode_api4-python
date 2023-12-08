@@ -84,7 +84,8 @@ class LKENodePool(DerivedBase):
         if json is not None and json != {}:
             new_nodes = [
                 LKENodePoolNode(self._client, c)
-                if not isinstance(c, dict) else c
+                if not isinstance(c, dict)
+                else c
                 for c in json["nodes"]
             ]
             json["nodes"] = new_nodes
