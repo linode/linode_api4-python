@@ -9,7 +9,7 @@ from linode_api4.objects import (
     Property,
     Region,
 )
-from linode_api4.objects.networking import IPAddress, Firewall
+from linode_api4.objects.networking import Firewall, IPAddress
 
 
 class NodeBalancerNode(DerivedBase):
