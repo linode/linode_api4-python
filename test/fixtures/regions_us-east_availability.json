@@ -1,0 +1,67 @@
+[
+  {
+    "region": "us-east",
+    "plan": "gpu-rtx6000-1.1",
+    "available": false
+  },
+  {
+    "region": "us-east",
+    "plan": "gpu-rtx6000-2.1",
+    "available": false
+  },
+  {
+    "region": "us-east",
+    "plan": "gpu-rtx6000-3.1",
+    "available": false
+  },
+  {
+    "region": "us-east",
+    "plan": "gpu-rtx6000-4.1",
+    "available": false
+  },
+  {
+    "region": "us-east",
+    "plan": "premium131072.7",
+    "available": false
+  },
+  {
+    "region": "us-east",
+    "plan": "premium16384.7",
+    "available": false
+  },
+  {
+    "region": "us-east",
+    "plan": "premium262144.7",
+    "available": false
+  },
+  {
+    "region": "us-east",
+    "plan": "premium32768.7",
+    "available": false
+  },
+  {
+    "region": "us-east",
+    "plan": "premium4096.7",
+    "available": false
+  },
+  {
+    "region": "us-east",
+    "plan": "premium524288.7",
+    "available": false
+  },
+  {
+    "region": "us-east",
+    "plan": "premium65536.7",
+    "available": false
+  },
+  {
+    "region": "us-east",
+    "plan": "premium8192.7",
+    "available": false
+  },
+  {
+    "region": "us-east",
+    "plan": "premium98304.7",
+    "available": false
+  }
+]
