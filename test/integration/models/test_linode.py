@@ -448,7 +448,7 @@ def test_linode_initate_migration(test_linode_client):
     send_request_when_resource_available(
         300,
         linode.initiate_migration,
-        region="us-central",
+        region="us-mia",
         migration_type=MigrationType.COLD,
     )
 
