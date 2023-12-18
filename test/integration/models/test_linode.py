@@ -454,7 +454,6 @@ def test_linode_initate_migration(test_linode_client):
 
     assert res
 
-
     send_request_when_resource_available(
         300, linode.initiate_migration, "us-mia"
     )
