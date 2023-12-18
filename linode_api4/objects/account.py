@@ -656,3 +656,19 @@ class AccountBetaProgram(Base):
         "ended": Property(is_datetime=True),
         "enrolled": Property(is_datetime=True),
     }
+
+
+class AccountAvailability(Base):
+    """
+    The resources information in a region which are NOT available to an account.
+
+    API doc: TBD
+    """
+
+    api_endpoint = "/account/availability/{region}"
+    id_attribute = "region"
+
+    properties = {
+        "region": Property(identifier=True),
+        "unavailable": Property(),
+    }
