@@ -1,4 +1,3 @@
-import random
 import time
 from typing import Callable
 
@@ -8,7 +7,7 @@ from linode_api4.linode_client import LinodeClient
 
 
 def get_test_label():
-    unique_timestamp = str(int(time.time()) + random.randint(0, 1000))
+    unique_timestamp = str(time.time_ns())
     label = "IntTestSDK_" + unique_timestamp
     return label
 
@@ -94,13 +93,13 @@ def retry_sending_request(retries: int, condition: Callable, *args) -> object:
 
 
 def send_request_when_resource_available(
-    timeout: int, func: Callable, *args
+    timeout: int, func: Callable, *args, **kwargs
 ) -> object:
     start_time = time.time()
 
     while True:
         try:
-            res = func(*args)
+            res = func(*args, **kwargs)
             return res
         except ApiError as e:
             if (
@@ -110,9 +109,9 @@ def send_request_when_resource_available(
             ):
                 if time.time() - start_time > timeout:
                     raise TimeoutError(
-                        "Timeout Error: resource is not available in"
+                        "Timeout Error: resource is not available in "
                         + str(timeout)
-                        + "seconds"
+                        + " seconds"
                     )
                 time.sleep(10)
             else:

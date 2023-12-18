@@ -304,7 +304,7 @@ def test_linode_resize_with_class(
 
 
 def test_linode_resize_with_migration_type(
-    get_client, create_linode_for_long_running_tests
+    create_linode_for_long_running_tests,
 ):
     linode = create_linode_for_long_running_tests
     m_type = MigrationType.WARM
@@ -440,22 +440,16 @@ def test_linode_initate_migration(test_linode_client):
     chosen_region = available_regions[4]
     label = get_test_label() + "_migration"
 
-    linode, password = client.linode.instance_create(
-        "g6-nanode-1", chosen_region, image="linode/debian10", label=label
+    linode, _ = client.linode.instance_create(
+        "g6-nanode-1", chosen_region, image="linode/debian12", label=label
     )
 
-    wait_for_condition(10, 100, get_status, linode, "running")
     # Says it could take up to ~6 hrs for migration to fully complete
-    linode.initiate_migration(
-        region="us-central", migration_type=MigrationType.COLD
-    )
-
-    res = linode.delete()
-
-    assert res
-
     send_request_when_resource_available(
-        300, linode.initiate_migration, "us-mia"
+        300,
+        linode.initiate_migration,
+        region="us-central",
+        migration_type=MigrationType.COLD,
     )
 
     res = linode.delete()
