@@ -64,7 +64,7 @@ def test_latest_get_event(test_linode_client):
     client = test_linode_client
 
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     label = get_test_label()
 
     linode, password = client.linode.instance_create(

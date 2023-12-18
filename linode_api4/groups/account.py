@@ -4,6 +4,7 @@ from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
     Account,
+    AccountAvailability,
     AccountBetaProgram,
     AccountSettings,
     BetaProgram,
@@ -457,7 +458,7 @@ class AccountGroup(Group):
         """
         Returns a list of all Beta Programs an account is enrolled in.
 
-        API doc: TBD
+        API doc: https://www.linode.com/docs/api/beta-programs/#enrolled-beta-programs-list
 
         :returns: a list of Beta Programs.
         :rtype: PaginatedList of AccountBetaProgram
@@ -468,7 +469,7 @@ class AccountGroup(Group):
         """
         Enrolls an account into a beta program.
 
-        API doc: TBD
+        API doc: https://www.linode.com/docs/api/beta-programs/#beta-program-enroll
 
         :param beta: The object or id of a beta program to join.
         :type beta: BetaProgram or str
@@ -483,3 +484,15 @@ class AccountGroup(Group):
         )
 
         return True
+
+    def availabilities(self, *filters):
+        """
+        Returns a list of all available regions and the resources which are NOT available
+        to the account.
+
+        API doc: TBD
+
+        :returns: a list of region availability information.
+        :rtype: PaginatedList of AccountAvailability
+        """
+        return self.client._get_and_filter(AccountAvailability, *filters)

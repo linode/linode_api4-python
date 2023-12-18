@@ -9,7 +9,7 @@ from linode_api4.objects import Firewall, FirewallDevice
 def linode_fw(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     label = "linode_instance_fw_device"
 
     linode_instance, password = client.linode.instance_create(

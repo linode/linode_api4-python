@@ -9,7 +9,7 @@ from linode_api4.objects import (
     Property,
     Region,
 )
-from linode_api4.objects.networking import IPAddress
+from linode_api4.objects.networking import Firewall, IPAddress
 
 
 class NodeBalancerNode(DerivedBase):
@@ -303,3 +303,21 @@ class NodeBalancer(Base):
                 "Unexpected response generating stats!", json=result
             )
         return MappedObject(**result)
+
+    def firewalls(self):
+        """
+        View Firewall information for Firewalls associated with this NodeBalancer.
+
+        API Documentation: https://www.linode.com/docs/api/nodebalancers/#nodebalancer-firewalls-list
+
+        :returns: A List of Firewalls of the Linode NodeBalancer.
+        :rtype: List[Firewall]
+        """
+        result = self._client.get(
+            "{}/firewalls".format(NodeBalancer.api_endpoint), model=self
+        )
+
+        return [
+            Firewall(self._client, firewall["id"])
+            for firewall in result["data"]
+        ]

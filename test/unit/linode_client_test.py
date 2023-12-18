@@ -280,6 +280,28 @@ class LinodeClientGeneralTest(ClientBaseCase):
 
         assert called
 
+    def test_custom_verify(self):
+        """
+        If we set a custom `verify` value on our session,
+        we want it preserved.
+        """
+        called = False
+
+        self.client.session.verify = False
+        old_get = self.client.session.get
+
+        def get_mock(*params, verify=True, **kwargs):
+            nonlocal called
+            called = True
+            assert verify is False
+            return old_get(*params, **kwargs)
+
+        self.client.session.get = get_mock
+
+        self.client.linode.instances()
+
+        assert called
+
 
 class AccountGroupTest(ClientBaseCase):
     """
@@ -491,6 +513,18 @@ class AccountGroupTest(ClientBaseCase):
         self.assertEqual(transfer.region_transfers[0].used, 1)
         self.assertEqual(transfer.region_transfers[0].quota, 5010)
         self.assertEqual(transfer.region_transfers[0].billable, 0)
+
+    def test_account_availabilities(self):
+        """
+        Tests that account availabilities can be retrieved
+        """
+        availabilities = self.client.account.availabilities()
+
+        self.assertEqual(len(availabilities), 11)
+        availability = availabilities[0]
+
+        self.assertEqual(availability.region, "ap-west")
+        self.assertEqual(availability.unavailable, [])
 
 
 class BetaProgramGroupTest(ClientBaseCase):

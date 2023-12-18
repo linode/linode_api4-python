@@ -10,7 +10,7 @@ from linode_api4.objects import NodeBalancerConfig, NodeBalancerNode
 def linode_with_private_ip(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     label = "linode_with_privateip"
 
     linode_instance, password = client.linode.instance_create(
@@ -30,7 +30,7 @@ def linode_with_private_ip(test_linode_client):
 def create_nb_config(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     label = "nodebalancer_test"
 
     nb = client.nodebalancer_create(region=chosen_region, label=label)

@@ -642,6 +642,8 @@ class UserGrants:
 class AccountBetaProgram(Base):
     """
     The details and enrollment information of a Beta program that an account is enrolled in.
+
+    API Documentation: https://www.linode.com/docs/api/beta-programs/#enrolled-beta-program-view
     """
 
     api_endpoint = "/account/betas/{id}"
@@ -653,4 +655,20 @@ class AccountBetaProgram(Base):
         "started": Property(is_datetime=True),
         "ended": Property(is_datetime=True),
         "enrolled": Property(is_datetime=True),
+    }
+
+
+class AccountAvailability(Base):
+    """
+    The resources information in a region which are NOT available to an account.
+
+    API doc: TBD
+    """
+
+    api_endpoint = "/account/availability/{region}"
+    id_attribute = "region"
+
+    properties = {
+        "region": Property(identifier=True),
+        "unavailable": Property(),
     }
