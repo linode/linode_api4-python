@@ -1,0 +1,6 @@
+[submodule "test/todscript"]
+	path = test/todscript
+	url = https://github.com/linode/TOD-test-report-uploader.git
+[submodule "script"]
+	path = script
+	url = https://github.com/linode/TOD-test-report-uploader.git
