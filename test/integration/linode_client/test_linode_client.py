@@ -276,7 +276,7 @@ def test_cluster_create_with_api_objects(test_linode_client):
     version = client.lke.versions()[0]
     region = client.regions().first()
     node_pools = client.lke.node_pool(node_type, 3)
-    label = get_test_label() + "-cluster"
+    label = get_test_label()
 
     cluster = client.lke.cluster_create(region, label, node_pools, version)
 

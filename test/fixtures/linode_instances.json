@@ -8,7 +8,7 @@
       "hypervisor": "kvm",
       "id": 123,
       "status": "running",
-      "type": "g5-standard-1",
+      "type": "g6-standard-1",
       "alerts": {
         "network_in": 5,
         "network_out": 5,

@@ -308,7 +308,7 @@ def create_vpc_with_subnet_and_linode(
     label = "TestSDK-" + timestamp
 
     instance, password = test_linode_client.linode.instance_create(
-        "g5-standard-4", vpc.region, image="linode/debian11", label=label
+        "g6-standard-1", vpc.region, image="linode/debian11", label=label
     )
 
     yield vpc, subnet, instance, password

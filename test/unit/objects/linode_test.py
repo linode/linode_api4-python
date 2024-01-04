@@ -560,7 +560,7 @@ class TypeTest(ClientBaseCase):
         """
         Tests that a Linode type is loaded correctly by ID
         """
-        t = Type(self.client, "g5-nanode-1")
+        t = Type(self.client, "g6-nanode-1")
         self.assertEqual(t._populated, False)
 
         self.assertEqual(t.vcpus, 1)
@@ -574,7 +574,7 @@ class TypeTest(ClientBaseCase):
         """
         Tests that gpu types load up right
         """
-        t = Type(self.client, "g5-gpu-2")
+        t = Type(self.client, "g6-gpu-2")
         self.assertEqual(t._populated, False)
 
         self.assertEqual(t.gpus, 1)
