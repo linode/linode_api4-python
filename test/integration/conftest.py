@@ -54,7 +54,7 @@ def run_long_tests():
 def create_linode(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     timestamp = str(time.time_ns())
     label = "TestSDK-" + timestamp
 
@@ -71,7 +71,7 @@ def create_linode(test_linode_client):
 def create_linode_for_pass_reset(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     timestamp = str(time.time_ns())
     label = "TestSDK-" + timestamp
 
@@ -155,7 +155,7 @@ def test_domain(test_linode_client):
 def test_volume(test_linode_client):
     client = test_linode_client
     timestamp = str(time.time_ns())
-    region = client.regions()[0]
+    region = client.regions()[4]
     label = "TestSDK-" + timestamp
 
     volume = client.volume_create(label=label, region=region)
@@ -308,7 +308,7 @@ def create_vpc_with_subnet_and_linode(
     label = "TestSDK-" + timestamp
 
     instance, password = test_linode_client.linode.instance_create(
-        "g5-standard-4", vpc.region, image="linode/debian11", label=label
+        "g6-standard-1", vpc.region, image="linode/debian11", label=label
     )
 
     yield vpc, subnet, instance, password

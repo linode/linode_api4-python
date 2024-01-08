@@ -16,7 +16,7 @@ from linode_api4.objects import Volume
 def linode_for_volume(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     timestamp = str(time.time_ns())
     label = "TestSDK-" + timestamp
 

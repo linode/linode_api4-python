@@ -40,7 +40,7 @@ def test_create_sql_db(test_linode_client):
     )
     client = test_linode_client
     label = get_test_label() + "-sqldb"
-    region = "us-east"
+    region = "us-ord"
     engine_id = get_db_engine_id(client, "mysql")
     dbtype = "g6-standard-1"
 
@@ -70,7 +70,7 @@ def test_create_postgres_db(test_linode_client):
     )
     client = test_linode_client
     label = get_test_label() + "-postgresqldb"
-    region = "us-east"
+    region = "us-ord"
     engine_id = get_db_engine_id(client, "postgresql")
     dbtype = "g6-standard-1"
 

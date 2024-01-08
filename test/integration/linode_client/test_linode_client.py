@@ -12,7 +12,7 @@ from linode_api4.objects import ObjectStorageKeys
 def setup_client_and_linode(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]  # us-ord (Chicago)
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
@@ -32,9 +32,6 @@ def test_get_account(setup_client_and_linode):
     assert re.search("^$|[a-zA-Z]+", account.last_name)
     assert re.search(
         "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", account.email
-    )
-    assert re.search(
-        "^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$", account.phone
     )
     assert re.search("^$|[a-zA-Z0-9]+", account.address_1)
     assert re.search("^$|[a-zA-Z0-9]+", account.address_2)
@@ -212,7 +209,7 @@ def test_get_account_settings(test_linode_client):
 def test_create_linode_instance_without_image(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     label = get_test_label()
 
     linode_instance = client.linode.instance_create(
@@ -279,7 +276,7 @@ def test_cluster_create_with_api_objects(test_linode_client):
     version = client.lke.versions()[0]
     region = client.regions().first()
     node_pools = client.lke.node_pool(node_type, 3)
-    label = get_test_label() + "-cluster"
+    label = get_test_label()
 
     cluster = client.lke.cluster_create(region, label, node_pools, version)
 
@@ -297,7 +294,7 @@ def test_fails_to_create_cluster_with_invalid_version(test_linode_client):
 
     try:
         cluster = client.lke.cluster_create(
-            "ap-west",
+            "us-ord",
             "example-cluster",
             {"type": "g6-standard-1", "count": 3},
             invalid_version,

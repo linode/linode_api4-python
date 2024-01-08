@@ -256,9 +256,10 @@ class Type(Base):
         """
         Allows changing the name "class" in JSON to "type_class" in python
         """
+
         super()._populate(json)
 
-        if "class" in json:
+        if json is not None and "class" in json:
             setattr(self, "type_class", json["class"])
         else:
             setattr(self, "type_class", None)
@@ -612,6 +613,11 @@ class Config(DerivedBase):
         return i
 
 
+class MigrationType:
+    COLD = "cold"
+    WARM = "warm"
+
+
 class Instance(Base):
     """
     A Linode Instance.
@@ -948,7 +954,13 @@ class Instance(Base):
             return False
         return True
 
-    def resize(self, new_type, allow_auto_disk_resize=True, **kwargs):
+    def resize(
+        self,
+        new_type,
+        allow_auto_disk_resize=True,
+        migration_type: MigrationType = MigrationType.COLD,
+        **kwargs,
+    ):
         """
         Resizes a Linode you have the read_write permission to a different Type. If any
         actions are currently running or queued, those actions must be completed first
@@ -970,6 +982,10 @@ class Instance(Base):
                                        data must fit within the smaller disk size. Defaults to true.
         :type: allow_auto_disk_resize: bool
 
+        :param migration_type: Type of migration to be used when resizing a Linode.
+                               Customers can choose between warm and cold, the default type is cold.
+        :type: migration_type: str
+
         :returns: True if the operation was successful.
         :rtype: bool
         """
@@ -979,6 +995,7 @@ class Instance(Base):
         params = {
             "type": new_type,
             "allow_auto_disk_resize": allow_auto_disk_resize,
+            "migration_type": migration_type,
         }
         params.update(kwargs)
 
@@ -1438,7 +1455,12 @@ class Instance(Base):
 
         return True
 
-    def initiate_migration(self, region=None, upgrade=None):
+    def initiate_migration(
+        self,
+        region=None,
+        upgrade=None,
+        migration_type: MigrationType = MigrationType.COLD,
+    ):
         """
         Initiates a pending migration that is already scheduled for this Linode
         Instance
@@ -1459,10 +1481,16 @@ class Instance(Base):
                         region field does not allow upgrades, then the endpoint will return a 400 error
                         code and the migration will not be performed.
         :type: upgrade: bool
+
+        :param migration_type: The type of migration that will be used for this Linode migration.
+                               Customers can only use this param when activating a support-created migration.
+                               Customers can choose between a cold and warm migration, cold is the default type.
+        :type: mirgation_type: str
         """
         params = {
             "region": region.id if issubclass(type(region), Base) else region,
             "upgrade": upgrade,
+            "type": migration_type,
         }
 
         util.drop_null_keys(params)

@@ -20,7 +20,7 @@ def test_get_networking_rules(test_linode_client, test_firewall):
 def create_linode(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     label = get_rand_nanosec_test_label()
 
     linode_instance, _ = client.linode.instance_create(

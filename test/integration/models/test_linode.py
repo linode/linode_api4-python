@@ -18,13 +18,14 @@ from linode_api4.objects import (
     Instance,
     Type,
 )
+from linode_api4.objects.linode import MigrationType
 
 
 @pytest.fixture(scope="session")
 def linode_with_volume_firewall(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     label = get_test_label()
 
     rules = {
@@ -70,7 +71,7 @@ def linode_with_volume_firewall(test_linode_client):
 def linode_for_network_interface_tests(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     timestamp = str(time.time_ns())
     label = "TestSDK-" + timestamp
 
@@ -87,7 +88,7 @@ def linode_for_network_interface_tests(test_linode_client):
 def linode_for_disk_tests(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
@@ -118,7 +119,7 @@ def linode_for_disk_tests(test_linode_client):
 def create_linode_for_long_running_tests(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
@@ -158,7 +159,7 @@ def test_linode_transfer(test_linode_client, linode_with_volume_firewall):
 def test_linode_rebuild(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     label = get_test_label() + "_rebuild"
 
     linode, password = client.linode.instance_create(
@@ -208,7 +209,7 @@ def test_update_linode(create_linode):
 def test_delete_linode(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
@@ -302,6 +303,29 @@ def test_linode_resize_with_class(
     assert linode.status == "running"
 
 
+def test_linode_resize_with_migration_type(
+    create_linode_for_long_running_tests,
+):
+    linode = create_linode_for_long_running_tests
+    m_type = MigrationType.WARM
+
+    wait_for_condition(10, 100, get_status, linode, "running")
+
+    time.sleep(5)
+    res = linode.resize(new_type="g6-standard-1", migration_type=m_type)
+
+    assert res
+
+    wait_for_condition(10, 300, get_status, linode, "resizing")
+
+    assert linode.status == "resizing"
+
+    # Takes about 3-5 minute to resize, sometimes longer...
+    wait_for_condition(30, 600, get_status, linode, "running")
+
+    assert linode.status == "running"
+
+
 def test_linode_boot_with_config(create_linode):
     linode = create_linode
 
@@ -325,7 +349,7 @@ def test_linode_firewalls(linode_with_volume_firewall):
     firewalls = linode.firewalls()
 
     assert len(firewalls) > 0
-    assert "TestSDK" in firewalls[0].label
+    assert "test" in firewalls[0].label
 
 
 def test_linode_volumes(linode_with_volume_firewall):
@@ -334,7 +358,7 @@ def test_linode_volumes(linode_with_volume_firewall):
     volumes = linode.volumes()
 
     assert len(volumes) > 0
-    assert "TestSDK" in volumes[0].label
+    assert "test" in volumes[0].label
 
 
 def wait_for_disk_status(disk: Disk, timeout):
@@ -413,18 +437,19 @@ def test_linode_ips(create_linode):
 def test_linode_initate_migration(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     label = get_test_label() + "_migration"
 
-    linode, password = client.linode.instance_create(
-        "g6-nanode-1", chosen_region, image="linode/debian10", label=label
+    linode, _ = client.linode.instance_create(
+        "g6-nanode-1", chosen_region, image="linode/debian12", label=label
     )
 
-    wait_for_condition(10, 100, get_status, linode, "running")
     # Says it could take up to ~6 hrs for migration to fully complete
-
     send_request_when_resource_available(
-        300, linode.initiate_migration, "us-central"
+        300,
+        linode.initiate_migration,
+        region="us-mia",
+        migration_type=MigrationType.COLD,
     )
 
     res = linode.delete()

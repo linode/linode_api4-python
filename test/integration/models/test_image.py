@@ -42,7 +42,7 @@ def test_image_create_upload(test_linode_client):
     label = get_test_label() + "_image"
     image = test_linode_client.image_upload(
         label,
-        "us-east",
+        "us-ord",
         BytesIO(test_image_content),
         description="integration test image upload",
     )
