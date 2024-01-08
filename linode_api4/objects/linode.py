@@ -256,9 +256,10 @@ class Type(Base):
         """
         Allows changing the name "class" in JSON to "type_class" in python
         """
+
         super()._populate(json)
 
-        if "class" in json:
+        if json is not None and "class" in json:
             setattr(self, "type_class", json["class"])
         else:
             setattr(self, "type_class", None)

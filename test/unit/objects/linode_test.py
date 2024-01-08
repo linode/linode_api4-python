@@ -580,6 +580,15 @@ class TypeTest(ClientBaseCase):
         self.assertEqual(t.gpus, 1)
         self.assertEqual(t._populated, True)
 
+    def test_load_type(self):
+        """
+        Tests that a type can be loaded using LinodeClient.load(...)
+        """
+
+        t = self.client.load(Type, "g6-nanode-1")
+        self.assertEqual(t._populated, True)
+        self.assertEqual(t.type_class, "nanode")
+
     def test_save_noforce(self):
         """
         Tests that a client will only save if changes are detected
