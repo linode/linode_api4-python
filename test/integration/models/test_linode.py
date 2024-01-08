@@ -349,7 +349,7 @@ def test_linode_firewalls(linode_with_volume_firewall):
     firewalls = linode.firewalls()
 
     assert len(firewalls) > 0
-    assert "TestSDK" in firewalls[0].label
+    assert "test" in firewalls[0].label
 
 
 def test_linode_volumes(linode_with_volume_firewall):
@@ -358,7 +358,7 @@ def test_linode_volumes(linode_with_volume_firewall):
     volumes = linode.volumes()
 
     assert len(volumes) > 0
-    assert "TestSDK" in volumes[0].label
+    assert "test" in volumes[0].label
 
 
 def wait_for_disk_status(disk: Disk, timeout):

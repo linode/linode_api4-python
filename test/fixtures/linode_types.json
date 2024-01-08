@@ -31,7 +31,7 @@
       "network_out": 1000,
       "vcpus": 1,
       "gpus": 0,
-      "id": "g5-nanode-1",
+      "id": "g6-nanode-1",
       "label": "Linode 1024",
       "price": {
         "hourly": 0.0075,
@@ -127,7 +127,7 @@
       "network_out": 1000,
       "vcpus": 1,
       "gpus": 0,
-      "id": "g5-standard-1",
+      "id": "g6-standard-1",
       "label": "Linode 2048",
       "price": {
         "hourly": 0.015,
@@ -175,7 +175,7 @@
       "network_out": 1000,
       "vcpus": 2,
       "gpus": 1,
-      "id": "g5-gpu-2",
+      "id": "g6-gpu-2",
       "label": "Linode 4096",
       "price": {
         "hourly": 0.03,
