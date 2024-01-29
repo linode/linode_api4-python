@@ -295,9 +295,11 @@ class LinodeGroup(Group):
         params = {
             "type": ltype.id if issubclass(type(ltype), Base) else ltype,
             "region": region.id if issubclass(type(region), Base) else region,
-            "image": (image.id if issubclass(type(image), Base) else image)
-            if image
-            else None,
+            "image": (
+                (image.id if issubclass(type(image), Base) else image)
+                if image
+                else None
+            ),
             "authorized_keys": authorized_keys,
         }
 

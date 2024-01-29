@@ -310,9 +310,9 @@ class NetworkingGroup(Group):
 
         params = {
             "ips": shared_ips,
-            "linode_id": linode
-            if not isinstance(linode, Instance)
-            else linode.id,
+            "linode_id": (
+                linode if not isinstance(linode, Instance) else linode.id
+            ),
         }
 
         self.client.post("/networking/ips/share", model=self, data=params)

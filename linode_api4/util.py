@@ -1,6 +1,7 @@
 """
 Contains various utility functions.
 """
+
 from typing import Any, Dict
 
 
