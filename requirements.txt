@@ -1,2 +1,0 @@
-requests
-polling>=0.3.2

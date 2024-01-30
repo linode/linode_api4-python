@@ -27,13 +27,13 @@ build: clean
 release: build
 	$(PYTHON) -m twine upload dist/*
 
-.PHONY: install
-install: clean requirements
-	$(PYTHON) -m pip install .
+.PHONY: dev-install
+dev-install: clean
+	$(PYTHON) -m pip install -e ".[dev]"
 
-.PHONY: requirements
-requirements:
-	$(PYTHON) -m pip install -r requirements.txt -r requirements-dev.txt
+.PHONY: install
+install: clean
+	$(PYTHON) -m pip install .
 
 .PHONY: black
 black:
