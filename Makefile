@@ -12,45 +12,45 @@ ifdef TEST_MODEL
 MODEL_COMMAND = models/$(TEST_MODEL)
 endif
 
-@PHONEY: clean
+.PHONY: clean
 clean:
 	mkdir -p dist
 	rm -r dist
 	rm -f baked_version
 
-@PHONEY: build
+.PHONY: build
 build: clean
 	$(PYTHON) -m build  --wheel --sdist
 
 
-@PHONEY: release
+.PHONY: release
 release: build
 	$(PYTHON) -m twine upload dist/*
 
-@PHONEY: install
+.PHONY: install
 install: clean requirements
 	$(PYTHON) -m pip install .
 
-@PHONEY: requirements
+.PHONY: requirements
 requirements:
 	$(PYTHON) -m pip install -r requirements.txt -r requirements-dev.txt
 
-@PHONEY: black
+.PHONY: black
 black:
 	$(PYTHON) -m black linode_api4 test
 
-@PHONEY: isort
+.PHONY: isort
 isort:
 	$(PYTHON) -m isort linode_api4 test
 
-@PHONEY: autoflake
+.PHONY: autoflake
 autoflake:
 	$(PYTHON) -m autoflake linode_api4 test
 
-@PHONEY: format
+.PHONY: format
 format: black isort autoflake
 
-@PHONEY: lint
+.PHONY: lint
 lint: build
 	$(PYTHON) -m isort --check-only linode_api4 test
 	$(PYTHON) -m autoflake --check linode_api4 test
@@ -58,14 +58,14 @@ lint: build
 	$(PYTHON) -m pylint linode_api4
 	$(PYTHON) -m twine check dist/*
 
-@PHONEY: testint
+.PHONY: testint
 testint:
 	$(PYTHON) -m pytest test/integration/${INTEGRATION_TEST_PATH}${MODEL_COMMAND} ${TEST_CASE_COMMAND}
 
-@PHONEY: testunit
+.PHONY: testunit
 testunit:
 	$(PYTHON) -m pytest test/unit
 
-@PHONEY: smoketest
+.PHONY: smoketest
 smoketest:
 	$(PYTHON) -m pytest -m smoke test/integration --disable-warnings
