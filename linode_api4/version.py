@@ -1,3 +1,5 @@
-import os
+"""
+The version of this linode_api4 package.
+"""
 
-__version__ = os.getenv("LINODE_SDK_VERSION", "0.0.0.dev")
+__version__ = "0.0.0.dev"

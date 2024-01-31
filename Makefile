@@ -4,6 +4,10 @@ INTEGRATION_TEST_PATH :=
 TEST_CASE_COMMAND :=
 MODEL_COMMAND :=
 
+LINODE_SDK_VERSION ?= "0.0.0.dev"
+VERSION_MODULE_DOCSTRING ?= \"\"\"\nThe version of this linode_api4 package.\n\"\"\"\n\n
+VERSION_FILE := ./linode_api4/version.py
+
 ifdef TEST_CASE
 TEST_CASE_COMMAND = -k $(TEST_CASE)
 endif
@@ -22,6 +26,9 @@ clean:
 build: clean
 	$(PYTHON) -m build  --wheel --sdist
 
+.PHONY: create-version
+create-version:
+	@echo "${VERSION_MODULE_DOCSTRING}__version__ = \"${LINODE_PYTHON_SDK_VERSION}\"" > $(VERSION_FILE)
 
 .PHONY: release
 release: build
