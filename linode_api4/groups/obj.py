@@ -104,9 +104,12 @@ class ObjectStorageGroup(Group):
                 {
                     "permissions": c.get("permissions"),
                     "bucket_name": c.get("bucket_name"),
-                    "cluster": c.id
-                    if "cluster" in c and issubclass(type(c["cluster"]), Base)
-                    else c.get("cluster"),
+                    "cluster": (
+                        c.id
+                        if "cluster" in c
+                        and issubclass(type(c["cluster"]), Base)
+                        else c.get("cluster")
+                    ),
                 }
                 for c in bucket_access
             ]
