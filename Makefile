@@ -28,7 +28,7 @@ build: clean
 
 .PHONY: create-version
 create-version:
-	@echo "${VERSION_MODULE_DOCSTRING}__version__ = \"${LINODE_PYTHON_SDK_VERSION}\"" > $(VERSION_FILE)
+	@echo "${VERSION_MODULE_DOCSTRING}__version__ = \"${LINODE_SDK_VERSION}\"" > $(VERSION_FILE)
 
 .PHONY: release
 release: build
