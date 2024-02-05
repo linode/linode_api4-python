@@ -160,8 +160,8 @@ class LinodeGroup(Group):
         To output the password from the above example:
             print(password)
 
-        To output the IPv4 address of the new Linode:
-            print(new_linode.ipv4)
+        To output the first IPv4 address of the new Linode:
+            print(new_linode.ipv4[0])
 
         To delete the new_linode (WARNING: this immediately destroys the Linode):
             new_linode.delete()
