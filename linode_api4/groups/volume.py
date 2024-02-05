@@ -56,9 +56,9 @@ class VolumeGroup(Group):
             "label": label,
             "size": size,
             "region": region.id if issubclass(type(region), Base) else region,
-            "linode_id": linode.id
-            if issubclass(type(linode), Base)
-            else linode,
+            "linode_id": (
+                linode.id if issubclass(type(linode), Base) else linode
+            ),
         }
         params.update(kwargs)
 

@@ -82,9 +82,9 @@ class Backup(DerivedBase):
         """
 
         d = {
-            "linode_id": linode.id
-            if issubclass(type(linode), Base)
-            else linode,
+            "linode_id": (
+                linode.id if issubclass(type(linode), Base) else linode
+            ),
         }
         d.update(kwargs)
 
@@ -379,9 +379,11 @@ class ConfigInterface(JSONObject):
                 "purpose": "vpc",
                 "primary": self.primary,
                 "subnet_id": self.subnet_id,
-                "ipv4": self.ipv4.dict
-                if isinstance(self.ipv4, ConfigInterfaceIPv4)
-                else self.ipv4,
+                "ipv4": (
+                    self.ipv4.dict
+                    if isinstance(self.ipv4, ConfigInterfaceIPv4)
+                    else self.ipv4
+                ),
                 "ip_ranges": self.ip_ranges,
             },
         }
@@ -1117,9 +1119,11 @@ class Instance(Base):
 
         params = {
             "kernel": kernel.id if issubclass(type(kernel), Base) else kernel,
-            "label": label
-            if label
-            else "{}_config_{}".format(self.label, len(self.configs)),
+            "label": (
+                label
+                if label
+                else "{}_config_{}".format(self.label, len(self.configs))
+            ),
             "devices": device_map,
             "interfaces": param_interfaces,
         }
@@ -1190,9 +1194,11 @@ class Instance(Base):
 
         params = {
             "size": size,
-            "label": label
-            if label
-            else "{}_disk_{}".format(self.label, len(self.disks)),
+            "label": (
+                label
+                if label
+                else "{}_disk_{}".format(self.label, len(self.disks))
+            ),
             "read_only": read_only,
             "filesystem": filesystem,
             "authorized_keys": authorized_keys,
@@ -1202,9 +1208,9 @@ class Instance(Base):
         if image:
             params.update(
                 {
-                    "image": image.id
-                    if issubclass(type(image), Base)
-                    else image,
+                    "image": (
+                        image.id if issubclass(type(image), Base) else image
+                    ),
                     "root_pass": root_pass,
                 }
             )
@@ -1629,13 +1635,15 @@ class Instance(Base):
         dids = [d.id if issubclass(type(d), Base) else d for d in disks]
 
         params = {
-            "linode_id": to_linode.id
-            if issubclass(type(to_linode), Base)
-            else to_linode,
+            "linode_id": (
+                to_linode.id if issubclass(type(to_linode), Base) else to_linode
+            ),
             "region": region.id if issubclass(type(region), Base) else region,
-            "type": instance_type.id
-            if issubclass(type(instance_type), Base)
-            else instance_type,
+            "type": (
+                instance_type.id
+                if issubclass(type(instance_type), Base)
+                else instance_type
+            ),
             "configs": cids if cids else None,
             "disks": dids if dids else None,
             "label": label,
