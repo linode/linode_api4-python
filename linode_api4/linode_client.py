@@ -2,16 +2,17 @@ from __future__ import annotations
 
 import json
 import logging
+from importlib.metadata import version
 from typing import BinaryIO, Tuple
 from urllib import parse
 
-import pkg_resources
 import requests
 from requests.adapters import HTTPAdapter, Retry
 
 from linode_api4.errors import ApiError, UnexpectedResponseError
 from linode_api4.groups import (
     AccountGroup,
+    BetaProgramGroup,
     DatabaseGroup,
     DomainGroup,
     ImageGroup,
@@ -27,6 +28,7 @@ from linode_api4.groups import (
     SupportGroup,
     TagGroup,
     VolumeGroup,
+    VPCGroup,
 )
 from linode_api4.objects import Image, and_
 from linode_api4.objects.filtering import Filter
@@ -35,7 +37,7 @@ from .common import SSH_KEY_TYPES, load_and_validate_keys
 from .paginated_list import PaginatedList
 from .util import drop_null_keys
 
-package_version = pkg_resources.require("linode_api4")[0].version
+package_version = version("linode_api4")
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +63,7 @@ class LinodeClient:
         retry_rate_limit_interval=1.0,
         retry_max=5,
         retry_statuses=None,
+        ca_path=None,
     ):
         """
         The main interface to the Linode API.
@@ -95,11 +98,14 @@ class LinodeClient:
         :param retry_statuses: Additional HTTP response statuses to retry on.
                                By default, the client will retry on 408, 429, and 502
                                responses.
+        :param ca_path: The path to a CA file to use for API requests in this client.
+        :type ca_path: str
         """
         self.base_url = base_url
         self._add_user_agent = user_agent
         self.token = token
         self.page_size = page_size
+        self.ca_path = ca_path
 
         retry_forcelist = [408, 429, 502]
 
@@ -185,8 +191,14 @@ class LinodeClient:
         #: Access methods related to Images - See :any:`ImageGroup` for more information.
         self.images = ImageGroup(self)
 
+        #: Access methods related to VPCs - See :any:`VPCGroup` for more information.
+        self.vpcs = VPCGroup(self)
+
         #: Access methods related to Event polling - See :any:`PollingGroup` for more information.
         self.polling = PollingGroup(self)
+
+        #: Access methods related to Beta Program - See :any:`BetaProgramGroup` for more information.
+        self.beta = BetaProgramGroup(self)
 
     @property
     def _user_agent(self):
@@ -263,7 +275,12 @@ class LinodeClient:
         if data is not None:
             body = json.dumps(data)
 
-        response = method(url, headers=headers, data=body)
+        response = method(
+            url,
+            headers=headers,
+            data=body,
+            verify=self.ca_path or self.session.verify,
+        )
 
         warning = response.headers.get("Warning", None)
         if warning:

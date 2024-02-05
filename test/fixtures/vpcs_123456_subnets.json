@@ -1,0 +1,29 @@
+{
+  "data": [
+    {
+      "label": "test-subnet",
+      "id": 789,
+      "ipv4": "10.0.0.0/24",
+      "linodes": [
+        {
+          "id": 12345,
+          "interfaces": [
+            {
+              "id": 678,
+              "active": true
+            },
+            {
+              "id": 543,
+              "active": false
+            }
+          ]
+        }
+      ],
+      "created": "2018-01-01T00:01:01",
+      "updated": "2018-01-01T00:01:01"
+    }
+  ],
+  "results": 1,
+  "page": 1,
+  "pages": 1
+}

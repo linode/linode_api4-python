@@ -25,43 +25,47 @@ build: clean
 
 @PHONEY: release
 release: build
-	twine upload dist/*
+	$(PYTHON) -m twine upload dist/*
 
 @PHONEY: install
-install: clean
-	python3 -m pip install .
+install: clean requirements
+	$(PYTHON) -m pip install .
 
 @PHONEY: requirements
 requirements:
-	pip install -r requirements.txt -r requirements-dev.txt
+	$(PYTHON) -m pip install -r requirements.txt -r requirements-dev.txt
 
 @PHONEY: black
 black:
-	black linode_api4 test
+	$(PYTHON) -m black linode_api4 test
 
 @PHONEY: isort
 isort:
-	isort linode_api4 test
+	$(PYTHON) -m isort linode_api4 test
 
 @PHONEY: autoflake
 autoflake:
-	autoflake linode_api4 test
+	$(PYTHON) -m autoflake linode_api4 test
 
 @PHONEY: format
 format: black isort autoflake
 
 @PHONEY: lint
 lint: build
-	isort --check-only linode_api4 test
-	autoflake --check linode_api4 test
-	black --check --verbose linode_api4 test
-	pylint linode_api4
-	twine check dist/*
+	$(PYTHON) -m isort --check-only linode_api4 test
+	$(PYTHON) -m autoflake --check linode_api4 test
+	$(PYTHON) -m black --check --verbose linode_api4 test
+	$(PYTHON) -m pylint linode_api4
+	$(PYTHON) -m twine check dist/*
 
 @PHONEY: testint
 testint:
-	python3 -m pytest test/integration/${INTEGRATION_TEST_PATH}${MODEL_COMMAND} ${TEST_CASE_COMMAND}
+	$(PYTHON) -m pytest test/integration/${INTEGRATION_TEST_PATH}${MODEL_COMMAND} ${TEST_CASE_COMMAND}
+
+@PHONEY: testunit
+testunit:
+	$(PYTHON) -m pytest test/unit
 
 @PHONEY: smoketest
 smoketest:
-	pytest -m smoke test/integration --disable-warnings
+	$(PYTHON) -m pytest -m smoke test/integration --disable-warnings

@@ -7,16 +7,16 @@ from linode_api4.objects import NodeBalancerConfig, NodeBalancerNode
 
 
 @pytest.fixture(scope="session")
-def create_linode_with_private_ip(get_client):
-    client = get_client
+def linode_with_private_ip(test_linode_client):
+    client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     label = "linode_with_privateip"
 
     linode_instance, password = client.linode.instance_create(
-        "g5-standard-4",
+        "g6-nanode-1",
         chosen_region,
-        image="linode/debian9",
+        image="linode/debian10",
         label=label,
         private_ip=True,
     )
@@ -27,10 +27,10 @@ def create_linode_with_private_ip(get_client):
 
 
 @pytest.fixture(scope="session")
-def create_nb_config(get_client):
-    client = get_client
+def create_nb_config(test_linode_client):
+    client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     label = "nodebalancer_test"
 
     nb = client.nodebalancer_create(region=chosen_region, label=label)
@@ -43,8 +43,8 @@ def create_nb_config(get_client):
     nb.delete()
 
 
-def test_get_nodebalancer_config(get_client, create_nb_config):
-    config = get_client.load(
+def test_get_nodebalancer_config(test_linode_client, create_nb_config):
+    config = test_linode_client.load(
         NodeBalancerConfig,
         create_nb_config.id,
         create_nb_config.nodebalancer_id,
@@ -53,14 +53,14 @@ def test_get_nodebalancer_config(get_client, create_nb_config):
 
 @pytest.mark.smoke
 def test_create_nb_node(
-    get_client, create_nb_config, create_linode_with_private_ip
+    test_linode_client, create_nb_config, linode_with_private_ip
 ):
-    config = get_client.load(
+    config = test_linode_client.load(
         NodeBalancerConfig,
         create_nb_config.id,
         create_nb_config.nodebalancer_id,
     )
-    linode = create_linode_with_private_ip
+    linode = linode_with_private_ip
     address = [a for a in linode.ipv4 if re.search("192.168.+", a)][0]
     node = config.node_create(
         "node_test", address + ":80", weight=50, mode="accept"
@@ -70,16 +70,16 @@ def test_create_nb_node(
     assert "node_test" == node.label
 
 
-def test_get_nb_node(get_client, create_nb_config):
-    node = get_client.load(
+def test_get_nb_node(test_linode_client, create_nb_config):
+    node = test_linode_client.load(
         NodeBalancerNode,
         create_nb_config.nodes[0].id,
         (create_nb_config.id, create_nb_config.nodebalancer_id),
     )
 
 
-def test_update_nb_node(get_client, create_nb_config):
-    config = get_client.load(
+def test_update_nb_node(test_linode_client, create_nb_config):
+    config = test_linode_client.load(
         NodeBalancerConfig,
         create_nb_config.id,
         create_nb_config.nodebalancer_id,
@@ -90,7 +90,7 @@ def test_update_nb_node(get_client, create_nb_config):
     node.mode = "accept"
     node.save()
 
-    node_updated = get_client.load(
+    node_updated = test_linode_client.load(
         NodeBalancerNode,
         create_nb_config.nodes[0].id,
         (create_nb_config.id, create_nb_config.nodebalancer_id),
@@ -101,8 +101,8 @@ def test_update_nb_node(get_client, create_nb_config):
     assert "accept" == node_updated.mode
 
 
-def test_delete_nb_node(get_client, create_nb_config):
-    config = get_client.load(
+def test_delete_nb_node(test_linode_client, create_nb_config):
+    config = test_linode_client.load(
         NodeBalancerConfig,
         create_nb_config.id,
         create_nb_config.nodebalancer_id,
@@ -112,7 +112,7 @@ def test_delete_nb_node(get_client, create_nb_config):
     node.delete()
 
     with pytest.raises(ApiError) as e:
-        get_client.load(
+        test_linode_client.load(
             NodeBalancerNode,
             create_nb_config.nodes[0].id,
             (create_nb_config.id, create_nb_config.nodebalancer_id),

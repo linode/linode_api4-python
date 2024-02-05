@@ -8,6 +8,8 @@ from linode_api4.groups import Group
 from linode_api4.objects import (
     AuthorizedApp,
     Base,
+    ConfigInterface,
+    Firewall,
     Image,
     Instance,
     Kernel,
@@ -261,6 +263,8 @@ class LinodeGroup(Group):
                          The contents of this field can be built using the
                          :any:`build_instance_metadata` method.
         :type metadata: dict
+        :param firewall: The firewall to attach this Linode to.
+        :type firewall: int or Firewall
 
         :returns: A new Instance object, or a tuple containing the new Instance and
                   the generated password.
@@ -295,6 +299,10 @@ class LinodeGroup(Group):
             )
             del kwargs["backup"]
 
+        if "firewall" in kwargs:
+            fw = kwargs.pop("firewall")
+            kwargs["firewall_id"] = fw.id if isinstance(fw, Firewall) else fw
+
         params = {
             "type": ltype.id if issubclass(type(ltype), Base) else ltype,
             "region": region.id if issubclass(type(region), Base) else region,
@@ -303,6 +311,7 @@ class LinodeGroup(Group):
             else None,
             "authorized_keys": authorized_keys,
         }
+
         params.update(kwargs)
 
         result = self.client.post("/linode/instances", data=params)

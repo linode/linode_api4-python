@@ -132,3 +132,17 @@ class LKETest(ClientBaseCase):
         with self.mock_delete() as m:
             cluster.service_token_delete()
             self.assertEqual(m.call_url, "/lke/clusters/18881/servicetoken")
+
+    def test_load_node_pool(self):
+        """
+        Tests that an LKE Node Pool can be retrieved using LinodeClient.load(...)
+        """
+        pool = self.client.load(LKENodePool, 456, 18881)
+
+        self.assertEqual(pool.id, 456)
+        self.assertEqual(pool.cluster_id, 18881)
+        self.assertEqual(pool.type.id, "g6-standard-4")
+        self.assertIsNotNone(pool.disks)
+        self.assertIsNotNone(pool.nodes)
+        self.assertIsNotNone(pool.autoscaler)
+        self.assertIsNotNone(pool.tags)

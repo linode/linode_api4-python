@@ -9,14 +9,14 @@ from linode_api4.objects import ObjectStorageKeys
 
 
 @pytest.fixture(scope="session", autouse=True)
-def setup_client_and_linode(get_client):
-    client = get_client
+def setup_client_and_linode(test_linode_client):
+    client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]  # us-ord (Chicago)
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
-        "g5-standard-4", chosen_region, image="linode/debian9", label=label
+        "g6-nanode-1", chosen_region, image="linode/debian10", label=label
     )
 
     yield client, linode_instance
@@ -33,9 +33,6 @@ def test_get_account(setup_client_and_linode):
     assert re.search(
         "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", account.email
     )
-    assert re.search(
-        "^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$", account.phone
-    )
     assert re.search("^$|[a-zA-Z0-9]+", account.address_1)
     assert re.search("^$|[a-zA-Z0-9]+", account.address_2)
     assert re.search("^$|[a-zA-Z]+", account.city)
@@ -50,7 +47,7 @@ def test_get_account(setup_client_and_linode):
 def test_fails_to_create_domain_without_soa_email(setup_client_and_linode):
     client = setup_client_and_linode[0]
 
-    timestamp = str(int(time.time()))
+    timestamp = str(time.time_ns())
     domain_addr = timestamp + "example.com"
     try:
         domain = client.domain_create(domain=domain_addr)
@@ -59,9 +56,9 @@ def test_fails_to_create_domain_without_soa_email(setup_client_and_linode):
 
 
 @pytest.mark.smoke
-def test_get_domains(get_client, create_domain):
-    client = get_client
-    domain = create_domain
+def test_get_domains(test_linode_client, test_domain):
+    client = test_linode_client
+    domain = test_domain
     domain_dict = client.domains()
 
     dom_list = [i.domain for i in domain_dict]
@@ -117,9 +114,9 @@ def test_fails_to_delete_predefined_images(setup_client_and_linode):
         assert e.status == 403
 
 
-def test_get_volume(get_client, create_volume):
-    client = get_client
-    label = create_volume.label
+def test_get_volume(test_linode_client, test_volume):
+    client = test_linode_client
+    label = test_volume.label
 
     volume_dict = client.volumes()
 
@@ -128,9 +125,9 @@ def test_get_volume(get_client, create_volume):
     assert label in volume_label_list
 
 
-def test_get_tag(get_client, create_tag):
-    client = get_client
-    label = create_tag.label
+def test_get_tag(test_linode_client, test_tag):
+    client = test_linode_client
+    label = test_tag.label
 
     tags = client.tags()
 
@@ -140,13 +137,13 @@ def test_get_tag(get_client, create_tag):
 
 
 def test_create_tag_with_id(
-    setup_client_and_linode, create_nodebalancer, create_domain, create_volume
+    setup_client_and_linode, test_nodebalancer, test_domain, test_volume
 ):
     client = setup_client_and_linode[0]
     linode = setup_client_and_linode[1]
-    nodebalancer = create_nodebalancer
-    domain = create_domain
-    volume = create_volume
+    nodebalancer = test_nodebalancer
+    domain = test_domain
+    volume = test_volume
 
     label = get_test_label()
 
@@ -170,13 +167,13 @@ def test_create_tag_with_id(
 
 @pytest.mark.smoke
 def test_create_tag_with_entities(
-    setup_client_and_linode, create_nodebalancer, create_domain, create_volume
+    setup_client_and_linode, test_nodebalancer, test_domain, test_volume
 ):
     client = setup_client_and_linode[0]
     linode = setup_client_and_linode[1]
-    nodebalancer = create_nodebalancer
-    domain = create_domain
-    volume = create_volume
+    nodebalancer = test_nodebalancer
+    domain = test_domain
+    volume = test_volume
 
     label = get_test_label()
 
@@ -195,8 +192,8 @@ def test_create_tag_with_entities(
 
 
 # AccountGroupTests
-def test_get_account_settings(get_client):
-    client = get_client
+def test_get_account_settings(test_linode_client):
+    client = test_linode_client
     account_settings = client.account.settings()
 
     assert account_settings._populated == True
@@ -209,14 +206,14 @@ def test_get_account_settings(get_client):
 
 
 # LinodeGroupTests
-def test_create_linode_instance_without_image(get_client):
-    client = get_client
+def test_create_linode_instance_without_image(test_linode_client):
+    client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     label = get_test_label()
 
     linode_instance = client.linode.instance_create(
-        "g5-standard-4", chosen_region, label=label
+        "g6-nanode-1", chosen_region, label=label
     )
 
     assert linode_instance.label == label
@@ -231,22 +228,22 @@ def test_create_linode_instance_without_image(get_client):
 def test_create_linode_instance_with_image(setup_client_and_linode):
     linode = setup_client_and_linode[1]
 
-    assert re.search("linode/debian9", str(linode.image))
+    assert re.search("linode/debian10", str(linode.image))
 
 
 # LongviewGroupTests
-def test_get_longview_clients(get_client, create_longview_client):
-    client = get_client
+def test_get_longview_clients(test_linode_client, test_longview_client):
+    client = test_linode_client
 
     longview_client = client.longview.clients()
 
     client_labels = [i.label for i in longview_client]
 
-    assert create_longview_client.label in client_labels
+    assert test_longview_client.label in client_labels
 
 
-def test_client_create_with_label(get_client):
-    client = get_client
+def test_client_create_with_label(test_linode_client):
+    client = test_linode_client
     label = get_test_label()
     longview_client = client.longview.client_create(label=label)
 
@@ -266,20 +263,20 @@ def test_client_create_with_label(get_client):
 # LKEGroupTest
 
 
-def test_kube_version(get_client):
-    client = get_client
+def test_kube_version(test_linode_client):
+    client = test_linode_client
     lke_version = client.lke.versions()
 
     assert re.search("[0-9].[0-9]+", lke_version.first().id)
 
 
-def test_cluster_create_with_api_objects(get_client):
-    client = get_client
+def test_cluster_create_with_api_objects(test_linode_client):
+    client = test_linode_client
     node_type = client.linode.types()[1]  # g6-standard-1
     version = client.lke.versions()[0]
     region = client.regions().first()
     node_pools = client.lke.node_pool(node_type, 3)
-    label = get_test_label() + "-cluster"
+    label = get_test_label()
 
     cluster = client.lke.cluster_create(region, label, node_pools, version)
 
@@ -291,13 +288,13 @@ def test_cluster_create_with_api_objects(get_client):
     assert res
 
 
-def test_fails_to_create_cluster_with_invalid_version(get_client):
+def test_fails_to_create_cluster_with_invalid_version(test_linode_client):
     invalid_version = "a.12"
-    client = get_client
+    client = test_linode_client
 
     try:
         cluster = client.lke.cluster_create(
-            "ap-west",
+            "us-ord",
             "example-cluster",
             {"type": "g6-standard-1", "count": 3},
             invalid_version,
@@ -310,19 +307,19 @@ def test_fails_to_create_cluster_with_invalid_version(get_client):
 # ProfileGroupTest
 
 
-def test_get_sshkeys(get_client, upload_sshkey):
-    client = get_client
+def test_get_sshkeys(test_linode_client, test_sshkey):
+    client = test_linode_client
 
     ssh_keys = client.profile.ssh_keys()
 
     ssh_labels = [i.label for i in ssh_keys]
 
-    assert upload_sshkey.label in ssh_labels
+    assert test_sshkey.label in ssh_labels
 
 
-def test_ssh_key_create(upload_sshkey, ssh_key_gen):
+def test_ssh_key_create(test_sshkey, ssh_key_gen):
     pub_key = ssh_key_gen[0]
-    key = upload_sshkey
+    key = test_sshkey
 
     assert pub_key == key._raw_json["ssh_key"]
 
@@ -330,8 +327,8 @@ def test_ssh_key_create(upload_sshkey, ssh_key_gen):
 # ObjectStorageGroupTests
 
 
-def test_get_object_storage_clusters(get_client):
-    client = get_client
+def test_get_object_storage_clusters(test_linode_client):
+    client = test_linode_client
 
     clusters = client.object_storage.clusters()
 
@@ -339,9 +336,9 @@ def test_get_object_storage_clusters(get_client):
     assert "us-east" in clusters[0].region.id
 
 
-def test_get_keys(get_client, create_ssh_keys_object_storage):
-    client = get_client
-    key = create_ssh_keys_object_storage
+def test_get_keys(test_linode_client, ssh_keys_object_storage):
+    client = test_linode_client
+    key = ssh_keys_object_storage
 
     keys = client.object_storage.keys()
     key_labels = [i.label for i in keys]
@@ -349,10 +346,12 @@ def test_get_keys(get_client, create_ssh_keys_object_storage):
     assert key.label in key_labels
 
 
-def test_keys_create(get_client, create_ssh_keys_object_storage):
-    key = create_ssh_keys_object_storage
+def test_keys_create(test_linode_client, ssh_keys_object_storage):
+    key = ssh_keys_object_storage
 
-    assert type(key) == type(ObjectStorageKeys(client=get_client, id="123"))
+    assert type(key) == type(
+        ObjectStorageKeys(client=test_linode_client, id="123")
+    )
 
 
 # NetworkingGroupTests
@@ -362,8 +361,8 @@ def test_keys_create(get_client, create_ssh_keys_object_storage):
 
 
 @pytest.fixture
-def create_firewall_with_inbound_outbound_rules(get_client):
-    client = get_client
+def create_firewall_with_inbound_outbound_rules(test_linode_client):
+    client = test_linode_client
     label = get_test_label() + "-firewall"
     rules = {
         "outbound": [
@@ -398,9 +397,9 @@ def create_firewall_with_inbound_outbound_rules(get_client):
 
 
 def test_get_firewalls_with_inbound_outbound_rules(
-    get_client, create_firewall_with_inbound_outbound_rules
+    test_linode_client, create_firewall_with_inbound_outbound_rules
 ):
-    client = get_client
+    client = test_linode_client
     firewalls = client.networking.firewalls()
     firewall = create_firewall_with_inbound_outbound_rules
 

@@ -14,8 +14,8 @@ from linode_api4.objects import (
 
 
 @pytest.mark.smoke
-def test_get_account(get_client):
-    client = get_client
+def test_get_account(test_linode_client):
+    client = test_linode_client
     account = client.account()
     account_id = account.id
     account_get = client.load(Account, account_id)
@@ -33,8 +33,8 @@ def test_get_account(get_client):
     assert account_get.tax_id == account.tax_id
 
 
-def test_get_login(get_client):
-    client = get_client
+def test_get_login(test_linode_client):
+    client = test_linode_client
     login = client.load(Login(client, "", {}), "")
 
     updated_time = int(time.mktime(getattr(login, "_last_updated").timetuple()))
@@ -48,8 +48,8 @@ def test_get_login(get_client):
     assert login_updated < 15
 
 
-def test_get_account_settings(get_client):
-    client = get_client
+def test_get_account_settings(test_linode_client):
+    client = test_linode_client
     account_settings = client.load(AccountSettings(client, ""), "")
 
     assert "managed" in str(account_settings._raw_json)
@@ -60,15 +60,15 @@ def test_get_account_settings(get_client):
 
 
 @pytest.mark.smoke
-def test_latest_get_event(get_client):
-    client = get_client
+def test_latest_get_event(test_linode_client):
+    client = test_linode_client
 
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     label = get_test_label()
 
     linode, password = client.linode.instance_create(
-        "g5-standard-4", chosen_region, image="linode/debian9", label=label
+        "g6-nanode-1", chosen_region, image="linode/debian10", label=label
     )
 
     events = client.load(Event, "")
@@ -80,17 +80,17 @@ def test_latest_get_event(get_client):
     assert label in latest_event["entity"]["label"]
 
 
-def test_get_oathclient(get_client, create_oauth_client):
-    client = get_client
+def test_get_oathclient(test_linode_client, test_oauth_client):
+    client = test_linode_client
 
-    oauth_client = client.load(OAuthClient, create_oauth_client.id)
+    oauth_client = client.load(OAuthClient, test_oauth_client.id)
 
     assert "test-oauth-client" == oauth_client.label
     assert "https://localhost/oauth/callback" == oauth_client.redirect_uri
 
 
-def test_get_user(get_client):
-    client = get_client
+def test_get_user(test_linode_client):
+    client = test_linode_client
 
     events = client.load(Event, "")
 

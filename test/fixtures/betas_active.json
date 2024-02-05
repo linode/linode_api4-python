@@ -1,0 +1,9 @@
+{
+    "id": "active", 
+    "label": "active closed beta", 
+    "description": "An active closed beta", 
+    "started": "2018-01-02T03:04:05", 
+    "ended": null, 
+    "greenlight_only": true, 
+    "more_info": "a link with even more info"
+}

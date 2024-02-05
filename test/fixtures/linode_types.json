@@ -1,8 +1,8 @@
 {
-"results": 4,
-"pages": 1,
-"page": 1,
-"data": [
+  "results": 4,
+  "pages": 1,
+  "page": 1,
+  "data": [
     {
       "disk": 20480,
       "memory": 1024,
@@ -12,19 +12,43 @@
           "price": {
             "hourly": 0.003,
             "monthly": 2
-          }
+          },
+          "region_prices": [
+            {
+              "id": "ap-west",
+              "hourly": 0.02,
+              "monthly": 20
+            },
+            {
+              "id": "ap-northeast",
+              "hourly": 0.02,
+              "monthly": 20
+            }
+          ]
         }
       },
       "class": "nanode",
       "network_out": 1000,
       "vcpus": 1,
       "gpus": 0,
-      "id": "g5-nanode-1",
+      "id": "g6-nanode-1",
       "label": "Linode 1024",
       "price": {
         "hourly": 0.0075,
         "monthly": 5
       },
+      "region_prices": [
+        {
+          "id": "us-east",
+          "hourly": 0.02,
+          "monthly": 20
+        },
+        {
+          "id": "ap-northeast",
+          "hourly": 0.02,
+          "monthly": 20
+        }
+      ],
       "successor": null
     },
     {
@@ -36,7 +60,19 @@
           "price": {
             "hourly": 0.008,
             "monthly": 5
-          }
+          },
+          "region_prices": [
+            {
+              "id": "ap-west",
+              "hourly": 0.02,
+              "monthly": 20
+            },
+            {
+              "id": "ap-northeast",
+              "hourly": 0.02,
+              "monthly": 20
+            }
+          ]
         }
       },
       "class": "highmem",
@@ -49,6 +85,18 @@
         "hourly": 0.09,
         "monthly": 60
       },
+      "region_prices": [
+        {
+          "id": "us-east",
+          "hourly": 0.02,
+          "monthly": 20
+        },
+        {
+          "id": "ap-northeast",
+          "hourly": 0.02,
+          "monthly": 20
+        }
+      ],
       "successor": null
     },
     {
@@ -60,19 +108,43 @@
           "price": {
             "hourly": 0.004,
             "monthly": 2.5
-          }
+          },
+          "region_prices": [
+            {
+              "id": "ap-west",
+              "hourly": 0.02,
+              "monthly": 20
+            },
+            {
+              "id": "ap-northeast",
+              "hourly": 0.02,
+              "monthly": 20
+            }
+          ]
         }
       },
       "class": "standard",
       "network_out": 1000,
       "vcpus": 1,
       "gpus": 0,
-      "id": "g5-standard-1",
+      "id": "g6-standard-1",
       "label": "Linode 2048",
       "price": {
         "hourly": 0.015,
         "monthly": 10
       },
+      "region_prices": [
+        {
+          "id": "us-east",
+          "hourly": 0.02,
+          "monthly": 20
+        },
+        {
+          "id": "ap-northeast",
+          "hourly": 0.02,
+          "monthly": 20
+        }
+      ],
       "successor": null
     },
     {
@@ -84,19 +156,43 @@
           "price": {
             "hourly": 0.008,
             "monthly": 5
-          }
+          },
+          "region_prices": [
+            {
+              "id": "ap-west",
+              "hourly": 0.02,
+              "monthly": 20
+            },
+            {
+              "id": "ap-northeast",
+              "hourly": 0.02,
+              "monthly": 20
+            }
+          ]
         }
       },
       "class": "gpu",
       "network_out": 1000,
       "vcpus": 2,
       "gpus": 1,
-      "id": "g5-gpu-2",
+      "id": "g6-gpu-2",
       "label": "Linode 4096",
       "price": {
         "hourly": 0.03,
         "monthly": 20
       },
+      "region_prices": [
+        {
+          "id": "us-east",
+          "hourly": 0.02,
+          "monthly": 20
+        },
+        {
+          "id": "ap-northeast",
+          "hourly": 0.02,
+          "monthly": 20
+        }
+      ],
       "successor": null
     }
   ]

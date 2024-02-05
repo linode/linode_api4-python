@@ -6,9 +6,9 @@ from linode_api4.objects import Instance, Tag
 
 
 @pytest.fixture
-def create_tag(get_client):
+def test_tag(test_linode_client):
     unique_tag = get_test_label() + "_tag"
-    tag = get_client.tag_create(unique_tag)
+    tag = test_linode_client.tag_create(unique_tag)
 
     yield tag
 
@@ -16,7 +16,7 @@ def create_tag(get_client):
 
 
 @pytest.mark.smoke
-def test_get_tag(get_client, create_tag):
-    tag = get_client.load(Tag, create_tag.id)
+def test_get_tag(test_linode_client, test_tag):
+    tag = test_linode_client.load(Tag, test_tag.id)
 
-    assert tag.id == create_tag.id
+    assert tag.id == test_tag.id

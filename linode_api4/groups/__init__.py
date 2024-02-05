@@ -2,6 +2,7 @@
 from .group import *  # isort: skip
 
 from .account import *
+from .beta import *
 from .database import *
 from .domain import *
 from .image import *
@@ -17,3 +18,4 @@ from .region import *
 from .support import *
 from .tag import *
 from .volume import *
+from .vpc import *

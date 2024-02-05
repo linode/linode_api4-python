@@ -1,0 +1,14 @@
+{
+   "id": 123,
+   "purpose": "vpc",
+   "primary": false,
+   "vpc_id": 123456,
+   "subnet_id": 789,
+   "ipv4": {
+      "vpc": "10.0.0.3",
+      "nat_1_1": "any"
+   },
+   "ip_ranges": [
+      "10.0.0.0/24"
+   ]
+}

@@ -6,14 +6,14 @@ from linode_api4.objects import Firewall, FirewallDevice
 
 
 @pytest.fixture(scope="session")
-def create_linode_fw(get_client):
-    client = get_client
+def linode_fw(test_linode_client):
+    client = test_linode_client
     available_regions = client.regions()
-    chosen_region = available_regions[0]
+    chosen_region = available_regions[4]
     label = "linode_instance_fw_device"
 
     linode_instance, password = client.linode.instance_create(
-        "g5-standard-4", chosen_region, image="linode/debian9", label=label
+        "g6-nanode-1", chosen_region, image="linode/debian10", label=label
     )
 
     yield linode_instance
@@ -22,8 +22,8 @@ def create_linode_fw(get_client):
 
 
 @pytest.mark.smoke
-def test_get_firewall_rules(get_client, create_firewall):
-    firewall = get_client.load(Firewall, create_firewall.id)
+def test_get_firewall_rules(test_linode_client, test_firewall):
+    firewall = test_linode_client.load(Firewall, test_firewall.id)
     rules = firewall.rules
 
     assert rules.inbound_policy in ["ACCEPT", "DROP"]
@@ -31,8 +31,8 @@ def test_get_firewall_rules(get_client, create_firewall):
 
 
 @pytest.mark.smoke
-def test_update_firewall_rules(get_client, create_firewall):
-    firewall = get_client.load(Firewall, create_firewall.id)
+def test_update_firewall_rules(test_linode_client, test_firewall):
+    firewall = test_linode_client.load(Firewall, test_firewall.id)
     new_rules = {
         "inbound": [
             {
@@ -56,26 +56,26 @@ def test_update_firewall_rules(get_client, create_firewall):
 
     time.sleep(1)
 
-    firewall = get_client.load(Firewall, create_firewall.id)
+    firewall = test_linode_client.load(Firewall, test_firewall.id)
 
     assert firewall.rules.inbound_policy == "ACCEPT"
     assert firewall.rules.outbound_policy == "DROP"
 
 
-def test_get_devices(get_client, create_linode_fw, create_firewall):
-    linode = create_linode_fw
+def test_get_devices(test_linode_client, linode_fw, test_firewall):
+    linode = linode_fw
 
-    create_firewall.device_create(int(linode.id))
+    test_firewall.device_create(int(linode.id))
 
-    firewall = get_client.load(Firewall, create_firewall.id)
+    firewall = test_linode_client.load(Firewall, test_firewall.id)
 
     assert len(firewall.devices) > 0
 
 
-def test_get_device(get_client, create_firewall, create_linode_fw):
-    firewall = create_firewall
+def test_get_device(test_linode_client, test_firewall, linode_fw):
+    firewall = test_firewall
 
-    firewall_device = get_client.load(
+    firewall_device = test_linode_client.load(
         FirewallDevice, firewall.devices.first().id, firewall.id
     )
 

@@ -2,6 +2,7 @@ from datetime import datetime
 from test.unit.base import ClientBaseCase
 
 from linode_api4 import LongviewSubscription
+from linode_api4.objects.beta import BetaProgram
 from linode_api4.objects.linode import Instance
 from linode_api4.objects.networking import IPAddress
 from linode_api4.objects.object_storage import (
@@ -257,6 +258,50 @@ class LinodeClientGeneralTest(ClientBaseCase):
                 },
             )
 
+    def test_override_ca(self):
+        """
+        Tests that the CA file used for API requests can be overridden.
+        """
+        self.client.ca_path = "foobar"
+
+        called = False
+
+        old_get = self.client.session.get
+
+        def get_mock(*params, verify=True, **kwargs):
+            nonlocal called
+            called = True
+            assert verify == "foobar"
+            return old_get(*params, **kwargs)
+
+        self.client.session.get = get_mock
+
+        self.client.linode.instances()
+
+        assert called
+
+    def test_custom_verify(self):
+        """
+        If we set a custom `verify` value on our session,
+        we want it preserved.
+        """
+        called = False
+
+        self.client.session.verify = False
+        old_get = self.client.session.get
+
+        def get_mock(*params, verify=True, **kwargs):
+            nonlocal called
+            called = True
+            assert verify is False
+            return old_get(*params, **kwargs)
+
+        self.client.session.get = get_mock
+
+        self.client.linode.instances()
+
+        assert called
+
 
 class AccountGroupTest(ClientBaseCase):
     """
@@ -411,6 +456,97 @@ class AccountGroupTest(ClientBaseCase):
         self.assertEqual(payment.date, datetime(2015, 1, 1, 5, 1, 2))
         self.assertEqual(payment.usd, 1000)
 
+    def test_enrolled_betas(self):
+        """
+        Tests that enrolled beta programs can be retrieved
+        """
+        enrolled_betas = self.client.account.enrolled_betas()
+
+        self.assertEqual(len(enrolled_betas), 1)
+        beta = enrolled_betas[0]
+
+        self.assertEqual(beta.id, "cool")
+        self.assertEqual(beta.enrolled, datetime(2018, 1, 2, 3, 4, 5))
+        self.assertEqual(beta.started, datetime(2018, 1, 2, 3, 4, 5))
+        self.assertEqual(beta.ended, datetime(2018, 1, 2, 3, 4, 5))
+
+    def test_join_beta_program(self):
+        """
+        Tests that user can join a beta program
+        """
+        join_beta_url = "/account/betas"
+        with self.mock_post({}) as m:
+            self.client.account.join_beta_program("cool_beta")
+            self.assertEqual(
+                m.call_data,
+                {
+                    "id": "cool_beta",
+                },
+            )
+            self.assertEqual(m.call_url, join_beta_url)
+
+        # Test that user can join a beta program with an BetaProgram object
+        with self.mock_post({}) as m:
+            self.client.account.join_beta_program(
+                BetaProgram(self.client, "cool_beta")
+            )
+            self.assertEqual(
+                m.call_data,
+                {
+                    "id": "cool_beta",
+                },
+            )
+            self.assertEqual(m.call_url, join_beta_url)
+
+    def test_account_transfer(self):
+        """
+        Tests that payments can be retrieved
+        """
+        transfer = self.client.account.transfer()
+
+        self.assertEqual(transfer.quota, 471)
+        self.assertEqual(transfer.used, 737373)
+        self.assertEqual(transfer.billable, 0)
+
+        self.assertEqual(len(transfer.region_transfers), 1)
+        self.assertEqual(transfer.region_transfers[0].id, "ap-west")
+        self.assertEqual(transfer.region_transfers[0].used, 1)
+        self.assertEqual(transfer.region_transfers[0].quota, 5010)
+        self.assertEqual(transfer.region_transfers[0].billable, 0)
+
+    def test_account_availabilities(self):
+        """
+        Tests that account availabilities can be retrieved
+        """
+        availabilities = self.client.account.availabilities()
+
+        self.assertEqual(len(availabilities), 11)
+        availability = availabilities[0]
+
+        self.assertEqual(availability.region, "ap-west")
+        self.assertEqual(availability.unavailable, [])
+
+
+class BetaProgramGroupTest(ClientBaseCase):
+    """
+    Tests methods of the BetaProgramGroup
+    """
+
+    def test_betas(self):
+        """
+        Test that available beta programs can be retrieved
+        """
+        betas = self.client.beta.betas()
+
+        self.assertEqual(len(betas), 2)
+        beta = betas[0]
+        self.assertEqual(beta.id, "active_closed")
+        self.assertEqual(beta.label, "active closed beta")
+        self.assertEqual(beta.started, datetime(2023, 7, 19, 15, 23, 43))
+        self.assertEqual(beta.ended, None)
+        self.assertEqual(beta.greenlight_only, True)
+        self.assertEqual(beta.more_info, "a link with even more info")
+
 
 class LinodeGroupTest(ClientBaseCase):
     """
@@ -423,7 +559,7 @@ class LinodeGroupTest(ClientBaseCase):
         """
         with self.mock_post("linode/instances/123") as m:
             l = self.client.linode.instance_create(
-                "g5-standard-1", "us-east-1a"
+                "g6-standard-1", "us-east-1a"
             )
 
             self.assertIsNotNone(l)
@@ -432,7 +568,7 @@ class LinodeGroupTest(ClientBaseCase):
             self.assertEqual(m.call_url, "/linode/instances")
 
             self.assertEqual(
-                m.call_data, {"region": "us-east-1a", "type": "g5-standard-1"}
+                m.call_data, {"region": "us-east-1a", "type": "g6-standard-1"}
             )
 
     def test_instance_create_with_image(self):
@@ -441,7 +577,7 @@ class LinodeGroupTest(ClientBaseCase):
         """
         with self.mock_post("linode/instances/123") as m:
             l, pw = self.client.linode.instance_create(
-                "g5-standard-1", "us-east-1a", image="linode/debian9"
+                "g6-standard-1", "us-east-1a", image="linode/debian9"
             )
 
             self.assertIsNotNone(l)
@@ -453,7 +589,7 @@ class LinodeGroupTest(ClientBaseCase):
                 m.call_data,
                 {
                     "region": "us-east-1a",
-                    "type": "g5-standard-1",
+                    "type": "g6-standard-1",
                     "image": "linode/debian9",
                     "root_pass": pw,
                 },
@@ -572,7 +708,7 @@ class LKEGroupTest(ClientBaseCase):
             )
             self.assertEqual(m.call_data["region"], "ap-west")
             self.assertEqual(
-                m.call_data["node_pools"], [{"type": "g5-nanode-1", "count": 3}]
+                m.call_data["node_pools"], [{"type": "g6-nanode-1", "count": 3}]
             )
             self.assertEqual(m.call_data["k8s_version"], "1.19")
 

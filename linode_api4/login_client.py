@@ -324,7 +324,11 @@ class OAuthScopes:
 
 class LinodeLoginClient:
     def __init__(
-        self, client_id, client_secret, base_url="https://login.linode.com"
+        self,
+        client_id,
+        client_secret,
+        base_url="https://login.linode.com",
+        ca_path=None,
     ):
         """
         Create a new LinodeLoginClient.  These clients do not make any requests
@@ -339,10 +343,13 @@ class LinodeLoginClient:
         :param base_url: The URL for Linode's OAuth server.  This should not be
                          changed.
         :type base_url: str
+        :param ca_path: The path to the CA file to use for requests run by this client.
+        :type ca_path: str
         """
         self.base_url = base_url
         self.client_id = client_id
         self.client_secret = client_secret
+        self.ca_path = ca_path
 
     def _login_uri(self, path):
         return "{}{}".format(self.base_url, path)
@@ -423,6 +430,7 @@ class LinodeLoginClient:
                 "client_id": self.client_id,
                 "client_secret": self.client_secret,
             },
+            verify=self.ca_path or True,
         )
 
         if r.status_code != 200:
@@ -467,6 +475,7 @@ class LinodeLoginClient:
                 "client_secret": self.client_secret,
                 "refresh_token": refresh_token,
             },
+            verify=self.ca_path or True,
         )
 
         if r.status_code != 200:
@@ -481,9 +490,10 @@ class LinodeLoginClient:
 
     def expire_token(self, token):
         """
-        Given a token, makes a request to the authentication server to expire
-        it immediately.  This is considered a responsible way to log out a
-        user.  If you simply remove the session your application has for the
+        Given a token, makes a request to the authentication server to expire both
+        access token and refresh token.
+        This is considered a responsible way to log out a user.
+        If you remove only the session your application has for the
         user without expiring their token, the user is not _really_ logged out.
 
         :param token: The OAuth token you wish to expire
@@ -495,12 +505,14 @@ class LinodeLoginClient:
         :raises ApiError: If the expiration attempt failed.
         """
         r = requests.post(
-            self._login_uri("/oauth/token/expire"),
+            self._login_uri("/oauth/revoke"),
             data={
+                "token_type_hint": "access_token",
                 "client_id": self.client_id,
                 "client_secret": self.client_secret,
                 "token": token,
             },
+            verify=self.ca_path or True,
         )
 
         if r.status_code != 200:
