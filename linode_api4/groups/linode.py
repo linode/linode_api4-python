@@ -142,7 +142,7 @@ class LinodeGroup(Group):
         these fields may be provided as either the ID or the appropriate object.
         In this mode, a root password will be generated and returned with the
         new Instance object.
-        
+
         For example::
 
            new_linode, password = client.linode.instance_create(
@@ -306,9 +306,11 @@ class LinodeGroup(Group):
         params = {
             "type": ltype.id if issubclass(type(ltype), Base) else ltype,
             "region": region.id if issubclass(type(region), Base) else region,
-            "image": (image.id if issubclass(type(image), Base) else image)
-            if image
-            else None,
+            "image": (
+                (image.id if issubclass(type(image), Base) else image)
+                if image
+                else None
+            ),
             "authorized_keys": authorized_keys,
         }
 

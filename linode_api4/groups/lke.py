@@ -93,9 +93,11 @@ class LKEGroup(Group):
         for c in node_pools:
             if isinstance(c, dict):
                 new_pool = {
-                    "type": c["type"].id
-                    if "type" in c and issubclass(type(c["type"]), Base)
-                    else c.get("type"),
+                    "type": (
+                        c["type"].id
+                        if "type" in c and issubclass(type(c["type"]), Base)
+                        else c.get("type")
+                    ),
                     "count": c.get("count"),
                 }
 
@@ -105,9 +107,11 @@ class LKEGroup(Group):
             "label": label,
             "region": region.id if issubclass(type(region), Base) else region,
             "node_pools": pools,
-            "k8s_version": kube_version.id
-            if issubclass(type(kube_version), Base)
-            else kube_version,
+            "k8s_version": (
+                kube_version.id
+                if issubclass(type(kube_version), Base)
+                else kube_version
+            ),
         }
         params.update(kwargs)
 
