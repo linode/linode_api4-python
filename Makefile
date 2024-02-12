@@ -23,7 +23,7 @@ clean:
 	rm -f baked_version
 
 .PHONY: build
-build: clean
+build: clean create-version
 	$(PYTHON) -m build  --wheel --sdist
 
 .PHONY: create-version
@@ -39,7 +39,7 @@ dev-install: clean
 	$(PYTHON) -m pip install -e ".[dev]"
 
 .PHONY: install
-install: clean
+install: clean create-version
 	$(PYTHON) -m pip install .
 
 .PHONY: black
