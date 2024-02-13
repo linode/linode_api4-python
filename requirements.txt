@@ -1,4 +1,0 @@
-httplib2
-enum34
-requests
-polling>=0.3.2
