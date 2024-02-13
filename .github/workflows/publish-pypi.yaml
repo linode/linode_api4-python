@@ -17,9 +17,6 @@ jobs:
 
       - name: Install Python deps
         run: pip install -U wheel build certifi
-      
-      - name: Install Python package
-        run: make dev-install
 
       - name: Build the package
         run: make build
@@ -27,6 +24,6 @@ jobs:
           LINODE_SDK_VERSION: ${{ github.event.release.tag_name }}
 
       - name: Publish the release artifacts to PyPI
-        uses: pypa/gh-action-pypi-publish@a56da0b891b3dc519c7ee3284aff1fad93cc8598 # pin@release/v1.8.6
+        uses: pypa/gh-action-pypi-publish@2f6f737ca5f74c637829c0f5c3acd0e29ea5e8bf # pin@release/v1.8.11
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
