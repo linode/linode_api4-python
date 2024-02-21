@@ -53,7 +53,9 @@ class Volume(Base):
                 "config": (
                     None
                     if not config
-                    else config.id if issubclass(type(config), Base) else config
+                    else config.id
+                    if issubclass(type(config), Base)
+                    else config
                 ),
             },
         )
