@@ -28,7 +28,7 @@ build: clean create-version
 
 .PHONY: create-version
 create-version:
-	@echo -e "${VERSION_MODULE_DOCSTRING}__version__ = \"${LINODE_SDK_VERSION}\"" > $(VERSION_FILE)
+	@printf "${VERSION_MODULE_DOCSTRING}__version__ = \"${LINODE_SDK_VERSION}\"\n" > $(VERSION_FILE)
 
 .PHONY: release
 release: build
