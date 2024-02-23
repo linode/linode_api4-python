@@ -307,13 +307,10 @@ class LinodeGroup(Group):
             kwargs["firewall_id"] = fw.id if isinstance(fw, Firewall) else fw
 
         if "interfaces" in kwargs:
-            interfaces = kwargs.pop("interfaces")
-            param_interfaces = []
-            for interface in interfaces:
-                if isinstance(interface, ConfigInterface):
-                    interface = interface._serialize()
-                param_interfaces.append(interface)
-            kwargs["interfaces"] = param_interfaces
+            kwargs["interfaces"] = [
+                i._serialize() if isinstance(i, ConfigInterface) else i
+                for i in kwargs["interfaces"]
+            ]
 
         params = {
             "type": ltype.id if issubclass(type(ltype), Base) else ltype,
