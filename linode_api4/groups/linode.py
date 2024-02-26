@@ -265,6 +265,9 @@ class LinodeGroup(Group):
         :type metadata: dict
         :param firewall: The firewall to attach this Linode to.
         :type firewall: int or Firewall
+        :param interfaces: An array of Network Interfaces to add to this Linode’s Configuration Profile.
+                           At least one and up to three Interface objects can exist in this array.
+        :type interfaces: list[ConfigInterface] or list[dict[str, Any]]
 
         :returns: A new Instance object, or a tuple containing the new Instance and
                   the generated password.
@@ -302,6 +305,12 @@ class LinodeGroup(Group):
         if "firewall" in kwargs:
             fw = kwargs.pop("firewall")
             kwargs["firewall_id"] = fw.id if isinstance(fw, Firewall) else fw
+
+        if "interfaces" in kwargs:
+            kwargs["interfaces"] = [
+                i._serialize() if isinstance(i, ConfigInterface) else i
+                for i in kwargs["interfaces"]
+            ]
 
         params = {
             "type": ltype.id if issubclass(type(ltype), Base) else ltype,
