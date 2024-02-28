@@ -1,0 +1,8 @@
+{
+    "created": "2024-01-01T00:01:01",
+    "expiry": "2024-01-01T13:46:32",
+    "id": 123,
+    "label": "cool_customer_proxy",
+    "scopes": "*",
+    "token": "abcdefghijklmnop"
+}

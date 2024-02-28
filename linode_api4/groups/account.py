@@ -8,6 +8,7 @@ from linode_api4.objects import (
     AccountBetaProgram,
     AccountSettings,
     BetaProgram,
+    ChildAccount,
     Event,
     Invoice,
     Login,
@@ -18,6 +19,7 @@ from linode_api4.objects import (
     ServiceTransfer,
     User,
 )
+from linode_api4.objects.profile import PersonalAccessToken
 
 
 class AccountGroup(Group):
@@ -496,3 +498,14 @@ class AccountGroup(Group):
         :rtype: PaginatedList of AccountAvailability
         """
         return self.client._get_and_filter(AccountAvailability, *filters)
+
+    def child_accounts(self, *filters):
+        """
+        Returns a list of all child accounts under the this parent account.
+
+        API doc: TBD
+
+        :returns: a list of all child accounts.
+        :rtype: PaginatedList of ChildAccount
+        """
+        return self.client._get_and_filter(ChildAccount, *filters)
