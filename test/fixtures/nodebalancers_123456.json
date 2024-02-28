@@ -1,0 +1,14 @@
+{
+  "created": "2018-01-01T00:01:01",
+  "ipv6": "c001:d00d:b01::1:abcd:1234",
+  "region": "us-east-1a",
+  "ipv4": "12.34.56.789",
+  "hostname": "nb-12-34-56-789.newark.nodebalancer.linode.com",
+  "id": 123456,
+  "updated": "2018-01-01T00:01:01",
+  "label": "balancer123456",
+  "client_conn_throttle": 0,
+  "tags": [
+    "something"
+  ]
+}
