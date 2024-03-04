@@ -292,7 +292,8 @@ class ChildAccountTest(ClientBaseCase):
         self.assertEqual(result[0].euuid, "E1AF5EEC-526F-487D-B317EBEB34C87D71")
 
     def test_child_account_create_token(self):
-        child_account = ChildAccount(self.client, 123456)
+        child_account = self.client.load(ChildAccount, 123456)
         with self.mock_post("/account/child-accounts/123456/token") as m:
             token = child_account.create_token()
             self.assertEqual(token.token, "abcdefghijklmnop")
+            self.assertEqual(m.call_data, {})
