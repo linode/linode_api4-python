@@ -5,7 +5,7 @@ from test.integration.helpers import get_test_label
 import pytest
 
 from linode_api4 import ApiError, LinodeClient
-from linode_api4.objects import ObjectStorageKeys
+from linode_api4.objects import ConfigInterface, ObjectStorageKeys
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -229,6 +229,38 @@ def test_create_linode_instance_with_image(setup_client_and_linode):
     linode = setup_client_and_linode[1]
 
     assert re.search("linode/debian10", str(linode.image))
+
+
+def test_create_linode_with_interfaces(test_linode_client):
+    client = test_linode_client
+    available_regions = client.regions()
+    chosen_region = available_regions[4]
+    label = get_test_label()
+
+    linode_instance, password = client.linode.instance_create(
+        "g6-nanode-1",
+        chosen_region,
+        label=label,
+        image="linode/debian10",
+        interfaces=[
+            {"purpose": "public"},
+            ConfigInterface(
+                purpose="vlan", label="cool-vlan", ipam_address="10.0.0.4/32"
+            ),
+        ],
+    )
+
+    assert len(linode_instance.configs[0].interfaces) == 2
+    assert linode_instance.configs[0].interfaces[0].purpose == "public"
+    assert linode_instance.configs[0].interfaces[1].purpose == "vlan"
+    assert linode_instance.configs[0].interfaces[1].label == "cool-vlan"
+    assert (
+        linode_instance.configs[0].interfaces[1].ipam_address == "10.0.0.4/32"
+    )
+
+    res = linode_instance.delete()
+
+    assert res
 
 
 # LongviewGroupTests

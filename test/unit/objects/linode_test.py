@@ -421,6 +421,35 @@ class LinodeTest(ClientBaseCase):
                 },
             )
 
+    def test_instance_create_with_interfaces(self):
+        """
+        Tests that user can pass a list of interfaces on Linode create.
+        """
+        interfaces = [
+            {"purpose": "public"},
+            ConfigInterface(
+                purpose="vlan", label="cool-vlan", ipam_address="10.0.0.4/32"
+            ),
+        ]
+        with self.mock_post("linode/instances/123") as m:
+            self.client.linode.instance_create(
+                "us-southeast",
+                "g6-nanode-1",
+                interfaces=interfaces,
+            )
+
+            self.assertEqual(
+                m.call_data["interfaces"],
+                [
+                    {"purpose": "public"},
+                    {
+                        "purpose": "vlan",
+                        "label": "cool-vlan",
+                        "ipam_address": "10.0.0.4/32",
+                    },
+                ],
+            )
+
     def test_build_instance_metadata(self):
         """
         Tests that the metadata field is built correctly.
