@@ -24,6 +24,7 @@ from linode_api4.objects import (
     Volume,
     get_obj_grants,
 )
+from linode_api4.objects.account import ChildAccount
 
 
 class InvoiceTest(ClientBaseCase):
@@ -278,3 +279,21 @@ class AccountAvailabilityTest(ClientBaseCase):
             self.assertEqual(availability.unavailable, [])
 
             self.assertEqual(m.call_url, account_availability_url)
+
+
+class ChildAccountTest(ClientBaseCase):
+    """
+    Test methods of the ChildAccount
+    """
+
+    def test_child_account_api_list(self):
+        result = self.client.account.child_accounts()
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].euuid, "E1AF5EEC-526F-487D-B317EBEB34C87D71")
+
+    def test_child_account_create_token(self):
+        child_account = self.client.load(ChildAccount, 123456)
+        with self.mock_post("/account/child-accounts/123456/token") as m:
+            token = child_account.create_token()
+            self.assertEqual(token.token, "abcdefghijklmnop")
+            self.assertEqual(m.call_data, {})
