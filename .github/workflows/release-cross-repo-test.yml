@@ -14,8 +14,6 @@ jobs:
     env:
       EXIT_STATUS: 0
     defaults:
-      run:
-        working-directory: .ansible/collections/ansible_collections/linode/cloud
     steps:
       - name: Checkout linode_api4 repository
         uses: actions/checkout@v3
