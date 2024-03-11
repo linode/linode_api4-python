@@ -20,16 +20,16 @@ jobs:
       - name: Checkout linode_api4 repository
         uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.10
-
       - name: update packages
         run: sudo apt-get update -y
 
       - name: install make
         run: sudo apt-get install -y build-essential
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10
 
       - name: Install linode_api4
         run: make -C path/to/linode_api4 install
