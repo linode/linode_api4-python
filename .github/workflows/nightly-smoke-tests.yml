@@ -11,20 +11,20 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: dev
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
       - name: Install Python deps
-        run: pip install -r requirements.txt -r requirements-dev.txt wheel boto3
+        run: pip install -U setuptools wheel boto3 certifi
 
       - name: Install Python SDK
-        run: make install
+        run: make dev-install
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

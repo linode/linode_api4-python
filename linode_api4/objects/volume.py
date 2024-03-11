@@ -45,14 +45,16 @@ class Volume(Base):
             "{}/attach".format(Volume.api_endpoint),
             model=self,
             data={
-                "linode_id": to_linode.id
-                if issubclass(type(to_linode), Base)
-                else to_linode,
-                "config": None
-                if not config
-                else config.id
-                if issubclass(type(config), Base)
-                else config,
+                "linode_id": (
+                    to_linode.id
+                    if issubclass(type(to_linode), Base)
+                    else to_linode
+                ),
+                "config": (
+                    None
+                    if not config
+                    else config.id if issubclass(type(config), Base) else config
+                ),
             },
         )
 

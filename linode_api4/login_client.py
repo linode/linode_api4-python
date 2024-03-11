@@ -403,7 +403,7 @@ class LinodeLoginClient:
                exchange_code = request.args.get("code")
                login_client = LinodeLoginClient(client_id, client_secret)
 
-               token, scopes = login_client.finish_oauth(exchange_code)
+               token, scopes, expiry, refresh_token = login_client.finish_oauth(exchange_code)
 
                # store the user's OAuth token in their session for later use
                # and mark that they are logged in.
@@ -419,7 +419,7 @@ class LinodeLoginClient:
         :returns: The new OAuth token, and a list of scopes the token has, when
                   the token expires, and a refresh token that can generate a new
                   valid token when this one is expired.
-        :rtype: tuple(str, list)
+        :rtype: tuple(str, list, datetime, str)
 
         :raise ApiError: If the OAuth exchange fails.
         """

@@ -217,7 +217,7 @@ class NodeBalancer(Base):
         "region": Property(slug_relationship=Region),
         "configs": Property(derived_class=NodeBalancerConfig),
         "transfer": Property(),
-        "tags": Property(),
+        "tags": Property(mutable=True),
     }
 
     # create derived objects
