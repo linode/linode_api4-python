@@ -44,12 +44,12 @@ jobs:
         run: ansible-galaxy collection install amazon.aws:==6.0.1
 
       - name: install collection
-        run:
+        run: |
           cd .ansible/collections/ansible_collections/linode/cloud
           make install
 
       - name: replace existing keys
-        run:
+        run: |
           cd .ansible/collections/ansible_collections/linode/cloud
           rm -rf ~/.ansible/test && mkdir -p ~/.ansible/test && ssh-keygen -m PEM -q -t rsa -N '' -f ~/.ansible/test/id_rsa
 
