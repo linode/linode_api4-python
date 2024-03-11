@@ -13,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       EXIT_STATUS: 0
-    defaults:
     steps:
       - name: Checkout linode_api4 repository
         uses: actions/checkout@v3
