@@ -27,7 +27,7 @@ jobs:
           python-version: '3.10'
 
       - name: Install linode_api4
-        run: make -C path/to/linode_api4 install
+        run: make install
 
       - name: checkout repo
         uses: actions/checkout@v3
