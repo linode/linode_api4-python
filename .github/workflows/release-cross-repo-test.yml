@@ -5,6 +5,8 @@ on:
     branches:
       - main
     types: [opened]
+  workflow_dispatch: # Manual trigger
+
 
 jobs:
   pr_opened_job:
@@ -15,12 +17,13 @@ jobs:
       run:
         working-directory: .ansible/collections/ansible_collections/linode/cloud
     steps:
-      - name: checkout repo
-        uses: actions/checkout@v4
+      - name: Checkout linode_api4 repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
         with:
-          repository: linode/ansible_linode
-          fetch-depth: 0
-          submodules: 'recursive'
+          python-version: 3.10
 
       - name: update packages
         run: sudo apt-get update -y
@@ -28,10 +31,14 @@ jobs:
       - name: install make
         run: sudo apt-get install -y build-essential
 
-      - name: setup python 3
-        uses: actions/setup-python@v4
+      - name: Install linode_api4
+        run: make -C path/to/linode_api4 install
+
+      - name: checkout repo
+        uses: actions/checkout@v3
         with:
-          python-version: '3.10'
+          repository: linode/ansible_linode
+          path: .ansible/collections/ansible_collections/linode/cloud
 
       - name: install dependencies
         run: make deps
