@@ -36,19 +36,26 @@ jobs:
           path: .ansible/collections/ansible_collections/linode/cloud
 
       - name: install dependencies
-        run: make deps
+        run: |
+          cd .ansible/collections/ansible_collections/linode/cloud
+          make deps
 
       - name: install ansible dependencies
         run: ansible-galaxy collection install amazon.aws:==6.0.1
 
       - name: install collection
-        run: make install
+        run:
+          cd .ansible/collections/ansible_collections/linode/cloud
+          make install
 
       - name: replace existing keys
-        run: rm -rf ~/.ansible/test && mkdir -p ~/.ansible/test && ssh-keygen -m PEM -q -t rsa -N '' -f ~/.ansible/test/id_rsa
+        run:
+          cd .ansible/collections/ansible_collections/linode/cloud
+          rm -rf ~/.ansible/test && mkdir -p ~/.ansible/test && ssh-keygen -m PEM -q -t rsa -N '' -f ~/.ansible/test/id_rsa
 
       - name: run tests
         run: |
+          cd .ansible/collections/ansible_collections/linode/cloud
           make testall
         env:
           LINODE_API_TOKEN: ${{ secrets.DX_LINODE_TOKEN }}
