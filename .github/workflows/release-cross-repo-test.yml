@@ -4,7 +4,7 @@ on:
   pull_request:
     branches:
       - main
-    types: [opened]
+    types: [opened]  # Workflow will only be executed when PR is opened to main branch
   workflow_dispatch: # Manual trigger
 
 
@@ -38,7 +38,7 @@ jobs:
       - name: install dependencies
         run: |
           cd .ansible/collections/ansible_collections/linode/cloud
-          make deps
+          pip install -r requirements.txt -r requirements-dev.txt --upgrade-strategy only-if-needed
 
       - name: install ansible dependencies
         run: ansible-galaxy collection install amazon.aws:==6.0.1
