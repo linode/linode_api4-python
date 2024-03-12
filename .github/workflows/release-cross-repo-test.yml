@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout linode_api4 repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: update packages
         run: sudo apt-get update -y
