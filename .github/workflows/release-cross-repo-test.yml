@@ -58,4 +58,4 @@ jobs:
           cd .ansible/collections/ansible_collections/linode/cloud
           make testall
         env:
-          LINODE_API_TOKEN: ${{ secrets.DX_LINODE_TOKEN }}
+          LINODE_API_TOKEN: ${{ secrets.LINODE_TOKEN }}
