@@ -621,6 +621,20 @@ class TestNetworkInterface:
         assert interface.ipv4.nat_1_1 == linode.ipv4[0]
         assert interface.ip_ranges == ["10.0.0.5/32"]
 
+        vpc_ip = linode.ips.ipv4.vpc[0]
+        vpc_range_ip = linode.ips.ipv4.vpc[1]
+
+        assert vpc_ip.nat_1_1 == linode.ips.ipv4.public[0].address
+        assert vpc_ip.address_range is None
+        assert vpc_ip.vpc_id == vpc.id
+        assert vpc_ip.subnet_id == subnet.id
+        assert vpc_ip.config_id == config.id
+        assert vpc_ip.interface_id == interface.id
+        assert not vpc_ip.active
+
+        assert vpc_range_ip.address_range == "10.0.0.5/32"
+        assert not vpc_range_ip.active
+
     def test_update_vpc(
         self,
         linode_for_network_interface_tests,
