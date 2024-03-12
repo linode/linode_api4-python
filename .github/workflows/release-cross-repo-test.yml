@@ -1,0 +1,61 @@
+name: Release Ansible cross repository test
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened]  # Workflow will only be executed when PR is opened to main branch
+  workflow_dispatch: # Manual trigger
+
+
+jobs:
+  ansible_integration_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout linode_api4 repository
+        uses: actions/checkout@v4
+
+      - name: update packages
+        run: sudo apt-get update -y
+
+      - name: install make
+        run: sudo apt-get install -y build-essential
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install linode_api4
+        run: make install
+
+      - name: checkout repo
+        uses: actions/checkout@v3
+        with:
+          repository: linode/ansible_linode
+          path: .ansible/collections/ansible_collections/linode/cloud
+
+      - name: install dependencies
+        run: |
+          cd .ansible/collections/ansible_collections/linode/cloud
+          pip install -r requirements.txt -r requirements-dev.txt --upgrade-strategy only-if-needed
+
+      - name: install ansible dependencies
+        run: ansible-galaxy collection install amazon.aws:==6.0.1
+
+      - name: install collection
+        run: |
+          cd .ansible/collections/ansible_collections/linode/cloud
+          make install
+
+      - name: replace existing keys
+        run: |
+          cd .ansible/collections/ansible_collections/linode/cloud
+          rm -rf ~/.ansible/test && mkdir -p ~/.ansible/test && ssh-keygen -m PEM -q -t rsa -N '' -f ~/.ansible/test/id_rsa
+
+      - name: run tests
+        run: |
+          cd .ansible/collections/ansible_collections/linode/cloud
+          make testall
+        env:
+          LINODE_API_TOKEN: ${{ secrets.LINODE_TOKEN }}
