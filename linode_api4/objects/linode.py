@@ -693,7 +693,9 @@ class Instance(Base):
                 i = IPAddress(self._client, c["address"], c)
                 reserved.append(i)
 
-            vpc = [VPCIPAddress.from_json(v) for v in result["ipv4"]["vpc"]]
+            vpc = [
+                VPCIPAddress.from_json(v) for v in result["ipv4"].get("vpc", [])
+            ]
 
             slaac = IPAddress(
                 self._client,
