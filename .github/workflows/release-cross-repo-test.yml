@@ -9,7 +9,7 @@ on:
 
 
 jobs:
-  pr_opened_job:
+  ansible_integration_test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout linode_api4 repository
