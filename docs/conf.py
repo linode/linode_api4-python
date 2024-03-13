@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'linode_api4'
-copyright = '2023, Linode'
+copyright = '2024, Linode'
 author = 'Linode'
 
 # The short X.Y version
