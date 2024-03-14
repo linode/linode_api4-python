@@ -11,10 +11,19 @@ class EventError(Exception):
     Represents a failed Linode event.
     """
 
-    def __init__(self, event_id: int, message: str):
+    def __init__(self, event_id: int, message: Optional[str]):
+        # Edge case, sometimes the message is populated with an empty string
+        if len(message) < 1:
+            message = None
+
         self.event_id = event_id
         self.message = message
-        super().__init__(f"Event {event_id} failed: {message}")
+
+        error_fmt = f"Event {event_id} failed"
+        if message is not None:
+            error_fmt += f": {message}"
+
+        super().__init__(error_fmt)
 
 
 class TimeoutContext:
