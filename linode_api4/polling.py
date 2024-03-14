@@ -6,6 +6,17 @@ import polling
 from linode_api4.objects import Event
 
 
+class EventError(Exception):
+    """
+    Represents a failed Linode event.
+    """
+
+    def __init__(self, event_id: int, message: str):
+        self.event_id = event_id
+        self.message = message
+        super().__init__(f"Event {event_id} failed: {message}")
+
+
 class TimeoutContext:
     """
     TimeoutContext should be used by polling resources to track their provisioning time.
@@ -212,6 +223,10 @@ class EventPoller:
 
         def poll_func():
             event._api_get()
+
+            if event.status == "failed":
+                raise EventError(event.id, event.message)
+
             return event.status in ["finished", "notification"]
 
         if poll_func():
