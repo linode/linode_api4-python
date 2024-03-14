@@ -61,6 +61,15 @@ Includes methods for managing your account.
    :members:
    :special-members:
 
+BetaGroup
+^^^^^^^^^
+
+Includes methods for enrolling in beta programs.
+
+.. autoclass:: linode_api4.linode_client.BetaGroup
+   :members:
+   :special-members:
+
 DatabaseGroup
 ^^^^^^^^^^^^^
 
@@ -98,7 +107,7 @@ accessing and working with associated features.
    :members:
    :special-members:
 
-LKE Group
+LKEGroup
 ^^^^^^^^^
 
 Includes methods for interacting with Linode Kubernetes Engine.
@@ -197,5 +206,14 @@ VolumeGroup
 Includes methods for managing Linode Volumes.
 
 .. autoclass:: linode_api4.linode_client.VolumeGroup
+   :members:
+   :special-members:
+
+VPCGroup
+^^^^^^^^
+
+Includes methods for managing Linode VPCs.
+
+.. autoclass:: linode_api4.linode_client.VPCGroup
    :members:
    :special-members:
