@@ -21,7 +21,7 @@ from linode_api4.objects import (
 )
 from linode_api4.objects.base import MappedObject
 from linode_api4.objects.filtering import FilterableAttribute
-from linode_api4.objects.networking import IPAddress, IPv6Range
+from linode_api4.objects.networking import IPAddress, IPv6Range, VPCIPAddress
 from linode_api4.objects.vpc import VPC, VPCSubnet
 from linode_api4.paginated_list import PaginatedList
 
@@ -693,6 +693,10 @@ class Instance(Base):
                 i = IPAddress(self._client, c["address"], c)
                 reserved.append(i)
 
+            vpc = [
+                VPCIPAddress.from_json(v) for v in result["ipv4"].get("vpc", [])
+            ]
+
             slaac = IPAddress(
                 self._client,
                 result["ipv6"]["slaac"]["address"],
@@ -716,6 +720,7 @@ class Instance(Base):
                         "private": v4pri,
                         "shared": shared_ips,
                         "reserved": reserved,
+                        "vpc": vpc,
                     },
                     "ipv6": {
                         "slaac": slaac,

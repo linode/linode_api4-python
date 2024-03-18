@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import Base, DerivedBase, JSONObject, Property, Region
@@ -104,6 +105,32 @@ class IPAddress(Base):
             raise ValueError("IP Address can only be assigned to a Linode!")
 
         return {"address": self.address, "linode_id": linode.id}
+
+
+@dataclass
+class VPCIPAddress(JSONObject):
+    """
+    VPCIPAddress represents the IP address of a VPC.
+
+    NOTE: This is not implemented as a typical API object (Base) because VPC IPs
+    cannot be refreshed through the /networking/ips/{address} endpoint.
+    """
+
+    address: str = ""
+    gateway: str = ""
+    region: str = ""
+    subnet_mask: str = ""
+    vpc_id: int = 0
+    subnet_id: int = 0
+    linode_id: int = 0
+    config_id: int = 0
+    interface_id: int = 0
+    prefix: int = 0
+
+    active: bool = False
+
+    address_range: Optional[str] = None
+    nat_1_1: Optional[str] = None
 
 
 class VLAN(Base):
