@@ -3,11 +3,14 @@
 
 version: 2
 build:
-  os: ubuntu-22.04
+  os: ubuntu-lts-latest
   tools:
-    python: "3.12"
+    python: latest
 sphinx:
   configuration: docs/conf.py
 python:
- install:
-   - requirements: docs/requirements.txt
+  install:
+    - method: pip
+      path: .
+      extra_requirements:
+        - doc

@@ -50,9 +50,15 @@ dev = [
     "build>=0.10.0",
     "Sphinx>=6.0.0",
     "sphinx-autobuild>=2021.3.14",
-    "sphinxcontrib-fulltoc>=1.2.0",    
+    "sphinxcontrib-fulltoc>=1.2.0",
     "build>=0.10.0",
     "twine>=4.0.2",
+]
+
+doc = [
+    "Sphinx>=6.0.0",
+    "sphinx-autobuild>=2021.3.14",
+    "sphinxcontrib-fulltoc>=1.2.0",
 ]
 
 [project.urls]
