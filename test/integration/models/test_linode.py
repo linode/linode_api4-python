@@ -8,6 +8,7 @@ from test.integration.helpers import (
 
 import pytest
 
+from linode_api4 import VPCIPAddress
 from linode_api4.errors import ApiError
 from linode_api4.objects import (
     Config,
@@ -595,6 +596,7 @@ class TestNetworkInterface:
 
     def test_create_vpc(
         self,
+        test_linode_client,
         linode_for_network_interface_tests,
         create_vpc_with_subnet_and_linode,
     ):
@@ -634,6 +636,12 @@ class TestNetworkInterface:
 
         assert vpc_range_ip.address_range == "10.0.0.5/32"
         assert not vpc_range_ip.active
+
+        # Attempt to resolve the IP from /vpcs/ips
+        all_vpc_ips = test_linode_client.vpcs.ips(
+            VPCIPAddress.filters.linode_id == linode.id
+        )
+        assert all_vpc_ips[0].dict == vpc_ip.dict
 
     def test_update_vpc(
         self,
