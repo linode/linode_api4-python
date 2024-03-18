@@ -14,6 +14,15 @@ Account Models
    :undoc-members:
    :inherited-members:
 
+Beta Models
+-----------
+
+.. automodule:: linode_api4.objects.beta
+   :members:
+   :exclude-members: api_endpoint, properties, derived_url_path, id_attribute, parent_id_name
+   :undoc-members:
+   :inherited-members:
+
 Database Models
 -------------
 
@@ -135,6 +144,15 @@ Volume Models
 -------------
 
 .. automodule:: linode_api4.objects.volume
+   :members:
+   :exclude-members: api_endpoint, properties, derived_url_path, id_attribute, parent_id_name
+   :undoc-members:
+   :inherited-members:
+
+VPC Models
+----------
+
+.. automodule:: linode_api4.objects.vpc
    :members:
    :exclude-members: api_endpoint, properties, derived_url_path, id_attribute, parent_id_name
    :undoc-members:
