@@ -65,6 +65,7 @@ def test_get_domains(test_linode_client, test_domain):
 
     assert domain.domain in dom_list
 
+
 @pytest.mark.smoke
 def test_get_regions(test_linode_client):
     client = test_linode_client
@@ -76,6 +77,7 @@ def test_get_regions(test_linode_client):
 
     assert test_region.id in region_list
     assert test_region.site_type in ["core", "edge"]
+
 
 @pytest.mark.smoke
 def test_image_create(setup_client_and_linode):
