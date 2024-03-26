@@ -5,7 +5,7 @@ from test.integration.helpers import get_test_label
 import pytest
 
 from linode_api4 import ApiError, LinodeClient
-from linode_api4.objects import ConfigInterface, ObjectStorageKeys
+from linode_api4.objects import ConfigInterface, ObjectStorageKeys, Region
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -64,6 +64,19 @@ def test_get_domains(test_linode_client, test_domain):
     dom_list = [i.domain for i in domain_dict]
 
     assert domain.domain in dom_list
+
+
+@pytest.mark.smoke
+def test_get_regions(test_linode_client):
+    client = test_linode_client
+    regions = client.regions()
+
+    region_list = [r.id for r in regions]
+
+    test_region = Region(client, "us-east")
+
+    assert test_region.id in region_list
+    assert test_region.site_type in ["core", "edge"]
 
 
 @pytest.mark.smoke

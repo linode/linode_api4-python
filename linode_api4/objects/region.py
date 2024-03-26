@@ -22,6 +22,7 @@ class Region(Base):
         "status": Property(),
         "resolvers": Property(),
         "label": Property(),
+        "site_type": Property(),
     }
 
     @property

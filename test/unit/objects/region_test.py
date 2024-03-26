@@ -22,6 +22,7 @@ class RegionTest(ClientBaseCase):
         self.assertEqual(region.label, "label7")
         self.assertEqual(region.status, "ok")
         self.assertIsNotNone(region.resolvers)
+        self.assertEqual(region.site_type, "core")
 
     def test_list_availability(self):
         """
