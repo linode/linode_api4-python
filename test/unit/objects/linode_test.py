@@ -348,15 +348,25 @@ class LinodeTest(ClientBaseCase):
 
         ips = linode.ips
 
-        self.assertIsNotNone(ips.ipv4)
-        self.assertIsNotNone(ips.ipv6)
-        self.assertIsNotNone(ips.ipv4.public)
-        self.assertIsNotNone(ips.ipv4.private)
-        self.assertIsNotNone(ips.ipv4.shared)
-        self.assertIsNotNone(ips.ipv4.reserved)
-        self.assertIsNotNone(ips.ipv6.slaac)
-        self.assertIsNotNone(ips.ipv6.link_local)
-        self.assertIsNotNone(ips.ipv6.ranges)
+        assert ips.ipv4 is not None
+        assert ips.ipv6 is not None
+        assert ips.ipv4.public is not None
+        assert ips.ipv4.private is not None
+        assert ips.ipv4.shared is not None
+        assert ips.ipv4.reserved is not None
+        assert ips.ipv4.vpc is not None
+        assert ips.ipv6.slaac is not None
+        assert ips.ipv6.link_local is not None
+        assert ips.ipv6.ranges is not None
+
+        vpc_ip = ips.ipv4.vpc[0]
+        assert vpc_ip.nat_1_1 == "172.233.179.133"
+        assert vpc_ip.address_range == None
+        assert vpc_ip.vpc_id == 39246
+        assert vpc_ip.subnet_id == 39388
+        assert vpc_ip.config_id == 59036295
+        assert vpc_ip.interface_id == 1186165
+        assert vpc_ip.active
 
     def test_initiate_migration(self):
         """

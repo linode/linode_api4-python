@@ -1,9 +1,8 @@
 from typing import Any, Dict, List, Optional, Union
 
-from linode_api4 import VPCSubnet
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
-from linode_api4.objects import VPC, Base, Region
+from linode_api4.objects import VPC, Region, VPCIPAddress
 from linode_api4.paginated_list import PaginatedList
 
 
@@ -81,3 +80,25 @@ class VPCGroup(Group):
 
         d = VPC(self.client, result["id"], result)
         return d
+
+    def ips(self, *filters) -> PaginatedList:
+        """
+        Retrieves all of the VPC IP addresses for the current account matching the given filters.
+
+        This is intended to be called from the :any:`LinodeClient`
+        class, like this::
+
+           vpc_ips = client.vpcs.ips()
+
+        API Documentation: TODO
+
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
+
+        :returns: A list of VPCIPAddresses the acting user can access.
+        :rtype: PaginatedList of VPCIPAddress
+        """
+        return self.client._get_and_filter(
+            VPCIPAddress, *filters, endpoint="/vpcs/ips"
+        )
