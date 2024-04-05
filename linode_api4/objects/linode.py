@@ -642,11 +642,11 @@ class Instance(Base):
         "configs": Property(derived_class=Config),
         "type": Property(slug_relationship=Type),
         "backups": Property(mutable=True),
-        "ipv4": Property(),
+        "ipv4": Property(unordered=True),
         "ipv6": Property(),
         "hypervisor": Property(),
         "specs": Property(),
-        "tags": Property(mutable=True),
+        "tags": Property(mutable=True, unordered=True),
         "host_uuid": Property(),
         "watchdog_enabled": Property(mutable=True),
         "has_user_data": Property(),
@@ -1745,7 +1745,9 @@ class StackScript(Base):
         "created": Property(is_datetime=True),
         "deployments_active": Property(),
         "script": Property(mutable=True),
-        "images": Property(mutable=True),  # TODO make slug_relationship
+        "images": Property(
+            mutable=True, unordered=True
+        ),  # TODO make slug_relationship
         "deployments_total": Property(),
         "description": Property(mutable=True),
         "updated": Property(is_datetime=True),

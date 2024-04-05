@@ -33,7 +33,7 @@ class VPCSubnet(DerivedBase):
         "id": Property(identifier=True),
         "label": Property(mutable=True),
         "ipv4": Property(),
-        "linodes": Property(json_object=VPCSubnetLinode),
+        "linodes": Property(json_object=VPCSubnetLinode, unordered=True),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),
     }

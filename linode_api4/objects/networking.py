@@ -34,7 +34,9 @@ class IPv6Range(Base):
         "region": Property(slug_relationship=Region),
         "prefix": Property(),
         "route_target": Property(),
-        "linodes": Property(),
+        "linodes": Property(
+            unordered=True,
+        ),
         "is_bgp": Property(),
     }
 
@@ -151,7 +153,7 @@ class VLAN(Base):
     properties = {
         "label": Property(identifier=True),
         "created": Property(is_datetime=True),
-        "linodes": Property(),
+        "linodes": Property(unordered=True),
         "region": Property(slug_relationship=Region),
     }
 
@@ -189,7 +191,7 @@ class Firewall(Base):
     properties = {
         "id": Property(identifier=True),
         "label": Property(mutable=True),
-        "tags": Property(mutable=True),
+        "tags": Property(mutable=True, unordered=True),
         "status": Property(mutable=True),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),

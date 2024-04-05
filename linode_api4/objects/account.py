@@ -43,7 +43,7 @@ class Account(Base):
         "zip": Property(mutable=True),
         "address_2": Property(mutable=True),
         "tax_id": Property(mutable=True),
-        "capabilities": Property(),
+        "capabilities": Property(unordered=True),
         "credit_card": Property(),
         "active_promotions": Property(),
         "active_since": Property(),
@@ -670,5 +670,5 @@ class AccountAvailability(Base):
 
     properties = {
         "region": Property(identifier=True),
-        "unavailable": Property(),
+        "unavailable": Property(unordered=True),
     }

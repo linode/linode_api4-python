@@ -74,7 +74,7 @@ class LKENodePool(DerivedBase):
             volatile=True
         ),  # this is formatted in _populate below
         "autoscaler": Property(mutable=True),
-        "tags": Property(mutable=True),
+        "tags": Property(mutable=True, unordered=True),
     }
 
     def _populate(self, json):
@@ -121,7 +121,7 @@ class LKECluster(Base):
         "id": Property(identifier=True),
         "created": Property(is_datetime=True),
         "label": Property(mutable=True),
-        "tags": Property(mutable=True),
+        "tags": Property(mutable=True, unordered=True),
         "updated": Property(is_datetime=True),
         "region": Property(slug_relationship=Region),
         "k8s_version": Property(slug_relationship=KubeVersion, mutable=True),
