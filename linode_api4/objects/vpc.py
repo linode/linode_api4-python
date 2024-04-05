@@ -111,8 +111,8 @@ class VPC(Base):
         """
 
         # need to avoid circular import
-        from linode_api4.objects import (
-            VPCIPAddress,  # pylint: disable=import-outside-toplevel
+        from linode_api4.objects import (  # pylint: disable=import-outside-toplevel
+            VPCIPAddress,
         )
 
         return self._client._get_and_filter(

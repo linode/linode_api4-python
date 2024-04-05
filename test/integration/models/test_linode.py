@@ -17,7 +17,6 @@ from linode_api4.objects import (
     Disk,
     Instance,
     Type,
-    VPC,
 )
 from linode_api4.objects.linode import MigrationType
 
@@ -644,7 +643,7 @@ class TestNetworkInterface:
         assert all_vpc_ips[0].dict == vpc_ip.dict
 
         # Test getting the ips under this specific VPC
-        vpc_ips = VPC(test_linode_client, vpc.id).ips
+        vpc_ips = vpc.ips
 
         assert len(vpc_ips) > 0
         assert vpc_ips[0].vpc_id == vpc.id
