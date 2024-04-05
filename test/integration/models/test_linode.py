@@ -15,9 +15,9 @@ from linode_api4.objects import (
     ConfigInterface,
     ConfigInterfaceIPv4,
     Disk,
-    Image,
     Instance,
     Type,
+    VPC,
 )
 from linode_api4.objects.linode import MigrationType
 
@@ -642,6 +642,14 @@ class TestNetworkInterface:
             VPCIPAddress.filters.linode_id == linode.id
         )
         assert all_vpc_ips[0].dict == vpc_ip.dict
+
+        # Test getting the ips under this specific VPC
+        vpc_ips = VPC(test_linode_client, vpc.id).ips
+
+        assert len(vpc_ips) > 0
+        assert vpc_ips[0].vpc_id == vpc.id
+        assert vpc_ips[0].linode_id == linode.id
+        assert vpc_ips[0].nat_1_1 == linode.ips.ipv4.public[0].address
 
     def test_update_vpc(
         self,
