@@ -650,7 +650,6 @@ class TestNetworkInterface:
         assert vpc_ips[0].linode_id == linode.id
         assert vpc_ips[0].nat_1_1 == linode.ips.ipv4.public[0].address
 
-
     def test_update_vpc(
         self,
         linode_for_network_interface_tests,
