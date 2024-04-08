@@ -308,28 +308,12 @@ def create_vpc_with_subnet_and_linode(
     label = "TestSDK-" + timestamp
 
     instance, password = test_linode_client.linode.instance_create(
-        "g5-standard-4", vpc.region, image="linode/debian11", label=label
+        "g6-standard-1", vpc.region, image="linode/debian11", label=label
     )
 
     yield vpc, subnet, instance, password
 
     instance.delete()
-
-
-@pytest.fixture(scope="session")
-def create_vpc(test_linode_client):
-    client = test_linode_client
-
-    timestamp = str(int(time.time_ns() % 10**10))
-
-    vpc = client.vpcs.create(
-        "pythonsdk-" + timestamp,
-        get_region(test_linode_client, {"VPCs"}),
-        description="test description",
-    )
-    yield vpc
-
-    vpc.delete()
 
 
 @pytest.fixture(scope="session")

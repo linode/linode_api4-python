@@ -74,6 +74,7 @@ class LinodeClientGeneralTest(ClientBaseCase):
             self.assertIsNotNone(region.resolvers)
             self.assertIsNotNone(region.resolvers.ipv4)
             self.assertIsNotNone(region.resolvers.ipv6)
+            self.assertEqual(region.site_type, "core")
 
     def test_get_images(self):
         r = self.client.images()
@@ -514,6 +515,18 @@ class AccountGroupTest(ClientBaseCase):
         self.assertEqual(transfer.region_transfers[0].quota, 5010)
         self.assertEqual(transfer.region_transfers[0].billable, 0)
 
+    def test_account_availabilities(self):
+        """
+        Tests that account availabilities can be retrieved
+        """
+        availabilities = self.client.account.availabilities()
+
+        self.assertEqual(len(availabilities), 11)
+        availability = availabilities[0]
+
+        self.assertEqual(availability.region, "ap-west")
+        self.assertEqual(availability.unavailable, [])
+
 
 class BetaProgramGroupTest(ClientBaseCase):
     """
@@ -547,7 +560,7 @@ class LinodeGroupTest(ClientBaseCase):
         """
         with self.mock_post("linode/instances/123") as m:
             l = self.client.linode.instance_create(
-                "g5-standard-1", "us-east-1a"
+                "g6-standard-1", "us-east-1a"
             )
 
             self.assertIsNotNone(l)
@@ -556,7 +569,7 @@ class LinodeGroupTest(ClientBaseCase):
             self.assertEqual(m.call_url, "/linode/instances")
 
             self.assertEqual(
-                m.call_data, {"region": "us-east-1a", "type": "g5-standard-1"}
+                m.call_data, {"region": "us-east-1a", "type": "g6-standard-1"}
             )
 
     def test_instance_create_with_image(self):
@@ -565,7 +578,7 @@ class LinodeGroupTest(ClientBaseCase):
         """
         with self.mock_post("linode/instances/123") as m:
             l, pw = self.client.linode.instance_create(
-                "g5-standard-1", "us-east-1a", image="linode/debian9"
+                "g6-standard-1", "us-east-1a", image="linode/debian9"
             )
 
             self.assertIsNotNone(l)
@@ -577,7 +590,7 @@ class LinodeGroupTest(ClientBaseCase):
                 m.call_data,
                 {
                     "region": "us-east-1a",
-                    "type": "g5-standard-1",
+                    "type": "g6-standard-1",
                     "image": "linode/debian9",
                     "root_pass": pw,
                 },
@@ -696,7 +709,7 @@ class LKEGroupTest(ClientBaseCase):
             )
             self.assertEqual(m.call_data["region"], "ap-west")
             self.assertEqual(
-                m.call_data["node_pools"], [{"type": "g5-nanode-1", "count": 3}]
+                m.call_data["node_pools"], [{"type": "g6-nanode-1", "count": 3}]
             )
             self.assertEqual(m.call_data["k8s_version"], "1.19")
 

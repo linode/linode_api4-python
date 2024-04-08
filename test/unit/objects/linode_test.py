@@ -348,15 +348,25 @@ class LinodeTest(ClientBaseCase):
 
         ips = linode.ips
 
-        self.assertIsNotNone(ips.ipv4)
-        self.assertIsNotNone(ips.ipv6)
-        self.assertIsNotNone(ips.ipv4.public)
-        self.assertIsNotNone(ips.ipv4.private)
-        self.assertIsNotNone(ips.ipv4.shared)
-        self.assertIsNotNone(ips.ipv4.reserved)
-        self.assertIsNotNone(ips.ipv6.slaac)
-        self.assertIsNotNone(ips.ipv6.link_local)
-        self.assertIsNotNone(ips.ipv6.ranges)
+        assert ips.ipv4 is not None
+        assert ips.ipv6 is not None
+        assert ips.ipv4.public is not None
+        assert ips.ipv4.private is not None
+        assert ips.ipv4.shared is not None
+        assert ips.ipv4.reserved is not None
+        assert ips.ipv4.vpc is not None
+        assert ips.ipv6.slaac is not None
+        assert ips.ipv6.link_local is not None
+        assert ips.ipv6.ranges is not None
+
+        vpc_ip = ips.ipv4.vpc[0]
+        assert vpc_ip.nat_1_1 == "172.233.179.133"
+        assert vpc_ip.address_range == None
+        assert vpc_ip.vpc_id == 39246
+        assert vpc_ip.subnet_id == 39388
+        assert vpc_ip.config_id == 59036295
+        assert vpc_ip.interface_id == 1186165
+        assert vpc_ip.active
 
     def test_initiate_migration(self):
         """
@@ -419,6 +429,35 @@ class LinodeTest(ClientBaseCase):
                     "type": "g6-nanode-1",
                     "metadata": {"user_data": "Y29vbA=="},
                 },
+            )
+
+    def test_instance_create_with_interfaces(self):
+        """
+        Tests that user can pass a list of interfaces on Linode create.
+        """
+        interfaces = [
+            {"purpose": "public"},
+            ConfigInterface(
+                purpose="vlan", label="cool-vlan", ipam_address="10.0.0.4/32"
+            ),
+        ]
+        with self.mock_post("linode/instances/123") as m:
+            self.client.linode.instance_create(
+                "us-southeast",
+                "g6-nanode-1",
+                interfaces=interfaces,
+            )
+
+            self.assertEqual(
+                m.call_data["interfaces"],
+                [
+                    {"purpose": "public"},
+                    {
+                        "purpose": "vlan",
+                        "label": "cool-vlan",
+                        "ipam_address": "10.0.0.4/32",
+                    },
+                ],
             )
 
     def test_build_instance_metadata(self):
@@ -560,7 +599,7 @@ class TypeTest(ClientBaseCase):
         """
         Tests that a Linode type is loaded correctly by ID
         """
-        t = Type(self.client, "g5-nanode-1")
+        t = Type(self.client, "g6-nanode-1")
         self.assertEqual(t._populated, False)
 
         self.assertEqual(t.vcpus, 1)
@@ -574,11 +613,20 @@ class TypeTest(ClientBaseCase):
         """
         Tests that gpu types load up right
         """
-        t = Type(self.client, "g5-gpu-2")
+        t = Type(self.client, "g6-gpu-2")
         self.assertEqual(t._populated, False)
 
         self.assertEqual(t.gpus, 1)
         self.assertEqual(t._populated, True)
+
+    def test_load_type(self):
+        """
+        Tests that a type can be loaded using LinodeClient.load(...)
+        """
+
+        t = self.client.load(Type, "g6-nanode-1")
+        self.assertEqual(t._populated, True)
+        self.assertEqual(t.type_class, "nanode")
 
     def test_save_noforce(self):
         """

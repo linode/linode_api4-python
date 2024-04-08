@@ -21,7 +21,7 @@ from linode_api4.objects import (
 )
 from linode_api4.objects.base import MappedObject
 from linode_api4.objects.filtering import FilterableAttribute
-from linode_api4.objects.networking import IPAddress, IPv6Range
+from linode_api4.objects.networking import IPAddress, IPv6Range, VPCIPAddress
 from linode_api4.objects.vpc import VPC, VPCSubnet
 from linode_api4.paginated_list import PaginatedList
 
@@ -82,9 +82,9 @@ class Backup(DerivedBase):
         """
 
         d = {
-            "linode_id": linode.id
-            if issubclass(type(linode), Base)
-            else linode,
+            "linode_id": (
+                linode.id if issubclass(type(linode), Base) else linode
+            ),
         }
         d.update(kwargs)
 
@@ -256,9 +256,10 @@ class Type(Base):
         """
         Allows changing the name "class" in JSON to "type_class" in python
         """
+
         super()._populate(json)
 
-        if "class" in json:
+        if json is not None and "class" in json:
             setattr(self, "type_class", json["class"])
         else:
             setattr(self, "type_class", None)
@@ -378,9 +379,11 @@ class ConfigInterface(JSONObject):
                 "purpose": "vpc",
                 "primary": self.primary,
                 "subnet_id": self.subnet_id,
-                "ipv4": self.ipv4.dict
-                if isinstance(self.ipv4, ConfigInterfaceIPv4)
-                else self.ipv4,
+                "ipv4": (
+                    self.ipv4.dict
+                    if isinstance(self.ipv4, ConfigInterfaceIPv4)
+                    else self.ipv4
+                ),
                 "ip_ranges": self.ip_ranges,
             },
         }
@@ -612,6 +615,11 @@ class Config(DerivedBase):
         return i
 
 
+class MigrationType:
+    COLD = "cold"
+    WARM = "warm"
+
+
 class Instance(Base):
     """
     A Linode Instance.
@@ -685,6 +693,10 @@ class Instance(Base):
                 i = IPAddress(self._client, c["address"], c)
                 reserved.append(i)
 
+            vpc = [
+                VPCIPAddress.from_json(v) for v in result["ipv4"].get("vpc", [])
+            ]
+
             slaac = IPAddress(
                 self._client,
                 result["ipv6"]["slaac"]["address"],
@@ -708,6 +720,7 @@ class Instance(Base):
                         "private": v4pri,
                         "shared": shared_ips,
                         "reserved": reserved,
+                        "vpc": vpc,
                     },
                     "ipv6": {
                         "slaac": slaac,
@@ -948,7 +961,13 @@ class Instance(Base):
             return False
         return True
 
-    def resize(self, new_type, allow_auto_disk_resize=True, **kwargs):
+    def resize(
+        self,
+        new_type,
+        allow_auto_disk_resize=True,
+        migration_type: MigrationType = MigrationType.COLD,
+        **kwargs,
+    ):
         """
         Resizes a Linode you have the read_write permission to a different Type. If any
         actions are currently running or queued, those actions must be completed first
@@ -970,6 +989,10 @@ class Instance(Base):
                                        data must fit within the smaller disk size. Defaults to true.
         :type: allow_auto_disk_resize: bool
 
+        :param migration_type: Type of migration to be used when resizing a Linode.
+                               Customers can choose between warm and cold, the default type is cold.
+        :type: migration_type: str
+
         :returns: True if the operation was successful.
         :rtype: bool
         """
@@ -979,6 +1002,7 @@ class Instance(Base):
         params = {
             "type": new_type,
             "allow_auto_disk_resize": allow_auto_disk_resize,
+            "migration_type": migration_type,
         }
         params.update(kwargs)
 
@@ -1100,9 +1124,11 @@ class Instance(Base):
 
         params = {
             "kernel": kernel.id if issubclass(type(kernel), Base) else kernel,
-            "label": label
-            if label
-            else "{}_config_{}".format(self.label, len(self.configs)),
+            "label": (
+                label
+                if label
+                else "{}_config_{}".format(self.label, len(self.configs))
+            ),
             "devices": device_map,
             "interfaces": param_interfaces,
         }
@@ -1173,9 +1199,11 @@ class Instance(Base):
 
         params = {
             "size": size,
-            "label": label
-            if label
-            else "{}_disk_{}".format(self.label, len(self.disks)),
+            "label": (
+                label
+                if label
+                else "{}_disk_{}".format(self.label, len(self.disks))
+            ),
             "read_only": read_only,
             "filesystem": filesystem,
             "authorized_keys": authorized_keys,
@@ -1185,9 +1213,9 @@ class Instance(Base):
         if image:
             params.update(
                 {
-                    "image": image.id
-                    if issubclass(type(image), Base)
-                    else image,
+                    "image": (
+                        image.id if issubclass(type(image), Base) else image
+                    ),
                     "root_pass": root_pass,
                 }
             )
@@ -1438,7 +1466,12 @@ class Instance(Base):
 
         return True
 
-    def initiate_migration(self, region=None, upgrade=None):
+    def initiate_migration(
+        self,
+        region=None,
+        upgrade=None,
+        migration_type: MigrationType = MigrationType.COLD,
+    ):
         """
         Initiates a pending migration that is already scheduled for this Linode
         Instance
@@ -1459,10 +1492,16 @@ class Instance(Base):
                         region field does not allow upgrades, then the endpoint will return a 400 error
                         code and the migration will not be performed.
         :type: upgrade: bool
+
+        :param migration_type: The type of migration that will be used for this Linode migration.
+                               Customers can only use this param when activating a support-created migration.
+                               Customers can choose between a cold and warm migration, cold is the default type.
+        :type: mirgation_type: str
         """
         params = {
             "region": region.id if issubclass(type(region), Base) else region,
             "upgrade": upgrade,
+            "type": migration_type,
         }
 
         util.drop_null_keys(params)
@@ -1601,13 +1640,15 @@ class Instance(Base):
         dids = [d.id if issubclass(type(d), Base) else d for d in disks]
 
         params = {
-            "linode_id": to_linode.id
-            if issubclass(type(to_linode), Base)
-            else to_linode,
+            "linode_id": (
+                to_linode.id if issubclass(type(to_linode), Base) else to_linode
+            ),
             "region": region.id if issubclass(type(region), Base) else region,
-            "type": instance_type.id
-            if issubclass(type(instance_type), Base)
-            else instance_type,
+            "type": (
+                instance_type.id
+                if issubclass(type(instance_type), Base)
+                else instance_type
+            ),
             "configs": cids if cids else None,
             "disks": dids if dids else None,
             "label": label,

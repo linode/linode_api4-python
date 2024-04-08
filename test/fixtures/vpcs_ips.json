@@ -1,0 +1,22 @@
+{
+  "data": [
+    {
+      "address": "10.0.0.2",
+      "address_range": null,
+      "vpc_id": 123,
+      "subnet_id": 456,
+      "region": "us-mia",
+      "linode_id": 123,
+      "config_id": 456,
+      "interface_id": 789,
+      "active": true,
+      "nat_1_1": "172.233.179.133",
+      "gateway": "10.0.0.1",
+      "prefix": 24,
+      "subnet_mask": "255.255.255.0"
+    }
+  ],
+  "page": 1,
+  "pages": 1,
+  "results": 1
+}

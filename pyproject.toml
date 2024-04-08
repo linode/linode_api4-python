@@ -1,6 +1,76 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "linode_api4"
+authors = [{ name = "Linode", email = "developers@linode.com" }]
+description = "The official Python SDK for Linode API v4"
+readme = "README.rst"
+requires-python = ">=3.8"
+keywords = [
+    "akamai",
+    "Akamai Connected Cloud",
+    "linode",
+    "cloud",
+    "SDK",
+    "Linode APIv4",
+]
+license = { text = "BSD-3-Clause" }
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries",
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = ["requests", "polling"]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+test = ["tox>=4.4.0"]
+
+dev = [
+    "tox>=4.4.0",
+    "mock>=5.0.0",
+    "pytest>=7.3.1",
+    "httpretty>=1.1.4",
+    "black>=23.1.0",
+    "isort>=5.12.0",
+    "autoflake>=2.0.1",
+    "pylint",
+    "twine>=4.0.2",
+    "build>=0.10.0",
+    "Sphinx>=6.0.0",
+    "sphinx-autobuild>=2021.3.14",
+    "sphinxcontrib-fulltoc>=1.2.0",
+    "build>=0.10.0",
+    "twine>=4.0.2",
+]
+
+doc = [
+    "Sphinx>=6.0.0",
+    "sphinx-autobuild>=2021.3.14",
+    "sphinxcontrib-fulltoc>=1.2.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/linode/linode_api4-python"
+Documentation = "https://linode-api4.readthedocs.io/"
+Repository = "https://github.com/linode/linode_api4-python.git"
+
+[tool.setuptools.dynamic]
+version = { attr = "linode_api4.version.__version__" }
+
+[tool.setuptools.packages.find]
+exclude = ['contrib', 'docs', 'test', 'test.*']
 
 [tool.isort]
 profile = "black"

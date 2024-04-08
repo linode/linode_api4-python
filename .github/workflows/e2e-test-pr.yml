@@ -32,9 +32,11 @@ jobs:
 
       # Check out merge commit
       - name: Checkout PR
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ inputs.sha }}
+          fetch-depth: 0
+          submodules: 'recursive'
 
       - name: Get the hash value of the latest commit from the PR branch
         uses: octokit/graphql-action@v2.x
@@ -61,22 +63,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update system packages
-        run: sudo apt-get update -y
-
-      - name: Install system deps
-        run: sudo apt-get install -y build-essential
-
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
       - name: Install Python deps
-        run: pip install -r requirements.txt -r requirements-dev.txt wheel boto3
+        run: pip install -U setuptools wheel boto3 certifi
 
       - name: Install Python SDK
-        run: make install
+        run: make dev-install
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -94,7 +90,7 @@ jobs:
       - name: Add additional information to XML report
         run: |
           filename=$(ls | grep -E '^[0-9]{12}_sdk_test_report\.xml$') 
-          python test/script/add_to_xml_test_report.py \
+          python tod_scripts/add_to_xml_test_report.py \
           --branch_name "${GITHUB_REF#refs/*/}" \
           --gha_run_id "$GITHUB_RUN_ID" \
           --gha_run_number "$GITHUB_RUN_NUMBER" \
@@ -103,7 +99,7 @@ jobs:
       - name: Upload test results
         run: |
           report_filename=$(ls | grep -E '^[0-9]{12}_sdk_test_report\.xml$')
-          python3 test/script/test_report_upload_script.py "${report_filename}"
+          python3 tod_scripts/test_report_upload_script.py "${report_filename}"
         env:
           LINODE_CLI_OBJ_ACCESS_KEY: ${{ secrets.LINODE_CLI_OBJ_ACCESS_KEY }}
           LINODE_CLI_OBJ_SECRET_KEY: ${{ secrets.LINODE_CLI_OBJ_SECRET_KEY }}

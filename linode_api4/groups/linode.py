@@ -1,5 +1,6 @@
 import base64
 import os
+from collections.abc import Iterable
 
 from linode_api4 import Profile
 from linode_api4.common import SSH_KEY_TYPES, load_and_validate_keys
@@ -141,7 +142,9 @@ class LinodeGroup(Group):
         a :any:`Type`, a :any:`Region`, and an :any:`Image`.  All three of
         these fields may be provided as either the ID or the appropriate object.
         In this mode, a root password will be generated and returned with the
-        new Instance object.  For example::
+        new Instance object.
+
+        For example::
 
            new_linode, password = client.linode.instance_create(
                "g6-standard-2",
@@ -156,6 +159,15 @@ class LinodeGroup(Group):
                ltype,
                region,
                image=image)
+
+        To output the password from the above example:
+            print(password)
+
+        To output the first IPv4 address of the new Linode:
+            print(new_linode.ipv4[0])
+
+        To delete the new_linode (WARNING: this immediately destroys the Linode):
+            new_linode.delete()
 
         **Create an Instance from StackScript**
 
@@ -254,6 +266,9 @@ class LinodeGroup(Group):
         :type metadata: dict
         :param firewall: The firewall to attach this Linode to.
         :type firewall: int or Firewall
+        :param interfaces: An array of Network Interfaces to add to this Linode’s Configuration Profile.
+                           At least one and up to three Interface objects can exist in this array.
+        :type interfaces: list[ConfigInterface] or list[dict[str, Any]]
 
         :returns: A new Instance object, or a tuple containing the new Instance and
                   the generated password.
@@ -292,12 +307,22 @@ class LinodeGroup(Group):
             fw = kwargs.pop("firewall")
             kwargs["firewall_id"] = fw.id if isinstance(fw, Firewall) else fw
 
+        if "interfaces" in kwargs:
+            interfaces = kwargs.get("interfaces")
+            if interfaces is not None and isinstance(interfaces, Iterable):
+                kwargs["interfaces"] = [
+                    i._serialize() if isinstance(i, ConfigInterface) else i
+                    for i in interfaces
+                ]
+
         params = {
             "type": ltype.id if issubclass(type(ltype), Base) else ltype,
             "region": region.id if issubclass(type(region), Base) else region,
-            "image": (image.id if issubclass(type(image), Base) else image)
-            if image
-            else None,
+            "image": (
+                (image.id if issubclass(type(image), Base) else image)
+                if image
+                else None
+            ),
             "authorized_keys": authorized_keys,
         }
 
