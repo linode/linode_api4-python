@@ -8,6 +8,7 @@ from test.integration.helpers import (
 
 import pytest
 
+from linode_api4 import VPCIPAddress
 from linode_api4.errors import ApiError
 from linode_api4.objects import (
     Config,
@@ -18,6 +19,7 @@ from linode_api4.objects import (
     Instance,
     Type,
 )
+from linode_api4.objects.linode import MigrationType
 
 
 @pytest.fixture(scope="session")
@@ -302,6 +304,29 @@ def test_linode_resize_with_class(
     assert linode.status == "running"
 
 
+def test_linode_resize_with_migration_type(
+    create_linode_for_long_running_tests,
+):
+    linode = create_linode_for_long_running_tests
+    m_type = MigrationType.WARM
+
+    wait_for_condition(10, 100, get_status, linode, "running")
+
+    time.sleep(5)
+    res = linode.resize(new_type="g6-standard-1", migration_type=m_type)
+
+    assert res
+
+    wait_for_condition(10, 300, get_status, linode, "resizing")
+
+    assert linode.status == "resizing"
+
+    # Takes about 3-5 minute to resize, sometimes longer...
+    wait_for_condition(30, 600, get_status, linode, "running")
+
+    assert linode.status == "running"
+
+
 def test_linode_boot_with_config(create_linode):
     linode = create_linode
 
@@ -325,7 +350,7 @@ def test_linode_firewalls(linode_with_volume_firewall):
     firewalls = linode.firewalls()
 
     assert len(firewalls) > 0
-    assert "TestSDK" in firewalls[0].label
+    assert "test" in firewalls[0].label
 
 
 def test_linode_volumes(linode_with_volume_firewall):
@@ -334,7 +359,7 @@ def test_linode_volumes(linode_with_volume_firewall):
     volumes = linode.volumes()
 
     assert len(volumes) > 0
-    assert "TestSDK" in volumes[0].label
+    assert "test" in volumes[0].label
 
 
 def wait_for_disk_status(disk: Disk, timeout):
@@ -416,15 +441,16 @@ def test_linode_initate_migration(test_linode_client):
     chosen_region = available_regions[4]
     label = get_test_label() + "_migration"
 
-    linode, password = client.linode.instance_create(
-        "g6-nanode-1", chosen_region, image="linode/debian10", label=label
+    linode, _ = client.linode.instance_create(
+        "g6-nanode-1", chosen_region, image="linode/debian12", label=label
     )
 
-    wait_for_condition(10, 100, get_status, linode, "running")
     # Says it could take up to ~6 hrs for migration to fully complete
-
     send_request_when_resource_available(
-        300, linode.initiate_migration, "us-mia"
+        300,
+        linode.initiate_migration,
+        region="us-mia",
+        migration_type=MigrationType.COLD,
     )
 
     res = linode.delete()
@@ -570,6 +596,7 @@ class TestNetworkInterface:
 
     def test_create_vpc(
         self,
+        test_linode_client,
         linode_for_network_interface_tests,
         create_vpc_with_subnet_and_linode,
     ):
@@ -595,6 +622,26 @@ class TestNetworkInterface:
         assert interface.ipv4.vpc == "10.0.0.2"
         assert interface.ipv4.nat_1_1 == linode.ipv4[0]
         assert interface.ip_ranges == ["10.0.0.5/32"]
+
+        vpc_ip = linode.ips.ipv4.vpc[0]
+        vpc_range_ip = linode.ips.ipv4.vpc[1]
+
+        assert vpc_ip.nat_1_1 == linode.ips.ipv4.public[0].address
+        assert vpc_ip.address_range is None
+        assert vpc_ip.vpc_id == vpc.id
+        assert vpc_ip.subnet_id == subnet.id
+        assert vpc_ip.config_id == config.id
+        assert vpc_ip.interface_id == interface.id
+        assert not vpc_ip.active
+
+        assert vpc_range_ip.address_range == "10.0.0.5/32"
+        assert not vpc_range_ip.active
+
+        # Attempt to resolve the IP from /vpcs/ips
+        all_vpc_ips = test_linode_client.vpcs.ips(
+            VPCIPAddress.filters.linode_id == linode.id
+        )
+        assert all_vpc_ips[0].dict == vpc_ip.dict
 
     def test_update_vpc(
         self,

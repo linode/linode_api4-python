@@ -357,3 +357,10 @@ def create_multiple_vpcs(test_linode_client):
     vpc_1.delete()
 
     vpc_2.delete()
+
+
+@pytest.mark.smoke
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers", "smoke: mark test as part of smoke test suite"
+    )
