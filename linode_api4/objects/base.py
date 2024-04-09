@@ -109,9 +109,15 @@ class MappedObject:
                 result[k] = v.dict
             elif isinstance(v, list):
                 result[k] = [
-                    item.dict if isinstance(item, cls) else item for item in v
+                    (
+                        item.dict
+                        if isinstance(item, cls)
+                        else item._raw_json if isinstance(item, Base) else item
+                    )
+                    for item in v
                 ]
-
+            elif isinstance(v, Base):
+                result[k] = v._raw_json
         return result
 
 
