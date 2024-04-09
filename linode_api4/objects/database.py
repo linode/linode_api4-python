@@ -129,7 +129,7 @@ class MySQLDatabase(Base):
     properties = {
         "id": Property(identifier=True),
         "label": Property(mutable=True),
-        "allow_list": Property(mutable=True),
+        "allow_list": Property(mutable=True, unordered=True),
         "backups": Property(derived_class=MySQLDatabaseBackup),
         "cluster_size": Property(),
         "created": Property(is_datetime=True),
@@ -262,7 +262,7 @@ class PostgreSQLDatabase(Base):
     properties = {
         "id": Property(identifier=True),
         "label": Property(mutable=True),
-        "allow_list": Property(mutable=True),
+        "allow_list": Property(mutable=True, unordered=True),
         "backups": Property(derived_class=PostgreSQLDatabaseBackup),
         "cluster_size": Property(),
         "created": Property(is_datetime=True),
@@ -404,7 +404,7 @@ class Database(Base):
     properties = {
         "id": Property(),
         "label": Property(),
-        "allow_list": Property(),
+        "allow_list": Property(unordered=True),
         "cluster_size": Property(),
         "created": Property(),
         "encrypted": Property(),

@@ -1,0 +1,34 @@
+{
+    "data": [
+        {
+            "address": "10.0.0.2",
+            "address_range": null,
+            "vpc_id": 123456,
+            "subnet_id": 654321,
+            "region": "us-ord",
+            "linode_id": 111,
+            "config_id": 222,
+            "interface_id": 333,
+            "active": true,
+            "nat_1_1": null,
+            "gateway": "10.0.0.1",
+            "prefix": 8,
+            "subnet_mask": "255.0.0.0"
+        },
+        {
+            "address": "10.0.0.3",
+            "address_range": null,
+            "vpc_id": 41220,
+            "subnet_id": 41184,
+            "region": "us-ord",
+            "linode_id": 56323949,
+            "config_id": 59467106,
+            "interface_id": 1248358,
+            "active": true,
+            "nat_1_1": null,
+            "gateway": "10.0.0.1",
+            "prefix": 8,
+            "subnet_mask": "255.0.0.0"
+        }
+    ]
+}

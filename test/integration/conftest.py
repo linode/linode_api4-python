@@ -317,22 +317,6 @@ def create_vpc_with_subnet_and_linode(
 
 
 @pytest.fixture(scope="session")
-def create_vpc(test_linode_client):
-    client = test_linode_client
-
-    timestamp = str(int(time.time_ns() % 10**10))
-
-    vpc = client.vpcs.create(
-        "pythonsdk-" + timestamp,
-        get_region(test_linode_client, {"VPCs"}),
-        description="test description",
-    )
-    yield vpc
-
-    vpc.delete()
-
-
-@pytest.fixture(scope="session")
 def create_multiple_vpcs(test_linode_client):
     client = test_linode_client
 
