@@ -114,7 +114,6 @@ def linode_for_disk_tests(test_linode_client):
     linode_instance.delete()
 
 
-@pytest.mark.smoke
 @pytest.fixture
 def create_linode_for_long_running_tests(test_linode_client):
     client = test_linode_client
@@ -372,7 +371,6 @@ def wait_for_disk_status(disk: Disk, timeout):
                 raise TimeoutError("Wait for condition timeout error")
 
 
-@pytest.mark.dependency()
 def test_disk_resize_and_duplicate(test_linode_client, linode_for_disk_tests):
     linode = linode_for_disk_tests
 
@@ -396,7 +394,6 @@ def test_disk_resize_and_duplicate(test_linode_client, linode_for_disk_tests):
     assert dup_disk.linode_id == linode.id
 
 
-@pytest.mark.dependency(depends=["test_disk_resize_and_duplicate"])
 def test_linode_create_disk(test_linode_client, linode_for_disk_tests):
     linode = test_linode_client.load(Instance, linode_for_disk_tests.id)
 
