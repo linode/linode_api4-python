@@ -8,7 +8,7 @@ from test.integration.helpers import (
 
 import pytest
 
-from linode_api4 import VPCIPAddress
+from linode_api4 import LinodeClient, VPCIPAddress
 from linode_api4.errors import ApiError
 from linode_api4.objects import (
     Config,
@@ -84,7 +84,7 @@ def linode_for_network_interface_tests(test_linode_client):
     linode_instance.delete()
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture
 def linode_for_disk_tests(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
@@ -136,6 +136,10 @@ def create_linode_for_long_running_tests(test_linode_client):
 # Test helper
 def get_status(linode: Instance, status: str):
     return linode.status == status
+
+
+def get_type(linode: Instance, type: str):
+    return type in str(linode.type)
 
 
 def test_get_linode(test_linode_client, linode_with_volume_firewall):
@@ -303,6 +307,7 @@ def test_linode_resize_with_class(
 
 
 def test_linode_resize_with_migration_type(
+    test_linode_client,
     create_linode_for_long_running_tests,
 ):
     linode = create_linode_for_long_running_tests
@@ -311,18 +316,38 @@ def test_linode_resize_with_migration_type(
     wait_for_condition(10, 100, get_status, linode, "running")
 
     time.sleep(5)
+
+    assert "g6-nanode-1" in str(linode.type)
+    assert linode.specs.disk == 25600
+
     res = linode.resize(new_type="g6-standard-1", migration_type=m_type)
 
-    assert res
+    if res:
+        wait_for_condition(
+            10,
+            60,
+            get_type,
+            test_linode_client.load(Instance, linode.id),
+            "g6-standard-1",
+        )
 
-    wait_for_condition(10, 300, get_status, linode, "resizing")
+        time.sleep(100)
 
-    assert linode.status == "resizing"
+        # there is no resizing state anymore hence wait for resizing and check the state afterwards
+        wait_for_condition(
+            10,
+            100,
+            get_status,
+            test_linode_client.load(Instance, linode.id),
+            "running",
+        )
+    else:
+        raise ApiError
 
-    # Takes about 3-5 minute to resize, sometimes longer...
-    wait_for_condition(30, 600, get_status, linode, "running")
+    # reload resized linode
+    resized_linode = test_linode_client.load(Instance, linode.id)
 
-    assert linode.status == "running"
+    assert resized_linode.specs.disk == 51200
 
 
 def test_linode_boot_with_config(create_linode):
