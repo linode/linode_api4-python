@@ -1,0 +1,70 @@
+name: Integration Tests
+
+on:
+  workflow_dispatch: null
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-latest
+    env:
+      EXIT_STATUS: 0
+    steps:
+      - name: Clone Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: 'recursive'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Python deps
+        run: pip install -U setuptools wheel boto3 certifi
+
+      - name: Install Python SDK
+        run: make dev-install
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Integration tests
+        run: |
+          timestamp=$(date +'%Y%m%d%H%M')
+          report_filename="${timestamp}_sdk_test_report.xml"
+          status=0
+          if ! python3 -m pytest test/integration/${INTEGRATION_TEST_PATH} --disable-warnings --junitxml="${report_filename}"; then
+            echo "EXIT_STATUS=1" >> $GITHUB_ENV
+          fi
+        env:
+          LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
+
+      - name: Add additional information to XML report
+        run: |
+          filename=$(ls | grep -E '^[0-9]{12}_sdk_test_report\.xml$') 
+          python tod_scripts/add_to_xml_test_report.py \
+          --branch_name "${GITHUB_REF#refs/*/}" \
+          --gha_run_id "$GITHUB_RUN_ID" \
+          --gha_run_number "$GITHUB_RUN_NUMBER" \
+          --xmlfile "${filename}"
+
+      - name: Upload test results
+        run: |
+          report_filename=$(ls | grep -E '^[0-9]{12}_sdk_test_report\.xml$')
+          python3 tod_scripts/test_report_upload_script.py "${report_filename}"
+        env:
+          LINODE_CLI_OBJ_ACCESS_KEY: ${{ secrets.LINODE_CLI_OBJ_ACCESS_KEY }}
+          LINODE_CLI_OBJ_SECRET_KEY: ${{ secrets.LINODE_CLI_OBJ_SECRET_KEY }}
+
+      - name: Test Execution Status Handler
+        run: |
+          if [[ "$EXIT_STATUS" != 0 ]]; then
+            echo "Test execution contains failure(s)"
+            exit $EXIT_STATUS 
+          else
+            echo "Tests passed!"
+          fi
