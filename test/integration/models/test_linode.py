@@ -6,6 +6,7 @@ from test.integration.helpers import (
     wait_for_condition,
 )
 
+import polling
 import pytest
 
 from linode_api4 import LinodeClient, VPCIPAddress
@@ -92,9 +93,9 @@ def linode_for_disk_tests(test_linode_client):
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
-        "g6-nanode-1",
+        "g6-standard-1",
         chosen_region,
-        image="linode/debian10",
+        image="linode/alpine3.19",
         label=label + "_long_tests",
     )
 
@@ -103,11 +104,15 @@ def linode_for_disk_tests(test_linode_client):
     # Provisioning time
     wait_for_condition(10, 300, get_status, linode_instance, "running")
 
-    time.sleep(10)
-
     linode_instance.shutdown()
 
     wait_for_condition(10, 100, get_status, linode_instance, "offline")
+
+    # Now it allocates 100% disk space hence need to clear some space for tests
+    linode_instance.disks[1].delete()
+
+    # Need some time before Linode clears busy state
+    time.sleep(10)
 
     yield linode_instance
 
@@ -138,8 +143,12 @@ def get_status(linode: Instance, status: str):
     return linode.status == status
 
 
-def get_type(linode: Instance, type: str):
+def instance_type_condition(linode: Instance, type: str):
     return type in str(linode.type)
+
+
+def instance_disk_condition(linode: Instance, size: int):
+    return linode.specs.disk == size
 
 
 def test_get_linode(test_linode_client, linode_with_volume_firewall):
@@ -323,22 +332,16 @@ def test_linode_resize_with_migration_type(
     res = linode.resize(new_type="g6-standard-1", migration_type=m_type)
 
     if res:
-        wait_for_condition(
-            10,
-            60,
-            get_type,
-            test_linode_client.load(Instance, linode.id),
-            "g6-standard-1",
-        )
+        # there is no resizing state in warm migration anymore hence wait for resizing and poll event
+        test_linode_client.polling.event_poller_create(
+            "linode", "linode_resize", entity_id=linode.id
+        ).wait_for_next_event_finished(interval=5)
 
-        time.sleep(100)
-
-        # there is no resizing state anymore hence wait for resizing and check the state afterwards
         wait_for_condition(
             10,
             100,
             get_status,
-            test_linode_client.load(Instance, linode.id),
+            linode,
             "running",
         )
     else:
