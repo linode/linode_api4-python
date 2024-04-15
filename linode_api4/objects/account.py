@@ -671,4 +671,5 @@ class AccountAvailability(Base):
     properties = {
         "region": Property(identifier=True),
         "unavailable": Property(unordered=True),
+        "available": Property(unordered=True),
     }

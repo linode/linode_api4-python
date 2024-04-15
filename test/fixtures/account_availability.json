@@ -2,47 +2,58 @@
   "data": [
     {
       "region": "ap-west",
-      "unavailable": []
+      "unavailable": [],
+      "available": ["Linodes", "NodeBalancers"]
     },
     {
       "region": "ca-central",
-      "unavailable": []
+      "unavailable": [],
+      "available": ["Linodes", "NodeBalancers"]
     },
     {
       "region": "ap-southeast",
-      "unavailable": []
+      "unavailable": [],
+      "available": ["Linodes", "NodeBalancers"]
     },
     {
       "region": "us-central",
-      "unavailable": []
+      "unavailable": [],
+      "available": ["Linodes", "NodeBalancers"]
     },
     {
       "region": "us-west",
-      "unavailable": []
+      "unavailable": [],
+      "available": ["Linodes", "NodeBalancers"]
     },
     {
       "region": "us-southeast",
-      "unavailable": []
+      "unavailable": [],
+      "available": ["Linodes", "NodeBalancers"]
     },
     {
       "region": "us-east",
-      "unavailable": []
+      "unavailable": [],
+      "available": ["Linodes", "Kubernetes"]
     },
     {
       "region": "eu-west",
-      "unavailable": []
+      "unavailable": [],
+      "available": ["Linodes", "Cloud Firewall"]
     },
     {
       "region": "ap-south",
-      "unavailable": []
+      "unavailable": [],
+      "available": ["Linodes", "NodeBalancers"]
     },
     {
       "region": "eu-central",
-      "unavailable": []
+      "unavailable": [],
+      "available": ["Linodes", "NodeBalancers"]
     },
     {
       "region": "ap-northeast",
-      "unavailable": []
+      "unavailable": [],
+      "available": ["Linodes"]
     }
   ],
   "page": 1,
