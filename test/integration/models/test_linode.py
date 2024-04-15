@@ -93,13 +93,11 @@ def linode_for_disk_tests(test_linode_client):
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
-        "g6-standard-1",
+        "g6-nanode-1",
         chosen_region,
         image="linode/alpine3.19",
         label=label + "_long_tests",
     )
-
-    time.sleep(10)
 
     # Provisioning time
     wait_for_condition(10, 300, get_status, linode_instance, "running")
@@ -111,8 +109,9 @@ def linode_for_disk_tests(test_linode_client):
     # Now it allocates 100% disk space hence need to clear some space for tests
     linode_instance.disks[1].delete()
 
-    # Need some time before Linode clears busy state
-    time.sleep(10)
+    test_linode_client.polling.event_poller_create(
+        "linode", "disk_delete", entity_id=linode_instance.id
+    )
 
     yield linode_instance
 
@@ -145,10 +144,6 @@ def get_status(linode: Instance, status: str):
 
 def instance_type_condition(linode: Instance, type: str):
     return type in str(linode.type)
-
-
-def instance_disk_condition(linode: Instance, size: int):
-    return linode.specs.disk == size
 
 
 def test_get_linode(test_linode_client, linode_with_volume_firewall):
@@ -404,10 +399,9 @@ def test_disk_resize_and_duplicate(test_linode_client, linode_for_disk_tests):
 
     disk = linode.disks[0]
 
-    disk.resize(5000)
+    send_request_when_resource_available(300, disk.resize, 5000)
 
-    # Using hard sleep instead of wait as the status shows ready when it is resizing
-    time.sleep(120)
+    time.sleep(100)
 
     disk = test_linode_client.load(Disk, linode.disks[0].id, linode.id)
 
@@ -425,7 +419,11 @@ def test_disk_resize_and_duplicate(test_linode_client, linode_for_disk_tests):
 def test_linode_create_disk(test_linode_client, linode_for_disk_tests):
     linode = test_linode_client.load(Instance, linode_for_disk_tests.id)
 
-    disk = linode.disk_create(size=500)
+    disk = send_request_when_resource_available(
+        300,
+        linode.disk_create,
+        size=500,
+    )
 
     wait_for_disk_status(disk, 120)
 
