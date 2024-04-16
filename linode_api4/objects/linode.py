@@ -22,7 +22,7 @@ from linode_api4.objects import (
 from linode_api4.objects.base import MappedObject
 from linode_api4.objects.filtering import FilterableAttribute
 from linode_api4.objects.networking import IPAddress, IPv6Range, VPCIPAddress
-from linode_api4.objects.placement_groups import PlacementGroup
+from linode_api4.objects.placement import PlacementGroup
 from linode_api4.objects.vpc import VPC, VPCSubnet
 from linode_api4.paginated_list import PaginatedList
 
@@ -1548,23 +1548,14 @@ class Instance(Base):
         :param placement_group: Information about the placement group to create this instance under.
         :type placement_group: Union[InstancePlacementGroupAssignment, Dict[str, Any], int]
         """
-        pg = None
-        if placement_group is not None:
-            # Expand placement group union
-            if isinstance(
-                placement_group, (InstancePlacementGroupAssignment, dict)
-            ):
-                pg = placement_group
-            elif isinstance(placement_group, int):
-                pg = {"id": placement_group}
-            else:
-                raise TypeError("Got unexpected type for placement_group")
 
         params = {
             "region": region.id if issubclass(type(region), Base) else region,
             "upgrade": upgrade,
             "type": migration_type,
-            "placement_group": pg,
+            "placement_group": _expand_placement_group_assignment(
+                placement_group
+            ),
         }
 
         util.drop_null_keys(params)
@@ -1708,18 +1699,6 @@ class Instance(Base):
         cids = [c.id if issubclass(type(c), Base) else c for c in configs]
         dids = [d.id if issubclass(type(d), Base) else d for d in disks]
 
-        pg = None
-        if placement_group is not None:
-            # Expand placement group union
-            if isinstance(
-                placement_group, (InstancePlacementGroupAssignment, dict)
-            ):
-                pg = placement_group
-            elif isinstance(placement_group, int):
-                pg = {"id": placement_group}
-            else:
-                raise TypeError("Got unexpected type for placement_group")
-
         params = {
             "linode_id": (
                 to_linode.id if issubclass(type(to_linode), Base) else to_linode
@@ -1735,7 +1714,9 @@ class Instance(Base):
             "label": label,
             "group": group,
             "with_backups": with_backups,
-            "placement_group": pg,
+            "placement_group": _expand_placement_group_assignment(
+                placement_group
+            ),
         }
 
         util.drop_null_keys(params)
@@ -1874,3 +1855,24 @@ class StackScript(Base):
         dct = Base._serialize(self)
         dct["images"] = [d.id for d in self.images]
         return dct
+
+
+def _expand_placement_group_assignment(
+    pg: Union[InstancePlacementGroupAssignment, Dict[str, Any], int]
+) -> Optional[Dict[str, Any]]:
+    """
+    Expands the placement group argument into a dict for use in an API request body.
+
+    :param pg: The placement group argument to be expanded.
+    :type pg: Union[InstancePlacementGroupAssignment, Dict[str, Any], int]
+
+    :returns: The expanded placement group.
+    :rtype: Optional[Dict[str, Any]]
+    """
+    if isinstance(pg, (InstancePlacementGroupAssignment, dict)):
+        return pg
+
+    if isinstance(pg, int):
+        return {"id": pg}
+
+    raise TypeError(f"Invalid type for Placement Group: {type(pg)}")

@@ -20,6 +20,7 @@ from linode_api4.objects import (
     Type,
 )
 from linode_api4.objects.filtering import Filter
+from linode_api4.objects.linode import _expand_placement_group_assignment
 from linode_api4.paginated_list import PaginatedList
 
 
@@ -318,16 +319,9 @@ class LinodeGroup(Group):
                 ]
 
         if "placement_group" in kwargs:
-            placement_group = kwargs.get("placement_group")
-            # Expand placement group union
-            if isinstance(
-                placement_group, (InstancePlacementGroupAssignment, dict)
-            ):
-                kwargs["placement_group"] = placement_group
-            elif isinstance(placement_group, int):
-                kwargs["placement_group"] = {"id": placement_group}
-            else:
-                raise TypeError("Got unexpected type for placement_group")
+            kwargs["placement_group"] = _expand_placement_group_assignment(
+                kwargs.get("placement_group")
+            )
 
         params = {
             "type": ltype.id if issubclass(type(ltype), Base) else ltype,
