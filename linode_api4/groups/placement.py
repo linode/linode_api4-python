@@ -2,7 +2,7 @@ from typing import Union
 
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
-from linode_api4.objects.placement_groups import PlacementGroup
+from linode_api4.objects.placement import PlacementGroup
 from linode_api4.objects.region import Region
 
 
