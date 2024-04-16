@@ -22,7 +22,6 @@ from linode_api4.objects import (
 from linode_api4.objects.base import MappedObject
 from linode_api4.objects.filtering import FilterableAttribute
 from linode_api4.objects.networking import IPAddress, IPv6Range, VPCIPAddress
-from linode_api4.objects.placement import PlacementGroup
 from linode_api4.objects.vpc import VPC, VPCSubnet
 from linode_api4.paginated_list import PaginatedList
 
@@ -884,13 +883,16 @@ class Instance(Base):
         return self._transfer
 
     @property
-    def placement_group(self) -> Optional[PlacementGroup]:
+    def placement_group(self) -> Optional["PlacementGroup"]:
         """
         Returns the PlacementGroup object for the Instance.
 
         :returns: The Placement Group this instance is under.
         :rtype: Optional[PlacementGroup]
         """
+        # Workaround to avoid circular import
+        from linode_api4.objects.placement import PlacementGroup
+
         if not hasattr(self, "_placement_group"):
             # Refresh the instance if necessary
             if self._raw_json is None:
@@ -1869,6 +1871,9 @@ def _expand_placement_group_assignment(
     :returns: The expanded placement group.
     :rtype: Optional[Dict[str, Any]]
     """
+    if pg is None:
+        return None
+
     if isinstance(pg, (InstancePlacementGroupAssignment, dict)):
         return pg
 
