@@ -891,7 +891,9 @@ class Instance(Base):
         :rtype: Optional[PlacementGroup]
         """
         # Workaround to avoid circular import
-        from linode_api4.objects.placement import PlacementGroup
+        from linode_api4.objects.placement import (  # pylint: disable=import-outside-toplevel
+            PlacementGroup,
+        )
 
         if not hasattr(self, "_placement_group"):
             # Refresh the instance if necessary
