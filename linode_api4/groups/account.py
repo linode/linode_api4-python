@@ -487,10 +487,10 @@ class AccountGroup(Group):
 
     def availabilities(self, *filters):
         """
-        Returns a list of all available regions and the resources which are NOT available
+        Returns a list of all available regions and the resource types which are available
         to the account.
 
-        API doc: TBD
+        API doc: https://www.linode.com/docs/api/account/#region-service-availability
 
         :returns: a list of region availability information.
         :rtype: PaginatedList of AccountAvailability

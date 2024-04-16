@@ -660,9 +660,10 @@ class AccountBetaProgram(Base):
 
 class AccountAvailability(Base):
     """
-    The resources information in a region which are NOT available to an account.
+    Contains information about the resources available for a region under the
+    current account.
 
-    API doc: TBD
+    API doc: https://www.linode.com/docs/api/account/#region-service-availability
     """
 
     api_endpoint = "/account/availability/{region}"
