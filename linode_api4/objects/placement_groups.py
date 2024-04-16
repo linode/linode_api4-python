@@ -1,10 +1,20 @@
 from dataclasses import dataclass
+from enum import Enum
 from typing import List, Union
 
 from linode_api4.objects.base import Base, Property
 from linode_api4.objects.linode import Instance
 from linode_api4.objects.region import Region
 from linode_api4.objects.serializable import JSONObject
+
+
+class PlacementGroupAffinityType(Enum):
+    """
+    An enum class that represents the available affinity policies for Linodes
+    in a Placement Group.
+    """
+
+    anti_affinity_local = "anti_affinity:local"
 
 
 @dataclass

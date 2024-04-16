@@ -37,10 +37,13 @@ class PlacementGroup(Group):
         Create a placement group with the specified parameters.
 
         :param label: The label for the placement group.
+        :type label: str
         :param region: The region where the placement group will be created. Can be either a Region object or a string representing the region ID.
+        :type region: Union[Region, str]
         :param affinity_type: The affinity type of the placement group.
+        :type affinity_type: PlacementGroupAffinityType
         :param is_strict: Whether the placement group is strict (defaults to False).
-        :param **kwargs: Additional parameters to be passed to the API.
+        :type is_strict: bool
 
         :returns: The new Placement Group.
         :rtype: PlacementGroup
