@@ -155,6 +155,15 @@ with buckets and objects, use the s3 API directly with a library like `boto3`_.
 
 .. _boto3: https://github.com/boto/boto3
 
+PlacementAPIGroup
+^^^^^^^^^^^^
+
+Includes methods related to VM placement.
+
+.. autoclass:: linode_api4.linode_client.PlacementAPIGroup
+   :members:
+   :special-members:
+
 PollingGroup
 ^^^^^^^^^^^^
 
