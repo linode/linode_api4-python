@@ -2,7 +2,7 @@ import base64
 import os
 from collections.abc import Iterable
 
-from linode_api4 import Profile
+from linode_api4 import InstancePlacementGroupAssignment, Profile
 from linode_api4.common import SSH_KEY_TYPES, load_and_validate_keys
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
@@ -270,7 +270,7 @@ class LinodeGroup(Group):
                            At least one and up to three Interface objects can exist in this array.
         :type interfaces: list[ConfigInterface] or list[dict[str, Any]]
         :param placement_group: A Placement Group to create this Linode under.
-        :type placement_group: Union[PlacementGroup, Dict[str, Any]]
+        :type placement_group: Union[InstancePlacementGroupAssignment, Dict[str, Any], int]
 
         :returns: A new Instance object, or a tuple containing the new Instance and
                   the generated password.
@@ -316,6 +316,18 @@ class LinodeGroup(Group):
                     i._serialize() if isinstance(i, ConfigInterface) else i
                     for i in interfaces
                 ]
+
+        if "placement_group" in kwargs:
+            placement_group = kwargs.get("placement_group")
+            # Expand placement group union
+            if isinstance(
+                placement_group, (InstancePlacementGroupAssignment, dict)
+            ):
+                kwargs["placement_group"] = placement_group
+            elif isinstance(placement_group, int):
+                kwargs["placement_group"] = {"id": placement_group}
+            else:
+                raise TypeError("Got unexpected type for placement_group")
 
         params = {
             "type": ltype.id if issubclass(type(ltype), Base) else ltype,

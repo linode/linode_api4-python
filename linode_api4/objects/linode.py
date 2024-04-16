@@ -1548,19 +1548,24 @@ class Instance(Base):
         :param placement_group: Information about the placement group to create this instance under.
         :type placement_group: Union[InstancePlacementGroupAssignment, Dict[str, Any], int]
         """
+        pg = None
+        if placement_group is not None:
+            # Expand placement group union
+            if isinstance(
+                placement_group, (InstancePlacementGroupAssignment, dict)
+            ):
+                pg = placement_group
+            elif isinstance(placement_group, int):
+                pg = {"id": placement_group}
+            else:
+                raise TypeError("Got unexpected type for placement_group")
+
         params = {
             "region": region.id if issubclass(type(region), Base) else region,
             "upgrade": upgrade,
             "type": migration_type,
+            "placement_group": pg,
         }
-
-        # Expand placement group union
-        if isinstance(
-            placement_group, (InstancePlacementGroupAssignment, dict)
-        ):
-            params["placement_group"] = placement_group
-        elif isinstance(placement_group, int):
-            params["placement_group"] = {"id": placement_group}
 
         util.drop_null_keys(params)
 
@@ -1703,6 +1708,18 @@ class Instance(Base):
         cids = [c.id if issubclass(type(c), Base) else c for c in configs]
         dids = [d.id if issubclass(type(d), Base) else d for d in disks]
 
+        pg = None
+        if placement_group is not None:
+            # Expand placement group union
+            if isinstance(
+                placement_group, (InstancePlacementGroupAssignment, dict)
+            ):
+                pg = placement_group
+            elif isinstance(placement_group, int):
+                pg = {"id": placement_group}
+            else:
+                raise TypeError("Got unexpected type for placement_group")
+
         params = {
             "linode_id": (
                 to_linode.id if issubclass(type(to_linode), Base) else to_linode
@@ -1718,15 +1735,10 @@ class Instance(Base):
             "label": label,
             "group": group,
             "with_backups": with_backups,
+            "placement_group": pg,
         }
 
-        # Expand placement group union
-        if isinstance(
-            placement_group, (InstancePlacementGroupAssignment, dict)
-        ):
-            params["placement_group"] = placement_group
-        elif isinstance(placement_group, int):
-            params["placement_group"] = {"id": placement_group}
+        util.drop_null_keys(params)
 
         result = self._client.post(
             "{}/clone".format(Instance.api_endpoint), model=self, data=params
