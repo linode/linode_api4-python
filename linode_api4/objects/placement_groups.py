@@ -9,13 +9,18 @@ from linode_api4.objects.serializable import JSONObject
 
 @dataclass
 class PlacementGroupMember(JSONObject):
+    """
+    Represents a member of a placement group.
+    """
+
     linode_id: int = 0
     is_compliant: bool = False
 
 
 class PlacementGroup(Base):
     """
-    A VM Placement Group.
+    A VM Placement Group, defining the affinity policy for Linodes
+    created in a region.
 
     API Documentation: TODO
     """
@@ -37,4 +42,41 @@ class PlacementGroup(Base):
         linodes: List[Union[Instance, int]],
         compliant_only: bool = False,
     ):
-        pass
+        """
+        Assigns the specified Linodes to the Placement Group.
+
+        :param linodes: A list of Linodes to assign to the Placement Group.
+        :type linodes: List[Union[Instance, int]]
+        :param compliant_only: TODO
+        :type compliant_only: bool
+        """
+        params = {
+            "linodes": [
+                v.id if isinstance(v, Instance) else v for v in linodes
+            ],
+            "compliant_only": compliant_only,
+        }
+
+        self._client.post(
+            f"{PlacementGroup.api_endpoint}/assign", model=self, data=params
+        )
+
+    def unassign(
+        self,
+        linodes: List[Union[Instance, int]],
+    ):
+        """
+        Unassign the specified Linodes from the Placement Group.
+
+        :param linodes: A list of Linodes to unassign from the Placement Group.
+        :type linodes: List[Union[Instance, int]]
+        """
+        params = {
+            "linodes": [
+                v.id if isinstance(v, Instance) else v for v in linodes
+            ],
+        }
+
+        self._client.post(
+            f"{PlacementGroup.api_endpoint}/unassign", model=self, data=params
+        )

@@ -33,12 +33,26 @@ class PlacementGroup(Group):
         is_strict: bool = False,
         **kwargs,
     ) -> PlacementGroup:
+        """
+        Create a placement group with the specified parameters.
+
+        :param label: The label for the placement group.
+        :param region: The region where the placement group will be created. Can be either a Region object or a string representing the region ID.
+        :param affinity_type: The affinity type of the placement group.
+        :param is_strict: Whether the placement group is strict (defaults to False).
+        :param **kwargs: Additional parameters to be passed to the API.
+
+        :returns: The new Placement Group.
+        :rtype: PlacementGroup
+        """
         params = {
             "label": label,
             "region": region.id if isinstance(region, Region) else region,
             "affinity_type": affinity_type,
             "is_strict": is_strict,
         }
+
+        params.update(kwargs)
 
         result = self.client.post("/placement/groups", data=params)
 
