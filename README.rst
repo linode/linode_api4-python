@@ -150,13 +150,10 @@ Run the tests locally using the make command. Run the entire test suite using co
 
     make testint
 
-To run a specific package, use environment variable `INTEGRATION_TEST_PATH` with `testint` command::
+To run a specific package/suite, use the environment variable `TEST_SUITE` using directory names in `integration/...` folder ::
 
-    make INTEGRATION_TEST_PATH="linode_client" testint
-
-To run a specific model test suite, set the environment variable `TEST_MODEL` using file name in `integration/models`::
-
-    make TEST_MODEL="test_account.py" testint
+    make TEST_SUITE="account" testint          // Runs all the test in `integration/models/account` directory
+    make TEST_SUITE="linode_client" testint    // Runs all the test in `integration/linode_client` directory
 
 Lastly to run a specific test case use environment variable `TEST_CASE` with `testint` command::
 
