@@ -6,7 +6,7 @@ from linode_api4.objects.placement_groups import PlacementGroup
 from linode_api4.objects.region import Region
 
 
-class PlacementGroup(Group):
+class PlacementAPIGroup(Group):
     def groups(self, *filters):
         """
         Returns a list of Placement Groups on your account.  You may filter

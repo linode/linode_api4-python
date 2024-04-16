@@ -269,6 +269,8 @@ class LinodeGroup(Group):
         :param interfaces: An array of Network Interfaces to add to this Linode’s Configuration Profile.
                            At least one and up to three Interface objects can exist in this array.
         :type interfaces: list[ConfigInterface] or list[dict[str, Any]]
+        :param placement_group: A Placement Group to create this Linode under.
+        :type placement_group: Union[PlacementGroup, Dict[str, Any]]
 
         :returns: A new Instance object, or a tuple containing the new Instance and
                   the generated password.

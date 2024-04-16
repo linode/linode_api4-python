@@ -22,6 +22,7 @@ from linode_api4.objects import (
 from linode_api4.objects.base import MappedObject
 from linode_api4.objects.filtering import FilterableAttribute
 from linode_api4.objects.networking import IPAddress, IPv6Range, VPCIPAddress
+from linode_api4.objects.placement_groups import PlacementGroup
 from linode_api4.objects.vpc import VPC, VPCSubnet
 from linode_api4.paginated_list import PaginatedList
 
@@ -333,6 +334,30 @@ class NetworkInterface(DerivedBase):
         :rtype: VPCSubnet
         """
         return VPCSubnet(self._client, self.subnet_id, self.vpc_id)
+
+
+@dataclass
+class InstancePlacementGroup(JSONObject):
+    """
+    Represents the placement group that an instance is under.
+    """
+
+    id: int = 0
+    label: str = ""
+    affinity_type: str = ""
+    is_strict: bool = False
+
+
+@dataclass
+class InstancePlacementGroupAssignment(JSONObject):
+    """
+    Represents an assignment between an instance and a Placement Group.
+    This is intended to be used when creating, cloning, migrating, and resizing
+    instances.
+    """
+
+    id: int
+    compliant_only: bool = False
 
 
 @dataclass
@@ -650,6 +675,7 @@ class Instance(Base):
         "host_uuid": Property(),
         "watchdog_enabled": Property(mutable=True),
         "has_user_data": Property(),
+        "placement_group": Property(derived_class=PlacementGroup),
     }
 
     @property
