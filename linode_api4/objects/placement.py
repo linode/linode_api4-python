@@ -1,11 +1,10 @@
 from dataclasses import dataclass
-from enum import StrEnum
 from typing import List, Union
 
 from linode_api4.objects.base import Base, Property
 from linode_api4.objects.linode import Instance
 from linode_api4.objects.region import Region
-from linode_api4.objects.serializable import JSONObject
+from linode_api4.objects.serializable import JSONObject, StrEnum
 
 
 class PlacementGroupAffinityType(StrEnum):
