@@ -358,6 +358,23 @@ def create_placement_group(test_linode_client):
     pg.delete()
 
 
+@pytest.fixture(scope="session")
+def create_placement_group_with_linode(
+    test_linode_client, create_placement_group
+):
+    client = test_linode_client
+
+    inst = client.linode.instance_create(
+        "g6-nanode-1",
+        create_placement_group.region,
+        label=create_placement_group.label,
+    )
+
+    yield create_placement_group, inst
+
+    inst.delete()
+
+
 @pytest.mark.smoke
 def pytest_configure(config):
     config.addinivalue_line(
