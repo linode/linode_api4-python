@@ -476,6 +476,29 @@ class LinodeTest(ClientBaseCase):
             {"user_data": "cool"},
         )
 
+    def test_placement_group(self):
+        """
+        Tests that you can get the placement group for a Linode
+        """
+        linode = Instance(self.client, 123)
+
+        pg = linode.placement_group
+
+        assert pg.id == 123
+        assert pg.label == "test"
+        assert pg.affinity_type == "anti_affinity:local"
+
+        # Invalidate the instance and try again
+        # This makes sure the implicit refresh/cache logic works
+        # as expected
+        linode.invalidate()
+
+        pg = linode.placement_group
+
+        assert pg.id == 123
+        assert pg.label == "test"
+        assert pg.affinity_type == "anti_affinity:local"
+
 
 class DiskTest(ClientBaseCase):
     """

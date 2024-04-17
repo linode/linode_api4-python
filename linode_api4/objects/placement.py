@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import List, Union
 
 from linode_api4.objects.base import Base, Property
@@ -8,7 +8,7 @@ from linode_api4.objects.region import Region
 from linode_api4.objects.serializable import JSONObject
 
 
-class PlacementGroupAffinityType(Enum):
+class PlacementGroupAffinityType(StrEnum):
     """
     An enum class that represents the available affinity policies for Linodes
     in a Placement Group.
@@ -67,9 +67,13 @@ class PlacementGroup(Base):
             "compliant_only": compliant_only,
         }
 
-        self._client.post(
+        result = self._client.post(
             f"{PlacementGroup.api_endpoint}/assign", model=self, data=params
         )
+
+        # The assign endpoint returns the updated PG, so we can use this
+        # as an opportunity to refresh the object
+        self._populate(result)
 
     def unassign(
         self,
@@ -87,6 +91,10 @@ class PlacementGroup(Base):
             ],
         }
 
-        self._client.post(
+        result = self._client.post(
             f"{PlacementGroup.api_endpoint}/unassign", model=self, data=params
         )
+
+        # The unassign endpoint returns the updated PG, so we can use this
+        # as an opportunity to refresh the object
+        self._populate(result)

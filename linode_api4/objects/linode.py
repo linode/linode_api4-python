@@ -897,7 +897,7 @@ class Instance(Base):
 
         if not hasattr(self, "_placement_group"):
             # Refresh the instance if necessary
-            if self._raw_json is None:
+            if not self._populated:
                 self._api_get()
 
             pg_data = self._raw_json.get("placement_group", None)
