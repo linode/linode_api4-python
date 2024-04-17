@@ -14,7 +14,11 @@
         "ipv6": "2400:8904::f03c:91ff:fea5:659,2400:8904::f03c:91ff:fea5:9282,2400:8904::f03c:91ff:fea5:b9b3,2400:8904::f03c:91ff:fea5:925a,2400:8904::f03c:91ff:fea5:22cb,2400:8904::f03c:91ff:fea5:227a,2400:8904::f03c:91ff:fea5:924c,2400:8904::f03c:91ff:fea5:f7e2,2400:8904::f03c:91ff:fea5:2205,2400:8904::f03c:91ff:fea5:9207"
       },
       "label": "label1",
-      "site_type": "core"
+      "site_type": "core",
+      "placement_group_limits": {
+        "maximum_pgs_per_customer": 5,
+        "maximum_linodes_per_pg": 5
+      }
     },
     {
       "id": "ca-central",
@@ -30,7 +34,11 @@
         "ipv6": "2600:3c04::f03c:91ff:fea9:f63,2600:3c04::f03c:91ff:fea9:f6d,2600:3c04::f03c:91ff:fea9:f80,2600:3c04::f03c:91ff:fea9:f0f,2600:3c04::f03c:91ff:fea9:f99,2600:3c04::f03c:91ff:fea9:fbd,2600:3c04::f03c:91ff:fea9:fdd,2600:3c04::f03c:91ff:fea9:fe2,2600:3c04::f03c:91ff:fea9:f68,2600:3c04::f03c:91ff:fea9:f4a"
       },
       "label": "label2",
-      "site_type": "core"
+      "site_type": "core",
+      "placement_group_limits": {
+        "maximum_pgs_per_customer": 5,
+        "maximum_linodes_per_pg": 5
+      }
     },
     {
       "id": "ap-southeast",
@@ -62,7 +70,11 @@
         "ipv6": "2600:3c00::2,2600:3c00::9,2600:3c00::7,2600:3c00::5,2600:3c00::3,2600:3c00::8,2600:3c00::6,2600:3c00::4,2600:3c00::c,2600:3c00::b"
       },
       "label": "label4",
-      "site_type": "core"
+      "site_type": "core",
+      "placement_group_limits": {
+        "maximum_pgs_per_customer": 5,
+        "maximum_linodes_per_pg": 5
+      }
     },
     {
       "id": "us-west",
@@ -78,7 +90,11 @@
         "ipv6": "2600:3c01::2,2600:3c01::9,2600:3c01::5,2600:3c01::7,2600:3c01::3,2600:3c01::8,2600:3c01::4,2600:3c01::b,2600:3c01::c,2600:3c01::6"
       },
       "label": "label5",
-      "site_type": "core"
+      "site_type": "core",
+      "placement_group_limits": {
+        "maximum_pgs_per_customer": 5,
+        "maximum_linodes_per_pg": 5
+      }
     },
     {
       "id": "us-southeast",
@@ -94,7 +110,11 @@
         "ipv6": "2600:3c02::3,2600:3c02::5,2600:3c02::4,2600:3c02::6,2600:3c02::c,2600:3c02::7,2600:3c02::2,2600:3c02::9,2600:3c02::8,2600:3c02::b"
       },
       "label": "label6",
-      "site_type": "core"
+      "site_type": "core",
+      "placement_group_limits": {
+        "maximum_pgs_per_customer": 5,
+        "maximum_linodes_per_pg": 5
+      }
     },
     {
       "id": "us-east",
@@ -111,7 +131,11 @@
         "ipv6": "2600:3c03::7,2600:3c03::4,2600:3c03::9,2600:3c03::6,2600:3c03::3,2600:3c03::c,2600:3c03::5,2600:3c03::b,2600:3c03::2,2600:3c03::8"
       },
       "label": "label7",
-      "site_type": "core"
+      "site_type": "core",
+      "placement_group_limits": {
+        "maximum_pgs_per_customer": 5,
+        "maximum_linodes_per_pg": 5
+      }
     },
     {
       "id": "eu-west",
@@ -127,7 +151,11 @@
         "ipv6": "2a01:7e00::9,2a01:7e00::3,2a01:7e00::c,2a01:7e00::5,2a01:7e00::6,2a01:7e00::8,2a01:7e00::b,2a01:7e00::4,2a01:7e00::7,2a01:7e00::2"
       },
       "label": "label8",
-      "site_type": "core"
+      "site_type": "core",
+      "placement_group_limits": {
+        "maximum_pgs_per_customer": 5,
+        "maximum_linodes_per_pg": 5
+      }
     },
     {
       "id": "ap-south",
@@ -144,7 +172,11 @@
         "ipv6": "2400:8901::5,2400:8901::4,2400:8901::b,2400:8901::3,2400:8901::9,2400:8901::2,2400:8901::8,2400:8901::7,2400:8901::c,2400:8901::6"
       },
       "label": "label9",
-      "site_type": "core"
+      "site_type": "core",
+      "placement_group_limits": {
+        "maximum_pgs_per_customer": 5,
+        "maximum_linodes_per_pg": 5
+      }
     },
     {
       "id": "eu-central",
@@ -161,7 +193,11 @@
         "ipv6": "2a01:7e01::5,2a01:7e01::9,2a01:7e01::7,2a01:7e01::c,2a01:7e01::2,2a01:7e01::4,2a01:7e01::3,2a01:7e01::6,2a01:7e01::b,2a01:7e01::8"
       },
       "label": "label10",
-      "site_type": "core"
+      "site_type": "core",
+      "placement_group_limits": {
+        "maximum_pgs_per_customer": 5,
+        "maximum_linodes_per_pg": 5
+      }
     },
     {
       "id": "ap-northeast",
@@ -177,7 +213,11 @@
         "ipv6": "2400:8902::3,2400:8902::6,2400:8902::c,2400:8902::4,2400:8902::2,2400:8902::8,2400:8902::7,2400:8902::5,2400:8902::b,2400:8902::9"
       },
       "label": "label11",
-      "site_type": "core"
+      "site_type": "core",
+      "placement_group_limits": {
+        "maximum_pgs_per_customer": 5,
+        "maximum_linodes_per_pg": 5
+      }
     }
   ],
   "page": 1,
