@@ -101,9 +101,9 @@ def test_get_types(test_linode_client):
     client = test_linode_client
     types = client.database.types()
 
-    assert (types[0].type_class, "nanode")
-    assert (types[0].id, "g6-nanode-1")
-    assert (types[0].engines.mongodb[0].price.monthly, 15)
+    assert "nanode" in types[0].type_class
+    assert "g6-nanode-1" in types[0].id
+    assert types[0].engines.mongodb[0].price.monthly == 15
 
 
 def test_get_engines(test_linode_client):

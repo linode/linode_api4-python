@@ -268,6 +268,17 @@ class AccountAvailabilityTest(ClientBaseCase):
     Test methods of the AccountAvailability
     """
 
+    def test_account_availability_api_list(self):
+        with self.mock_get("/account/availability") as m:
+            availabilities = self.client.account.availabilities()
+
+            for avail in availabilities:
+                assert avail.region is not None
+                assert len(avail.unavailable) == 0
+                assert len(avail.available) > 0
+
+                self.assertEqual(m.call_url, "/account/availability")
+
     def test_account_availability_api_get(self):
         region_id = "us-east"
         account_availability_url = "/account/availability/{}".format(region_id)
@@ -276,5 +287,6 @@ class AccountAvailabilityTest(ClientBaseCase):
             availability = AccountAvailability(self.client, region_id)
             self.assertEqual(availability.region, region_id)
             self.assertEqual(availability.unavailable, [])
+            self.assertEqual(availability.available, ["Linodes", "Kubernetes"])
 
             self.assertEqual(m.call_url, account_availability_url)

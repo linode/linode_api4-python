@@ -75,4 +75,4 @@ testunit:
 
 .PHONY: smoketest
 smoketest:
-	$(PYTHON) -m pytest -m smoke test/integration --disable-warnings
+	$(PYTHON) -m pytest -m smoke test/integration

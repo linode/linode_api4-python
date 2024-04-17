@@ -31,7 +31,7 @@ def test_get_account(setup_client_and_linode):
     assert re.search("^$|[a-zA-Z]+", account.first_name)
     assert re.search("^$|[a-zA-Z]+", account.last_name)
     assert re.search(
-        "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", account.email
+        "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+$", account.email
     )
     assert re.search("^$|[a-zA-Z0-9]+", account.address_1)
     assert re.search("^$|[a-zA-Z0-9]+", account.address_2)
@@ -400,9 +400,6 @@ def test_keys_create(test_linode_client, ssh_keys_object_storage):
 
 
 # NetworkingGroupTests
-
-# TODO:: creating vlans
-# def test_get_vlans():
 
 
 @pytest.fixture

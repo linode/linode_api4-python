@@ -32,6 +32,7 @@ class Property:
         id_relationship=False,
         slug_relationship=False,
         nullable=False,
+        unordered=False,
         json_object=None,
     ):
         """
@@ -50,6 +51,10 @@ class Property:
             (This should be used on fields ending with '_id' only)
         slug_relationship - This property is a slug related for a given type.
         nullable - This property can be explicitly null on PUT requests.
+        unordered - The order of this property is not significant.
+                    NOTE: This field is currently only for annotations purposes
+                    and does not influence any update or decoding/encoding logic.
+        json_object - The JSONObject class this property should be decoded into.
         """
         self.mutable = mutable
         self.identifier = identifier
@@ -60,6 +65,7 @@ class Property:
         self.id_relationship = id_relationship
         self.slug_relationship = slug_relationship
         self.nullable = nullable
+        self.unordered = unordered
         self.json_class = json_object
 
 
@@ -103,9 +109,15 @@ class MappedObject:
                 result[k] = v.dict
             elif isinstance(v, list):
                 result[k] = [
-                    item.dict if isinstance(item, cls) else item for item in v
+                    (
+                        item.dict
+                        if isinstance(item, cls)
+                        else item._raw_json if isinstance(item, Base) else item
+                    )
+                    for item in v
                 ]
-
+            elif isinstance(v, Base):
+                result[k] = v._raw_json
         return result
 
 
