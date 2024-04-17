@@ -1,6 +1,7 @@
+from dataclasses import dataclass
 from test.unit.base import ClientBaseCase
 
-from linode_api4.objects import Base, MappedObject, Property
+from linode_api4.objects import Base, JSONObject, MappedObject, Property
 
 
 class MappedObjectCase(ClientBaseCase):
@@ -20,7 +21,7 @@ class MappedObjectCase(ClientBaseCase):
         mapped_obj = MappedObject(**test_dict)
         self.assertEqual(mapped_obj.dict, test_dict)
 
-    def test_mapped_object_dict(self):
+    def test_base_objects_serialize(self):
         test_property_name = "bar"
         test_property_value = "bar"
 
@@ -33,6 +34,25 @@ class MappedObjectCase(ClientBaseCase):
 
         foo = Foo(self.client, test_property_value)
         foo._api_get()
+
+        expected_dict = {
+            "foo": {
+                test_property_name: test_property_value,
+            }
+        }
+
+        mapped_obj = MappedObject(foo=foo)
+        self.assertEqual(mapped_obj.dict, expected_dict)
+
+    def test_json_objects_serialize(self):
+        test_property_name = "bar"
+        test_property_value = "bar"
+
+        @dataclass
+        class Foo(JSONObject):
+            bar: str = ""
+
+        foo = Foo.from_json({test_property_name: test_property_value})
 
         expected_dict = {
             "foo": {
