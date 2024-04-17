@@ -1642,7 +1642,10 @@ class Instance(Base):
         group=None,
         with_backups=None,
         placement_group: Union[
-            InstancePlacementGroupAssignment, Dict[str, Any], int
+            InstancePlacementGroupAssignment,
+            "PlacementGroup",
+            Dict[str, Any],
+            int,
         ] = None,
     ):
         """
@@ -1680,7 +1683,7 @@ class Instance(Base):
         :type: with_backups: bool
 
         :param placement_group: Information about the placement group to create this instance under.
-        :type placement_group: Union[InstancePlacementGroupAssignment, Dict[str, Any], int]
+        :type placement_group: Union[InstancePlacementGroupAssignment, PlacementGroup, Dict[str, Any], int]
 
         :returns: The cloned Instance.
         :rtype: Instance
@@ -1862,17 +1865,24 @@ class StackScript(Base):
 
 
 def _expand_placement_group_assignment(
-    pg: Union[InstancePlacementGroupAssignment, Dict[str, Any], int]
+    pg: Union[
+        InstancePlacementGroupAssignment, "PlacementGroup", Dict[str, Any], int
+    ]
 ) -> Optional[Dict[str, Any]]:
     """
     Expands the placement group argument into a dict for use in an API request body.
 
     :param pg: The placement group argument to be expanded.
-    :type pg: Union[InstancePlacementGroupAssignment, Dict[str, Any], int]
+    :type pg: Union[InstancePlacementGroupAssignment, PlacementGroup, Dict[str, Any], int]
 
     :returns: The expanded placement group.
     :rtype: Optional[Dict[str, Any]]
     """
+    # Workaround to avoid circular import
+    from linode_api4.objects.placement import (  # pylint: disable=import-outside-toplevel
+        PlacementGroup,
+    )
+
     if pg is None:
         return None
 
@@ -1881,6 +1891,9 @@ def _expand_placement_group_assignment(
 
     if isinstance(pg, InstancePlacementGroupAssignment):
         return pg.dict
+
+    if isinstance(pg, PlacementGroup):
+        return {"id": pg.id}
 
     if isinstance(pg, int):
         return {"id": pg}
