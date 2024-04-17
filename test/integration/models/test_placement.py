@@ -30,7 +30,7 @@ def test_pg_assignment(test_linode_client, create_placement_group_with_linode):
     """
     pg, inst = create_placement_group_with_linode
 
-    assert pg.members[0].id == inst
+    assert pg.members[0].linode_id == inst.id
     assert inst.placement_group.id == pg.id
 
     pg.unassign([inst])
@@ -42,5 +42,5 @@ def test_pg_assignment(test_linode_client, create_placement_group_with_linode):
     pg.assign([inst])
     inst.invalidate()
 
-    assert pg.members[0].id == inst
+    assert pg.members[0].linode_id == inst.id
     assert inst.placement_group.id == pg.id

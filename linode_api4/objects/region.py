@@ -14,8 +14,8 @@ class RegionPlacementGroupLimits(JSONObject):
     in a specific region.
     """
 
-    maximum_pgs_per_customer: int
-    maximum_linodes_per_pg: int
+    maximum_pgs_per_customer: int = 0
+    maximum_linodes_per_pg: int = 0
 
 
 class Region(Base):

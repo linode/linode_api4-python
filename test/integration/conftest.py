@@ -5,7 +5,7 @@ from typing import Set
 
 import pytest
 
-from linode_api4 import ApiError
+from linode_api4 import ApiError, PlacementGroupAffinityType
 from linode_api4.linode_client import LinodeClient
 from linode_api4.objects import Region
 
@@ -351,7 +351,8 @@ def create_placement_group(test_linode_client):
 
     pg = client.placement.group_create(
         "pythonsdk-" + timestamp,
-        get_region(test_linode_client, {"Placement Group"}),
+        "eu-west",
+        PlacementGroupAffinityType.anti_affinity_local,
     )
     yield pg
 
@@ -370,6 +371,8 @@ def create_placement_group_with_linode(
         label=create_placement_group.label,
         placement_group=create_placement_group,
     )
+
+    create_placement_group.invalidate()
 
     yield create_placement_group, inst
 
