@@ -1,13 +1,10 @@
 from test.unit.base import ClientBaseCase
 
-from linode_api4 import (
-    DATE_FORMAT,
-    VPC,
+from linode_api4.objects import (
+    PlacementGroup,
     PlacementGroupAffinityType,
     PlacementGroupMember,
-    VPCSubnet,
 )
-from linode_api4.objects import PlacementGroup
 
 
 class PlacementTest(ClientBaseCase):
