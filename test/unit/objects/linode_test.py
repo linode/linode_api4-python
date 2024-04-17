@@ -1,7 +1,7 @@
 from datetime import datetime
 from test.unit.base import ClientBaseCase
 
-from linode_api4 import NetworkInterface
+from linode_api4 import InstancePlacementGroupAssignment, NetworkInterface
 from linode_api4.objects import (
     Config,
     ConfigInterface,
@@ -476,7 +476,7 @@ class LinodeTest(ClientBaseCase):
             {"user_data": "cool"},
         )
 
-    def test_placement_group(self):
+    def test_get_placement_group(self):
         """
         Tests that you can get the placement group for a Linode
         """
@@ -498,6 +498,25 @@ class LinodeTest(ClientBaseCase):
         assert pg.id == 123
         assert pg.label == "test"
         assert pg.affinity_type == "anti_affinity:local"
+
+    def test_create_with_placement_group(self):
+        """
+        Tests that you can create a Linode with a Placement Group
+        """
+
+        with self.mock_post("linode/instances/123") as m:
+            self.client.linode.instance_create(
+                "g6-nanode-1",
+                "eu-west",
+                placement_group=InstancePlacementGroupAssignment(
+                    id=123,
+                    compliant_only=True,
+                ),
+            )
+
+        self.assertEqual(
+            m.call_data["placement_group"], {"id": 123, "compliant_only": True}
+        )
 
 
 class DiskTest(ClientBaseCase):

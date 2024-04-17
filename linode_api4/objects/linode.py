@@ -1876,8 +1876,11 @@ def _expand_placement_group_assignment(
     if pg is None:
         return None
 
-    if isinstance(pg, (InstancePlacementGroupAssignment, dict)):
+    if isinstance(pg, dict):
         return pg
+
+    if isinstance(pg, InstancePlacementGroupAssignment):
+        return pg.dict
 
     if isinstance(pg, int):
         return {"id": pg}
