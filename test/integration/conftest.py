@@ -343,6 +343,21 @@ def create_multiple_vpcs(test_linode_client):
     vpc_2.delete()
 
 
+@pytest.fixture(scope="session")
+def create_placement_group(test_linode_client):
+    client = test_linode_client
+
+    timestamp = str(int(time.time()))
+
+    pg = client.placement.group_create(
+        "pythonsdk-" + timestamp,
+        get_region(test_linode_client, {"Placement Group"}),
+    )
+    yield pg
+
+    pg.delete()
+
+
 @pytest.mark.smoke
 def pytest_configure(config):
     config.addinivalue_line(
