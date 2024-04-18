@@ -1,5 +1,6 @@
 import time
 from datetime import datetime, timedelta
+from typing import Any, Dict, Optional
 
 from linode_api4.objects.serializable import JSONObject
 
@@ -99,6 +100,18 @@ class MappedObject:
     def __repr__(self):
         return "Mapping containing {}".format(vars(self).keys())
 
+    @staticmethod
+    def _flatten_base_subclass(obj: "Base") -> Optional[Dict[str, Any]]:
+        if obj is None:
+            return None
+
+        # If the object hasn't already been lazy-loaded,
+        # manually refresh it
+        if not getattr(obj, "_populated", False):
+            obj._api_get()
+
+        return obj._raw_json
+
     @property
     def dict(self):
         result = vars(self).copy()
@@ -112,12 +125,17 @@ class MappedObject:
                     (
                         item.dict
                         if isinstance(item, cls)
-                        else item._raw_json if isinstance(item, Base) else item
+                        else (
+                            self._flatten_base_subclass(item)
+                            if isinstance(item, Base)
+                            else item
+                        )
                     )
                     for item in v
                 ]
             elif isinstance(v, Base):
-                result[k] = v._raw_json
+                result[k] = self._flatten_base_subclass(v)
+
         return result
 
 
