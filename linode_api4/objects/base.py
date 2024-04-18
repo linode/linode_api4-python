@@ -158,7 +158,10 @@ class Base(object, metaclass=FilterableMetaclass):
         #: be updated on access.
         self._set("_raw_json", None)
 
-        for k in type(self).properties:
+        for k, v in type(self).properties.items():
+            if v.identifier:
+                continue
+
             self._set(k, None)
 
         self._set("id", id)
