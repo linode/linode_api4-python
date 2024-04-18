@@ -21,7 +21,7 @@ class MappedObjectCase(ClientBaseCase):
         mapped_obj = MappedObject(**test_dict)
         self.assertEqual(mapped_obj.dict, test_dict)
 
-    def test_base_objects_serialize(self):
+    def test_serialize_base_objects(self):
         test_property_name = "bar"
         test_property_value = "bar"
 
@@ -44,7 +44,7 @@ class MappedObjectCase(ClientBaseCase):
         mapped_obj = MappedObject(foo=foo)
         self.assertEqual(mapped_obj.dict, expected_dict)
 
-    def test_json_objects_serialize(self):
+    def test_serialize_json_objects(self):
         test_property_name = "bar"
         test_property_value = "bar"
 
