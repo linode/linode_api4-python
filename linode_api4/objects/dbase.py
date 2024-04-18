@@ -16,7 +16,6 @@ class DerivedBase(Base):
 
         Base.__init__(self, client, id, json=json)
 
-
     @classmethod
     def _api_get_derived(cls, parent, client):
         base_url = "{}/{}".format(
