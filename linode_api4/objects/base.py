@@ -124,7 +124,7 @@ class MappedObject:
                 result[k] = [
                     (
                         item.dict
-                        if isinstance(item, cls)
+                        if isinstance(item, (cls, JSONObject))
                         else (
                             self._flatten_base_subclass(item)
                             if isinstance(item, Base)
@@ -135,6 +135,8 @@ class MappedObject:
                 ]
             elif isinstance(v, Base):
                 result[k] = self._flatten_base_subclass(v)
+            elif isinstance(v, JSONObject):
+                result[k] = v.dict
 
         return result
 
