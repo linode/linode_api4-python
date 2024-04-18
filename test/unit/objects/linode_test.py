@@ -559,8 +559,8 @@ class ConfigTest(ClientBaseCase):
         Tests that config devices can be successfully converted to a dict.
         """
 
-        config = Config(self.client, 456789, 123)
-        assert config.devices.dict.get("sda").get("id") == 12345
+        inst = Instance(self.client, 123)
+        assert inst.configs[0].devices.dict.get("sda").get("id") == 12345
 
 
 class StackScriptTest(ClientBaseCase):
