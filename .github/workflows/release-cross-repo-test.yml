@@ -53,7 +53,7 @@ jobs:
           cd .ansible/collections/ansible_collections/linode/cloud
           rm -rf ~/.ansible/test && mkdir -p ~/.ansible/test && ssh-keygen -m PEM -q -t rsa -N '' -f ~/.ansible/test/id_rsa
 
-      - name: run tests
+      - name: Run Ansible Tests
         run: |
           cd .ansible/collections/ansible_collections/linode/cloud
           make testall
