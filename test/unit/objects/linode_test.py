@@ -554,6 +554,14 @@ class ConfigTest(ClientBaseCase):
         self.assertEqual(ipv4.vpc, "10.0.0.1")
         self.assertEqual(ipv4.nat_1_1, "any")
 
+    def test_config_devices_unwrap(self):
+        """
+        Tests that config devices can be successfully converted to a dict.
+        """
+
+        inst = Instance(self.client, 123)
+        assert inst.configs[0].devices.dict.get("sda").get("id") == 12345
+
 
 class StackScriptTest(ClientBaseCase):
     """
