@@ -31,10 +31,10 @@ class ObjectStorageBucket(DerivedBase):
     id_attribute = "label"
 
     properties = {
-        "cluster": Property(),
+        "cluster": Property(identifier=True),
         "created": Property(is_datetime=True),
         "hostname": Property(),
-        "label": Property(),
+        "label": Property(identifier=True),
         "objects": Property(),
         "size": Property(),
     }
