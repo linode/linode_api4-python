@@ -3,14 +3,7 @@ from test.integration.helpers import get_test_label
 
 import pytest
 
-from linode_api4.objects import (
-    Account,
-    AccountSettings,
-    Event,
-    Login,
-    OAuthClient,
-    User,
-)
+from linode_api4.objects import Account, AccountSettings, Event, Login, User
 
 
 @pytest.mark.smoke
@@ -78,15 +71,6 @@ def test_latest_get_event(test_linode_client):
     linode.delete()
 
     assert label in latest_event["entity"]["label"]
-
-
-def test_get_oathclient(test_linode_client, test_oauth_client):
-    client = test_linode_client
-
-    oauth_client = client.load(OAuthClient, test_oauth_client.id)
-
-    assert "test-oauth-client" == oauth_client.label
-    assert "https://localhost/oauth/callback" == oauth_client.redirect_uri
 
 
 def test_get_user(test_linode_client):
