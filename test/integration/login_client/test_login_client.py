@@ -94,14 +94,6 @@ def test_linode_login_client_generate_login_url_with_scope(linode_login_client):
     assert "scopes=linodes%3Aread_write" in url
 
 
-def test_linode_login_client_refresh_oauth_token(
-    linode_login_client, test_oauth_client
-):
-    result = linode_login_client.expire_token(token=test_oauth_client.secret)
-
-    assert result is True
-
-
 def test_linode_login_client_expire_token(
     linode_login_client, test_oauth_client
 ):
