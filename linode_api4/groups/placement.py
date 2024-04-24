@@ -61,7 +61,7 @@ class PlacementAPIGroup(Group):
 
         if not "id" in result:
             raise UnexpectedResponseError(
-                "Unexpected response when creating VPC", json=result
+                "Unexpected response when creating Placement Group", json=result
             )
 
         d = PlacementGroup(self.client, result["id"], result)
