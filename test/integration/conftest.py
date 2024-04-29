@@ -351,7 +351,7 @@ def create_placement_group(test_linode_client):
 
     pg = client.placement.group_create(
         "pythonsdk-" + timestamp,
-        "eu-west",
+        "us-east",
         PlacementGroupAffinityType.anti_affinity_local,
     )
     yield pg
