@@ -5,7 +5,7 @@ from typing import Set
 
 import pytest
 
-from linode_api4 import ApiError
+from linode_api4 import ApiError, PlacementGroupAffinityType
 from linode_api4.linode_client import LinodeClient
 from linode_api4.objects import Region
 
@@ -341,6 +341,42 @@ def create_multiple_vpcs(test_linode_client):
     vpc_1.delete()
 
     vpc_2.delete()
+
+
+@pytest.fixture(scope="session")
+def create_placement_group(test_linode_client):
+    client = test_linode_client
+
+    timestamp = str(int(time.time()))
+
+    pg = client.placement.group_create(
+        "pythonsdk-" + timestamp,
+        "us-east",
+        PlacementGroupAffinityType.anti_affinity_local,
+    )
+    yield pg
+
+    pg.delete()
+
+
+@pytest.fixture(scope="session")
+def create_placement_group_with_linode(
+    test_linode_client, create_placement_group
+):
+    client = test_linode_client
+
+    inst = client.linode.instance_create(
+        "g6-nanode-1",
+        create_placement_group.region,
+        label=create_placement_group.label,
+        placement_group=create_placement_group,
+    )
+
+    create_placement_group.invalidate()
+
+    yield create_placement_group, inst
+
+    inst.delete()
 
 
 @pytest.mark.smoke

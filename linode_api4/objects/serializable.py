@@ -1,5 +1,6 @@
 import inspect
 from dataclasses import asdict, dataclass
+from enum import Enum
 from types import SimpleNamespace
 from typing import (
     Any,
@@ -141,3 +142,22 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
 
     def __len__(self):
         return len(vars(self))
+
+
+class StrEnum(str, Enum):
+    """
+    Used for enums that are of type string, which is necessary
+    for implicit JSON serialization.
+
+    NOTE: Replace this with StrEnum once Python 3.10 has been EOL'd.
+    See: https://docs.python.org/3/library/enum.html#enum.StrEnum
+    """
+
+    def __new__(cls, *values):
+        value = str(*values)
+        member = str.__new__(cls, value)
+        member._value_ = value
+        return member
+
+    def __str__(self):
+        return self._value_
