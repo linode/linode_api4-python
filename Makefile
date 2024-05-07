@@ -2,6 +2,7 @@ PYTHON ?= python3
 
 TEST_CASE_COMMAND :=
 TEST_SUITE :=
+TEST_ARGS :=
 
 LINODE_SDK_VERSION ?= "0.0.0.dev"
 VERSION_MODULE_DOCSTRING ?= \"\"\"\nThe version of this linode_api4 package.\n\"\"\"\n\n
@@ -70,7 +71,7 @@ lint: build
 
 .PHONY: testint
 testint:
-	$(PYTHON) -m pytest test/integration/${TEST_COMMAND} ${TEST_CASE_COMMAND}
+	$(PYTHON) -m pytest test/integration/${TEST_COMMAND} ${TEST_CASE_COMMAND} ${TEST_ARGS}
 
 .PHONY: testunit
 testunit:
