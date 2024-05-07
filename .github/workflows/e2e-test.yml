@@ -41,6 +41,7 @@ jobs:
           LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
 
       - name: Upload test results
+        if: always()
         run: |
           filename=$(ls | grep -E '^[0-9]{12}_sdk_test_report\.xml$') 
           python tod_scripts/add_to_xml_test_report.py \
