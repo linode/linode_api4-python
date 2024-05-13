@@ -1,11 +1,13 @@
 import inspect
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from types import SimpleNamespace
 from typing import (
     Any,
     ClassVar,
     Dict,
+    List,
     Optional,
+    Union,
     get_args,
     get_origin,
     get_type_hints,
@@ -65,12 +67,13 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
         args = get_args(field_type)
 
         # We don't want to try to unwrap Dict, List, Set, etc. values
-        if field_type.__name__ not in ["Optional", "Union"]:
+        if get_origin(field_type) is not Union:
             return field_type
 
         if len(args) == 0:
             raise TypeError("Expected type to have arguments, got none")
 
+        # Use the first type in the Union's args
         return JSONObject._unwrap_type(args[0])
 
     @staticmethod
@@ -78,6 +81,7 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
         """
         Determines whether a JSON dict is an instance of a field type.
         """
+
         field_type = JSONObject._unwrap_type(field_type)
 
         if inspect.isclass(field_type) and issubclass(field_type, JSONObject):
@@ -86,10 +90,14 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
         return json_value
 
     @classmethod
-    def _parse_attr_list(cls, json_value, field_type):
+    def _parse_attr_list(cls, json_value: Any, field_type: type):
         """
         Attempts to parse a list attribute with a given value and field type.
         """
+
+        # Edge case for optional list values
+        if json_value is None:
+            return None
 
         type_hint_args = get_args(field_type)
 
@@ -101,10 +109,12 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
         ]
 
     @classmethod
-    def _parse_attr(cls, json_value, field_type):
+    def _parse_attr(cls, json_value: Any, field_type: type):
         """
         Attempts to parse an attribute with a given value and field type.
         """
+
+        field_type = JSONObject._unwrap_type(field_type)
 
         if list in (field_type, get_origin(field_type)):
             return cls._parse_attr_list(json_value, field_type)
@@ -132,7 +142,40 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
         """
         Serializes this object into a JSON dict.
         """
-        return asdict(self)
+        type_hints = get_type_hints(type(self))
+
+        def attempt_serialize(value: Any) -> Any:
+            if issubclass(type(value), JSONObject):
+                return value._serialize()
+
+            return value
+
+        def should_include(key: str, value: Any) -> bool:
+            hint = type_hints.get(key)
+
+            # We want to exclude any Optional values that are None
+            if hint is None or hint.__name__ != "Optional":
+
+                return True
+
+            return value is not None
+
+        result = {}
+
+        for k, v in vars(self).items():
+            if not should_include(k, v):
+                continue
+
+            if isinstance(v, List):
+                v = [attempt_serialize(j) for j in v]
+            elif isinstance(v, Dict):
+                v = {k: attempt_serialize(j) for k, j in v.items()}
+            else:
+                v = attempt_serialize(v)
+
+            result[k] = v
+
+        return result
 
     @property
     def dict(self) -> Dict[str, Any]:

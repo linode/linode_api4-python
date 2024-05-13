@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Optional
 from urllib import parse
 
@@ -31,18 +31,33 @@ class KubeVersion(Base):
 
 @dataclass
 class LKEClusterControlPlaneACLAddresses(JSONObject):
-    ipv4: List[str] = field(default_factory=lambda: [])
-    ipv6: List[str] = field(default_factory=lambda: [])
+    """
+    LKEClusterControlPlaneACL describes IP ranges that are explicitly allowed
+    to access an LKE cluster's control plane.
+    """
+
+    ipv4: Optional[List[str]] = None
+    ipv6: Optional[List[str]] = None
 
 
 @dataclass
 class LKEClusterControlPlaneACL(JSONObject):
-    enabled: Optional[bool] = False
+    """
+    LKEClusterControlPlaneACL describes the ACL configuration of an LKE cluster's
+    control plane.
+    """
+
+    enabled: Optional[bool] = None
     addresses: Optional[LKEClusterControlPlaneACLAddresses] = None
 
 
 @dataclass
 class LKEClusterControlPlaneRequest(JSONObject):
+    """
+    LKEClusterControlPlaneRequest is the structure intended to be used when configuring
+    the control plane of an LKE cluster during its creation.
+    """
+
     high_availability: Optional[bool] = None
     acl: Optional[LKEClusterControlPlaneACL] = None
 
@@ -223,7 +238,16 @@ class LKECluster(Base):
         return self._kubeconfig
 
     @property
-    def control_plane_acl(self) -> Optional[LKEClusterControlPlaneACL]:
+    def control_plane_acl(self) -> LKEClusterControlPlaneACL:
+        """
+        Gets the ACL configuration of this cluster's control plane.
+
+        API Documentation: TODO
+
+        :returns: The cluster's control plane ACL configuration.
+        :rtype: LKEClusterControlPlaneACL
+        """
+
         if not hasattr(self, "_control_plane_acl"):
             result = self._client.get(
                 f"{LKECluster.api_endpoint}/control_plane_acl", model=self
@@ -383,7 +407,17 @@ class LKECluster(Base):
             "{}/servicetoken".format(LKECluster.api_endpoint), model=self
         )
 
-    def control_plane_acl_update(self, acl: LKEClusterControlPlaneACL):
+    def control_plane_acl_update(
+        self, acl: LKEClusterControlPlaneACL
+    ) -> LKEClusterControlPlaneACL:
+        """
+        Updates the ACL configuration for this cluster's control plane.
+
+        API Documentation: TODO
+
+        :returns: The updated control plane ACL configuration.
+        :rtype: LKEClusterControlPlaneACL
+        """
         result = self._client.put(
             f"{LKECluster.api_endpoint}/control_plane_acl",
             model=self,
@@ -397,6 +431,11 @@ class LKECluster(Base):
         return LKEClusterControlPlaneACL.from_json(acl)
 
     def control_plane_acl_delete(self):
+        """
+        Deletes the ACL configuration for this cluster's control plane.
+
+        API Documentation: TODO
+        """
         self._client.delete(
             f"{LKECluster.api_endpoint}/control_plane_acl", model=self
         )

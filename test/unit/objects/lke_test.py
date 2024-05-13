@@ -215,13 +215,14 @@ class LKETest(ClientBaseCase):
             acl = cluster.control_plane_acl_update(
                 LKEClusterControlPlaneACL(
                     addresses=LKEClusterControlPlaneACLAddresses(
-                        ipv4=["10.0.0.2/32"], ipv6=["1234::5679"]
+                        ipv4=["10.0.0.2/32"],
+                        ipv6=["1234::5679"],
                     )
                 )
             )
-            assert cluster.control_plane_acl.dict == acl.dict
 
-            print(m.call_data)
+            # Make sure the cache was updated
+            assert cluster.control_plane_acl.dict == acl.dict
 
             assert m.call_url == "/lke/clusters/18881/control_plane_acl"
             assert m.method == "put"
@@ -237,3 +238,26 @@ class LKETest(ClientBaseCase):
         assert acl.enabled
         assert acl.addresses.ipv4 == ["10.0.0.1/32"]
         assert acl.addresses.ipv6 == ["1234::5678"]
+
+    def test_cluster_delete_acl(self):
+        """
+        Tests that an LKE cluster can be created with a control plane ACL configuration.
+        """
+        cluster = LKECluster(self.client, 18881)
+
+        with self.mock_delete() as m:
+            cluster.control_plane_acl_delete()
+
+            # Make sure the cache was cleared
+            assert not hasattr(cluster, "_control_plane_acl")
+
+            assert m.call_url == "/lke/clusters/18881/control_plane_acl"
+            assert m.method == "delete"
+
+        # We expect a GET request to be made when accessing `control_plane_acl`
+        # because the cached value has been invalidated
+        with self.mock_get("lke/clusters/18881/control_plane_acl") as m:
+            acl = cluster.control_plane_acl
+
+            assert m.call_url == "/lke/clusters/18881/control_plane_acl"
+            assert m.method == "get"
