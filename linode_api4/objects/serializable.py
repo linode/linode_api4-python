@@ -60,14 +60,29 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
         )
 
     # TODO: Implement __repr__
+    @staticmethod
+    def _unwrap_type(field_type: type) -> type:
+        args = get_args(field_type)
+
+        # We don't want to try to unwrap Dict, List, Set, etc. values
+        if field_type.__name__ not in ["Optional", "Union"]:
+            return field_type
+
+        if len(args) == 0:
+            raise TypeError("Expected type to have arguments, got none")
+
+        return JSONObject._unwrap_type(args[0])
 
     @staticmethod
     def _try_from_json(json_value: Any, field_type: type):
         """
         Determines whether a JSON dict is an instance of a field type.
         """
+        field_type = JSONObject._unwrap_type(field_type)
+
         if inspect.isclass(field_type) and issubclass(field_type, JSONObject):
             return field_type.from_json(json_value)
+
         return json_value
 
     @classmethod
@@ -134,7 +149,7 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
         setattr(self, key, value)
 
     def __iter__(self) -> Any:
-        return vars(self)
+        return self.dict
 
     def __delitem__(self, key):
         setattr(self, key, None)

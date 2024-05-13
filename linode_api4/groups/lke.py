@@ -1,6 +1,12 @@
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
-from linode_api4.objects import Base, KubeVersion, LKECluster
+from linode_api4.objects import (
+    Base,
+    JSONObject,
+    KubeVersion,
+    LKECluster,
+    drop_null_keys,
+)
 
 
 class LKEGroup(Group):
@@ -47,7 +53,15 @@ class LKEGroup(Group):
         """
         return self.client._get_and_filter(LKECluster, *filters)
 
-    def cluster_create(self, region, label, node_pools, kube_version, **kwargs):
+    def cluster_create(
+        self,
+        region,
+        label,
+        node_pools,
+        kube_version,
+        control_plane=None,
+        **kwargs,
+    ):
         """
         Creates an :any:`LKECluster` on this account in the given region, with
         the given label, and with node pools as described.  For example::
@@ -80,6 +94,8 @@ class LKEGroup(Group):
                           formatted dicts.
         :param kube_version: The version of Kubernetes to use
         :type kube_version: KubeVersion or str
+        :param control_plane: Dict[str, Any] or LKEClusterControlPlaneRequest
+        :type control_plane: The control plane configuration of this LKE cluster.
         :param kwargs: Any other arguments to pass along to the API.  See the API
                        docs for possible values.
 
@@ -112,10 +128,15 @@ class LKEGroup(Group):
                 if issubclass(type(kube_version), Base)
                 else kube_version
             ),
+            "control_plane": (
+                control_plane.dict
+                if issubclass(type(control_plane), JSONObject)
+                else control_plane
+            ),
         }
         params.update(kwargs)
 
-        result = self.client.post("/lke/clusters", data=params)
+        result = self.client.post("/lke/clusters", data=drop_null_keys(params))
 
         if "id" not in result:
             raise UnexpectedResponseError(

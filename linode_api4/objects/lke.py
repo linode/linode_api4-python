@@ -1,3 +1,5 @@
+from dataclasses import dataclass, field
+from typing import List, Optional
 from urllib import parse
 
 from linode_api4.errors import UnexpectedResponseError
@@ -5,6 +7,7 @@ from linode_api4.objects import (
     Base,
     DerivedBase,
     Instance,
+    JSONObject,
     MappedObject,
     Property,
     Region,
@@ -24,6 +27,24 @@ class KubeVersion(Base):
     properties = {
         "id": Property(identifier=True),
     }
+
+
+@dataclass
+class LKEClusterControlPlaneACLAddresses(JSONObject):
+    ipv4: List[str] = field(default_factory=lambda: [])
+    ipv6: List[str] = field(default_factory=lambda: [])
+
+
+@dataclass
+class LKEClusterControlPlaneACL(JSONObject):
+    enabled: Optional[bool] = False
+    addresses: Optional[LKEClusterControlPlaneACLAddresses] = None
+
+
+@dataclass
+class LKEClusterControlPlaneRequest(JSONObject):
+    high_availability: Optional[bool] = None
+    acl: Optional[LKEClusterControlPlaneACL] = None
 
 
 class LKENodePoolNode:
@@ -129,6 +150,21 @@ class LKECluster(Base):
         "control_plane": Property(mutable=True),
     }
 
+    def invalidate(self):
+        """
+        Extends the default invalidation logic to drop cached properties.
+        """
+        if hasattr(self, "_api_endpoints"):
+            del self._api_endpoints
+
+        if hasattr(self, "_kubeconfig"):
+            del self._kubeconfig
+
+        if hasattr(self, "_control_plane_acl"):
+            del self._control_plane_acl
+
+        Base.invalidate(self)
+
     @property
     def api_endpoints(self):
         """
@@ -185,6 +221,17 @@ class LKECluster(Base):
             self._kubeconfig = result["kubeconfig"]
 
         return self._kubeconfig
+
+    @property
+    def control_plane_acl(self) -> Optional[LKEClusterControlPlaneACL]:
+        if not hasattr(self, "_control_plane_acl"):
+            result = self._client.get(
+                f"{LKECluster.api_endpoint}/control_plane_acl", model=self
+            )
+
+            self._control_plane_acl = result.get("acl")
+
+        return LKEClusterControlPlaneACL.from_json(self._control_plane_acl)
 
     def node_pool_create(self, node_type, node_count, **kwargs):
         """
@@ -335,3 +382,25 @@ class LKECluster(Base):
         self._client.delete(
             "{}/servicetoken".format(LKECluster.api_endpoint), model=self
         )
+
+    def control_plane_acl_update(self, acl: LKEClusterControlPlaneACL):
+        result = self._client.put(
+            f"{LKECluster.api_endpoint}/control_plane_acl",
+            model=self,
+            data={"acl": acl.dict},
+        )
+
+        acl = result.get("acl")
+
+        self._control_plane_acl = result.get("acl")
+
+        return LKEClusterControlPlaneACL.from_json(acl)
+
+    def control_plane_acl_delete(self):
+        self._client.delete(
+            f"{LKECluster.api_endpoint}/control_plane_acl", model=self
+        )
+
+        # Invalidate the cache so it is automatically refreshed on next access
+        if hasattr(self, "_control_plane_acl"):
+            del self._control_plane_acl

@@ -1,7 +1,13 @@
 from datetime import datetime
 from test.unit.base import ClientBaseCase
 
-from linode_api4.objects import LKECluster, LKENodePool
+from linode_api4.objects import (
+    LKECluster,
+    LKEClusterControlPlaneACL,
+    LKEClusterControlPlaneACLAddresses,
+    LKEClusterControlPlaneRequest,
+    LKENodePool,
+)
 
 
 class LKETest(ClientBaseCase):
@@ -146,3 +152,88 @@ class LKETest(ClientBaseCase):
         self.assertIsNotNone(pool.nodes)
         self.assertIsNotNone(pool.autoscaler)
         self.assertIsNotNone(pool.tags)
+
+    def test_cluster_create_with_acl(self):
+        """
+        Tests that an LKE cluster can be created with a control plane ACL configuration.
+        """
+
+        with self.mock_post("lke/clusters") as m:
+            self.client.lke.cluster_create(
+                "us-mia",
+                "test-acl-cluster",
+                [self.client.lke.node_pool("g6-nanode-1", 3)],
+                "1.29",
+                control_plane=LKEClusterControlPlaneRequest(
+                    acl=LKEClusterControlPlaneACL(
+                        enabled=True,
+                        addresses=LKEClusterControlPlaneACLAddresses(
+                            ipv4=["10.0.0.1/32"], ipv6=["1234::5678"]
+                        ),
+                    )
+                ),
+            )
+
+            assert "high_availability" not in m.call_data["control_plane"]
+            assert m.call_data["control_plane"]["acl"]["enabled"]
+            assert m.call_data["control_plane"]["acl"]["addresses"]["ipv4"] == [
+                "10.0.0.1/32"
+            ]
+            assert m.call_data["control_plane"]["acl"]["addresses"]["ipv6"] == [
+                "1234::5678"
+            ]
+
+    def test_cluster_get_acl(self):
+        """
+        Tests that an LKE cluster can be created with a control plane ACL configuration.
+        """
+        cluster = LKECluster(self.client, 18881)
+
+        with self.mock_get("lke/clusters/18881/control_plane_acl") as m:
+            _ = cluster.control_plane_acl
+
+            # Get the value again to pull from cache
+            acl = cluster.control_plane_acl
+
+            assert m.call_url == "/lke/clusters/18881/control_plane_acl"
+            assert m.method == "get"
+
+            # Ensure the endpoint was only called once
+            assert m.called == 1
+
+        assert acl.enabled
+        assert acl.addresses.ipv4 == ["10.0.0.1/32"]
+        assert acl.addresses.ipv6 == ["1234::5678"]
+
+    def test_cluster_put_acl(self):
+        """
+        Tests that an LKE cluster can be created with a control plane ACL configuration.
+        """
+        cluster = LKECluster(self.client, 18881)
+
+        with self.mock_put("lke/clusters/18881/control_plane_acl") as m:
+            acl = cluster.control_plane_acl_update(
+                LKEClusterControlPlaneACL(
+                    addresses=LKEClusterControlPlaneACLAddresses(
+                        ipv4=["10.0.0.2/32"], ipv6=["1234::5679"]
+                    )
+                )
+            )
+            assert cluster.control_plane_acl.dict == acl.dict
+
+            print(m.call_data)
+
+            assert m.call_url == "/lke/clusters/18881/control_plane_acl"
+            assert m.method == "put"
+            assert m.call_data == {
+                "acl": {
+                    "addresses": {
+                        "ipv4": ["10.0.0.2/32"],
+                        "ipv6": ["1234::5679"],
+                    }
+                }
+            }
+
+        assert acl.enabled
+        assert acl.addresses.ipv4 == ["10.0.0.1/32"]
+        assert acl.addresses.ipv6 == ["1234::5678"]
