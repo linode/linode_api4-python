@@ -145,17 +145,22 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
         type_hints = get_type_hints(type(self))
 
         def attempt_serialize(value: Any) -> Any:
+            """
+            Attempts to serialize the given value, else returns the value unchanged.
+            """
             if issubclass(type(value), JSONObject):
                 return value._serialize()
 
             return value
 
         def should_include(key: str, value: Any) -> bool:
+            """
+            Returns whether the given key/value pair should be included in the resulting dict.
+            """
             hint = type_hints.get(key)
 
             # We want to exclude any Optional values that are None
             if hint is None or hint.__name__ != "Optional":
-
                 return True
 
             return value is not None
