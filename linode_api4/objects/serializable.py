@@ -24,10 +24,13 @@ JSONFilterGroup = SimpleNamespace
 T = TypeVar("T")
 
 
-class OmitOptional(Generic[T]):
+class Nullable(Generic[T]):
     """
-    OmitOptional represents a field that should be excluded from the generated
-    dictionary if it has a None value. This is useful for POST and PUT request bodies.
+    OmitOptional represents a field that should be explicitly included in the generated
+    dictionary if it has a None value. This differs from Optional in that optional fields
+    will be excluded from the output dictionary if None.
+
+    This is useful for building POST and PUT request bodies.
     """
 
     pass
@@ -81,7 +84,7 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
         origin_type = get_origin(field_type)
 
         # We don't want to try to unwrap Dict, List, Set, etc. values
-        if origin_type is not Union and origin_type is not OmitOptional:
+        if origin_type is not Union and origin_type is not Nullable:
             return field_type
 
         if len(args) == 0:
@@ -174,7 +177,7 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
             hint = type_hints.get(key)
 
             # We want to exclude any Optional values that are None
-            if hint is None or get_origin(hint) is not OmitOptional:
+            if hint is None or hint.__name__ != "Optional":
                 return True
 
             return value is not None

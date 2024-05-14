@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 from urllib import parse
 
 from linode_api4.errors import UnexpectedResponseError
@@ -13,7 +13,7 @@ from linode_api4.objects import (
     Region,
     Type,
 )
-from linode_api4.objects.serializable import OmitOptional
+from linode_api4.objects.serializable import Nullable
 
 
 class KubeVersion(Base):
@@ -37,8 +37,8 @@ class LKEClusterControlPlaneACLAddresses(JSONObject):
     to access an LKE cluster's control plane.
     """
 
-    ipv4: OmitOptional[List[str]] = None
-    ipv6: OmitOptional[List[str]] = None
+    ipv4: Optional[List[str]] = None
+    ipv6: Optional[List[str]] = None
 
 
 @dataclass
@@ -48,8 +48,8 @@ class LKEClusterControlPlaneACL(JSONObject):
     control plane.
     """
 
-    enabled: OmitOptional[bool] = None
-    addresses: OmitOptional[LKEClusterControlPlaneACLAddresses] = None
+    enabled: Optional[bool] = None
+    addresses: Optional[LKEClusterControlPlaneACLAddresses] = None
 
 
 @dataclass
@@ -59,8 +59,8 @@ class LKEClusterControlPlaneRequest(JSONObject):
     the control plane of an LKE cluster during its creation.
     """
 
-    high_availability: OmitOptional[bool] = None
-    acl: OmitOptional[LKEClusterControlPlaneACL] = None
+    high_availability: Optional[bool] = None
+    acl: Optional[LKEClusterControlPlaneACL] = None
 
 
 class LKENodePoolNode:
