@@ -180,8 +180,8 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
             # NOTE: We need to check for Union here because Optional is an alias of Union.
             if (
                 hint is None
-                or get_origin(hint) is Union
-                and type(None) in get_args(hint)
+                or get_origin(hint) is not Union
+                or type(None) not in get_args(hint)
             ):
                 return True
 
