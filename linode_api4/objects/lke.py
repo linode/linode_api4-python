@@ -13,7 +13,6 @@ from linode_api4.objects import (
     Region,
     Type,
 )
-from linode_api4.objects.serializable import Nullable
 
 
 class KubeVersion(Base):
