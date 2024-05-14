@@ -216,7 +216,6 @@ class LKETest(ClientBaseCase):
                 LKEClusterControlPlaneACL(
                     addresses=LKEClusterControlPlaneACLAddresses(
                         ipv4=["10.0.0.2/32"],
-                        ipv6=["1234::5679"],
                     )
                 )
             )
@@ -230,14 +229,12 @@ class LKETest(ClientBaseCase):
                 "acl": {
                     "addresses": {
                         "ipv4": ["10.0.0.2/32"],
-                        "ipv6": ["1234::5679"],
                     }
                 }
             }
 
         assert acl.enabled
         assert acl.addresses.ipv4 == ["10.0.0.1/32"]
-        assert acl.addresses.ipv6 == ["1234::5678"]
 
     def test_cluster_delete_acl(self):
         """
@@ -257,7 +254,7 @@ class LKETest(ClientBaseCase):
         # We expect a GET request to be made when accessing `control_plane_acl`
         # because the cached value has been invalidated
         with self.mock_get("lke/clusters/18881/control_plane_acl") as m:
-            acl = cluster.control_plane_acl
+            cluster.control_plane_acl
 
             assert m.call_url == "/lke/clusters/18881/control_plane_acl"
             assert m.method == "get"

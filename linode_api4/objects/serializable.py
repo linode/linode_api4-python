@@ -5,8 +5,10 @@ from typing import (
     Any,
     ClassVar,
     Dict,
+    Generic,
     List,
     Optional,
+    TypeVar,
     Union,
     get_args,
     get_origin,
@@ -18,6 +20,17 @@ from linode_api4.objects.filtering import FilterableAttribute
 # Wraps the SimpleNamespace class and allows for
 # SQLAlchemy-style filter generation on JSONObjects.
 JSONFilterGroup = SimpleNamespace
+
+T = TypeVar("T")
+
+
+class OmitOptional(Generic[T]):
+    """
+    OmitOptional represents a field that should be excluded from the generated
+    dictionary if it has a None value. This is useful for POST and PUT request bodies.
+    """
+
+    pass
 
 
 class JSONFilterableMetaclass(type):
@@ -65,9 +78,10 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
     @staticmethod
     def _unwrap_type(field_type: type) -> type:
         args = get_args(field_type)
+        origin_type = get_origin(field_type)
 
         # We don't want to try to unwrap Dict, List, Set, etc. values
-        if get_origin(field_type) is not Union:
+        if origin_type is not Union and origin_type is not OmitOptional:
             return field_type
 
         if len(args) == 0:
@@ -160,7 +174,7 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
             hint = type_hints.get(key)
 
             # We want to exclude any Optional values that are None
-            if hint is None or hint.__name__ != "Optional":
+            if hint is None or get_origin(hint) is not OmitOptional:
                 return True
 
             return value is not None
