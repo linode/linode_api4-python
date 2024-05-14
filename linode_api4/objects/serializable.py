@@ -177,7 +177,12 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
             hint = type_hints.get(key)
 
             # We want to exclude any Optional values that are None
-            if hint is None or hint.__name__ != "Optional":
+            # NOTE: We need to check for Union here because Optional is an alias of Union.
+            if (
+                hint is None
+                or get_origin(hint) is Union
+                and type(None) in get_args(hint)
+            ):
                 return True
 
             return value is not None
