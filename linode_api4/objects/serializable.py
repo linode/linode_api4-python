@@ -214,7 +214,7 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
         setattr(self, key, value)
 
     def __iter__(self) -> Any:
-        return iter(self.dict)
+        return vars(self)
 
     def __delitem__(self, key):
         setattr(self, key, None)
