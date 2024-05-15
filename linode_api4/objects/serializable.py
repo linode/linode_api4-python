@@ -5,10 +5,9 @@ from typing import (
     Any,
     ClassVar,
     Dict,
-    Generic,
     List,
     Optional,
-    TypeVar,
+    Set,
     Union,
     get_args,
     get_origin,
@@ -20,20 +19,6 @@ from linode_api4.objects.filtering import FilterableAttribute
 # Wraps the SimpleNamespace class and allows for
 # SQLAlchemy-style filter generation on JSONObjects.
 JSONFilterGroup = SimpleNamespace
-
-T = TypeVar("T")
-
-
-class Nullable(Generic[T]):
-    """
-    OmitOptional represents a field that should be explicitly included in the generated
-    dictionary if it has a None value. This differs from Optional in that optional fields
-    will be excluded from the output dictionary if None.
-
-    This is useful for building POST and PUT request bodies.
-    """
-
-    pass
 
 
 class JSONFilterableMetaclass(type):
@@ -72,6 +57,13 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
         )
     """
 
+    always_include: ClassVar[Set[str]] = {}
+    """
+    A set of keys corresponding to fields that should always be
+    included in the generated output regardless of whether their values
+    are None.
+    """
+
     def __init__(self):
         raise NotImplementedError(
             "JSONObject is not intended to be constructed directly"
@@ -84,7 +76,7 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
         origin_type = get_origin(field_type)
 
         # We don't want to try to unwrap Dict, List, Set, etc. values
-        if origin_type is not Union and origin_type is not Nullable:
+        if origin_type is not Union:
             return field_type
 
         if len(args) == 0:
@@ -159,7 +151,8 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
         """
         Serializes this object into a JSON dict.
         """
-        type_hints = get_type_hints(type(self))
+        cls = type(self)
+        type_hints = get_type_hints(cls)
 
         def attempt_serialize(value: Any) -> Any:
             """
@@ -174,6 +167,10 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
             """
             Returns whether the given key/value pair should be included in the resulting dict.
             """
+
+            if key in cls.always_include:
+                return True
+
             hint = type_hints.get(key)
 
             # We want to exclude any Optional values that are None

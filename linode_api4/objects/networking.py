@@ -1,8 +1,8 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import Base, DerivedBase, JSONObject, Property, Region
-from linode_api4.objects.serializable import Nullable
 
 
 class IPv6Pool(Base):
@@ -131,8 +131,8 @@ class VPCIPAddress(JSONObject):
 
     active: bool = False
 
-    address_range: Nullable[str] = None
-    nat_1_1: Nullable[str] = None
+    address_range: Optional[str] = None
+    nat_1_1: Optional[str] = None
 
 
 class VLAN(Base):
