@@ -30,14 +30,47 @@ class KubeVersion(Base):
 
 
 @dataclass
-class LKEClusterControlPlaneACLAddresses(JSONObject):
+class LKEClusterControlPlaneACLAddressesOptions(JSONObject):
     """
-    LKEClusterControlPlaneACL describes IP ranges that are explicitly allowed
-    to access an LKE cluster's control plane.
+    LKEClusterControlPlaneACLAddressesOptions are options used to configure
+    IP ranges that are explicitly allowed to access an LKE cluster's control plane.
     """
 
     ipv4: Optional[List[str]] = None
     ipv6: Optional[List[str]] = None
+
+
+@dataclass
+class LKEClusterControlPlaneACLOptions(JSONObject):
+    """
+    LKEClusterControlPlaneACLOptions is used to set
+    the ACL configuration of an LKE cluster's control plane.
+    """
+
+    enabled: Optional[bool] = None
+    addresses: Optional[LKEClusterControlPlaneACLAddressesOptions] = None
+
+
+@dataclass
+class LKEClusterControlPlaneOptions(JSONObject):
+    """
+    LKEClusterControlPlaneOptions is used to configure
+    the control plane of an LKE cluster during its creation.
+    """
+
+    high_availability: Optional[bool] = None
+    acl: Optional[LKEClusterControlPlaneACLOptions] = None
+
+
+@dataclass
+class LKEClusterControlPlaneACLAddresses(JSONObject):
+    """
+    LKEClusterControlPlaneACLAddresses describes IP ranges that are explicitly allowed
+    to access an LKE cluster's control plane.
+    """
+
+    ipv4: List[str] = None
+    ipv6: List[str] = None
 
 
 @dataclass
@@ -47,19 +80,8 @@ class LKEClusterControlPlaneACL(JSONObject):
     control plane.
     """
 
-    enabled: Optional[bool] = None
-    addresses: Optional[LKEClusterControlPlaneACLAddresses] = None
-
-
-@dataclass
-class LKEClusterControlPlaneRequest(JSONObject):
-    """
-    LKEClusterControlPlaneRequest is the structure intended to be used when configuring
-    the control plane of an LKE cluster during its creation.
-    """
-
-    high_availability: Optional[bool] = None
-    acl: Optional[LKEClusterControlPlaneACL] = None
+    enabled: bool = False
+    addresses: LKEClusterControlPlaneACLAddressesOptions = None
 
 
 class LKENodePoolNode:
@@ -408,7 +430,7 @@ class LKECluster(Base):
         )
 
     def control_plane_acl_update(
-        self, acl: LKEClusterControlPlaneACL
+        self, acl: LKEClusterControlPlaneACLOptions
     ) -> LKEClusterControlPlaneACL:
         """
         Updates the ACL configuration for this cluster's control plane.

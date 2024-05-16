@@ -1,3 +1,5 @@
+from typing import Any, Dict, Union
+
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
@@ -5,6 +7,7 @@ from linode_api4.objects import (
     JSONObject,
     KubeVersion,
     LKECluster,
+    LKEClusterControlPlaneOptions,
     drop_null_keys,
 )
 
@@ -59,7 +62,9 @@ class LKEGroup(Group):
         label,
         node_pools,
         kube_version,
-        control_plane=None,
+        control_plane: Union[
+            LKEClusterControlPlaneOptions, Dict[str, Any]
+        ] = None,
         **kwargs,
     ):
         """

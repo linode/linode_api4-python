@@ -3,9 +3,9 @@ from test.unit.base import ClientBaseCase
 
 from linode_api4.objects import (
     LKECluster,
-    LKEClusterControlPlaneACL,
-    LKEClusterControlPlaneACLAddresses,
-    LKEClusterControlPlaneRequest,
+    LKEClusterControlPlaneACLAddressesOptions,
+    LKEClusterControlPlaneACLOptions,
+    LKEClusterControlPlaneOptions,
     LKENodePool,
 )
 
@@ -164,10 +164,10 @@ class LKETest(ClientBaseCase):
                 "test-acl-cluster",
                 [self.client.lke.node_pool("g6-nanode-1", 3)],
                 "1.29",
-                control_plane=LKEClusterControlPlaneRequest(
-                    acl=LKEClusterControlPlaneACL(
+                control_plane=LKEClusterControlPlaneOptions(
+                    acl=LKEClusterControlPlaneACLOptions(
                         enabled=True,
-                        addresses=LKEClusterControlPlaneACLAddresses(
+                        addresses=LKEClusterControlPlaneACLAddressesOptions(
                             ipv4=["10.0.0.1/32"], ipv6=["1234::5678"]
                         ),
                     )
@@ -213,8 +213,8 @@ class LKETest(ClientBaseCase):
 
         with self.mock_put("lke/clusters/18881/control_plane_acl") as m:
             acl = cluster.control_plane_acl_update(
-                LKEClusterControlPlaneACL(
-                    addresses=LKEClusterControlPlaneACLAddresses(
+                LKEClusterControlPlaneACLOptions(
+                    addresses=LKEClusterControlPlaneACLAddressesOptions(
                         ipv4=["10.0.0.2/32"],
                     )
                 )
