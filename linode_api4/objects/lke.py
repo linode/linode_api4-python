@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Any, Dict, List, Optional, Union
 from urllib import parse
 
 from linode_api4.errors import UnexpectedResponseError
@@ -430,20 +430,26 @@ class LKECluster(Base):
         )
 
     def control_plane_acl_update(
-        self, acl: LKEClusterControlPlaneACLOptions
+        self, acl: Union[LKEClusterControlPlaneACLOptions, Dict[str, Any]]
     ) -> LKEClusterControlPlaneACL:
         """
         Updates the ACL configuration for this cluster's control plane.
 
         API Documentation: TODO
 
+        :param acl: The ACL configuration to apply to this cluster.
+        :type acl: LKEClusterControlPlaneACLOptions or Dict[str, Any]
+
         :returns: The updated control plane ACL configuration.
         :rtype: LKEClusterControlPlaneACL
         """
+        if isinstance(acl, LKEClusterControlPlaneACLOptions):
+            acl = acl.dict
+
         result = self._client.put(
             f"{LKECluster.api_endpoint}/control_plane_acl",
             model=self,
-            data={"acl": acl.dict},
+            data={"acl": acl},
         )
 
         acl = result.get("acl")
