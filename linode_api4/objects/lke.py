@@ -81,7 +81,7 @@ class LKEClusterControlPlaneACL(JSONObject):
     """
 
     enabled: bool = False
-    addresses: LKEClusterControlPlaneACLAddressesOptions = None
+    addresses: LKEClusterControlPlaneACLAddresses = None
 
 
 class LKENodePoolNode:
