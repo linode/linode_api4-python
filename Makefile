@@ -14,7 +14,11 @@ endif
 
 ifdef TEST_SUITE
     ifneq ($(TEST_SUITE),linode_client)
-        TEST_COMMAND = models/$(TEST_SUITE)
+        ifneq ($(TEST_SUITE),login_client)
+            TEST_COMMAND = models/$(TEST_SUITE)
+        else
+            TEST_COMMAND = login_client
+        endif
     else
         TEST_COMMAND = linode_client
     endif

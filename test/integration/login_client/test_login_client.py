@@ -47,7 +47,7 @@ def test_get_oauth_clients(
     assert str(test_oauth_client_two.id) in id_list
 
 
-def test_get_oauth_clients_dont_reveal_secret(test_linode_client):
+def test_get_oauth_clients_dont_reveal_secret(test_linode_client, test_oauth_client):
     oauth_client_secret = test_linode_client.account.oauth_clients()[0].secret
 
     assert oauth_client_secret == "<REDACTED>"
