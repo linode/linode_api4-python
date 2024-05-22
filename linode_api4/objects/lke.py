@@ -461,6 +461,8 @@ class LKECluster(Base):
     def control_plane_acl_delete(self):
         """
         Deletes the ACL configuration for this cluster's control plane.
+        This has the same effect as calling control_plane_acl_update with the `enabled` field
+        set to False. Access controls are disabled and all rules are deleted.
 
         API Documentation: TODO
         """
