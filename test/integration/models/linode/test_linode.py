@@ -33,7 +33,7 @@ def linode_with_volume_firewall(test_linode_client):
         "outbound": [],
         "outbound_policy": "DROP",
         "inbound": [],
-        "inbound_policy": "ACCEPT",
+        "inbound_policy": "DROP",
     }
 
     linode_instance, password = client.linode.instance_create(
@@ -69,7 +69,9 @@ def linode_with_volume_firewall(test_linode_client):
 
 
 @pytest.fixture(scope="session")
-def linode_for_network_interface_tests(test_linode_client):
+def linode_for_network_interface_tests(
+    test_linode_client, cloud_linode_firewall
+):
     client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[4]
@@ -77,7 +79,11 @@ def linode_for_network_interface_tests(test_linode_client):
     label = "TestSDK-" + timestamp
 
     linode_instance, password = client.linode.instance_create(
-        "g6-nanode-1", chosen_region, image="linode/debian10", label=label
+        "g6-nanode-1",
+        chosen_region,
+        image="linode/debian10",
+        label=label,
+        firewall=cloud_linode_firewall,
     )
 
     yield linode_instance
@@ -86,7 +92,7 @@ def linode_for_network_interface_tests(test_linode_client):
 
 
 @pytest.fixture
-def linode_for_disk_tests(test_linode_client):
+def linode_for_disk_tests(test_linode_client, cloud_linode_firewall):
     client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[4]
@@ -97,6 +103,7 @@ def linode_for_disk_tests(test_linode_client):
         chosen_region,
         image="linode/alpine3.19",
         label=label + "_long_tests",
+        firewall=cloud_linode_firewall,
     )
 
     # Provisioning time
@@ -119,7 +126,9 @@ def linode_for_disk_tests(test_linode_client):
 
 
 @pytest.fixture
-def create_linode_for_long_running_tests(test_linode_client):
+def create_linode_for_long_running_tests(
+    test_linode_client, cloud_linode_firewall
+):
     client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[4]
@@ -130,6 +139,7 @@ def create_linode_for_long_running_tests(test_linode_client):
         chosen_region,
         image="linode/debian10",
         label=label + "_long_tests",
+        firewall=cloud_linode_firewall,
     )
 
     yield linode_instance
@@ -412,7 +422,6 @@ def test_disk_resize_and_duplicate(test_linode_client, linode_for_disk_tests):
     time.sleep(40)
 
     wait_for_disk_status(dup_disk, 120)
-
     assert dup_disk.linode_id == linode.id
 
 

@@ -1,9 +1,11 @@
+import ipaddress
 import os
 import random
 import time
 from typing import Set
 
 import pytest
+import requests
 
 from linode_api4 import ApiError
 from linode_api4.linode_client import LinodeClient
@@ -50,16 +52,90 @@ def run_long_tests():
     return os.environ.get(RUN_LONG_TESTS, None)
 
 
-@pytest.fixture(scope="session")
-def create_linode(test_linode_client):
+@pytest.fixture(autouse=True, scope="session")
+def cloud_linode_firewall(test_linode_client):
+    def is_valid_ipv4(address):
+        try:
+            ipaddress.IPv4Address(address)
+            return True
+        except ipaddress.AddressValueError:
+            return False
+
+    def is_valid_ipv6(address):
+        try:
+            ipaddress.IPv6Address(address)
+            return True
+        except ipaddress.AddressValueError:
+            return False
+
+    def get_public_ip(ip_version="ipv4"):
+        url = (
+            f"https://api64.ipify.org?format=json"
+            if ip_version == "ipv6"
+            else f"https://api.ipify.org?format=json"
+        )
+        response = requests.get(url)
+        return str(response.json()["ip"])
+
+    def create_inbound_rule(ipv4_address, ipv6_address):
+        rule = [
+            {
+                "protocol": "TCP",
+                "ports": "22",
+                "addresses": {},
+                "action": "ACCEPT",
+            }
+        ]
+        if is_valid_ipv4(ipv4_address):
+            rule[0]["addresses"]["ipv4"] = [f"{ipv4_address}/32"]
+
+        if is_valid_ipv6(ipv6_address):
+            rule[0]["addresses"]["ipv6"] = [f"{ipv6_address}/128"]
+
+        return rule
+
+        # Fetch the public IP addresses
+
+    ipv4_address = get_public_ip("ipv4")
+    ipv6_address = get_public_ip("ipv6")
+
+    inbound_rule = create_inbound_rule(ipv4_address, ipv6_address)
+
     client = test_linode_client
+
+    rules = {
+        "outbound": [],
+        "outbound_policy": "ACCEPT",
+        "inbound": inbound_rule,
+        "inbound_policy": "DROP",
+    }
+
+    label = "cloud_firewall_" + str(int(time.time()))
+
+    firewall = client.networking.firewall_create(
+        label=label, rules=rules, status="enabled"
+    )
+
+    yield firewall
+
+    firewall.delete()
+
+
+@pytest.fixture(scope="session")
+def create_linode(test_linode_client, cloud_linode_firewall):
+    client = test_linode_client
+
     available_regions = client.regions()
     chosen_region = available_regions[4]
     timestamp = str(time.time_ns())
     label = "TestSDK-" + timestamp
 
     linode_instance, password = client.linode.instance_create(
-        "g6-nanode-1", chosen_region, image="linode/debian10", label=label
+        "g6-nanode-1",
+        chosen_region,
+        image="linode/debian10",
+        label=label,
+        firewall=cloud_linode_firewall,
     )
 
     yield linode_instance
@@ -68,15 +144,20 @@ def create_linode(test_linode_client):
 
 
 @pytest.fixture
-def create_linode_for_pass_reset(test_linode_client):
+def create_linode_for_pass_reset(test_linode_client, cloud_linode_firewall):
     client = test_linode_client
+
     available_regions = client.regions()
     chosen_region = available_regions[4]
     timestamp = str(time.time_ns())
     label = "TestSDK-" + timestamp
 
     linode_instance, password = client.linode.instance_create(
-        "g6-nanode-1", chosen_region, image="linode/debian10", label=label
+        "g6-nanode-1",
+        chosen_region,
+        image="linode/debian10",
+        label=label,
+        firewall=cloud_linode_firewall,
     )
 
     yield linode_instance, password
@@ -303,7 +384,7 @@ def create_vpc_with_subnet(test_linode_client, create_vpc):
 
 @pytest.fixture(scope="session")
 def create_vpc_with_subnet_and_linode(
-    test_linode_client, create_vpc_with_subnet
+    test_linode_client, create_vpc_with_subnet, cloud_linode_firewall
 ):
     vpc, subnet = create_vpc_with_subnet
 
@@ -311,7 +392,11 @@ def create_vpc_with_subnet_and_linode(
     label = "TestSDK-" + timestamp
 
     instance, password = test_linode_client.linode.instance_create(
-        "g6-standard-1", vpc.region, image="linode/debian11", label=label
+        "g6-standard-1",
+        vpc.region,
+        image="linode/debian11",
+        label=label,
+        firewall=cloud_linode_firewall,
     )
 
     yield vpc, subnet, instance, password
