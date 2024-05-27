@@ -100,7 +100,7 @@ class VPC(Base):
         return d
 
     @property
-    def ips(self, *filters) -> PaginatedList:
+    def ips(self) -> PaginatedList:
         """
         Get all the IP addresses under this VPC.
 
@@ -116,5 +116,5 @@ class VPC(Base):
         )
 
         return self._client._get_and_filter(
-            VPCIPAddress, *filters, endpoint="/vpcs/{}/ips".format(self.id)
+            VPCIPAddress, endpoint="/vpcs/{}/ips".format(self.id)
         )
