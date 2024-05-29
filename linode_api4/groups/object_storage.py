@@ -1,5 +1,7 @@
 from urllib import parse
 
+from deprecated import deprecated
+
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
@@ -19,8 +21,14 @@ class ObjectStorageGroup(Group):
     available clusters, buckets, and managing keys and TLS/SSL certs, etc.
     """
 
+    @deprecated(
+        reason="deprecated to use regions list API for listing available OJB clusters"
+    )
     def clusters(self, *filters):
         """
+        This endpoint will be deprecated to use the regions list API to list available OBJ clusters,
+        and a new access key API will directly expose the S3 endpoint hostname.
+
         Returns a list of available Object Storage Clusters.  You may filter
         this query to return only Clusters that are available in a specific region::
 

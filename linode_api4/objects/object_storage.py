@@ -1,5 +1,7 @@
 from urllib import parse
 
+from deprecated import deprecated
+
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import (
     Base,
@@ -463,8 +465,14 @@ class ObjectStorageBucket(DerivedBase):
         }
 
 
+@deprecated(
+    reason="deprecated to use regions list API for viewing available OJB clusters"
+)
 class ObjectStorageCluster(Base):
     """
+    This class will be deprecated to use the regions list to view available OBJ clusters,
+    and a new access key API will directly expose the S3 endpoint hostname.
+
     A cluster where Object Storage is available.
 
     API documentation: https://www.linode.com/docs/api/object-storage/#cluster-view
