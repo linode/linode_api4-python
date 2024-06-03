@@ -21,7 +21,7 @@ class Volume(Base):
         "size": Property(),
         "status": Property(),
         "region": Property(slug_relationship=Region),
-        "tags": Property(mutable=True),
+        "tags": Property(mutable=True, unordered=True),
         "filesystem_path": Property(),
         "hardware_type": Property(),
         "linode_label": Property(),

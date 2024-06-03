@@ -18,10 +18,11 @@ class Region(Base):
     properties = {
         "id": Property(identifier=True),
         "country": Property(),
-        "capabilities": Property(),
+        "capabilities": Property(unordered=True),
         "status": Property(),
         "resolvers": Property(),
         "label": Property(),
+        "site_type": Property(),
     }
 
     @property

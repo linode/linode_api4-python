@@ -1,0 +1,56 @@
+name: Integration Tests
+
+on:
+  workflow_dispatch: null
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-latest
+    env:
+      EXIT_STATUS: 0
+    steps:
+      - name: Clone Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: 'recursive'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Python deps
+        run: pip install -U setuptools wheel boto3 certifi
+
+      - name: Install Python SDK
+        run: make dev-install
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Integration tests
+        run: |
+          timestamp=$(date +'%Y%m%d%H%M')
+          report_filename="${timestamp}_sdk_test_report.xml"
+          make testint TEST_ARGS="--junitxml=${report_filename}"
+        env:
+          LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
+
+      - name: Upload test results
+        if: always()
+        run: |
+          filename=$(ls | grep -E '^[0-9]{12}_sdk_test_report\.xml$') 
+          python tod_scripts/add_to_xml_test_report.py \
+          --branch_name "${GITHUB_REF#refs/*/}" \
+          --gha_run_id "$GITHUB_RUN_ID" \
+          --gha_run_number "$GITHUB_RUN_NUMBER" \
+          --xmlfile "${filename}"
+          sync
+          python3 tod_scripts/test_report_upload_script.py "${filename}"
+        env:
+          LINODE_CLI_OBJ_ACCESS_KEY: ${{ secrets.LINODE_CLI_OBJ_ACCESS_KEY }}
+          LINODE_CLI_OBJ_SECRET_KEY: ${{ secrets.LINODE_CLI_OBJ_SECRET_KEY }}

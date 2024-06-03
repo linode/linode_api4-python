@@ -1,9 +1,11 @@
 import json
+from typing import Optional
 
 import httpretty
 import pytest
 
 from linode_api4 import LinodeClient
+from linode_api4.polling import EventError
 
 
 class TestPolling:
@@ -12,7 +14,11 @@ class TestPolling:
         return LinodeClient("testing", base_url="https://localhost")
 
     @staticmethod
-    def body_event_status(status: str, action: str = "linode_shutdown"):
+    def body_event_status(
+        status: str,
+        action: str = "linode_shutdown",
+        message: Optional[str] = None,
+    ):
         return {
             "action": action,
             "entity": {
@@ -21,6 +27,7 @@ class TestPolling:
             },
             "id": 123,
             "status": status,
+            "message": message,
         }
 
     @staticmethod
@@ -272,3 +279,52 @@ class TestPolling:
         assert len(get_requests) == 3
         assert result.entity.id == 11111
         assert result.status == "finished"
+
+    @httpretty.activate
+    def test_wait_for_event_finished_failed(
+        self,
+        client,
+    ):
+        """
+        Tests that the EventPoller.wait_for_event_finished method raises errors for failed events.
+        """
+
+        httpretty.register_uri(
+            httpretty.GET,
+            "https://localhost/account/events/123",
+            responses=[
+                httpretty.Response(
+                    body=json.dumps(self.body_event_status("started")),
+                ),
+                httpretty.Response(
+                    body=json.dumps(
+                        self.body_event_status("failed", message="oh no!")
+                    ),
+                ),
+            ],
+        )
+
+        httpretty.register_uri(
+            httpretty.GET,
+            "https://localhost/account/events",
+            responses=[
+                httpretty.Response(
+                    body=json.dumps(self.body_event_list_empty()),
+                    status=200,
+                ),
+                httpretty.Response(
+                    body=json.dumps(self.body_event_list_status("started")),
+                    status=200,
+                ),
+            ],
+        )
+
+        try:
+            client.polling.event_poller_create(
+                "linode", "linode_shutdown", entity_id=11111
+            ).wait_for_next_event_finished(interval=0.1)
+        except EventError as err:
+            assert err.event_id == 123
+            assert err.message == "oh no!"
+        else:
+            raise Exception("Expected event error, got none")

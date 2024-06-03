@@ -1,5 +1,6 @@
 import base64
 import os
+from collections.abc import Iterable
 
 from linode_api4 import Profile
 from linode_api4.common import SSH_KEY_TYPES, load_and_validate_keys
@@ -307,10 +308,12 @@ class LinodeGroup(Group):
             kwargs["firewall_id"] = fw.id if isinstance(fw, Firewall) else fw
 
         if "interfaces" in kwargs:
-            kwargs["interfaces"] = [
-                i._serialize() if isinstance(i, ConfigInterface) else i
-                for i in kwargs["interfaces"]
-            ]
+            interfaces = kwargs.get("interfaces")
+            if interfaces is not None and isinstance(interfaces, Iterable):
+                kwargs["interfaces"] = [
+                    i._serialize() if isinstance(i, ConfigInterface) else i
+                    for i in interfaces
+                ]
 
         params = {
             "type": ltype.id if issubclass(type(ltype), Base) else ltype,

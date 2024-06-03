@@ -5,7 +5,7 @@ from test.integration.helpers import get_test_label
 import pytest
 
 from linode_api4 import ApiError, LinodeClient
-from linode_api4.objects import ConfigInterface, ObjectStorageKeys
+from linode_api4.objects import ConfigInterface, ObjectStorageKeys, Region
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -31,7 +31,7 @@ def test_get_account(setup_client_and_linode):
     assert re.search("^$|[a-zA-Z]+", account.first_name)
     assert re.search("^$|[a-zA-Z]+", account.last_name)
     assert re.search(
-        "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", account.email
+        "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+$", account.email
     )
     assert re.search("^$|[a-zA-Z0-9]+", account.address_1)
     assert re.search("^$|[a-zA-Z0-9]+", account.address_2)
@@ -64,6 +64,19 @@ def test_get_domains(test_linode_client, test_domain):
     dom_list = [i.domain for i in domain_dict]
 
     assert domain.domain in dom_list
+
+
+@pytest.mark.smoke
+def test_get_regions(test_linode_client):
+    client = test_linode_client
+    regions = client.regions()
+
+    region_list = [r.id for r in regions]
+
+    test_region = Region(client, "us-east")
+
+    assert test_region.id in region_list
+    assert test_region.site_type in ["core", "edge"]
 
 
 @pytest.mark.smoke
@@ -387,9 +400,6 @@ def test_keys_create(test_linode_client, ssh_keys_object_storage):
 
 
 # NetworkingGroupTests
-
-# TODO:: creating vlans
-# def test_get_vlans():
 
 
 @pytest.fixture

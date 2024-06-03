@@ -4,6 +4,7 @@ from typing import List, Optional
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import Base, DerivedBase, Property, Region
 from linode_api4.objects.serializable import JSONObject
+from linode_api4.paginated_list import PaginatedList
 
 
 @dataclass
@@ -33,7 +34,7 @@ class VPCSubnet(DerivedBase):
         "id": Property(identifier=True),
         "label": Property(mutable=True),
         "ipv4": Property(),
-        "linodes": Property(json_object=VPCSubnetLinode),
+        "linodes": Property(json_object=VPCSubnetLinode, unordered=True),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),
     }
@@ -97,3 +98,23 @@ class VPC(Base):
 
         d = VPCSubnet(self._client, result["id"], self.id, result)
         return d
+
+    @property
+    def ips(self) -> PaginatedList:
+        """
+        Get all the IP addresses under this VPC.
+
+        API Documentation: TODO
+
+        :returns: A list of VPCIPAddresses the acting user can access.
+        :rtype: PaginatedList of VPCIPAddress
+        """
+
+        # need to avoid circular import
+        from linode_api4.objects import (  # pylint: disable=import-outside-toplevel
+            VPCIPAddress,
+        )
+
+        return self._client._get_and_filter(
+            VPCIPAddress, endpoint="/vpcs/{}/ips".format(self.id)
+        )

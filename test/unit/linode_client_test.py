@@ -74,6 +74,7 @@ class LinodeClientGeneralTest(ClientBaseCase):
             self.assertIsNotNone(region.resolvers)
             self.assertIsNotNone(region.resolvers.ipv4)
             self.assertIsNotNone(region.resolvers.ipv6)
+            self.assertEqual(region.site_type, "core")
 
     def test_get_images(self):
         r = self.client.images()

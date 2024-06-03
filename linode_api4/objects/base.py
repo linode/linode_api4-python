@@ -1,5 +1,6 @@
 import time
 from datetime import datetime, timedelta
+from typing import Any, Dict, Optional
 
 from linode_api4.objects.serializable import JSONObject
 
@@ -32,6 +33,7 @@ class Property:
         id_relationship=False,
         slug_relationship=False,
         nullable=False,
+        unordered=False,
         json_object=None,
     ):
         """
@@ -50,6 +52,10 @@ class Property:
             (This should be used on fields ending with '_id' only)
         slug_relationship - This property is a slug related for a given type.
         nullable - This property can be explicitly null on PUT requests.
+        unordered - The order of this property is not significant.
+                    NOTE: This field is currently only for annotations purposes
+                    and does not influence any update or decoding/encoding logic.
+        json_object - The JSONObject class this property should be decoded into.
         """
         self.mutable = mutable
         self.identifier = identifier
@@ -60,6 +66,7 @@ class Property:
         self.id_relationship = id_relationship
         self.slug_relationship = slug_relationship
         self.nullable = nullable
+        self.unordered = unordered
         self.json_class = json_object
 
 
@@ -93,6 +100,18 @@ class MappedObject:
     def __repr__(self):
         return "Mapping containing {}".format(vars(self).keys())
 
+    @staticmethod
+    def _flatten_base_subclass(obj: "Base") -> Optional[Dict[str, Any]]:
+        if obj is None:
+            return None
+
+        # If the object hasn't already been lazy-loaded,
+        # manually refresh it
+        if not getattr(obj, "_populated", False):
+            obj._api_get()
+
+        return obj._raw_json
+
     @property
     def dict(self):
         result = vars(self).copy()
@@ -103,8 +122,21 @@ class MappedObject:
                 result[k] = v.dict
             elif isinstance(v, list):
                 result[k] = [
-                    item.dict if isinstance(item, cls) else item for item in v
+                    (
+                        item.dict
+                        if isinstance(item, (cls, JSONObject))
+                        else (
+                            self._flatten_base_subclass(item)
+                            if isinstance(item, Base)
+                            else item
+                        )
+                    )
+                    for item in v
                 ]
+            elif isinstance(v, Base):
+                result[k] = self._flatten_base_subclass(v)
+            elif isinstance(v, JSONObject):
+                result[k] = v.dict
 
         return result
 
@@ -128,7 +160,10 @@ class Base(object, metaclass=FilterableMetaclass):
         #: be updated on access.
         self._set("_raw_json", None)
 
-        for k in type(self).properties:
+        for k, v in type(self).properties.items():
+            if v.identifier:
+                continue
+
             self._set(k, None)
 
         self._set("id", id)

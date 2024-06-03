@@ -1,19 +1,27 @@
 PYTHON ?= python3
 
-INTEGRATION_TEST_PATH :=
 TEST_CASE_COMMAND :=
-MODEL_COMMAND :=
+TEST_SUITE :=
+TEST_ARGS :=
 
 LINODE_SDK_VERSION ?= "0.0.0.dev"
 VERSION_MODULE_DOCSTRING ?= \"\"\"\nThe version of this linode_api4 package.\n\"\"\"\n\n
 VERSION_FILE := ./linode_api4/version.py
 
 ifdef TEST_CASE
-TEST_CASE_COMMAND = -k $(TEST_CASE)
+    TEST_CASE_COMMAND = -k $(TEST_CASE)
 endif
 
-ifdef TEST_MODEL
-MODEL_COMMAND = models/$(TEST_MODEL)
+ifdef TEST_SUITE
+    ifneq ($(TEST_SUITE),linode_client)
+        ifneq ($(TEST_SUITE),login_client)
+            TEST_COMMAND = models/$(TEST_SUITE)
+        else
+            TEST_COMMAND = login_client
+        endif
+    else
+        TEST_COMMAND = linode_client
+    endif
 endif
 
 .PHONY: clean
@@ -67,7 +75,7 @@ lint: build
 
 .PHONY: testint
 testint:
-	$(PYTHON) -m pytest test/integration/${INTEGRATION_TEST_PATH}${MODEL_COMMAND} ${TEST_CASE_COMMAND}
+	$(PYTHON) -m pytest test/integration/${TEST_COMMAND} ${TEST_CASE_COMMAND} ${TEST_ARGS}
 
 .PHONY: testunit
 testunit:
@@ -75,4 +83,4 @@ testunit:
 
 .PHONY: smoketest
 smoketest:
-	$(PYTHON) -m pytest -m smoke test/integration --disable-warnings
+	$(PYTHON) -m pytest -m smoke test/integration

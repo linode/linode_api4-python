@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import Base, DerivedBase, JSONObject, Property, Region
@@ -33,7 +34,9 @@ class IPv6Range(Base):
         "region": Property(slug_relationship=Region),
         "prefix": Property(),
         "route_target": Property(),
-        "linodes": Property(),
+        "linodes": Property(
+            unordered=True,
+        ),
         "is_bgp": Property(),
     }
 
@@ -106,6 +109,32 @@ class IPAddress(Base):
         return {"address": self.address, "linode_id": linode.id}
 
 
+@dataclass
+class VPCIPAddress(JSONObject):
+    """
+    VPCIPAddress represents the IP address of a VPC.
+
+    NOTE: This is not implemented as a typical API object (Base) because VPC IPs
+    cannot be refreshed through the /networking/ips/{address} endpoint.
+    """
+
+    address: str = ""
+    gateway: str = ""
+    region: str = ""
+    subnet_mask: str = ""
+    vpc_id: int = 0
+    subnet_id: int = 0
+    linode_id: int = 0
+    config_id: int = 0
+    interface_id: int = 0
+    prefix: int = 0
+
+    active: bool = False
+
+    address_range: Optional[str] = None
+    nat_1_1: Optional[str] = None
+
+
 class VLAN(Base):
     """
     .. note:: At this time, the Linode API only supports listing VLANs.
@@ -124,7 +153,7 @@ class VLAN(Base):
     properties = {
         "label": Property(identifier=True),
         "created": Property(is_datetime=True),
-        "linodes": Property(),
+        "linodes": Property(unordered=True),
         "region": Property(slug_relationship=Region),
     }
 
@@ -162,7 +191,7 @@ class Firewall(Base):
     properties = {
         "id": Property(identifier=True),
         "label": Property(mutable=True),
-        "tags": Property(mutable=True),
+        "tags": Property(mutable=True, unordered=True),
         "status": Property(mutable=True),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),

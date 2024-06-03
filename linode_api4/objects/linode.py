@@ -21,7 +21,7 @@ from linode_api4.objects import (
 )
 from linode_api4.objects.base import MappedObject
 from linode_api4.objects.filtering import FilterableAttribute
-from linode_api4.objects.networking import IPAddress, IPv6Range
+from linode_api4.objects.networking import IPAddress, IPv6Range, VPCIPAddress
 from linode_api4.objects.vpc import VPC, VPCSubnet
 from linode_api4.paginated_list import PaginatedList
 
@@ -642,11 +642,11 @@ class Instance(Base):
         "configs": Property(derived_class=Config),
         "type": Property(slug_relationship=Type),
         "backups": Property(mutable=True),
-        "ipv4": Property(),
+        "ipv4": Property(unordered=True),
         "ipv6": Property(),
         "hypervisor": Property(),
         "specs": Property(),
-        "tags": Property(mutable=True),
+        "tags": Property(mutable=True, unordered=True),
         "host_uuid": Property(),
         "watchdog_enabled": Property(mutable=True),
         "has_user_data": Property(),
@@ -693,6 +693,10 @@ class Instance(Base):
                 i = IPAddress(self._client, c["address"], c)
                 reserved.append(i)
 
+            vpc = [
+                VPCIPAddress.from_json(v) for v in result["ipv4"].get("vpc", [])
+            ]
+
             slaac = IPAddress(
                 self._client,
                 result["ipv6"]["slaac"]["address"],
@@ -716,6 +720,7 @@ class Instance(Base):
                         "private": v4pri,
                         "shared": shared_ips,
                         "reserved": reserved,
+                        "vpc": vpc,
                     },
                     "ipv6": {
                         "slaac": slaac,
@@ -1740,7 +1745,9 @@ class StackScript(Base):
         "created": Property(is_datetime=True),
         "deployments_active": Property(),
         "script": Property(mutable=True),
-        "images": Property(mutable=True),  # TODO make slug_relationship
+        "images": Property(
+            mutable=True, unordered=True
+        ),  # TODO make slug_relationship
         "deployments_total": Property(),
         "description": Property(mutable=True),
         "updated": Property(is_datetime=True),

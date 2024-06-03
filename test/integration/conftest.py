@@ -252,8 +252,11 @@ def test_firewall(test_linode_client):
         "inbound_policy": "ACCEPT",
     }
 
+    timestamp = str(time.time_ns())
+    label = "firewall_" + timestamp
+
     firewall = client.networking.firewall_create(
-        "test-firewall", rules=rules, status="enabled"
+        label=label, rules=rules, status="enabled"
     )
 
     yield firewall
@@ -317,22 +320,6 @@ def create_vpc_with_subnet_and_linode(
 
 
 @pytest.fixture(scope="session")
-def create_vpc(test_linode_client):
-    client = test_linode_client
-
-    timestamp = str(int(time.time_ns() % 10**10))
-
-    vpc = client.vpcs.create(
-        "pythonsdk-" + timestamp,
-        get_region(test_linode_client, {"VPCs"}),
-        description="test description",
-    )
-    yield vpc
-
-    vpc.delete()
-
-
-@pytest.fixture(scope="session")
 def create_multiple_vpcs(test_linode_client):
     client = test_linode_client
 
@@ -357,3 +344,10 @@ def create_multiple_vpcs(test_linode_client):
     vpc_1.delete()
 
     vpc_2.delete()
+
+
+@pytest.mark.smoke
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers", "smoke: mark test as part of smoke test suite"
+    )

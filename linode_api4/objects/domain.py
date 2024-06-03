@@ -49,14 +49,14 @@ class Domain(Base):
         "status": Property(mutable=True),
         "soa_email": Property(mutable=True),
         "retry_sec": Property(mutable=True),
-        "master_ips": Property(mutable=True),
-        "axfr_ips": Property(mutable=True),
+        "master_ips": Property(mutable=True, unordered=True),
+        "axfr_ips": Property(mutable=True, unordered=True),
         "expire_sec": Property(mutable=True),
         "refresh_sec": Property(mutable=True),
         "ttl_sec": Property(mutable=True),
         "records": Property(derived_class=DomainRecord),
         "type": Property(mutable=True),
-        "tags": Property(mutable=True),
+        "tags": Property(mutable=True, unordered=True),
     }
 
     def record_create(self, record_type, **kwargs):
