@@ -83,7 +83,7 @@
       "host_uuid": "3a3ddd59d9a78bb8de041391075df44de62bfec8",
       "watchdog_enabled": false,
       "disk_encryption": "enabled",
-      "lke_cluster_id": 12345
+      "lke_cluster_id": 18881
     }
   ]
 }

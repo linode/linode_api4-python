@@ -1714,6 +1714,20 @@ class Instance(Base):
             "{}/stats".format(Instance.api_endpoint), model=self
         )
 
+    @property
+    def lke_cluster(self) -> Optional["LKECluster"]:
+        """
+        Returns the LKE Cluster this Instance is a node of.
+
+        :returns: The LKE Cluster this Instance is a node of.
+        :rtype: Optional[LKECluster]
+        """
+
+        # Local import to prevent circular dependency
+        from linode_api4.objects.lke import LKECluster
+
+        return LKECluster(self._client, self.lke_cluster_id)
+
     def stats_for(self, dt):
         """
         Returns stats for the month containing the given datetime

@@ -314,6 +314,15 @@ class LinodeTest(ClientBaseCase):
                 m.call_url, "/linode/instances/123/transfer/2023/4"
             )
 
+    def test_lke_cluster(self):
+        """
+        Tests that you can grab the parent LKE cluster from an instance node
+        """
+        linode = Instance(self.client, 456)
+
+        assert linode.lke_cluster_id == 18881
+        assert linode.lke_cluster.id == linode.lke_cluster_id
+
     def test_duplicate(self):
         """
         Tests that you can submit a correct disk clone api request

@@ -88,7 +88,7 @@ class LKETest(ClientBaseCase):
             self.assertEqual(m.call_url, "/lke/clusters/18881/nodes/123456")
             self.assertIsNotNone(node)
             self.assertEqual(node.id, "123456")
-            self.assertEqual(node.instance_id, 123458)
+            self.assertEqual(node.instance_id, 456)
             self.assertEqual(node.status, "ready")
 
     def test_node_delete(self):
