@@ -127,6 +127,7 @@ class Disk(DerivedBase):
         "filesystem": Property(),
         "updated": Property(is_datetime=True),
         "linode_id": Property(identifier=True),
+        "disk_encryption": Property(),
     }
 
     def duplicate(self):
@@ -664,6 +665,7 @@ class Instance(Base):
         "watchdog_enabled": Property(mutable=True),
         "has_user_data": Property(),
         "disk_encryption": Property(),
+        "lke_cluster_id": Property(),
     }
 
     @property
