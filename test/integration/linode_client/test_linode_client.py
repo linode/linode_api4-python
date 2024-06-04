@@ -21,7 +21,7 @@ def setup_client_and_linode(test_linode_client):
 
     yield client, linode_instance
 
-    linode_instance.delete()
+    # linode_instance.delete()
 
 
 def test_get_account(setup_client_and_linode):
@@ -86,10 +86,13 @@ def test_image_create(setup_client_and_linode):
 
     label = get_test_label()
     description = "Test description"
-    disk_id = linode.disks.first().id
+    usable_disk = ""
+    for disk in linode.disks:
+        if disk.filesystem != "swap":
+            usable_disk = disk
 
     image = client.image_create(
-        disk=disk_id, label=label, description=description
+        disk=usable_disk.id, label=label, description=description
     )
 
     assert image.label == label
