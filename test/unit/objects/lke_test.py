@@ -1,6 +1,7 @@
 from datetime import datetime
 from test.unit.base import ClientBaseCase
 
+from linode_api4 import InstanceDiskEncryptionType
 from linode_api4.objects import (
     LKECluster,
     LKEClusterControlPlaneACLAddressesOptions,
@@ -47,6 +48,9 @@ class LKETest(ClientBaseCase):
         self.assertEqual(pool.id, 456)
         self.assertEqual(pool.cluster_id, 18881)
         self.assertEqual(pool.type.id, "g6-standard-4")
+        self.assertEqual(
+            pool.disk_encryption, InstanceDiskEncryptionType.enabled
+        )
         self.assertIsNotNone(pool.disks)
         self.assertIsNotNone(pool.nodes)
         self.assertIsNotNone(pool.autoscaler)

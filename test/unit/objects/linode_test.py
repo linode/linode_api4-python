@@ -1,7 +1,7 @@
 from datetime import datetime
 from test.unit.base import ClientBaseCase
 
-from linode_api4 import NetworkInterface
+from linode_api4 import InstanceDiskEncryptionType, NetworkInterface
 from linode_api4.objects import (
     Config,
     ConfigInterface,
@@ -36,7 +36,9 @@ class LinodeTest(ClientBaseCase):
             linode.host_uuid, "3a3ddd59d9a78bb8de041391075df44de62bfec8"
         )
         self.assertEqual(linode.watchdog_enabled, True)
-        self.assertEqual(linode.disk_encryption, "disabled")
+        self.assertEqual(
+            linode.disk_encryption, InstanceDiskEncryptionType.disabled
+        )
         self.assertEqual(linode.lke_cluster_id, None)
 
         json = linode._raw_json
@@ -74,7 +76,10 @@ class LinodeTest(ClientBaseCase):
         linode = Instance(self.client, 123)
 
         with self.mock_post("/linode/instances/123") as m:
-            pw = linode.rebuild("linode/debian9")
+            pw = linode.rebuild(
+                "linode/debian9",
+                disk_encryption=InstanceDiskEncryptionType.enabled,
+            )
 
             self.assertIsNotNone(pw)
             self.assertTrue(isinstance(pw, str))
@@ -86,6 +91,7 @@ class LinodeTest(ClientBaseCase):
                 {
                     "image": "linode/debian9",
                     "root_pass": pw,
+                    "disk_encryption": "enabled",
                 },
             )
 
@@ -320,6 +326,8 @@ class LinodeTest(ClientBaseCase):
                 m.call_url, "/linode/instances/123/disks/12345/clone"
             )
 
+        assert disk.disk_encryption == InstanceDiskEncryptionType.disabled
+
     def test_disk_password(self):
         """
         Tests that you can submit a correct disk password reset api request
@@ -395,7 +403,6 @@ class LinodeTest(ClientBaseCase):
                 image="linode/debian10",
             )
             self.assertEqual(m.call_url, "/linode/instances/123/disks")
-            print(m.call_data)
             self.assertEqual(
                 m.call_data,
                 {
@@ -409,6 +416,7 @@ class LinodeTest(ClientBaseCase):
             )
 
         assert disk.id == 12345
+        assert disk.disk_encryption == InstanceDiskEncryptionType.disabled
 
     def test_instance_create_with_user_data(self):
         """

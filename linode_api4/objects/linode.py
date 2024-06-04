@@ -1359,7 +1359,16 @@ class Instance(Base):
         i = IPAddress(self._client, result["address"], result)
         return i
 
-    def rebuild(self, image, root_pass=None, authorized_keys=None, **kwargs):
+    def rebuild(
+        self,
+        image,
+        root_pass=None,
+        authorized_keys=None,
+        disk_encryption: Optional[
+            Union[InstanceDiskEncryptionType, str]
+        ] = None,
+        **kwargs,
+    ):
         """
         Rebuilding an Instance deletes all existing Disks and Configs and deploys
         a new :any:`Image` to it.  This can be used to reset an existing
@@ -1377,6 +1386,8 @@ class Instance(Base):
                                 be a single key, or a path to a file containing
                                 the key.
         :type authorized_keys: list or str
+        :param disk_encryption: The disk encryption policy for this Linode.
+        :type disk_encryption: InstanceDiskEncryptionType or str
 
         :returns: The newly generated password, if one was not provided
                   (otherwise True)
@@ -1394,6 +1405,10 @@ class Instance(Base):
             "root_pass": root_pass,
             "authorized_keys": authorized_keys,
         }
+
+        if disk_encryption is not None:
+            params["disk_encryption"] = str(disk_encryption)
+
         params.update(kwargs)
 
         result = self._client.post(
