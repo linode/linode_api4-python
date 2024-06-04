@@ -1724,7 +1724,9 @@ class Instance(Base):
         """
 
         # Local import to prevent circular dependency
-        from linode_api4.objects.lke import LKECluster
+        from linode_api4.objects.lke import (  # pylint: disable=import-outside-toplevel
+            LKECluster,
+        )
 
         return LKECluster(self._client, self.lke_cluster_id)
 
