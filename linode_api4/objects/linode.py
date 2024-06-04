@@ -22,10 +22,23 @@ from linode_api4.objects import (
 from linode_api4.objects.base import MappedObject
 from linode_api4.objects.filtering import FilterableAttribute
 from linode_api4.objects.networking import IPAddress, IPv6Range, VPCIPAddress
+from linode_api4.objects.serializable import StrEnum
 from linode_api4.objects.vpc import VPC, VPCSubnet
 from linode_api4.paginated_list import PaginatedList
 
 PASSWORD_CHARS = string.ascii_letters + string.digits + string.punctuation
+
+
+class InstanceDiskEncryptionType(StrEnum):
+    """
+    InstanceDiskEncryptionType defines valid values for the
+    Instance(...).disk_encryption field.
+
+    API Documentation: TODO
+    """
+
+    enabled = "enabled"
+    disabled = "disabled"
 
 
 class Backup(DerivedBase):
@@ -650,6 +663,7 @@ class Instance(Base):
         "host_uuid": Property(),
         "watchdog_enabled": Property(mutable=True),
         "has_user_data": Property(),
+        "disk_encryption": Property(),
     }
 
     @property
