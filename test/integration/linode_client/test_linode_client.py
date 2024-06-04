@@ -21,7 +21,7 @@ def setup_client_and_linode(test_linode_client):
 
     yield client, linode_instance
 
-    # linode_instance.delete()
+    linode_instance.delete()
 
 
 def test_get_account(setup_client_and_linode):
