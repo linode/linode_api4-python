@@ -34,8 +34,6 @@ def create_nb_config(test_linode_client, cloud_linode_firewall):
     chosen_region = available_regions[4]
     label = "nodebalancer_test"
 
-    print
-
     nb = client.nodebalancer_create(
         region=chosen_region, label=label, firewall=cloud_linode_firewall.id
     )

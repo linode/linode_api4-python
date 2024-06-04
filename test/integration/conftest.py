@@ -133,7 +133,7 @@ def create_linode(test_linode_client, cloud_linode_firewall):
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
         chosen_region,
-        image="linode/debian10",
+        image="linode/debian12",
         label=label,
         firewall=cloud_linode_firewall,
     )
