@@ -1,4 +1,5 @@
 import time
+from test.integration.conftest import get_region
 from test.integration.helpers import (
     get_test_label,
     retry_sending_request,
@@ -19,7 +20,7 @@ from linode_api4.objects import (
     Instance,
     Type,
 )
-from linode_api4.objects.linode import MigrationType
+from linode_api4.objects.linode import InstanceDiskEncryptionType, MigrationType
 
 
 @pytest.fixture(scope="session")
@@ -137,6 +138,30 @@ def create_linode_for_long_running_tests(test_linode_client):
     linode_instance.delete()
 
 
+@pytest.fixture(scope="function")
+def linode_with_disk_encryption(test_linode_client, request):
+    client = test_linode_client
+
+    target_region = get_region(client, {"Disk Encryption"})
+    timestamp = str(time.time_ns())
+    label = "TestSDK-" + timestamp
+
+    disk_encryption = request.param
+
+    linode_instance, password = client.linode.instance_create(
+        "g6-nanode-1",
+        target_region,
+        image="linode/ubuntu23.04",
+        label=label,
+        booted=False,
+        disk_encryption=disk_encryption,
+    )
+
+    yield linode_instance
+
+    linode_instance.delete()
+
+
 # Test helper
 def get_status(linode: Instance, status: str):
     return linode.status == status
@@ -165,8 +190,7 @@ def test_linode_transfer(test_linode_client, linode_with_volume_firewall):
 
 def test_linode_rebuild(test_linode_client):
     client = test_linode_client
-    available_regions = client.regions()
-    chosen_region = available_regions[4]
+    chosen_region = get_region(client, {"Disk Encryption"})
     label = get_test_label() + "_rebuild"
 
     linode, password = client.linode.instance_create(
@@ -175,12 +199,18 @@ def test_linode_rebuild(test_linode_client):
 
     wait_for_condition(10, 100, get_status, linode, "running")
 
-    retry_sending_request(3, linode.rebuild, "linode/debian10")
+    retry_sending_request(
+        3,
+        linode.rebuild,
+        "linode/debian10",
+        disk_encryption=InstanceDiskEncryptionType.disabled,
+    )
 
     wait_for_condition(10, 100, get_status, linode, "rebuilding")
 
     assert linode.status == "rebuilding"
     assert linode.image.id == "linode/debian10"
+    assert linode.disk_encryption == InstanceDiskEncryptionType.disabled
 
     wait_for_condition(10, 300, get_status, linode, "running")
 
@@ -381,6 +411,18 @@ def test_linode_volumes(linode_with_volume_firewall):
 
     assert len(volumes) > 0
     assert "test" in volumes[0].label
+
+
+@pytest.mark.parametrize(
+    "linode_with_disk_encryption", ["disabled"], indirect=True
+)
+def test_linode_with_disk_encryption_disabled(linode_with_disk_encryption):
+    linode = linode_with_disk_encryption
+
+    assert linode.disk_encryption == InstanceDiskEncryptionType.disabled
+    assert (
+        linode.disks[0].disk_encryption == InstanceDiskEncryptionType.disabled
+    )
 
 
 def wait_for_disk_status(disk: Disk, timeout):
