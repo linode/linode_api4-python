@@ -7,7 +7,7 @@ from linode_api4.objects import NodeBalancerConfig, NodeBalancerNode
 
 
 @pytest.fixture(scope="session")
-def linode_with_private_ip(test_linode_client, cloud_linode_firewall):
+def linode_with_private_ip(test_linode_client, e2e_test_firewall):
     client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[4]
@@ -19,7 +19,7 @@ def linode_with_private_ip(test_linode_client, cloud_linode_firewall):
         image="linode/debian10",
         label=label,
         private_ip=True,
-        firewall=cloud_linode_firewall,
+        firewall=e2e_test_firewall,
     )
 
     yield linode_instance
@@ -28,14 +28,14 @@ def linode_with_private_ip(test_linode_client, cloud_linode_firewall):
 
 
 @pytest.fixture(scope="session")
-def create_nb_config(test_linode_client, cloud_linode_firewall):
+def create_nb_config(test_linode_client, e2e_test_firewall):
     client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[4]
     label = "nodebalancer_test"
 
     nb = client.nodebalancer_create(
-        region=chosen_region, label=label, firewall=cloud_linode_firewall.id
+        region=chosen_region, label=label, firewall=e2e_test_firewall.id
     )
 
     config = nb.config_create()

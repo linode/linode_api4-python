@@ -53,7 +53,7 @@ def run_long_tests():
 
 
 @pytest.fixture(autouse=True, scope="session")
-def cloud_linode_firewall(test_linode_client):
+def e2e_test_firewall(test_linode_client):
     def is_valid_ipv4(address):
         try:
             ipaddress.IPv4Address(address)
@@ -122,7 +122,7 @@ def cloud_linode_firewall(test_linode_client):
 
 
 @pytest.fixture(scope="session")
-def create_linode(test_linode_client, cloud_linode_firewall):
+def create_linode(test_linode_client, e2e_test_firewall):
     client = test_linode_client
 
     available_regions = client.regions()
@@ -135,7 +135,7 @@ def create_linode(test_linode_client, cloud_linode_firewall):
         chosen_region,
         image="linode/debian12",
         label=label,
-        firewall=cloud_linode_firewall,
+        firewall=e2e_test_firewall,
     )
 
     yield linode_instance
@@ -144,7 +144,7 @@ def create_linode(test_linode_client, cloud_linode_firewall):
 
 
 @pytest.fixture
-def create_linode_for_pass_reset(test_linode_client, cloud_linode_firewall):
+def create_linode_for_pass_reset(test_linode_client, e2e_test_firewall):
     client = test_linode_client
 
     available_regions = client.regions()
@@ -157,7 +157,7 @@ def create_linode_for_pass_reset(test_linode_client, cloud_linode_firewall):
         chosen_region,
         image="linode/debian10",
         label=label,
-        firewall=cloud_linode_firewall,
+        firewall=e2e_test_firewall,
     )
 
     yield linode_instance, password
@@ -384,7 +384,7 @@ def create_vpc_with_subnet(test_linode_client, create_vpc):
 
 @pytest.fixture(scope="session")
 def create_vpc_with_subnet_and_linode(
-    test_linode_client, create_vpc_with_subnet, cloud_linode_firewall
+    test_linode_client, create_vpc_with_subnet, e2e_test_firewall
 ):
     vpc, subnet = create_vpc_with_subnet
 
@@ -396,7 +396,7 @@ def create_vpc_with_subnet_and_linode(
         vpc.region,
         image="linode/debian11",
         label=label,
-        firewall=cloud_linode_firewall,
+        firewall=e2e_test_firewall,
     )
 
     yield vpc, subnet, instance, password

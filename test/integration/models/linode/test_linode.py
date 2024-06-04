@@ -70,7 +70,7 @@ def linode_with_volume_firewall(test_linode_client):
 
 @pytest.fixture(scope="session")
 def linode_for_network_interface_tests(
-    test_linode_client, cloud_linode_firewall
+    test_linode_client, e2e_test_firewall
 ):
     client = test_linode_client
     available_regions = client.regions()
@@ -83,7 +83,7 @@ def linode_for_network_interface_tests(
         chosen_region,
         image="linode/debian10",
         label=label,
-        firewall=cloud_linode_firewall,
+        firewall=e2e_test_firewall,
     )
 
     yield linode_instance
@@ -92,7 +92,7 @@ def linode_for_network_interface_tests(
 
 
 @pytest.fixture
-def linode_for_disk_tests(test_linode_client, cloud_linode_firewall):
+def linode_for_disk_tests(test_linode_client, e2e_test_firewall):
     client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[4]
@@ -103,7 +103,7 @@ def linode_for_disk_tests(test_linode_client, cloud_linode_firewall):
         chosen_region,
         image="linode/alpine3.19",
         label=label + "_long_tests",
-        firewall=cloud_linode_firewall,
+        firewall=e2e_test_firewall,
     )
 
     # Provisioning time
@@ -127,7 +127,7 @@ def linode_for_disk_tests(test_linode_client, cloud_linode_firewall):
 
 @pytest.fixture
 def create_linode_for_long_running_tests(
-    test_linode_client, cloud_linode_firewall
+    test_linode_client, e2e_test_firewall
 ):
     client = test_linode_client
     available_regions = client.regions()
@@ -139,7 +139,7 @@ def create_linode_for_long_running_tests(
         chosen_region,
         image="linode/debian10",
         label=label + "_long_tests",
-        firewall=cloud_linode_firewall,
+        firewall=e2e_test_firewall,
     )
 
     yield linode_instance

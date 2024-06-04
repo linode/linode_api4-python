@@ -9,7 +9,7 @@ from linode_api4.objects import ConfigInterface, ObjectStorageKeys, Region
 
 
 @pytest.fixture(scope="session")
-def setup_client_and_linode(test_linode_client, cloud_linode_firewall):
+def setup_client_and_linode(test_linode_client, e2e_test_firewall):
     client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[4]  # us-ord (Chicago)
@@ -20,7 +20,7 @@ def setup_client_and_linode(test_linode_client, cloud_linode_firewall):
         chosen_region,
         image="linode/debian10",
         label=label,
-        firewall=cloud_linode_firewall,
+        firewall=e2e_test_firewall,
     )
 
     yield client, linode_instance
