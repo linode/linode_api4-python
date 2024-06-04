@@ -95,6 +95,7 @@ def test_get_user(test_linode_client):
 
 
 def test_list_child_accounts(test_linode_client):
+    pytest.skip("Configure test account settings for Parent child")
     client = test_linode_client
     child_accounts = client.account.child_accounts()
     if len(child_accounts) > 0:
