@@ -36,6 +36,8 @@ class LinodeTest(ClientBaseCase):
             linode.host_uuid, "3a3ddd59d9a78bb8de041391075df44de62bfec8"
         )
         self.assertEqual(linode.watchdog_enabled, True)
+        self.assertEqual(linode.disk_encryption, "disabled")
+        self.assertEqual(linode.lke_cluster_id, None)
 
         json = linode._raw_json
         self.assertIsNotNone(json)
