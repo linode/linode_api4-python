@@ -78,12 +78,11 @@ def test_get_lke_clusters(test_linode_client, lke_cluster):
 
 
 def test_get_lke_pool(test_linode_client, lke_cluster):
-    pytest.skip("TPT-2511")
     cluster = lke_cluster
 
     pool = test_linode_client.load(LKENodePool, cluster.pools[0].id, cluster.id)
 
-    assert cluster.pools[0]._raw_json == pool
+    assert cluster.pools[0].id == pool.id
 
 
 def test_cluster_dashboard_url_view(lke_cluster):
@@ -147,10 +146,11 @@ def test_lke_node_recycle(test_linode_client, lke_cluster):
         "ready",
     )
 
-    node_pool = test_linode_client.load(
-        LKENodePool, cluster.pools[0].id, cluster.id
-    )
-    node = node_pool.nodes[0]
+    # Reload cluster
+    cluster = test_linode_client.load(LKECluster, lke_cluster.id)
+
+    node = cluster.pools[0].nodes[0]
+
     assert node.status == "ready"
 
 

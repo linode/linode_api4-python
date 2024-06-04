@@ -86,10 +86,10 @@ def test_image_create(setup_client_and_linode):
 
     label = get_test_label()
     description = "Test description"
-    disk_id = linode.disks.first().id
+    usable_disk = [v for v in linode.disks if v.filesystem != "swap"]
 
     image = client.image_create(
-        disk=disk_id, label=label, description=description
+        disk=usable_disk[0].id, label=label, description=description
     )
 
     assert image.label == label
