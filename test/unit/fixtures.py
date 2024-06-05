@@ -1,8 +1,13 @@
 import json
 import os
+import re
 import sys
 
 FIXTURES_DIR = sys.path[0] + "/test/fixtures"
+
+# This regex is useful for finding individual underscore characters,
+# which is necessary to allow us to use underscores in URL paths.
+PATH_REPLACEMENT_REGEX = re.compile(r"(?<!_)_(?!_)")
 
 
 class TestFixtures:
@@ -34,7 +39,9 @@ class TestFixtures:
 
             data = json.loads(raw)
 
-            fixture_url = json_file.replace("_", "/")[:-5]
+            fixture_url = PATH_REPLACEMENT_REGEX.sub("/", json_file).replace(
+                "__", "_"
+            )[:-5]
 
             self.fixtures[fixture_url] = data
 

@@ -252,8 +252,11 @@ def test_firewall(test_linode_client):
         "inbound_policy": "ACCEPT",
     }
 
+    timestamp = str(time.time_ns())
+    label = "firewall_" + timestamp
+
     firewall = client.networking.firewall_create(
-        "test-firewall", rules=rules, status="enabled"
+        label=label, rules=rules, status="enabled"
     )
 
     yield firewall
