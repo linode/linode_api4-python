@@ -69,9 +69,7 @@ def linode_with_volume_firewall(test_linode_client):
 
 
 @pytest.fixture(scope="session")
-def linode_for_network_interface_tests(
-    test_linode_client, e2e_test_firewall
-):
+def linode_for_network_interface_tests(test_linode_client, e2e_test_firewall):
     client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[4]
@@ -126,9 +124,7 @@ def linode_for_disk_tests(test_linode_client, e2e_test_firewall):
 
 
 @pytest.fixture
-def create_linode_for_long_running_tests(
-    test_linode_client, e2e_test_firewall
-):
+def create_linode_for_long_running_tests(test_linode_client, e2e_test_firewall):
     client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[4]
