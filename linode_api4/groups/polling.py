@@ -1,7 +1,6 @@
 import polling
 
 from linode_api4.groups import Group
-from linode_api4.objects.account import Event
 from linode_api4.polling import EventPoller, TimeoutContext
 
 
