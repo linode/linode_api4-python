@@ -31,7 +31,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-dependencies = ["requests", "polling"]
+dependencies = ["requests", "polling", "deprecated"]
 dynamic = ["version"]
 
 [project.optional-dependencies]
