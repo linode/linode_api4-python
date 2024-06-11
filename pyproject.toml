@@ -86,5 +86,5 @@ ignore-init-module-imports = true
 ignore-pass-after-docstring = true
 in-place = true
 recursive = true
-remove-all-unused-imports = false
+remove-all-unused-imports = true
 remove-duplicate-keys = false

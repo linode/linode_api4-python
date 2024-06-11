@@ -2,20 +2,16 @@ import base64
 import os
 from collections.abc import Iterable
 
-from linode_api4 import Profile
-from linode_api4.common import SSH_KEY_TYPES, load_and_validate_keys
+from linode_api4.common import load_and_validate_keys
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
-    AuthorizedApp,
     Base,
     ConfigInterface,
     Firewall,
     Image,
     Instance,
     Kernel,
-    PersonalAccessToken,
-    SSHKey,
     StackScript,
     Type,
 )
