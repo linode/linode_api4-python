@@ -2,7 +2,7 @@ from test.integration.helpers import get_test_label
 
 import pytest
 
-from linode_api4.objects import Instance, Tag
+from linode_api4.objects import Tag
 
 
 @pytest.fixture

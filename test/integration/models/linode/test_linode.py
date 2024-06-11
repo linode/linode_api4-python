@@ -6,10 +6,9 @@ from test.integration.helpers import (
     wait_for_condition,
 )
 
-import polling
 import pytest
 
-from linode_api4 import LinodeClient, VPCIPAddress
+from linode_api4 import VPCIPAddress
 from linode_api4.errors import ApiError
 from linode_api4.objects import (
     Config,

@@ -19,7 +19,6 @@ from linode_api4.objects import (
     ServiceTransfer,
     User,
 )
-from linode_api4.objects.profile import PersonalAccessToken
 
 
 class AccountGroup(Group):
