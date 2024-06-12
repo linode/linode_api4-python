@@ -27,7 +27,7 @@ CLUSTER_IDS=$(curl -s -H "Authorization: Bearer $LINODE_TOKEN" \
 
 # Check if CLUSTER_IDS is empty
 if [ -z "$CLUSTER_IDS" ]; then
-    echo "No clusters are present."
+    echo "All clusters have been cleaned and properly destroyed. No need to apply inbound or outbound rules"
     exit 0
 fi
 
@@ -46,7 +46,7 @@ for ID in $CLUSTER_IDS; do
     done
 
     if [[ $config_response == *"kubeconfig is not yet available"* ]]; then
-        echo "Cluster $ID not available after $RETRIES attempts. Skipping..."
+        echo "kubeconfig for cluster id:$ID not available after $RETRIES attempts, mostly likely it is an empty cluster. Skipping..."
     else
         # Export downloaded config file
         export KUBECONFIG="$(pwd)/${ID}_config.yaml"
