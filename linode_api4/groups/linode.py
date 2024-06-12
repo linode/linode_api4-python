@@ -1,8 +1,9 @@
 import base64
 import os
 from collections.abc import Iterable
+from typing import Optional, Union
 
-from linode_api4 import Profile
+from linode_api4 import InstanceDiskEncryptionType, Profile
 from linode_api4.common import SSH_KEY_TYPES, load_and_validate_keys
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
@@ -131,7 +132,15 @@ class LinodeGroup(Group):
 
     # create things
     def instance_create(
-        self, ltype, region, image=None, authorized_keys=None, **kwargs
+        self,
+        ltype,
+        region,
+        image=None,
+        authorized_keys=None,
+        disk_encryption: Optional[
+            Union[InstanceDiskEncryptionType, str]
+        ] = None,
+        **kwargs,
     ):
         """
         Creates a new Linode Instance. This function has several modes of operation:
@@ -266,6 +275,8 @@ class LinodeGroup(Group):
         :type metadata: dict
         :param firewall: The firewall to attach this Linode to.
         :type firewall: int or Firewall
+        :param disk_encryption: The disk encryption policy for this Linode.
+        :type disk_encryption: InstanceDiskEncryptionType or str
         :param interfaces: An array of Network Interfaces to add to this Linode’s Configuration Profile.
                            At least one and up to three Interface objects can exist in this array.
         :type interfaces: list[ConfigInterface] or list[dict[str, Any]]
@@ -325,6 +336,9 @@ class LinodeGroup(Group):
             ),
             "authorized_keys": authorized_keys,
         }
+
+        if disk_encryption is not None:
+            params["disk_encryption"] = str(disk_encryption)
 
         params.update(kwargs)
 

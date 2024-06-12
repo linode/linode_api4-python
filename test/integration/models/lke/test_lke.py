@@ -1,26 +1,30 @@
 import re
+from test.integration.conftest import get_region
 from test.integration.helpers import (
     get_test_label,
     send_request_when_resource_available,
     wait_for_condition,
 )
+from typing import Any, Dict
 
 import pytest
 
 from linode_api4 import (
+    Instance,
+    InstanceDiskEncryptionType,
     LKEClusterControlPlaneACLAddressesOptions,
     LKEClusterControlPlaneACLOptions,
     LKEClusterControlPlaneOptions,
 )
 from linode_api4.errors import ApiError
-from linode_api4.objects import LKECluster, LKENodePool, LKENodePoolNode
+from linode_api4.objects import LKECluster, LKENodePool
 
 
 @pytest.fixture(scope="session")
 def lke_cluster(test_linode_client):
     node_type = test_linode_client.linode.types()[1]  # g6-standard-1
     version = test_linode_client.lke.versions()[0]
-    region = test_linode_client.regions().first()
+    region = get_region(test_linode_client, {"Disk Encryption", "Kubernetes"})
     node_pools = test_linode_client.lke.node_pool(node_type, 3)
     label = get_test_label() + "_cluster"
 
@@ -37,7 +41,7 @@ def lke_cluster(test_linode_client):
 def lke_cluster_with_acl(test_linode_client):
     node_type = test_linode_client.linode.types()[1]  # g6-standard-1
     version = test_linode_client.lke.versions()[0]
-    region = test_linode_client.regions().first()
+    region = get_region(test_linode_client, {"Kubernetes"})
     node_pools = test_linode_client.lke.node_pool(node_type, 1)
     label = get_test_label() + "_cluster"
 
@@ -80,9 +84,21 @@ def test_get_lke_clusters(test_linode_client, lke_cluster):
 def test_get_lke_pool(test_linode_client, lke_cluster):
     cluster = lke_cluster
 
+    wait_for_condition(
+        10,
+        500,
+        get_node_status,
+        cluster,
+        "ready",
+    )
+
     pool = test_linode_client.load(LKENodePool, cluster.pools[0].id, cluster.id)
 
-    assert cluster.pools[0].id == pool.id
+    def _to_comparable(p: LKENodePool) -> Dict[str, Any]:
+        return {k: v for k, v in p._raw_json.items() if k not in {"nodes"}}
+
+    assert _to_comparable(cluster.pools[0]) == _to_comparable(pool)
+    assert pool.disk_encryption == InstanceDiskEncryptionType.enabled
 
 
 def test_cluster_dashboard_url_view(lke_cluster):
