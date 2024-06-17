@@ -80,12 +80,6 @@ class ObjectStorageBucket(DerivedBase):
 
         API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-bucket-access-modify
 
-        :param cluster_id: The ID of the cluster this bucket exists in.
-        :type cluster_id: str
-
-        :param bucket: The bucket name.
-        :type bucket: str
-
         :param acl: The Access Control Level of the bucket using a canned ACL string.
                     For more fine-grained control of ACLs, use the S3 API directly.
         :type acl: str
@@ -128,12 +122,6 @@ class ObjectStorageBucket(DerivedBase):
 
         API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-bucket-access-update
 
-        :param cluster_id: The ID of the cluster this bucket exists in.
-        :type cluster_id: str
-
-        :param bucket: The bucket name.
-        :type bucket: str
-
         :param acl: The Access Control Level of the bucket using a canned ACL string.
                     For more fine-grained control of ACLs, use the S3 API directly.
         :type acl: str
@@ -170,12 +158,6 @@ class ObjectStorageBucket(DerivedBase):
 
         API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-tlsssl-cert-delete
 
-        :param cluster_id: The ID of the cluster this bucket exists in.
-        :type cluster_id: str
-
-        :param bucket: The bucket name.
-        :type bucket: str
-
         :returns: True if the TLS/SSL certificate and private key in the bucket were successfully deleted.
         :rtype: bool
         """
@@ -200,12 +182,6 @@ class ObjectStorageBucket(DerivedBase):
         was uploaded by an Account user.
 
         API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-tlsssl-cert-view
-
-        :param cluster_id: The ID of the cluster this bucket exists in.
-        :type cluster_id: str
-
-        :param bucket: The bucket name.
-        :type bucket: str
 
         :returns: A result object which has a bool field indicating if this Bucket has a corresponding
                   TLS/SSL certificate that was uploaded by an Account user.
@@ -235,12 +211,6 @@ class ObjectStorageBucket(DerivedBase):
         upload a new one.
 
         API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-tlsssl-cert-upload
-
-        :param cluster_id: The ID of the cluster this bucket exists in.
-        :type cluster_id: str
-
-        :param bucket: The bucket name.
-        :type bucket: str
 
         :param certificate: Your Base64 encoded and PEM formatted SSL certificate.
                             Line breaks must be represented as “\n” in the string
@@ -292,12 +262,6 @@ class ObjectStorageBucket(DerivedBase):
         It is recommended that instead you use the more fully-featured S3 API directly.
 
         API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-bucket-contents-list
-
-        :param cluster_id: The ID of the cluster this bucket exists in.
-        :type cluster_id: str
-
-        :param bucket: The bucket name.
-        :type bucket: str
 
         :param marker: The “marker” for this request, which can be used to paginate
                        through large buckets. Its value should be the value of the
@@ -359,12 +323,6 @@ class ObjectStorageBucket(DerivedBase):
 
         API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-object-acl-config-view
 
-        :param cluster_id: The ID of the cluster this bucket exists in.
-        :type cluster_id: str
-
-        :param bucket: The bucket name.
-        :type bucket: str
-
         :param name: The name of the object for which to retrieve its Access Control
                      List (ACL). Use the Object Storage Bucket Contents List endpoint
                      to access all object names in a bucket.
@@ -378,7 +336,7 @@ class ObjectStorageBucket(DerivedBase):
         }
 
         result = self._client.get(
-            f"{ObjectStorageBucket.api_endpoint}/object-acl",
+            f"{type(self).api_endpoint}/object-acl",
             model=self,
             data=drop_null_keys(params),
         )
@@ -402,12 +360,6 @@ class ObjectStorageBucket(DerivedBase):
 
         API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-object-acl-config-update
 
-        :param cluster_id: The ID of the cluster this bucket exists in.
-        :type cluster_id: str
-
-        :param bucket: The bucket name.
-        :type bucket: str
-
         :param acl: The Access Control Level of the bucket, as a canned ACL string.
                     For more fine-grained control of ACLs, use the S3 API directly.
         :type acl: str
@@ -427,7 +379,7 @@ class ObjectStorageBucket(DerivedBase):
         }
 
         result = self._client.put(
-            f"{ObjectStorageBucket.api_endpoint}/object-acl",
+            f"{type(self).api_endpoint}/object-acl",
             model=self,
             data=params,
         )
