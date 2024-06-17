@@ -1,3 +1,4 @@
+from typing import List, Optional, Union
 from urllib import parse
 
 from deprecated import deprecated
@@ -61,7 +62,11 @@ class ObjectStorageGroup(Group):
         """
         return self.client._get_and_filter(ObjectStorageKeys, *filters)
 
-    def keys_create(self, label, bucket_access=None):
+    def keys_create(
+        self,
+        label: str,
+        bucket_access: Optional[Union[dict, List[dict]]] = None,
+    ):
         """
         Creates a new Object Storage keypair that may be used to interact directly
         with Linode Object Storage in third-party applications.  This response is
