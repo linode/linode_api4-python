@@ -9,6 +9,8 @@ from linode_api4.objects.region import Region
 class PlacementAPIGroup(Group):
     def groups(self, *filters):
         """
+        NOTE: Placement Groups may not currently be available to all users.
+
         Returns a list of Placement Groups on your account.  You may filter
         this query to return only Placement Groups that match specific criteria::
 
@@ -34,6 +36,8 @@ class PlacementAPIGroup(Group):
         **kwargs,
     ) -> PlacementGroup:
         """
+        NOTE: Placement Groups may not currently be available to all users.
+
         Create a placement group with the specified parameters.
 
         :param label: The label for the placement group.
