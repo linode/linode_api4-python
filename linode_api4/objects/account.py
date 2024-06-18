@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import datetime
 
 import requests
@@ -16,6 +18,7 @@ from linode_api4.objects import (
 )
 from linode_api4.objects.longview import LongviewClient, LongviewSubscription
 from linode_api4.objects.nodebalancer import NodeBalancer
+from linode_api4.objects.profile import PersonalAccessToken
 from linode_api4.objects.support import SupportTicket
 
 
@@ -51,6 +54,37 @@ class Account(Base):
         "billing_source": Property(),
         "euuid": Property(),
     }
+
+
+class ChildAccount(Account):
+    """
+    A child account under a parent account.
+
+    API Documentation: TBD
+    """
+
+    api_endpoint = "/account/child-accounts/{euuid}"
+    id_attribute = "euuid"
+
+    def create_token(self, **kwargs):
+        """
+        Create a ephemeral token for accessing the child account.
+
+        API Documentation: TBD
+        """
+        resp = self._client.post(
+            "{}/token".format(self.api_endpoint),
+            model=self,
+            data=kwargs,
+        )
+
+        if "errors" in resp:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating a token for the child account!",
+                json=resp,
+            )
+
+        return PersonalAccessToken(self._client, resp["id"], resp)
 
 
 class ServiceTransfer(Base):
@@ -476,6 +510,7 @@ class User(Base):
     properties = {
         "email": Property(),
         "username": Property(identifier=True, mutable=True),
+        "user_type": Property(),
         "restricted": Property(mutable=True),
         "ssh_keys": Property(),
         "tfa_enabled": Property(),
@@ -660,9 +695,10 @@ class AccountBetaProgram(Base):
 
 class AccountAvailability(Base):
     """
-    The resources information in a region which are NOT available to an account.
+    Contains information about the resources available for a region under the
+    current account.
 
-    API doc: TBD
+    API doc: https://www.linode.com/docs/api/account/#region-service-availability
     """
 
     api_endpoint = "/account/availability/{region}"
@@ -671,4 +707,5 @@ class AccountAvailability(Base):
     properties = {
         "region": Property(identifier=True),
         "unavailable": Property(unordered=True),
+        "available": Property(unordered=True),
     }

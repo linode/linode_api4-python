@@ -13,7 +13,7 @@ from linode_api4.objects import Volume
 
 
 @pytest.fixture(scope="session")
-def linode_for_volume(test_linode_client):
+def linode_for_volume(test_linode_client, e2e_test_firewall):
     client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[4]
@@ -21,7 +21,11 @@ def linode_for_volume(test_linode_client):
     label = "TestSDK-" + timestamp
 
     linode_instance, password = client.linode.instance_create(
-        "g6-nanode-1", chosen_region, image="linode/debian10", label=label
+        "g6-nanode-1",
+        chosen_region,
+        image="linode/debian10",
+        label=label,
+        firewall=e2e_test_firewall,
     )
 
     yield linode_instance

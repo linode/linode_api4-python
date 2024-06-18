@@ -1,7 +1,5 @@
-from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import (
     Base,
-    DerivedBase,
     Domain,
     Instance,
     NodeBalancer,

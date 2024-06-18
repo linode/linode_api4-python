@@ -3,8 +3,6 @@ from typing import List
 
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects.base import Base, JSONObject, Property
-from linode_api4.objects.filtering import FilterableAttribute
-from linode_api4.objects.serializable import JSONFilterableMetaclass
 
 
 @dataclass

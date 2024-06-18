@@ -7,8 +7,13 @@ from test.integration.helpers import (
 
 import pytest
 
+from linode_api4 import (
+    LKEClusterControlPlaneACLAddressesOptions,
+    LKEClusterControlPlaneACLOptions,
+    LKEClusterControlPlaneOptions,
+)
 from linode_api4.errors import ApiError
-from linode_api4.objects import LKECluster, LKENodePool, LKENodePoolNode
+from linode_api4.objects import LKECluster, LKENodePool
 
 
 @pytest.fixture(scope="session")
@@ -21,6 +26,34 @@ def lke_cluster(test_linode_client):
 
     cluster = test_linode_client.lke.cluster_create(
         region, label, node_pools, version
+    )
+
+    yield cluster
+
+    cluster.delete()
+
+
+@pytest.fixture(scope="session")
+def lke_cluster_with_acl(test_linode_client):
+    node_type = test_linode_client.linode.types()[1]  # g6-standard-1
+    version = test_linode_client.lke.versions()[0]
+    region = test_linode_client.regions().first()
+    node_pools = test_linode_client.lke.node_pool(node_type, 1)
+    label = get_test_label() + "_cluster"
+
+    cluster = test_linode_client.lke.cluster_create(
+        region,
+        label,
+        node_pools,
+        version,
+        control_plane=LKEClusterControlPlaneOptions(
+            acl=LKEClusterControlPlaneACLOptions(
+                enabled=True,
+                addresses=LKEClusterControlPlaneACLAddressesOptions(
+                    ipv4=["10.0.0.1/32"], ipv6=["1234::5678"]
+                ),
+            )
+        ),
     )
 
     yield cluster
@@ -45,12 +78,11 @@ def test_get_lke_clusters(test_linode_client, lke_cluster):
 
 
 def test_get_lke_pool(test_linode_client, lke_cluster):
-    pytest.skip("TPT-2511")
     cluster = lke_cluster
 
     pool = test_linode_client.load(LKENodePool, cluster.pools[0].id, cluster.id)
 
-    assert cluster.pools[0]._raw_json == pool
+    assert cluster.pools[0].id == pool.id
 
 
 def test_cluster_dashboard_url_view(lke_cluster):
@@ -95,7 +127,7 @@ def test_lke_node_delete(lke_cluster):
 
 def test_lke_node_recycle(test_linode_client, lke_cluster):
     cluster = test_linode_client.load(LKECluster, lke_cluster.id)
-    node = cluster.pools[0].nodes[0]
+
     node_id = cluster.pools[0].nodes[0].id
 
     send_request_when_resource_available(300, cluster.node_recycle, node_id)
@@ -106,9 +138,19 @@ def test_lke_node_recycle(test_linode_client, lke_cluster):
     assert node.status == "not_ready"
 
     # wait for provisioning
-    wait_for_condition(10, 300, get_node_status, cluster, "ready")
+    wait_for_condition(
+        10,
+        500,
+        get_node_status,
+        test_linode_client.load(LKECluster, lke_cluster.id),
+        "ready",
+    )
+
+    # Reload cluster
+    cluster = test_linode_client.load(LKECluster, lke_cluster.id)
 
     node = cluster.pools[0].nodes[0]
+
     assert node.status == "ready"
 
 
@@ -117,9 +159,18 @@ def test_lke_cluster_nodes_recycle(test_linode_client, lke_cluster):
 
     send_request_when_resource_available(300, cluster.cluster_nodes_recycle)
 
-    wait_for_condition(5, 300, get_node_status, cluster, "not_ready")
+    wait_for_condition(
+        5,
+        300,
+        get_node_status,
+        test_linode_client.load(LKECluster, cluster.id),
+        "not_ready",
+    )
 
-    node = cluster.pools[0].nodes[0]
+    node_pool = test_linode_client.load(
+        LKENodePool, cluster.pools[0].id, cluster.id
+    )
+    node = node_pool.nodes[0]
     assert node.status == "not_ready"
 
 
@@ -129,3 +180,26 @@ def test_service_token_delete(lke_cluster):
     res = cluster.service_token_delete()
 
     assert res is None
+
+
+def test_lke_cluster_acl(lke_cluster_with_acl):
+    cluster = lke_cluster_with_acl
+
+    assert cluster.control_plane_acl.enabled
+    assert cluster.control_plane_acl.addresses.ipv4 == ["10.0.0.1/32"]
+    assert cluster.control_plane_acl.addresses.ipv6 == ["1234::5678/128"]
+
+    acl = cluster.control_plane_acl_update(
+        LKEClusterControlPlaneACLOptions(
+            addresses=LKEClusterControlPlaneACLAddressesOptions(
+                ipv4=["10.0.0.2/32"]
+            )
+        )
+    )
+
+    assert acl == cluster.control_plane_acl
+    assert acl.addresses.ipv4 == ["10.0.0.2/32"]
+
+    cluster.control_plane_acl_delete()
+
+    assert not cluster.control_plane_acl.enabled

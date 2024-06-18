@@ -4,19 +4,23 @@ from test.integration.helpers import get_test_label
 
 import pytest
 
-from linode_api4 import ApiError, LinodeClient
+from linode_api4 import ApiError
 from linode_api4.objects import ConfigInterface, ObjectStorageKeys, Region
 
 
-@pytest.fixture(scope="session", autouse=True)
-def setup_client_and_linode(test_linode_client):
+@pytest.fixture(scope="session")
+def setup_client_and_linode(test_linode_client, e2e_test_firewall):
     client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[4]  # us-ord (Chicago)
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
-        "g6-nanode-1", chosen_region, image="linode/debian10", label=label
+        "g6-nanode-1",
+        chosen_region,
+        image="linode/debian10",
+        label=label,
+        firewall=e2e_test_firewall,
     )
 
     yield client, linode_instance
@@ -86,10 +90,10 @@ def test_image_create(setup_client_and_linode):
 
     label = get_test_label()
     description = "Test description"
-    disk_id = linode.disks.first().id
+    usable_disk = [v for v in linode.disks if v.filesystem != "swap"]
 
     image = client.image_create(
-        disk=disk_id, label=label, description=description
+        disk=usable_disk[0].id, label=label, description=description
     )
 
     assert image.label == label

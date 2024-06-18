@@ -24,6 +24,7 @@ from linode_api4.objects import (
     Volume,
     get_obj_grants,
 )
+from linode_api4.objects.account import ChildAccount
 
 
 class InvoiceTest(ClientBaseCase):
@@ -268,6 +269,17 @@ class AccountAvailabilityTest(ClientBaseCase):
     Test methods of the AccountAvailability
     """
 
+    def test_account_availability_api_list(self):
+        with self.mock_get("/account/availability") as m:
+            availabilities = self.client.account.availabilities()
+
+            for avail in availabilities:
+                assert avail.region is not None
+                assert len(avail.unavailable) == 0
+                assert len(avail.available) > 0
+
+                self.assertEqual(m.call_url, "/account/availability")
+
     def test_account_availability_api_get(self):
         region_id = "us-east"
         account_availability_url = "/account/availability/{}".format(region_id)
@@ -276,5 +288,24 @@ class AccountAvailabilityTest(ClientBaseCase):
             availability = AccountAvailability(self.client, region_id)
             self.assertEqual(availability.region, region_id)
             self.assertEqual(availability.unavailable, [])
+            self.assertEqual(availability.available, ["Linodes", "Kubernetes"])
 
             self.assertEqual(m.call_url, account_availability_url)
+
+
+class ChildAccountTest(ClientBaseCase):
+    """
+    Test methods of the ChildAccount
+    """
+
+    def test_child_account_api_list(self):
+        result = self.client.account.child_accounts()
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].euuid, "E1AF5EEC-526F-487D-B317EBEB34C87D71")
+
+    def test_child_account_create_token(self):
+        child_account = self.client.load(ChildAccount, 123456)
+        with self.mock_post("/account/child-accounts/123456/token") as m:
+            token = child_account.create_token()
+            self.assertEqual(token.token, "abcdefghijklmnop")
+            self.assertEqual(m.call_data, {})

@@ -32,7 +32,7 @@ def linode_with_volume_firewall(test_linode_client):
         "outbound": [],
         "outbound_policy": "DROP",
         "inbound": [],
-        "inbound_policy": "ACCEPT",
+        "inbound_policy": "DROP",
     }
 
     linode_instance, password = client.linode.instance_create(
@@ -68,7 +68,7 @@ def linode_with_volume_firewall(test_linode_client):
 
 
 @pytest.fixture(scope="session")
-def linode_for_network_interface_tests(test_linode_client):
+def linode_for_network_interface_tests(test_linode_client, e2e_test_firewall):
     client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[4]
@@ -76,38 +76,12 @@ def linode_for_network_interface_tests(test_linode_client):
     label = "TestSDK-" + timestamp
 
     linode_instance, password = client.linode.instance_create(
-        "g6-nanode-1", chosen_region, image="linode/debian10", label=label
-    )
-
-    yield linode_instance
-
-    linode_instance.delete()
-
-
-@pytest.fixture(scope="session", autouse=True)
-def linode_for_disk_tests(test_linode_client):
-    client = test_linode_client
-    available_regions = client.regions()
-    chosen_region = available_regions[4]
-    label = get_test_label()
-
-    linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
         chosen_region,
         image="linode/debian10",
-        label=label + "_long_tests",
+        label=label,
+        firewall=e2e_test_firewall,
     )
-
-    time.sleep(10)
-
-    # Provisioning time
-    wait_for_condition(10, 300, get_status, linode_instance, "running")
-
-    time.sleep(10)
-
-    linode_instance.shutdown()
-
-    wait_for_condition(10, 100, get_status, linode_instance, "offline")
 
     yield linode_instance
 
@@ -115,7 +89,41 @@ def linode_for_disk_tests(test_linode_client):
 
 
 @pytest.fixture
-def create_linode_for_long_running_tests(test_linode_client):
+def linode_for_disk_tests(test_linode_client, e2e_test_firewall):
+    client = test_linode_client
+    available_regions = client.regions()
+    chosen_region = available_regions[4]
+    label = get_test_label()
+
+    linode_instance, password = client.linode.instance_create(
+        "g6-nanode-1",
+        chosen_region,
+        image="linode/alpine3.19",
+        label=label + "_long_tests",
+        firewall=e2e_test_firewall,
+    )
+
+    # Provisioning time
+    wait_for_condition(10, 300, get_status, linode_instance, "running")
+
+    linode_instance.shutdown()
+
+    wait_for_condition(10, 100, get_status, linode_instance, "offline")
+
+    # Now it allocates 100% disk space hence need to clear some space for tests
+    linode_instance.disks[1].delete()
+
+    test_linode_client.polling.event_poller_create(
+        "linode", "disk_delete", entity_id=linode_instance.id
+    )
+
+    yield linode_instance
+
+    linode_instance.delete()
+
+
+@pytest.fixture
+def create_linode_for_long_running_tests(test_linode_client, e2e_test_firewall):
     client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[4]
@@ -126,6 +134,7 @@ def create_linode_for_long_running_tests(test_linode_client):
         chosen_region,
         image="linode/debian10",
         label=label + "_long_tests",
+        firewall=e2e_test_firewall,
     )
 
     yield linode_instance
@@ -136,6 +145,10 @@ def create_linode_for_long_running_tests(test_linode_client):
 # Test helper
 def get_status(linode: Instance, status: str):
     return linode.status == status
+
+
+def instance_type_condition(linode: Instance, type: str):
+    return type in str(linode.type)
 
 
 def test_get_linode(test_linode_client, linode_with_volume_firewall):
@@ -303,6 +316,7 @@ def test_linode_resize_with_class(
 
 
 def test_linode_resize_with_migration_type(
+    test_linode_client,
     create_linode_for_long_running_tests,
 ):
     linode = create_linode_for_long_running_tests
@@ -311,18 +325,32 @@ def test_linode_resize_with_migration_type(
     wait_for_condition(10, 100, get_status, linode, "running")
 
     time.sleep(5)
+
+    assert "g6-nanode-1" in str(linode.type)
+    assert linode.specs.disk == 25600
+
     res = linode.resize(new_type="g6-standard-1", migration_type=m_type)
 
-    assert res
+    if res:
+        # there is no resizing state in warm migration anymore hence wait for resizing and poll event
+        test_linode_client.polling.event_poller_create(
+            "linode", "linode_resize", entity_id=linode.id
+        ).wait_for_next_event_finished(interval=5)
 
-    wait_for_condition(10, 300, get_status, linode, "resizing")
+        wait_for_condition(
+            10,
+            100,
+            get_status,
+            linode,
+            "running",
+        )
+    else:
+        raise ApiError
 
-    assert linode.status == "resizing"
+    # reload resized linode
+    resized_linode = test_linode_client.load(Instance, linode.id)
 
-    # Takes about 3-5 minute to resize, sometimes longer...
-    wait_for_condition(30, 600, get_status, linode, "running")
-
-    assert linode.status == "running"
+    assert resized_linode.specs.disk == 51200
 
 
 def test_linode_boot_with_config(create_linode):
@@ -376,10 +404,9 @@ def test_disk_resize_and_duplicate(test_linode_client, linode_for_disk_tests):
 
     disk = linode.disks[0]
 
-    disk.resize(5000)
+    send_request_when_resource_available(300, disk.resize, 5000)
 
-    # Using hard sleep instead of wait as the status shows ready when it is resizing
-    time.sleep(120)
+    time.sleep(100)
 
     disk = test_linode_client.load(Disk, linode.disks[0].id, linode.id)
 
@@ -390,14 +417,17 @@ def test_disk_resize_and_duplicate(test_linode_client, linode_for_disk_tests):
     time.sleep(40)
 
     wait_for_disk_status(dup_disk, 120)
-
     assert dup_disk.linode_id == linode.id
 
 
 def test_linode_create_disk(test_linode_client, linode_for_disk_tests):
     linode = test_linode_client.load(Instance, linode_for_disk_tests.id)
 
-    disk = linode.disk_create(size=500)
+    disk = send_request_when_resource_available(
+        300,
+        linode.disk_create,
+        size=500,
+    )
 
     wait_for_disk_status(disk, 120)
 

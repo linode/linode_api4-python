@@ -1,7 +1,7 @@
 import json
 from test.unit.base import ClientBaseCase
 
-from linode_api4.objects import Region, Type
+from linode_api4.objects import Region
 from linode_api4.objects.region import RegionAvailabilityEntry
 
 
