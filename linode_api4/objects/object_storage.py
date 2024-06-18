@@ -98,10 +98,9 @@ class ObjectStorageBucket(DerivedBase):
         }
 
         resp = self._client.post(
-            "/object-storage/buckets/{}/{}/access".format(
-                parse.quote(str(self.cluster)), parse.quote(str(self.id))
-            ),
+            f"{self.api_endpoint}/access",
             data=drop_null_keys(params),
+            model=self,
         )
 
         if "errors" in resp:
@@ -140,10 +139,9 @@ class ObjectStorageBucket(DerivedBase):
         }
 
         resp = self._client.put(
-            "/object-storage/buckets/{}/{}/access".format(
-                parse.quote(str(self.cluster)), parse.quote(str(self.id))
-            ),
+            f"{self.api_endpoint}/access",
             data=drop_null_keys(params),
+            model=self,
         )
 
         if "errors" in resp:
@@ -165,9 +163,8 @@ class ObjectStorageBucket(DerivedBase):
         """
 
         resp = self._client.delete(
-            "/object-storage/buckets/{}/{}/ssl".format(
-                parse.quote(str(self.cluster)), parse.quote(str(self.id))
-            )
+            f"{self.api_endpoint}/ssl",
+            model=self,
         )
 
         if "error" in resp:
@@ -190,9 +187,8 @@ class ObjectStorageBucket(DerivedBase):
         :rtype: MappedObject
         """
         result = self._client.get(
-            "/object-storage/buckets/{}/{}/ssl".format(
-                parse.quote(str(self.cluster)), parse.quote(str(self.id))
-            )
+            f"{self.api_endpoint}/ssl",
+            model=self,
         )
 
         if not "ssl" in result:
@@ -233,10 +229,9 @@ class ObjectStorageBucket(DerivedBase):
             "private_key": private_key,
         }
         result = self._client.post(
-            "/object-storage/buckets/{}/{}/ssl".format(
-                parse.quote(str(self.cluster)), parse.quote(str(self.id))
-            ),
+            f"{self.api_endpoint}/ssl",
             data=params,
+            model=self,
         )
 
         if not "ssl" in result:
@@ -300,10 +295,9 @@ class ObjectStorageBucket(DerivedBase):
             "page_size": page_size,
         }
         result = self._client.get(
-            "/object-storage/buckets/{}/{}/object-list".format(
-                parse.quote(str(self.cluster)), parse.quote(str(self.id))
-            ),
+            f"{self.api_endpoint}/object-list",
             data=drop_null_keys(params),
+            model=self,
         )
 
         if not "data" in result:
