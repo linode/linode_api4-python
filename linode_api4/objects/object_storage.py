@@ -1,3 +1,4 @@
+from typing import Optional
 from urllib import parse
 
 from deprecated import deprecated
@@ -10,10 +11,11 @@ from linode_api4.objects import (
     Property,
     Region,
 )
+from linode_api4.objects.serializable import StrEnum
 from linode_api4.util import drop_null_keys
 
 
-class ObjectStorageACL:
+class ObjectStorageACL(StrEnum):
     PRIVATE = "private"
     PUBLIC_READ = "public-read"
     AUTHENTICATED_READ = "authenticated-read"
@@ -69,7 +71,7 @@ class ObjectStorageBucket(DerivedBase):
 
     def access_modify(
         self,
-        acl: ObjectStorageACL = None,
+        acl: Optional[ObjectStorageACL] = None,
         cors_enabled=None,
     ):
         """
@@ -111,7 +113,7 @@ class ObjectStorageBucket(DerivedBase):
 
     def access_update(
         self,
-        acl: ObjectStorageACL = None,
+        acl: Optional[ObjectStorageACL] = None,
         cors_enabled=None,
     ):
         """
