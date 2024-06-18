@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Union
 from urllib import parse
 
 from linode_api4.errors import UnexpectedResponseError
@@ -5,6 +7,7 @@ from linode_api4.objects import (
     Base,
     DerivedBase,
     Instance,
+    JSONObject,
     MappedObject,
     Property,
     Region,
@@ -24,6 +27,66 @@ class KubeVersion(Base):
     properties = {
         "id": Property(identifier=True),
     }
+
+
+@dataclass
+class LKEClusterControlPlaneACLAddressesOptions(JSONObject):
+    """
+    LKEClusterControlPlaneACLAddressesOptions are options used to configure
+    IP ranges that are explicitly allowed to access an LKE cluster's control plane.
+    """
+
+    ipv4: Optional[List[str]] = None
+
+    ipv6: Optional[List[str]] = None
+
+
+@dataclass
+class LKEClusterControlPlaneACLOptions(JSONObject):
+    """
+    LKEClusterControlPlaneACLOptions is used to set
+    the ACL configuration of an LKE cluster's control plane.
+
+    NOTE: Control Plane ACLs may not currently be available to all users.
+    """
+
+    enabled: Optional[bool] = None
+    addresses: Optional[LKEClusterControlPlaneACLAddressesOptions] = None
+
+
+@dataclass
+class LKEClusterControlPlaneOptions(JSONObject):
+    """
+    LKEClusterControlPlaneOptions is used to configure
+    the control plane of an LKE cluster during its creation.
+    """
+
+    high_availability: Optional[bool] = None
+    acl: Optional[LKEClusterControlPlaneACLOptions] = None
+
+
+@dataclass
+class LKEClusterControlPlaneACLAddresses(JSONObject):
+    """
+    LKEClusterControlPlaneACLAddresses describes IP ranges that are explicitly allowed
+    to access an LKE cluster's control plane.
+    """
+
+    ipv4: List[str] = None
+    ipv6: List[str] = None
+
+
+@dataclass
+class LKEClusterControlPlaneACL(JSONObject):
+    """
+    LKEClusterControlPlaneACL describes the ACL configuration of an LKE cluster's
+    control plane.
+
+    NOTE: Control Plane ACLs may not currently be available to all users.
+    """
+
+    enabled: bool = False
+    addresses: LKEClusterControlPlaneACLAddresses = None
 
 
 class LKENodePoolNode:
@@ -129,6 +192,21 @@ class LKECluster(Base):
         "control_plane": Property(mutable=True),
     }
 
+    def invalidate(self):
+        """
+        Extends the default invalidation logic to drop cached properties.
+        """
+        if hasattr(self, "_api_endpoints"):
+            del self._api_endpoints
+
+        if hasattr(self, "_kubeconfig"):
+            del self._kubeconfig
+
+        if hasattr(self, "_control_plane_acl"):
+            del self._control_plane_acl
+
+        Base.invalidate(self)
+
     @property
     def api_endpoints(self):
         """
@@ -185,6 +263,28 @@ class LKECluster(Base):
             self._kubeconfig = result["kubeconfig"]
 
         return self._kubeconfig
+
+    @property
+    def control_plane_acl(self) -> LKEClusterControlPlaneACL:
+        """
+        Gets the ACL configuration of this cluster's control plane.
+
+        NOTE: Control Plane ACLs may not currently be available to all users.
+
+        API Documentation: TODO
+
+        :returns: The cluster's control plane ACL configuration.
+        :rtype: LKEClusterControlPlaneACL
+        """
+
+        if not hasattr(self, "_control_plane_acl"):
+            result = self._client.get(
+                f"{LKECluster.api_endpoint}/control_plane_acl", model=self
+            )
+
+            self._control_plane_acl = result.get("acl")
+
+        return LKEClusterControlPlaneACL.from_json(self._control_plane_acl)
 
     def node_pool_create(self, node_type, node_count, **kwargs):
         """
@@ -335,3 +435,52 @@ class LKECluster(Base):
         self._client.delete(
             "{}/servicetoken".format(LKECluster.api_endpoint), model=self
         )
+
+    def control_plane_acl_update(
+        self, acl: Union[LKEClusterControlPlaneACLOptions, Dict[str, Any]]
+    ) -> LKEClusterControlPlaneACL:
+        """
+        Updates the ACL configuration for this cluster's control plane.
+
+        NOTE: Control Plane ACLs may not currently be available to all users.
+
+        API Documentation: TODO
+
+        :param acl: The ACL configuration to apply to this cluster.
+        :type acl: LKEClusterControlPlaneACLOptions or Dict[str, Any]
+
+        :returns: The updated control plane ACL configuration.
+        :rtype: LKEClusterControlPlaneACL
+        """
+        if isinstance(acl, LKEClusterControlPlaneACLOptions):
+            acl = acl.dict
+
+        result = self._client.put(
+            f"{LKECluster.api_endpoint}/control_plane_acl",
+            model=self,
+            data={"acl": acl},
+        )
+
+        acl = result.get("acl")
+
+        self._control_plane_acl = result.get("acl")
+
+        return LKEClusterControlPlaneACL.from_json(acl)
+
+    def control_plane_acl_delete(self):
+        """
+        Deletes the ACL configuration for this cluster's control plane.
+        This has the same effect as calling control_plane_acl_update with the `enabled` field
+        set to False. Access controls are disabled and all rules are deleted.
+
+        NOTE: Control Plane ACLs may not currently be available to all users.
+
+        API Documentation: TODO
+        """
+        self._client.delete(
+            f"{LKECluster.api_endpoint}/control_plane_acl", model=self
+        )
+
+        # Invalidate the cache so it is automatically refreshed on next access
+        if hasattr(self, "_control_plane_acl"):
+            del self._control_plane_acl

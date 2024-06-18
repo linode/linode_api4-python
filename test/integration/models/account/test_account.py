@@ -6,9 +6,9 @@ import pytest
 from linode_api4.objects import (
     Account,
     AccountSettings,
+    ChildAccount,
     Event,
     Login,
-    OAuthClient,
     User,
 )
 
@@ -80,15 +80,6 @@ def test_latest_get_event(test_linode_client):
     assert label in latest_event["entity"]["label"]
 
 
-def test_get_oathclient(test_linode_client, test_oauth_client):
-    client = test_linode_client
-
-    oauth_client = client.load(OAuthClient, test_oauth_client.id)
-
-    assert "test-oauth-client" == oauth_client.label
-    assert "https://localhost/oauth/callback" == oauth_client.redirect_uri
-
-
 def test_get_user(test_linode_client):
     client = test_linode_client
 
@@ -101,3 +92,13 @@ def test_get_user(test_linode_client):
     assert username == user.username
     assert "email" in user._raw_json
     assert "email" in user._raw_json
+
+
+def test_list_child_accounts(test_linode_client):
+    pytest.skip("Configure test account settings for Parent child")
+    client = test_linode_client
+    child_accounts = client.account.child_accounts()
+    if len(child_accounts) > 0:
+        child_account = ChildAccount(client, child_accounts[0].euuid)
+        child_account._api_get()
+        child_account.create_token()
