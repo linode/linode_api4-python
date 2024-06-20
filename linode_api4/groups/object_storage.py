@@ -1,3 +1,5 @@
+import re
+import warnings
 from typing import List, Optional, Union
 from urllib import parse
 
@@ -66,6 +68,7 @@ class ObjectStorageGroup(Group):
         self,
         label: str,
         bucket_access: Optional[Union[dict, List[dict]]] = None,
+        regions: Optional[List[str]] = None,
     ):
         """
         Creates a new Object Storage keypair that may be used to interact directly
@@ -105,14 +108,16 @@ class ObjectStorageGroup(Group):
 
         :param label: The label for this keypair, for identification only.
         :type label: str
-        :param bucket_access: One or a list of dicts with keys "cluster,"
-                              "permissions", and "bucket_name".  If given, the
-                              resulting Object Storage keys will only have the
-                              requested level of access to the requested buckets,
-                              if they exist and are owned by you.  See the provided
-                              :any:`bucket_access` function for a convenient way
-                              to create these dicts.
-        :type bucket_access: dict or list of dict
+        :param bucket_access: One or a list of dicts with keys "cluster," "region",
+                              "permissions", and "bucket_name". "cluster" key is
+                              deprecated because multiple cluster can be placed
+                              in the same region. Please consider switching to
+                              regions. If given, the resulting Object Storage keys
+                              will only have the requested level of access to the
+                              requested buckets, if they exist and are owned by
+                              you.  See the provided :any:`bucket_access` function
+                              for a convenient way to create these dicts.
+        :type bucket_access: Optional[Union[dict, List[dict]]]
 
         :returns: The new keypair, with the secret key populated.
         :rtype: ObjectStorageKeys
@@ -123,21 +128,34 @@ class ObjectStorageGroup(Group):
             if not isinstance(bucket_access, list):
                 bucket_access = [bucket_access]
 
-            ba = [
-                {
-                    "permissions": c.get("permissions"),
-                    "bucket_name": c.get("bucket_name"),
-                    "cluster": (
-                        c.id
-                        if "cluster" in c
-                        and issubclass(type(c["cluster"]), Base)
-                        else c.get("cluster")
-                    ),
+            ba = []
+            for access_rule in bucket_access:
+                access_rule_json = {
+                    "permissions": access_rule.get("permissions"),
+                    "bucket_name": access_rule.get("bucket_name"),
                 }
-                for c in bucket_access
-            ]
+
+                if "region" in access_rule:
+                    access_rule_json["region"] = access_rule.get("region")
+                elif "cluster" in access_rule:
+                    warnings.warn(
+                        "'cluster' is a deprecated attribute, "
+                        "please consider using 'region' instead.",
+                        FutureWarning,
+                    )
+                    access_rule_json["cluster"] = (
+                        access_rule.id
+                        if "cluster" in access_rule
+                        and issubclass(type(access_rule["cluster"]), Base)
+                        else access_rule.get("cluster")
+                    )
+
+                ba.append(access_rule_json)
 
             params["bucket_access"] = ba
+
+        if regions is not None:
+            params["regions"] = regions
 
         result = self.client.post("/object-storage/keys", data=params)
 
@@ -150,9 +168,82 @@ class ObjectStorageGroup(Group):
         ret = ObjectStorageKeys(self.client, result["id"], result)
         return ret
 
-    def bucket_access(self, cluster, bucket_name, permissions):
-        return ObjectStorageBucket.access(
-            self, cluster, bucket_name, permissions
+    @classmethod
+    def bucket_access(
+        cls,
+        cluster_or_region: str,
+        bucket_name: str,
+        permissions: str,
+        use_region: bool,
+    ):
+        """
+        Returns a dict formatted to be included in the `bucket_access` argument
+        of :any:`keys_create`.  See the docs for that method for an example of
+        usage.
+
+        :param cluster_or_region: The region or Object Storage cluster to grant access in.
+        :type cluster_or_region: str
+        :param bucket_name: The name of the bucket to grant access to.
+        :type bucket_name: str
+        :param permissions: The permissions to grant.  Should be one of "read_only"
+                            or "read_write".
+        :type permissions: str
+        :param use_region: Whether to use region mode.
+        :type use_region: bool
+
+        :returns: A dict formatted correctly for specifying bucket access for
+                  new keys.
+        :rtype: dict
+        """
+
+        if not use_region:
+            warnings.warn(
+                "Cluster ID for Object Storage APIs has been deprecated. "
+                "Please consider switch to a region ID (e.g., from `us-mia-1` to `us-mia`)",
+                FutureWarning,
+            )
+
+        if use_region and cls.is_cluster(cluster_or_region):
+            raise ValueError(
+                "'use_region' is set to True but a cluster ID is provided."
+            )
+
+        result = {
+            "bucket_name": bucket_name,
+            "permissions": permissions,
+        }
+
+        if use_region:
+            result["region"] = cluster_or_region
+        else:
+            result["cluster"] = cluster_or_region
+
+        return result
+
+    def buckets_in_region(self, region: str, *filters):
+        """
+        Returns a list of Buckets in the region belonging to this Account.
+
+        This endpoint is available for convenience.
+        It is recommended that instead you use the more fully-featured S3 API directly.
+
+        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-buckets-in-cluster-list
+
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
+
+        :param region: The ID of an object storage region (e.g. `us-mia-1`).
+        :type region: str
+
+        :returns: A list of Object Storage Buckets that in the requested cluster.
+        :rtype: PaginatedList of ObjectStorageBucket
+        """
+
+        return self.client._get_and_filter(
+            ObjectStorageBucket,
+            *filters,
+            endpoint=f"/object-storage/buckets/{region}",
         )
 
     def cancel(self):
@@ -205,10 +296,14 @@ class ObjectStorageGroup(Group):
         """
         return self.client._get_and_filter(ObjectStorageBucket, *filters)
 
+    @staticmethod
+    def is_cluster(cluster_or_region: str):
+        return bool(re.match(r"^[a-z]{2}-[a-z]+-[0-9]+$", cluster_or_region))
+
     def bucket_create(
         self,
-        cluster,
-        label,
+        cluster_or_region: Union[str, ObjectStorageCluster],
+        label: str,
         acl: ObjectStorageACL = ObjectStorageACL.PRIVATE,
         cors_enabled=False,
     ):
@@ -248,16 +343,23 @@ class ObjectStorageGroup(Group):
         :returns: A Object Storage Buckets that created by user.
         :rtype: ObjectStorageBucket
         """
-        cluster_id = (
-            cluster.id if isinstance(cluster, ObjectStorageCluster) else cluster
+        cluster_or_region_id = (
+            cluster_or_region.id
+            if isinstance(cluster_or_region, ObjectStorageCluster)
+            else cluster_or_region
         )
 
         params = {
-            "cluster": cluster_id,
             "label": label,
             "acl": acl,
             "cors_enabled": cors_enabled,
         }
+
+        if self.is_cluster(cluster_or_region_id):
+            warnings.warn("TODO", FutureWarning)
+            params["cluster"] = cluster_or_region_id
+        else:
+            params["region"] = cluster_or_region_id
 
         result = self.client.post("/object-storage/buckets", data=params)
 
@@ -271,21 +373,21 @@ class ObjectStorageGroup(Group):
             self.client, result["label"], result["cluster"], result
         )
 
-    def object_acl_config(self, cluster_id, bucket, name=None):
+    def object_acl_config(self, cluster_or_region_id: str, bucket, name=None):
         return ObjectStorageBucket(
-            self.client, bucket, cluster_id
+            self.client, bucket, cluster_or_region_id
         ).object_acl_config(name)
 
     def object_acl_config_update(
-        self, cluster_id, bucket, acl: ObjectStorageACL, name
+        self, cluster_or_region_id, bucket, acl: ObjectStorageACL, name
     ):
         return ObjectStorageBucket(
-            self.client, bucket, cluster_id
+            self.client, bucket, cluster_or_region_id
         ).object_acl_config_update(acl, name)
 
     def object_url_create(
         self,
-        cluster_id,
+        cluster_or_region_id,
         bucket,
         method,
         name,
@@ -302,8 +404,8 @@ class ObjectStorageGroup(Group):
 
         API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-object-url-create
 
-        :param cluster_id: The ID of the cluster this bucket exists in.
-        :type cluster_id: str
+        :param cluster_or_region_id: The ID of the cluster or region this bucket exists in.
+        :type cluster_or_region_id: str
 
         :param bucket: The bucket name.
         :type bucket: str
@@ -345,7 +447,7 @@ class ObjectStorageGroup(Group):
 
         result = self.client.post(
             "/object-storage/buckets/{}/{}/object-url".format(
-                parse.quote(str(cluster_id)), parse.quote(str(bucket))
+                parse.quote(str(cluster_or_region_id)), parse.quote(str(bucket))
             ),
             data=drop_null_keys(params),
         )
