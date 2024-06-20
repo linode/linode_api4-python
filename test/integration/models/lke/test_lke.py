@@ -13,7 +13,7 @@ from linode_api4 import (
     LKEClusterControlPlaneOptions,
 )
 from linode_api4.errors import ApiError
-from linode_api4.objects import LKECluster, LKENodePool, LKENodePoolNode
+from linode_api4.objects import LKECluster, LKENodePool
 
 
 @pytest.fixture(scope="session")

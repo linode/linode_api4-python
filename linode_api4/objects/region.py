@@ -3,8 +3,17 @@ from typing import List
 
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects.base import Base, JSONObject, Property
-from linode_api4.objects.filtering import FilterableAttribute
-from linode_api4.objects.serializable import JSONFilterableMetaclass
+
+
+@dataclass
+class RegionPlacementGroupLimits(JSONObject):
+    """
+    Represents the Placement Group limits for the current account
+    in a specific region.
+    """
+
+    maximum_pgs_per_customer: int = 0
+    maximum_linodes_per_pg: int = 0
 
 
 class Region(Base):
@@ -23,6 +32,9 @@ class Region(Base):
         "resolvers": Property(),
         "label": Property(),
         "site_type": Property(),
+        "placement_group_limits": Property(
+            json_object=RegionPlacementGroupLimits
+        ),
     }
 
     @property

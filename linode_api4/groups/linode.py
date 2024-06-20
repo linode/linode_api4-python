@@ -2,24 +2,21 @@ import base64
 import os
 from collections.abc import Iterable
 
-from linode_api4 import Profile
-from linode_api4.common import SSH_KEY_TYPES, load_and_validate_keys
+from linode_api4.common import load_and_validate_keys
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
-    AuthorizedApp,
     Base,
     ConfigInterface,
     Firewall,
     Image,
     Instance,
     Kernel,
-    PersonalAccessToken,
-    SSHKey,
     StackScript,
     Type,
 )
 from linode_api4.objects.filtering import Filter
+from linode_api4.objects.linode import _expand_placement_group_assignment
 from linode_api4.paginated_list import PaginatedList
 
 
@@ -269,6 +266,8 @@ class LinodeGroup(Group):
         :param interfaces: An array of Network Interfaces to add to this Linode’s Configuration Profile.
                            At least one and up to three Interface objects can exist in this array.
         :type interfaces: list[ConfigInterface] or list[dict[str, Any]]
+        :param placement_group: A Placement Group to create this Linode under.
+        :type placement_group: Union[InstancePlacementGroupAssignment, PlacementGroup, Dict[str, Any], int]
 
         :returns: A new Instance object, or a tuple containing the new Instance and
                   the generated password.
@@ -314,6 +313,11 @@ class LinodeGroup(Group):
                     i._serialize() if isinstance(i, ConfigInterface) else i
                     for i in interfaces
                 ]
+
+        if "placement_group" in kwargs:
+            kwargs["placement_group"] = _expand_placement_group_assignment(
+                kwargs.get("placement_group")
+            )
 
         params = {
             "type": ltype.id if issubclass(type(ltype), Base) else ltype,
