@@ -28,6 +28,8 @@ class PlacementGroupMember(JSONObject):
 
 class PlacementGroup(Base):
     """
+    NOTE: Placement Groups may not currently be available to all users.
+
     A VM Placement Group, defining the affinity policy for Linodes
     created in a region.
 
