@@ -20,3 +20,4 @@ from .lke import *
 from .database import *
 from .vpc import *
 from .beta import *
+from .placement import *

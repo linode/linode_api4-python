@@ -40,7 +40,13 @@
       "image": "linode/ubuntu17.04",
       "tags": ["something"],
       "host_uuid": "3a3ddd59d9a78bb8de041391075df44de62bfec8",
-      "watchdog_enabled": true
+      "watchdog_enabled": true,
+      "placement_group": {
+        "id": 123,
+        "label": "test",
+        "affinity_type": "anti_affinity:local",
+        "is_strict": true
+      }
     },
     {
       "group": "test",
@@ -79,7 +85,8 @@
       "image": "linode/debian9",
       "tags": [],
       "host_uuid": "3a3ddd59d9a78bb8de041391075df44de62bfec8",
-      "watchdog_enabled": false
+      "watchdog_enabled": false,
+      "placement_group": null
     }
   ]
 }
