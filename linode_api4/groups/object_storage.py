@@ -13,6 +13,7 @@ from linode_api4.objects import (
     ObjectStorageACL,
     ObjectStorageBucket,
     ObjectStorageCluster,
+    ObjectStorageKeyPermission,
     ObjectStorageKeys,
 )
 from linode_api4.util import drop_null_keys
@@ -141,7 +142,7 @@ class ObjectStorageGroup(Group):
                     warnings.warn(
                         "'cluster' is a deprecated attribute, "
                         "please consider using 'region' instead.",
-                        FutureWarning,
+                        DeprecationWarning,
                     )
                     access_rule_json["cluster"] = (
                         access_rule.id
@@ -173,7 +174,7 @@ class ObjectStorageGroup(Group):
         cls,
         cluster_or_region: str,
         bucket_name: str,
-        permissions: str,
+        permissions: Union[str, ObjectStorageKeyPermission],
         use_region: bool,
     ):
         """
@@ -187,7 +188,7 @@ class ObjectStorageGroup(Group):
         :type bucket_name: str
         :param permissions: The permissions to grant.  Should be one of "read_only"
                             or "read_write".
-        :type permissions: str
+        :type permissions: Union[str, ObjectStorageKeyPermission]
         :param use_region: Whether to use region mode.
         :type use_region: bool
 
@@ -200,7 +201,7 @@ class ObjectStorageGroup(Group):
             warnings.warn(
                 "Cluster ID for Object Storage APIs has been deprecated. "
                 "Please consider switch to a region ID (e.g., from `us-mia-1` to `us-mia`)",
-                FutureWarning,
+                DeprecationWarning,
             )
 
         if use_region and cls.is_cluster(cluster_or_region):
@@ -356,7 +357,13 @@ class ObjectStorageGroup(Group):
         }
 
         if self.is_cluster(cluster_or_region_id):
-            warnings.warn("TODO", FutureWarning)
+            warnings.warn(
+                "The cluster parameter has been deprecated for creating a object "
+                "storage bucket. Please consider switching to a region value. For "
+                "example, a cluster value of `us-mia-1` can be translated to a "
+                "region value of `us-mia`.",
+                DeprecationWarning,
+            )
             params["cluster"] = cluster_or_region_id
         else:
             params["region"] = cluster_or_region_id

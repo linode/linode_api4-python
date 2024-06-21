@@ -23,6 +23,11 @@ class ObjectStorageACL(StrEnum):
     CUSTOM = "custom"
 
 
+class ObjectStorageKeyPermission(StrEnum):
+    READ_ONLY = "read_only"
+    READ_WRITE = "read_write"
+
+
 class ObjectStorageBucket(DerivedBase):
     """
     A bucket where objects are stored in.
