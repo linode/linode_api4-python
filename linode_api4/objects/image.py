@@ -1,9 +1,8 @@
 from dataclasses import dataclass
-from linode_api4.objects.serializable  import StrEnum
 from typing import List, Union
 
 from linode_api4.objects import Base, Property, Region
-from linode_api4.objects.serializable import JSONObject
+from linode_api4.objects.serializable import JSONObject, StrEnum
 
 
 class ReplicationStatus(StrEnum):
