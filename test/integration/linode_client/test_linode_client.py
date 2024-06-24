@@ -90,14 +90,16 @@ def test_image_create(setup_client_and_linode):
 
     label = get_test_label()
     description = "Test description"
+    tags = ["test"]
     usable_disk = [v for v in linode.disks if v.filesystem != "swap"]
 
     image = client.image_create(
-        disk=usable_disk[0].id, label=label, description=description
+        disk=usable_disk[0].id, label=label, description=description, tags=tags
     )
 
     assert image.label == label
     assert image.description == description
+    assert image.tags == tags
 
 
 def test_fails_to_create_image_with_non_existing_disk_id(

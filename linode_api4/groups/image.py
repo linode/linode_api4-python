@@ -1,4 +1,4 @@
-from typing import BinaryIO, Tuple
+from typing import BinaryIO, Tuple, List
 
 import requests
 
@@ -29,7 +29,7 @@ class ImageGroup(Group):
         """
         return self.client._get_and_filter(Image, *filters)
 
-    def create(self, disk, label=None, description=None, cloud_init=False):
+    def create(self, disk, label=None, description=None, cloud_init=False, tags=None):
         """
         Creates a new Image from a disk you own.
 
@@ -44,24 +44,23 @@ class ImageGroup(Group):
         :type description: str
         :param cloud_init: Whether this Image supports cloud-init.
         :type cloud_init: bool
+        :param tags: A list of customized tags of this new Image.
+        :type tags: List[str]
 
         :returns: The new Image.
         :rtype: Image
         """
         params = {
             "disk_id": disk.id if issubclass(type(disk), Base) else disk,
+            "label": label,
+            "description": description,
+            "tags": tags
         }
-
-        if label is not None:
-            params["label"] = label
-
-        if description is not None:
-            params["description"] = description
 
         if cloud_init:
             params["cloud_init"] = cloud_init
 
-        result = self.client.post("/images", data=params)
+        result = self.client.post("/images", data=drop_null_keys(params))
 
         if not "id" in result:
             raise UnexpectedResponseError(
@@ -78,6 +77,7 @@ class ImageGroup(Group):
         region: str,
         description: str = None,
         cloud_init: bool = False,
+        tags: List[str] = None,
     ) -> Tuple[Image, str]:
         """
         Creates a new Image and returns the corresponding upload URL.
@@ -92,11 +92,13 @@ class ImageGroup(Group):
         :type description: str
         :param cloud_init: Whether this Image supports cloud-init.
         :type cloud_init: bool
+        :param tags: A list of customized tags of this Image.
+        :type tags: List[str]
 
         :returns: A tuple containing the new image and the image upload URL.
         :rtype: (Image, str)
         """
-        params = {"label": label, "region": region, "description": description}
+        params = {"label": label, "region": region, "description": description, "tags": tags}
 
         if cloud_init:
             params["cloud_init"] = cloud_init
@@ -114,7 +116,7 @@ class ImageGroup(Group):
         return Image(self.client, result_image["id"], result_image), result_url
 
     def upload(
-        self, label: str, region: str, file: BinaryIO, description: str = None
+        self, label: str, region: str, file: BinaryIO, description: str = None, tags: List[str] = None,
     ) -> Image:
         """
         Creates and uploads a new image.
@@ -128,12 +130,14 @@ class ImageGroup(Group):
         :param file: The BinaryIO object to upload to the image. This is generally obtained from open("myfile", "rb").
         :param description: The description for the new Image.
         :type description: str
+        :param tags: A list of customized tags of this Image.
+        :type tags: List[str]
 
         :returns: The resulting image.
         :rtype: Image
         """
 
-        image, url = self.create_upload(label, region, description=description)
+        image, url = self.create_upload(label, region, description=description, tags=tags)
 
         requests.put(
             url,

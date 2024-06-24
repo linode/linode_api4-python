@@ -45,7 +45,19 @@ def test_image_create_upload(test_linode_client):
         "us-ord",
         BytesIO(test_image_content),
         description="integration test image upload",
+        tags=["tests"]
     )
 
     assert image.label == label
     assert image.description == "integration test image upload"
+    assert image.tags[0] == "tests"
+
+@pytest.mark.smoke
+def test_image_replication(test_linode_client, image_upload):
+    image = test_linode_client.load(Image, image_upload.id)
+
+    image.replicate("us-mia")
+
+    assert image.label == image_upload.label
+    assert image.total_size == image_upload.size * 2
+    assert len(image.regions) == 2

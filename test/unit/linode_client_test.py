@@ -127,7 +127,7 @@ class LinodeClientGeneralTest(ClientBaseCase):
         Tests that an Image can be created successfully
         """
         with self.mock_post("images/private/123") as m:
-            i = self.client.image_create(654, "Test-Image", "This is a test")
+            i = self.client.image_create(654, "Test-Image", "This is a test", ["test"])
 
             self.assertIsNotNone(i)
             self.assertEqual(i.id, "private/123")
@@ -141,6 +141,7 @@ class LinodeClientGeneralTest(ClientBaseCase):
                     "disk_id": 654,
                     "label": "Test-Image",
                     "description": "This is a test",
+                    "tags": ["test"]
                 },
             )
 
