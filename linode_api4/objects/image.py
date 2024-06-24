@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from enum import StrEnum
+from linode_api4.objects.serializable  import StrEnum
 from typing import List, Union
 
 from linode_api4.objects import Base, Property, Region
