@@ -4,7 +4,7 @@ from test.unit.base import ClientBaseCase
 from typing import BinaryIO
 from unittest.mock import patch
 
-from linode_api4.objects import Image
+from linode_api4.objects import Image, Region
 
 # A minimal gzipped image that will be accepted by the API
 TEST_IMAGE_CONTENT = (
@@ -150,7 +150,7 @@ class ImageTest(ClientBaseCase):
         """
 
         replication_url = "/images/private/123/regions"
-        regions = ["us-east", "us-west"]
+        regions = ["us-east", Region(self.client, "us-west")]
         with self.mock_post(replication_url) as m:
             image = Image(self.client, "private/123")
             image.replicate(regions)
@@ -159,6 +159,6 @@ class ImageTest(ClientBaseCase):
             self.assertEqual(
                 m.call_data,
                 {
-                   "regions": regions
+                   "regions": ["us-east", "us-west"]
                 },
             )

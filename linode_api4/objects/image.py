@@ -7,7 +7,7 @@ from linode_api4.objects import Base, Property, Region
 
 class ReplicationStatus(StrEnum):
     """
-    The Enum class represents replications status.
+    The Enum class represents image replication status.
     """
     pending_replication = "pending replication"
     pending_deletion = "pending deletion"
@@ -19,7 +19,7 @@ class ReplicationStatus(StrEnum):
 @dataclass
 class ImageReplica(JSONObject):
     """
-    The region and status of a image replica.
+    The region and status of an image replica.
     """
     region: str = ""
     status: ReplicationStatus = None
