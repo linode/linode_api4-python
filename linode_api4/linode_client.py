@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from importlib.metadata import version
-from typing import BinaryIO, Tuple, List
+from typing import BinaryIO, List, Tuple
 from urllib import parse
 
 import requests
@@ -383,10 +383,16 @@ class LinodeClient:
         .. note:: This method is an alias to maintain backwards compatibility.
                   Please use :meth:`LinodeClient.images.create(...) <.ImageGroup.create>` for all new projects.
         """
-        return self.images.create(disk, label=label, description=description, tags=tags)
+        return self.images.create(
+            disk, label=label, description=description, tags=tags
+        )
 
     def image_create_upload(
-        self, label: str, region: str, description: str = None, tags: List[str] = None
+        self,
+        label: str,
+        region: str,
+        description: str = None,
+        tags: List[str] = None,
     ) -> Tuple[Image, str]:
         """
         .. note:: This method is an alias to maintain backwards compatibility.
@@ -394,16 +400,25 @@ class LinodeClient:
                   for all new projects.
         """
 
-        return self.images.create_upload(label, region, description=description, tags=tags)
+        return self.images.create_upload(
+            label, region, description=description, tags=tags
+        )
 
     def image_upload(
-        self, label: str, region: str, file: BinaryIO, description: str = None, tags: List[str] = None
+        self,
+        label: str,
+        region: str,
+        file: BinaryIO,
+        description: str = None,
+        tags: List[str] = None,
     ) -> Image:
         """
         .. note:: This method is an alias to maintain backwards compatibility.
                   Please use :meth:`LinodeClient.images.upload(...) <.ImageGroup.upload>` for all new projects.
         """
-        return self.images.upload(label, region, file, description=description, tags=tags)
+        return self.images.upload(
+            label, region, file, description=description, tags=tags
+        )
 
     def nodebalancer_create(self, region, **kwargs):
         """

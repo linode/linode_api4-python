@@ -66,7 +66,7 @@ class ImageTest(ClientBaseCase):
                 "Realest Image Upload",
                 "us-southeast",
                 description="very real image upload.",
-                tags=["test_tag", "test2"]
+                tags=["test_tag", "test2"],
             )
 
             self.assertEqual(m.call_url, "/images/upload")
@@ -77,7 +77,7 @@ class ImageTest(ClientBaseCase):
                     "label": "Realest Image Upload",
                     "region": "us-southeast",
                     "description": "very real image upload.",
-                    "tags": ["test_tag", "test2"]
+                    "tags": ["test_tag", "test2"],
                 },
             )
 
@@ -105,7 +105,7 @@ class ImageTest(ClientBaseCase):
                 "us-southeast",
                 BytesIO(TEST_IMAGE_CONTENT),
                 description="very real image upload.",
-                tags=["test_tag", "test2"]
+                tags=["test_tag", "test2"],
             )
 
         self.assertEqual(image.id, "private/1337")
@@ -158,7 +158,5 @@ class ImageTest(ClientBaseCase):
             self.assertEqual(replication_url, m.call_url)
             self.assertEqual(
                 m.call_data,
-                {
-                   "regions": ["us-east", "us-west"]
-                },
+                {"regions": ["us-east", "us-west"]},
             )

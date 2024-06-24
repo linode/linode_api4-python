@@ -2,13 +2,15 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import List, Union
 
-from linode_api4.objects.serializable import JSONObject
 from linode_api4.objects import Base, Property, Region
+from linode_api4.objects.serializable import JSONObject
+
 
 class ReplicationStatus(StrEnum):
     """
     The Enum class represents image replication status.
     """
+
     pending_replication = "pending replication"
     pending_deletion = "pending deletion"
     available = "available"
@@ -16,13 +18,16 @@ class ReplicationStatus(StrEnum):
     pending = "pending"
     replicating = "replicating"
 
+
 @dataclass
 class ImageReplica(JSONObject):
     """
     The region and status of an image replica.
     """
+
     region: str = ""
     status: ReplicationStatus = None
+
 
 class Image(Base):
     """
@@ -67,7 +72,12 @@ class Image(Base):
                         Existing images in the regions not passed will be removed.
         :type regions: List[str]
         """
-        params = {"regions": [region.id if isinstance(region, Region) else region for region in regions]}
+        params = {
+            "regions": [
+                region.id if isinstance(region, Region) else region
+                for region in regions
+            ]
+        }
 
         result = self._client.post(
             "{}/regions".format(self.api_endpoint), model=self, data=params

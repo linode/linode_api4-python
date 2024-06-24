@@ -45,12 +45,13 @@ def test_image_create_upload(test_linode_client):
         "us-ord",
         BytesIO(test_image_content),
         description="integration test image upload",
-        tags=["tests"]
+        tags=["tests"],
     )
 
     assert image.label == label
     assert image.description == "integration test image upload"
     assert image.tags[0] == "tests"
+
 
 @pytest.mark.smoke
 def test_image_replication(test_linode_client, image_upload):
