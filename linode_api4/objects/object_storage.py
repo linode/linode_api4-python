@@ -501,5 +501,5 @@ class ObjectStorageKeys(Base):
         "secret_key": Property(),
         "bucket_access": Property(),
         "limited": Property(),
-        "regions": Property(),
+        "regions": Property(unordered=True),
     }
