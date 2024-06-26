@@ -175,7 +175,6 @@ class ObjectStorageGroup(Group):
         cluster_or_region: str,
         bucket_name: str,
         permissions: Union[str, ObjectStorageKeyPermission],
-        use_region: bool,
     ):
         """
         Returns a dict formatted to be included in the `bucket_access` argument
@@ -197,27 +196,20 @@ class ObjectStorageGroup(Group):
         :rtype: dict
         """
 
-        if not use_region:
-            warnings.warn(
-                "Cluster ID for Object Storage APIs has been deprecated. "
-                "Please consider switch to a region ID (e.g., from `us-mia-1` to `us-mia`)",
-                DeprecationWarning,
-            )
-
-        if use_region and cls.is_cluster(cluster_or_region):
-            raise ValueError(
-                "'use_region' is set to True but a cluster ID is provided."
-            )
-
         result = {
             "bucket_name": bucket_name,
             "permissions": permissions,
         }
 
-        if use_region:
-            result["region"] = cluster_or_region
-        else:
+        if cls.is_cluster(cluster_or_region):
+            warnings.warn(
+                "Cluster ID for Object Storage APIs has been deprecated. "
+                "Please consider switch to a region ID (e.g., from `us-mia-1` to `us-mia`)",
+                DeprecationWarning,
+            )
             result["cluster"] = cluster_or_region
+        else:
+            result["region"] = cluster_or_region
 
         return result
 
