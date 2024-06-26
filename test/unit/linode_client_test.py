@@ -988,7 +988,9 @@ class ObjectStorageGroupTest(ClientBaseCase):
             keys = self.client.object_storage.keys_create(
                 "object-storage-key-1",
                 self.client.object_storage.bucket_access(
-                    "us-east", "example-bucket", "read_only", True
+                    "us-east",
+                    "example-bucket",
+                    "read_only",
                 ),
                 ["us-east"],
             )
