@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 from test.integration.helpers import get_test_label
 
 import pytest
@@ -91,7 +92,6 @@ def test_get_user(test_linode_client):
 
     assert username == user.username
     assert "email" in user._raw_json
-    assert "email" in user._raw_json
 
 
 def test_list_child_accounts(test_linode_client):
@@ -102,3 +102,25 @@ def test_list_child_accounts(test_linode_client):
         child_account = ChildAccount(client, child_accounts[0].euuid)
         child_account._api_get()
         child_account.create_token()
+
+
+def test_get_invoice(test_linode_client):
+    client = test_linode_client
+
+    invoices = client.account.invoices()
+
+    if len(invoices) > 0:
+        assert isinstance(invoices[0].subtotal, float)
+        assert isinstance(invoices[0].tax, float)
+        assert isinstance(invoices[0].total, float)
+        assert r"'billing_source': 'linode'" in str(invoices[0]._raw_json)
+
+
+def test_get_payments(test_linode_client):
+    client = test_linode_client
+
+    payments = client.account.payments()
+
+    if len(payments) > 0:
+        assert isinstance(payments[0].date, datetime)
+        assert isinstance(payments[0].usd, float)

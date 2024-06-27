@@ -3,7 +3,11 @@ import time
 
 import pytest
 
-from linode_api4.objects import LongviewClient, LongviewSubscription
+from linode_api4.objects import (
+    LongviewClient,
+    LongviewPlan,
+    LongviewSubscription,
+)
 
 
 @pytest.mark.smoke
@@ -46,3 +50,11 @@ def test_get_longview_subscription(test_linode_client, test_longview_client):
 
     assert re.search("[0-9]+", str(sub.price.hourly))
     assert re.search("[0-9]+", str(sub.price.monthly))
+
+
+def test_get_current_longview_plan(test_linode_client):
+    lv_plan = test_linode_client.load(LongviewPlan, "")
+
+    assert "Longview" in lv_plan.label
+    assert "hourly" in lv_plan.price.dict
+    assert "monthly" in lv_plan.price.dict

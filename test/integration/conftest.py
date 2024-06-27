@@ -26,6 +26,13 @@ def get_api_url():
     return os.environ.get(ENV_API_URL_NAME, "https://api.linode.com/v4beta")
 
 
+def get_random_label():
+    timestamp = str(time.time_ns())[:-5]
+    label = "label_" + timestamp
+
+    return label
+
+
 def get_region(client: LinodeClient, capabilities: Set[str] = None):
     region_override = os.environ.get(ENV_REGION_OVERRIDE)
 
@@ -313,7 +320,7 @@ def test_sshkey(test_linode_client, ssh_key_gen):
 
 
 @pytest.fixture
-def ssh_keys_object_storage(test_linode_client):
+def access_keys_object_storage(test_linode_client):
     client = test_linode_client
     label = "TestSDK-obj-storage-key"
     key = client.object_storage.keys_create(label)
@@ -348,8 +355,10 @@ def test_firewall(test_linode_client):
 @pytest.fixture
 def test_oauth_client(test_linode_client):
     client = test_linode_client
+    label = get_random_label() + "_oauth"
+
     oauth_client = client.account.oauth_client_create(
-        "test-oauth-client", "https://localhost/oauth/callback"
+        label, "https://localhost/oauth/callback"
     )
 
     yield oauth_client
