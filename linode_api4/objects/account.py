@@ -60,6 +60,8 @@ class ChildAccount(Account):
     """
     A child account under a parent account.
 
+    NOTE: Parent/Child related features may not be generally available.
+
     API Documentation: TBD
     """
 

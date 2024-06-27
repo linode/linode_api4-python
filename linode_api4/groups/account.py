@@ -502,6 +502,8 @@ class AccountGroup(Group):
         """
         Returns a list of all child accounts under the this parent account.
 
+        NOTE: Parent/Child related features may not be generally available.
+
         API doc: TBD
 
         :returns: a list of all child accounts.
