@@ -1,10 +1,10 @@
-from typing import BinaryIO, List, Tuple
+from typing import BinaryIO, List, Optional, Tuple, Union
 
 import requests
 
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
-from linode_api4.objects import Base, Image
+from linode_api4.objects import Base, Disk, Image
 from linode_api4.util import drop_null_keys
 
 
@@ -30,7 +30,12 @@ class ImageGroup(Group):
         return self.client._get_and_filter(Image, *filters)
 
     def create(
-        self, disk, label=None, description=None, cloud_init=False, tags=None
+        self,
+        disk: Union[Disk, int],
+        label: str = None,
+        description: str = None,
+        cloud_init: bool = False,
+        tags: Optional[List[str]] = None,
     ):
         """
         Creates a new Image from a disk you own.
@@ -38,7 +43,7 @@ class ImageGroup(Group):
         API Documentation: https://www.linode.com/docs/api/images/#image-create
 
         :param disk: The Disk to imagize.
-        :type disk: Disk or int
+        :type disk: Union[Disk, int]
         :param label: The label for the resulting Image (defaults to the disk's
                       label.
         :type label: str
@@ -47,7 +52,7 @@ class ImageGroup(Group):
         :param cloud_init: Whether this Image supports cloud-init.
         :type cloud_init: bool
         :param tags: A list of customized tags of this new Image.
-        :type tags: List[str]
+        :type tags: Optional[List[str]]
 
         :returns: The new Image.
         :rtype: Image
@@ -79,7 +84,7 @@ class ImageGroup(Group):
         region: str,
         description: str = None,
         cloud_init: bool = False,
-        tags: List[str] = None,
+        tags: Optional[List[str]] = None,
     ) -> Tuple[Image, str]:
         """
         Creates a new Image and returns the corresponding upload URL.
@@ -95,7 +100,7 @@ class ImageGroup(Group):
         :param cloud_init: Whether this Image supports cloud-init.
         :type cloud_init: bool
         :param tags: A list of customized tags of this Image.
-        :type tags: List[str]
+        :type tags: Optional[List[str]]
 
         :returns: A tuple containing the new image and the image upload URL.
         :rtype: (Image, str)
@@ -128,7 +133,7 @@ class ImageGroup(Group):
         region: str,
         file: BinaryIO,
         description: str = None,
-        tags: List[str] = None,
+        tags: Optional[List[str]] = None,
     ) -> Image:
         """
         Creates and uploads a new image.
@@ -143,7 +148,7 @@ class ImageGroup(Group):
         :param description: The description for the new Image.
         :type description: str
         :param tags: A list of customized tags of this Image.
-        :type tags: List[str]
+        :type tags: Optional[List[str]]
 
         :returns: The resulting image.
         :rtype: Image

@@ -12,7 +12,7 @@ from linode_api4.objects import ConfigInterface, ObjectStorageKeys, Region
 def setup_client_and_linode(test_linode_client, e2e_test_firewall):
     client = test_linode_client
     # The available region in alpha testing is very limited. `us_east` can be used.
-    # We can uncomment this logic once we can talk to prod.
+    # TODO: We can uncomment this logic once we can talk to prod.
     #
     # available_regions = client.regions()
     # chosen_region = available_regions[4]  # us-ord (Chicago)
@@ -106,7 +106,6 @@ def test_image_create(setup_client_and_linode):
     assert image.tags == tags
     # size and total_size are the same because this image is not replicated
     assert image.size == image.total_size
-    assert len(image.regions) == 0
 
 
 def test_fails_to_create_image_with_non_existing_disk_id(

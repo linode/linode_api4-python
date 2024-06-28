@@ -13,6 +13,9 @@ from linode_api4.objects import Image
 def image_upload(test_linode_client):
     label = get_test_label() + "_image"
 
+    # TODO: use get_region to get regions randomly with specific functionality
+    # region = get_region(test_linode_client, {"Functionality"})
+
     test_linode_client.image_create_upload(
         label, "us-east", "integration test image upload"
     )
@@ -53,13 +56,13 @@ def test_image_create_upload(test_linode_client):
     assert image.tags[0] == "tests"
 
 
-# Image is not ready for replication yet. We'll add this test when the API is ready.
-# @pytest.mark.smoke
-# def test_image_replication(test_linode_client, image_upload):
-#     image = test_linode_client.load(Image, image_upload.id)
-#
-#     image.replicate("us-mia")
-#
-#     assert image.label == image_upload.label
-#     assert image.total_size == image_upload.size * 2
-#     assert len(image.regions) == 2
+# TODO: Image is not ready for replication yet. We'll verify this test when the API is ready.
+@pytest.mark.smoke
+def test_image_replication(test_linode_client, image_upload):
+    image = test_linode_client.load(Image, image_upload.id)
+
+    image.replicate("us-central")
+
+    assert image.label == image_upload.label
+    assert image.total_size == image_upload.size * 2
+    assert len(image.regions) == 2
