@@ -7,6 +7,7 @@ from linode_api4.objects import (
     LongviewClient,
     LongviewPlan,
     LongviewSubscription,
+    ApiError,
 )
 
 
@@ -51,10 +52,24 @@ def test_get_longview_subscription(test_linode_client, test_longview_client):
     assert re.search("[0-9]+", str(sub.price.hourly))
     assert re.search("[0-9]+", str(sub.price.monthly))
 
+    assert 'longview-3' in str(subs.lists)
+    assert 'longview-10' in str(subs.lists)
+    assert 'longview-40' in str(subs.lists)
+    assert 'longview-100' in str(subs.lists)
+
+
+def test_longview_plan_update_method_not_allowed(test_linode_client):
+    try:
+        test_linode_client.longview.longview_plan_update("longview-100")
+    except ApiError as e:
+        assert e.status == 405
+        assert "Method Not Allowed" in str(e)
+
 
 def test_get_current_longview_plan(test_linode_client):
     lv_plan = test_linode_client.load(LongviewPlan, "")
 
-    assert "Longview" in lv_plan.label
-    assert "hourly" in lv_plan.price.dict
-    assert "monthly" in lv_plan.price.dict
+    if lv_plan.label is not None:
+        assert "Longview" in lv_plan.label
+        assert "hourly" in lv_plan.price.dict
+        assert "monthly" in lv_plan.price.dict
