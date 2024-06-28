@@ -4,10 +4,10 @@ import time
 import pytest
 
 from linode_api4.objects import (
+    ApiError,
     LongviewClient,
     LongviewPlan,
     LongviewSubscription,
-    ApiError,
 )
 
 
@@ -52,10 +52,10 @@ def test_get_longview_subscription(test_linode_client, test_longview_client):
     assert re.search("[0-9]+", str(sub.price.hourly))
     assert re.search("[0-9]+", str(sub.price.monthly))
 
-    assert 'longview-3' in str(subs.lists)
-    assert 'longview-10' in str(subs.lists)
-    assert 'longview-40' in str(subs.lists)
-    assert 'longview-100' in str(subs.lists)
+    assert "longview-3" in str(subs.lists)
+    assert "longview-10" in str(subs.lists)
+    assert "longview-40" in str(subs.lists)
+    assert "longview-100" in str(subs.lists)
 
 
 def test_longview_plan_update_method_not_allowed(test_linode_client):
