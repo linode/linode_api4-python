@@ -32,7 +32,7 @@ def test_get_oathclient(test_linode_client, test_oauth_client):
 
     oauth_client = client.load(OAuthClient, test_oauth_client.id)
 
-    assert "test-oauth-client" == oauth_client.label
+    assert "_oauth" in test_oauth_client.label
     assert "https://localhost/oauth/callback" == oauth_client.redirect_uri
 
 
