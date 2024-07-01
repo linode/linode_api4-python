@@ -19,7 +19,7 @@ class ReplicationStatus(StrEnum):
 
 
 @dataclass
-class ImageReplica(JSONObject):
+class ImageRegion(JSONObject):
     """
     The region and status of an image replica.
     """
@@ -57,7 +57,7 @@ class Image(Base):
         ),
         "tags": Property(mutable=True, unordered=True),
         "total_size": Property(),
-        "regions": Property(json_object=ImageReplica, unordered=True),
+        "regions": Property(json_object=ImageRegion, unordered=True),
     }
 
     def replicate(self, regions: Union[List[str], List[Region]]):
