@@ -1,0 +1,29 @@
+{
+  "created": "2017-08-20T14:01:01",
+  "description": null,
+  "deprecated": false,
+  "status": "available",
+  "created_by": "testguy",
+  "id": "private/123",
+  "label": "Gold Master",
+  "size": 650,
+  "is_public": false,
+  "type": "manual",
+  "vendor": null,
+  "eol": "2026-07-01T04:00:00",
+  "expiry": "2026-08-01T04:00:00",
+  "updated": "2020-07-01T04:00:00",
+  "capabilities": ["cloud-init"],
+  "tags": ["tests"],
+  "total_size": 1300,
+  "regions": [
+    {
+      "region": "us-east",
+      "status": "available"
+    },
+    {
+      "region": "us-west",
+      "status": "pending replication"
+    }
+  ]
+}

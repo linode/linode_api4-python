@@ -14,7 +14,8 @@
         "type": "manual",
         "updated": "2021-08-14T22:44:02",
         "vendor": "Debian",
-        "capabilities": ["cloud-init"]
+        "capabilities": ["cloud-init"],
+        "tags": ["test_tag", "test2"]
     },
     "upload_to": "https://linode.com/"
 }
