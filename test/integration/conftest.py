@@ -134,7 +134,7 @@ def e2e_test_firewall(test_linode_client):
 
     yield firewall
 
-    # firewall.delete()
+    firewall.delete()
 
 
 @pytest.fixture(scope="session")
