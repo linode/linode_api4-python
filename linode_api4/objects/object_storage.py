@@ -23,6 +23,11 @@ class ObjectStorageACL(StrEnum):
     CUSTOM = "custom"
 
 
+class ObjectStorageKeyPermission(StrEnum):
+    READ_ONLY = "read_only"
+    READ_WRITE = "read_write"
+
+
 class ObjectStorageBucket(DerivedBase):
     """
     A bucket where objects are stored in.
@@ -30,12 +35,13 @@ class ObjectStorageBucket(DerivedBase):
     API documentation: https://www.linode.com/docs/api/object-storage/#object-storage-bucket-view
     """
 
-    api_endpoint = "/object-storage/buckets/{cluster}/{label}"
-    parent_id_name = "cluster"
+    api_endpoint = "/object-storage/buckets/{region}/{label}"
+    parent_id_name = "region"
     id_attribute = "label"
 
     properties = {
-        "cluster": Property(identifier=True),
+        "region": Property(identifier=True),
+        "cluster": Property(),
         "created": Property(is_datetime=True),
         "hostname": Property(),
         "label": Property(identifier=True),
@@ -59,8 +65,11 @@ class ObjectStorageBucket(DerivedBase):
         """
         if json is None:
             return None
-        if parent_id is None and json["cluster"]:
-            parent_id = json["cluster"]
+
+        cluster_or_region = json.get("region") or json.get("cluster")
+
+        if parent_id is None and cluster_or_region:
+            parent_id = cluster_or_region
 
         if parent_id:
             return super().make(id, client, cls, parent_id=parent_id, json=json)
@@ -388,6 +397,13 @@ class ObjectStorageBucket(DerivedBase):
 
         return MappedObject(**result)
 
+    @deprecated(
+        reason=(
+            "'access' method has been deprecated in favor of the class method "
+            "'bucket_access' in ObjectStorageGroup, which can be accessed by "
+            "'client.object_storage.access'"
+        )
+    )
     def access(self, cluster, bucket_name, permissions):
         """
         Returns a dict formatted to be included in the `bucket_access` argument
@@ -436,6 +452,13 @@ class ObjectStorageCluster(Base):
         "static_site_domain": Property(),
     }
 
+    @deprecated(
+        reason=(
+            "'buckets_in_cluster' method has been deprecated, please consider "
+            "switching to 'buckets_in_region' in the object storage group (can "
+            "be accessed via 'client.object_storage.buckets_in_cluster')."
+        )
+    )
     def buckets_in_cluster(self, *filters):
         """
         Returns a list of Buckets in this cluster belonging to this Account.
@@ -478,4 +501,5 @@ class ObjectStorageKeys(Base):
         "secret_key": Property(),
         "bucket_access": Property(),
         "limited": Property(),
+        "regions": Property(unordered=True),
     }

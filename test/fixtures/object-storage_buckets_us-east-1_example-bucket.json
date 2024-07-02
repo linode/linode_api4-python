@@ -1,5 +1,6 @@
 {
   "cluster": "us-east-1",
+  "region": "us-east",
   "created": "2019-01-01T01:23:45",
   "hostname": "example-bucket.us-east-1.linodeobjects.com",
   "label": "example-bucket",
