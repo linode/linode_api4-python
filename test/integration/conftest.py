@@ -69,7 +69,7 @@ def e2e_test_firewall(test_linode_client):
         except ipaddress.AddressValueError:
             return False
 
-    def get_public_ip(ip_version="ipv4", retries=3):
+    def get_public_ip(ip_version: str = "ipv4", retries: int = 3):
         url = (
             f"https://api64.ipify.org?format=json"
             if ip_version == "ipv6"
