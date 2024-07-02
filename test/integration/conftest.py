@@ -6,6 +6,7 @@ from typing import Set
 
 import pytest
 import requests
+from requests.exceptions import ConnectionError, RequestException
 
 from linode_api4 import ApiError, PlacementGroupAffinityType
 from linode_api4.linode_client import LinodeClient
@@ -68,14 +69,22 @@ def e2e_test_firewall(test_linode_client):
         except ipaddress.AddressValueError:
             return False
 
-    def get_public_ip(ip_version="ipv4"):
+    def get_public_ip(ip_version="ipv4", retries=3):
         url = (
             f"https://api64.ipify.org?format=json"
             if ip_version == "ipv6"
             else f"https://api.ipify.org?format=json"
         )
-        response = requests.get(url)
-        return str(response.json()["ip"])
+        for attempt in range(retries):
+            try:
+                response = requests.get(url)
+                response.raise_for_status()
+                return str(response.json()["ip"])
+            except (RequestException, ConnectionError) as e:
+                if attempt < retries - 1:
+                    time.sleep(2)  # Wait before retrying
+                else:
+                    raise e
 
     def create_inbound_rule(ipv4_address, ipv6_address):
         rule = [
@@ -94,12 +103,19 @@ def e2e_test_firewall(test_linode_client):
 
         return rule
 
-        # Fetch the public IP addresses
+    try:
+        ipv4_address = get_public_ip("ipv4")
+    except (RequestException, ConnectionError, ValueError, KeyError):
+        ipv4_address = None
 
-    ipv4_address = get_public_ip("ipv4")
-    ipv6_address = get_public_ip("ipv6")
+    try:
+        ipv6_address = get_public_ip("ipv6")
+    except (RequestException, ConnectionError, ValueError, KeyError):
+        ipv6_address = None
 
-    inbound_rule = create_inbound_rule(ipv4_address, ipv6_address)
+    inbound_rule = []
+    if ipv4_address or ipv6_address:
+        inbound_rule = create_inbound_rule(ipv4_address, ipv6_address)
 
     client = test_linode_client
 
@@ -118,7 +134,7 @@ def e2e_test_firewall(test_linode_client):
 
     yield firewall
 
-    firewall.delete()
+    # firewall.delete()
 
 
 @pytest.fixture(scope="session")
