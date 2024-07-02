@@ -11,8 +11,12 @@ from linode_api4.objects import ConfigInterface, ObjectStorageKeys, Region
 @pytest.fixture(scope="session")
 def setup_client_and_linode(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    available_regions = client.regions()
-    chosen_region = available_regions[4]  # us-ord (Chicago)
+    # The available region in alpha testing is very limited. `us_east` can be used.
+    # TODO: We can uncomment this logic once we can talk to prod.
+    #
+    # available_regions = client.regions()
+    # chosen_region = available_regions[4]  # us-ord (Chicago)
+    chosen_region = "us-east"
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
@@ -90,14 +94,18 @@ def test_image_create(setup_client_and_linode):
 
     label = get_test_label()
     description = "Test description"
+    tags = ["test"]
     usable_disk = [v for v in linode.disks if v.filesystem != "swap"]
 
     image = client.image_create(
-        disk=usable_disk[0].id, label=label, description=description
+        disk=usable_disk[0].id, label=label, description=description, tags=tags
     )
 
     assert image.label == label
     assert image.description == description
+    assert image.tags == tags
+    # size and total_size are the same because this image is not replicated
+    assert image.size == image.total_size
 
 
 def test_fails_to_create_image_with_non_existing_disk_id(

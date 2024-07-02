@@ -4,7 +4,7 @@ from test.unit.base import ClientBaseCase
 from typing import BinaryIO
 from unittest.mock import patch
 
-from linode_api4.objects import Image
+from linode_api4.objects import Image, Region
 
 # A minimal gzipped image that will be accepted by the API
 TEST_IMAGE_CONTENT = (
@@ -51,6 +51,11 @@ class ImageTest(ClientBaseCase):
             datetime(year=2020, month=7, day=1, hour=4, minute=0, second=0),
         )
 
+        self.assertEqual(image.tags[0], "tests")
+        self.assertEqual(image.total_size, 1100)
+        self.assertEqual(image.regions[0].region, "us-east")
+        self.assertEqual(image.regions[0].status, "available")
+
     def test_image_create_upload(self):
         """
         Test that an image upload URL can be created successfully.
@@ -61,6 +66,7 @@ class ImageTest(ClientBaseCase):
                 "Realest Image Upload",
                 "us-southeast",
                 description="very real image upload.",
+                tags=["test_tag", "test2"],
             )
 
             self.assertEqual(m.call_url, "/images/upload")
@@ -71,6 +77,7 @@ class ImageTest(ClientBaseCase):
                     "label": "Realest Image Upload",
                     "region": "us-southeast",
                     "description": "very real image upload.",
+                    "tags": ["test_tag", "test2"],
                 },
             )
 
@@ -78,6 +85,8 @@ class ImageTest(ClientBaseCase):
         self.assertEqual(image.label, "Realest Image Upload")
         self.assertEqual(image.description, "very real image upload.")
         self.assertEqual(image.capabilities[0], "cloud-init")
+        self.assertEqual(image.tags[0], "test_tag")
+        self.assertEqual(image.tags[1], "test2")
 
         self.assertEqual(url, "https://linode.com/")
 
@@ -96,11 +105,14 @@ class ImageTest(ClientBaseCase):
                 "us-southeast",
                 BytesIO(TEST_IMAGE_CONTENT),
                 description="very real image upload.",
+                tags=["test_tag", "test2"],
             )
 
         self.assertEqual(image.id, "private/1337")
         self.assertEqual(image.label, "Realest Image Upload")
         self.assertEqual(image.description, "very real image upload.")
+        self.assertEqual(image.tags[0], "test_tag")
+        self.assertEqual(image.tags[1], "test2")
 
     def test_image_create_cloud_init(self):
         """
@@ -131,3 +143,20 @@ class ImageTest(ClientBaseCase):
             )
 
             self.assertTrue(m.call_data["cloud_init"])
+
+    def test_image_replication(self):
+        """
+        Test that image can be replicated.
+        """
+
+        replication_url = "/images/private/123/regions"
+        regions = ["us-east", Region(self.client, "us-west")]
+        with self.mock_post(replication_url) as m:
+            image = Image(self.client, "private/123")
+            image.replicate(regions)
+
+            self.assertEqual(replication_url, m.call_url)
+            self.assertEqual(
+                m.call_data,
+                {"regions": ["us-east", "us-west"]},
+            )
