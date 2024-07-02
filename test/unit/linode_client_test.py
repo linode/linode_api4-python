@@ -980,6 +980,41 @@ class ObjectStorageGroupTest(ClientBaseCase):
             self.assertEqual(m.call_url, "/object-storage/keys")
             self.assertEqual(m.call_data, {"label": "object-storage-key-1"})
 
+    def test_limited_keys_create(self):
+        """
+        Tests that you can create Object Storage Keys
+        """
+        with self.mock_post("object-storage/keys/2") as m:
+            keys = self.client.object_storage.keys_create(
+                "object-storage-key-1",
+                self.client.object_storage.bucket_access(
+                    "us-east",
+                    "example-bucket",
+                    "read_only",
+                ),
+                ["us-east"],
+            )
+
+            self.assertIsNotNone(keys)
+            self.assertEqual(keys.id, 2)
+            self.assertEqual(keys.label, "object-storage-key-2")
+
+            self.assertEqual(m.call_url, "/object-storage/keys")
+            self.assertEqual(
+                m.call_data,
+                {
+                    "label": "object-storage-key-1",
+                    "bucket_access": [
+                        {
+                            "permissions": "read_only",
+                            "bucket_name": "example-bucket",
+                            "region": "us-east",
+                        }
+                    ],
+                    "regions": ["us-east"],
+                },
+            )
+
     def test_transfer(self):
         """
         Test that you can get the amount of outbound data transfer

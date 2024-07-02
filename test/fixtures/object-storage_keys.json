@@ -6,13 +6,39 @@
       "id": 1,
       "label": "object-storage-key-1",
       "secret_key": "[REDACTED]",
-      "access_key": "testAccessKeyHere123"
+      "access_key": "testAccessKeyHere123",
+      "limited": false,
+      "regions": [
+        {
+          "id": "us-east",
+          "s3_endpoint": "us-east-1.linodeobjects.com"
+        },
+        {
+          "id": "us-west",
+          "s3_endpoint": "us-west-123.linodeobjects.com"
+        }
+      ]
     },
     {
       "id": 2,
       "label": "object-storage-key-2",
       "secret_key": "[REDACTED]",
-      "access_key": "testAccessKeyHere456"
+      "access_key": "testAccessKeyHere456",
+      "limited": true,
+      "bucket_access": [
+        {
+          "cluster": "us-mia-1",
+          "bucket_name": "example-bucket",
+          "permissions": "read_only",
+          "region": "us-mia"
+        }
+      ],
+      "regions": [
+        {
+          "id": "us-mia",
+          "s3_endpoint": "us-mia-1.linodeobjects.com"
+        }
+      ]
     }
   ],
   "page": 1
