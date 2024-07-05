@@ -53,11 +53,11 @@ class ObjectStorageTest(ClientBaseCase):
         Test that you can modify bucket access settings.
         """
         bucket_access_modify_url = (
-            "/object-storage/buckets/us-east-1/example-bucket/access"
+            "/object-storage/buckets/us-east/example-bucket/access"
         )
         with self.mock_post({}) as m:
             object_storage_bucket = ObjectStorageBucket(
-                self.client, "example-bucket", "us-east-1"
+                self.client, "example-bucket", "us-east"
             )
             object_storage_bucket.access_modify(ObjectStorageACL.PRIVATE, True)
             self.assertEqual(
