@@ -1,3 +1,4 @@
+import base64
 import re
 from test.integration.helpers import (
     get_test_label,
@@ -95,8 +96,16 @@ def test_cluster_dashboard_url_view(lke_cluster):
     assert re.search("https://+", url)
 
 
-def test_kubeconfig_delete(lke_cluster):
+def test_get_and_delete_kubeconfig(lke_cluster):
     cluster = lke_cluster
+
+    kubeconfig_encoded = cluster.kubeconfig
+
+    kubeconfig_decoded = base64.b64decode(kubeconfig_encoded).decode("utf-8")
+
+    assert "kind: Config" in kubeconfig_decoded
+
+    assert "apiVersion:" in kubeconfig_decoded
 
     res = send_request_when_resource_available(300, cluster.kubeconfig_delete)
 
