@@ -1,4 +1,7 @@
+from typing import Optional
 from urllib import parse
+
+from deprecated import deprecated
 
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import (
@@ -8,15 +11,21 @@ from linode_api4.objects import (
     Property,
     Region,
 )
+from linode_api4.objects.serializable import StrEnum
 from linode_api4.util import drop_null_keys
 
 
-class ObjectStorageACL:
+class ObjectStorageACL(StrEnum):
     PRIVATE = "private"
     PUBLIC_READ = "public-read"
     AUTHENTICATED_READ = "authenticated-read"
     PUBLIC_READ_WRITE = "public-read-write"
     CUSTOM = "custom"
+
+
+class ObjectStorageKeyPermission(StrEnum):
+    READ_ONLY = "read_only"
+    READ_WRITE = "read_write"
 
 
 class ObjectStorageBucket(DerivedBase):
@@ -26,12 +35,13 @@ class ObjectStorageBucket(DerivedBase):
     API documentation: https://www.linode.com/docs/api/object-storage/#object-storage-bucket-view
     """
 
-    api_endpoint = "/object-storage/buckets/{cluster}/{label}"
-    parent_id_name = "cluster"
+    api_endpoint = "/object-storage/buckets/{region}/{label}"
+    parent_id_name = "region"
     id_attribute = "label"
 
     properties = {
-        "cluster": Property(identifier=True),
+        "region": Property(identifier=True),
+        "cluster": Property(),
         "created": Property(is_datetime=True),
         "hostname": Property(),
         "label": Property(identifier=True),
@@ -55,8 +65,11 @@ class ObjectStorageBucket(DerivedBase):
         """
         if json is None:
             return None
-        if parent_id is None and json["cluster"]:
-            parent_id = json["cluster"]
+
+        cluster_or_region = json.get("region") or json.get("cluster")
+
+        if parent_id is None and cluster_or_region:
+            parent_id = cluster_or_region
 
         if parent_id:
             return super().make(id, client, cls, parent_id=parent_id, json=json)
@@ -67,7 +80,7 @@ class ObjectStorageBucket(DerivedBase):
 
     def access_modify(
         self,
-        acl: ObjectStorageACL = None,
+        acl: Optional[ObjectStorageACL] = None,
         cors_enabled=None,
     ):
         """
@@ -77,12 +90,6 @@ class ObjectStorageBucket(DerivedBase):
         please use the more fully-featured S3 API directly.
 
         API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-bucket-access-modify
-
-        :param cluster_id: The ID of the cluster this bucket exists in.
-        :type cluster_id: str
-
-        :param bucket: The bucket name.
-        :type bucket: str
 
         :param acl: The Access Control Level of the bucket using a canned ACL string.
                     For more fine-grained control of ACLs, use the S3 API directly.
@@ -100,10 +107,9 @@ class ObjectStorageBucket(DerivedBase):
         }
 
         resp = self._client.post(
-            "/object-storage/buckets/{}/{}/access".format(
-                parse.quote(str(self.cluster)), parse.quote(str(self.id))
-            ),
+            f"{self.api_endpoint}/access",
             data=drop_null_keys(params),
+            model=self,
         )
 
         if "errors" in resp:
@@ -115,7 +121,7 @@ class ObjectStorageBucket(DerivedBase):
 
     def access_update(
         self,
-        acl: ObjectStorageACL = None,
+        acl: Optional[ObjectStorageACL] = None,
         cors_enabled=None,
     ):
         """
@@ -125,12 +131,6 @@ class ObjectStorageBucket(DerivedBase):
         please use the more fully-featured S3 API directly.
 
         API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-bucket-access-update
-
-        :param cluster_id: The ID of the cluster this bucket exists in.
-        :type cluster_id: str
-
-        :param bucket: The bucket name.
-        :type bucket: str
 
         :param acl: The Access Control Level of the bucket using a canned ACL string.
                     For more fine-grained control of ACLs, use the S3 API directly.
@@ -148,10 +148,9 @@ class ObjectStorageBucket(DerivedBase):
         }
 
         resp = self._client.put(
-            "/object-storage/buckets/{}/{}/access".format(
-                parse.quote(str(self.cluster)), parse.quote(str(self.id))
-            ),
+            f"{self.api_endpoint}/access",
             data=drop_null_keys(params),
+            model=self,
         )
 
         if "errors" in resp:
@@ -168,20 +167,13 @@ class ObjectStorageBucket(DerivedBase):
 
         API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-tlsssl-cert-delete
 
-        :param cluster_id: The ID of the cluster this bucket exists in.
-        :type cluster_id: str
-
-        :param bucket: The bucket name.
-        :type bucket: str
-
         :returns: True if the TLS/SSL certificate and private key in the bucket were successfully deleted.
         :rtype: bool
         """
 
         resp = self._client.delete(
-            "/object-storage/buckets/{}/{}/ssl".format(
-                parse.quote(str(self.cluster)), parse.quote(str(self.id))
-            )
+            f"{self.api_endpoint}/ssl",
+            model=self,
         )
 
         if "error" in resp:
@@ -199,20 +191,13 @@ class ObjectStorageBucket(DerivedBase):
 
         API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-tlsssl-cert-view
 
-        :param cluster_id: The ID of the cluster this bucket exists in.
-        :type cluster_id: str
-
-        :param bucket: The bucket name.
-        :type bucket: str
-
         :returns: A result object which has a bool field indicating if this Bucket has a corresponding
                   TLS/SSL certificate that was uploaded by an Account user.
         :rtype: MappedObject
         """
         result = self._client.get(
-            "/object-storage/buckets/{}/{}/ssl".format(
-                parse.quote(str(self.cluster)), parse.quote(str(self.id))
-            )
+            f"{self.api_endpoint}/ssl",
+            model=self,
         )
 
         if not "ssl" in result:
@@ -234,12 +219,6 @@ class ObjectStorageBucket(DerivedBase):
 
         API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-tlsssl-cert-upload
 
-        :param cluster_id: The ID of the cluster this bucket exists in.
-        :type cluster_id: str
-
-        :param bucket: The bucket name.
-        :type bucket: str
-
         :param certificate: Your Base64 encoded and PEM formatted SSL certificate.
                             Line breaks must be represented as “\n” in the string
                             for requests (but not when using the Linode CLI)
@@ -259,10 +238,9 @@ class ObjectStorageBucket(DerivedBase):
             "private_key": private_key,
         }
         result = self._client.post(
-            "/object-storage/buckets/{}/{}/ssl".format(
-                parse.quote(str(self.cluster)), parse.quote(str(self.id))
-            ),
+            f"{self.api_endpoint}/ssl",
             data=params,
+            model=self,
         )
 
         if not "ssl" in result:
@@ -290,12 +268,6 @@ class ObjectStorageBucket(DerivedBase):
         It is recommended that instead you use the more fully-featured S3 API directly.
 
         API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-bucket-contents-list
-
-        :param cluster_id: The ID of the cluster this bucket exists in.
-        :type cluster_id: str
-
-        :param bucket: The bucket name.
-        :type bucket: str
 
         :param marker: The “marker” for this request, which can be used to paginate
                        through large buckets. Its value should be the value of the
@@ -332,10 +304,9 @@ class ObjectStorageBucket(DerivedBase):
             "page_size": page_size,
         }
         result = self._client.get(
-            "/object-storage/buckets/{}/{}/object-list".format(
-                parse.quote(str(self.cluster)), parse.quote(str(self.id))
-            ),
+            f"{self.api_endpoint}/object-list",
             data=drop_null_keys(params),
+            model=self,
         )
 
         if not "data" in result:
@@ -357,12 +328,6 @@ class ObjectStorageBucket(DerivedBase):
 
         API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-object-acl-config-view
 
-        :param cluster_id: The ID of the cluster this bucket exists in.
-        :type cluster_id: str
-
-        :param bucket: The bucket name.
-        :type bucket: str
-
         :param name: The name of the object for which to retrieve its Access Control
                      List (ACL). Use the Object Storage Bucket Contents List endpoint
                      to access all object names in a bucket.
@@ -376,7 +341,7 @@ class ObjectStorageBucket(DerivedBase):
         }
 
         result = self._client.get(
-            f"{ObjectStorageBucket.api_endpoint}/object-acl",
+            f"{type(self).api_endpoint}/object-acl",
             model=self,
             data=drop_null_keys(params),
         )
@@ -400,12 +365,6 @@ class ObjectStorageBucket(DerivedBase):
 
         API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-object-acl-config-update
 
-        :param cluster_id: The ID of the cluster this bucket exists in.
-        :type cluster_id: str
-
-        :param bucket: The bucket name.
-        :type bucket: str
-
         :param acl: The Access Control Level of the bucket, as a canned ACL string.
                     For more fine-grained control of ACLs, use the S3 API directly.
         :type acl: str
@@ -425,7 +384,7 @@ class ObjectStorageBucket(DerivedBase):
         }
 
         result = self._client.put(
-            f"{ObjectStorageBucket.api_endpoint}/object-acl",
+            f"{type(self).api_endpoint}/object-acl",
             model=self,
             data=params,
         )
@@ -438,6 +397,13 @@ class ObjectStorageBucket(DerivedBase):
 
         return MappedObject(**result)
 
+    @deprecated(
+        reason=(
+            "'access' method has been deprecated in favor of the class method "
+            "'bucket_access' in ObjectStorageGroup, which can be accessed by "
+            "'client.object_storage.access'"
+        )
+    )
     def access(self, cluster, bucket_name, permissions):
         """
         Returns a dict formatted to be included in the `bucket_access` argument
@@ -463,8 +429,14 @@ class ObjectStorageBucket(DerivedBase):
         }
 
 
+@deprecated(
+    reason="deprecated to use regions list API for viewing available OJB clusters"
+)
 class ObjectStorageCluster(Base):
     """
+    This class will be deprecated to use the regions list to view available OBJ clusters,
+    and a new access key API will directly expose the S3 endpoint hostname.
+
     A cluster where Object Storage is available.
 
     API documentation: https://www.linode.com/docs/api/object-storage/#cluster-view
@@ -480,6 +452,13 @@ class ObjectStorageCluster(Base):
         "static_site_domain": Property(),
     }
 
+    @deprecated(
+        reason=(
+            "'buckets_in_cluster' method has been deprecated, please consider "
+            "switching to 'buckets_in_region' in the object storage group (can "
+            "be accessed via 'client.object_storage.buckets_in_cluster')."
+        )
+    )
     def buckets_in_cluster(self, *filters):
         """
         Returns a list of Buckets in this cluster belonging to this Account.
@@ -522,4 +501,5 @@ class ObjectStorageKeys(Base):
         "secret_key": Property(),
         "bucket_access": Property(),
         "limited": Property(),
+        "regions": Property(unordered=True),
     }

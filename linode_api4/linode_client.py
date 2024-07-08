@@ -31,11 +31,9 @@ from linode_api4.groups import (
     VPCGroup,
 )
 from linode_api4.objects import Image, and_
-from linode_api4.objects.filtering import Filter
 
-from .common import SSH_KEY_TYPES, load_and_validate_keys
+from .groups.placement import PlacementAPIGroup
 from .paginated_list import PaginatedList
-from .util import drop_null_keys
 
 package_version = version("linode_api4")
 
@@ -199,6 +197,9 @@ class LinodeClient:
 
         #: Access methods related to Beta Program - See :any:`BetaProgramGroup` for more information.
         self.beta = BetaProgramGroup(self)
+
+        #: Access methods related to VM placement - See :any:`PlacementAPIGroup` for more information.
+        self.placement = PlacementAPIGroup(self)
 
     @property
     def _user_agent(self):

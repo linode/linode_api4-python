@@ -350,6 +350,18 @@ class NetworkInterface(DerivedBase):
 
 
 @dataclass
+class InstancePlacementGroupAssignment(JSONObject):
+    """
+    Represents an assignment between an instance and a Placement Group.
+    This is intended to be used when creating, cloning, and migrating
+    instances.
+    """
+
+    id: int
+    compliant_only: bool = False
+
+
+@dataclass
 class ConfigInterface(JSONObject):
     """
     Represents a single interface in a Configuration Profile.
@@ -886,6 +898,37 @@ class Instance(Base):
 
         return self._transfer
 
+    @property
+    def placement_group(self) -> Optional["PlacementGroup"]:
+        """
+        Returns the PlacementGroup object for the Instance.
+
+        :returns: The Placement Group this instance is under.
+        :rtype: Optional[PlacementGroup]
+        """
+        # Workaround to avoid circular import
+        from linode_api4.objects.placement import (  # pylint: disable=import-outside-toplevel
+            PlacementGroup,
+        )
+
+        if not hasattr(self, "_placement_group"):
+            # Refresh the instance if necessary
+            if not self._populated:
+                self._api_get()
+
+            pg_data = self._raw_json.get("placement_group", None)
+
+            if pg_data is None:
+                return None
+
+            setattr(
+                self,
+                "_placement_group",
+                PlacementGroup(self._client, pg_data.get("id"), json=pg_data),
+            )
+
+        return self._placement_group
+
     def _populate(self, json):
         if json is not None:
             # fixes ipv4 and ipv6 attribute of json to make base._populate work
@@ -901,10 +944,15 @@ class Instance(Base):
         """Clear out cached properties"""
         if hasattr(self, "_avail_backups"):
             del self._avail_backups
+
         if hasattr(self, "_ips"):
             del self._ips
+
         if hasattr(self, "_transfer"):
             del self._transfer
+
+        if hasattr(self, "_placement_group"):
+            del self._placement_group
 
         Base.invalidate(self)
 
@@ -1502,6 +1550,9 @@ class Instance(Base):
         region=None,
         upgrade=None,
         migration_type: MigrationType = MigrationType.COLD,
+        placement_group: Union[
+            InstancePlacementGroupAssignment, Dict[str, Any], int
+        ] = None,
     ):
         """
         Initiates a pending migration that is already scheduled for this Linode
@@ -1527,12 +1578,19 @@ class Instance(Base):
         :param migration_type: The type of migration that will be used for this Linode migration.
                                Customers can only use this param when activating a support-created migration.
                                Customers can choose between a cold and warm migration, cold is the default type.
-        :type: mirgation_type: str
+        :type: migration_type: str
+
+        :param placement_group: Information about the placement group to create this instance under.
+        :type placement_group: Union[InstancePlacementGroupAssignment, Dict[str, Any], int]
         """
+
         params = {
             "region": region.id if issubclass(type(region), Base) else region,
             "upgrade": upgrade,
             "type": migration_type,
+            "placement_group": _expand_placement_group_assignment(
+                placement_group
+            ),
         }
 
         util.drop_null_keys(params)
@@ -1614,6 +1672,12 @@ class Instance(Base):
         label=None,
         group=None,
         with_backups=None,
+        placement_group: Union[
+            InstancePlacementGroupAssignment,
+            "PlacementGroup",
+            Dict[str, Any],
+            int,
+        ] = None,
     ):
         """
         Clones this linode into a new linode or into a new linode in the given region
@@ -1648,6 +1712,9 @@ class Instance(Base):
         :param with_backups: If this field is set to true, the created Linode will automatically be
                              enrolled in the Linode Backup service. This will incur an additional charge.
         :type: with_backups: bool
+
+        :param placement_group: Information about the placement group to create this instance under.
+        :type placement_group: Union[InstancePlacementGroupAssignment, PlacementGroup, Dict[str, Any], int]
 
         :returns: The cloned Instance.
         :rtype: Instance
@@ -1685,7 +1752,12 @@ class Instance(Base):
             "label": label,
             "group": group,
             "with_backups": with_backups,
+            "placement_group": _expand_placement_group_assignment(
+                placement_group
+            ),
         }
+
+        util.drop_null_keys(params)
 
         result = self._client.post(
             "{}/clone".format(Instance.api_endpoint), model=self, data=params
@@ -1837,3 +1909,40 @@ class StackScript(Base):
         dct = Base._serialize(self)
         dct["images"] = [d.id for d in self.images]
         return dct
+
+
+def _expand_placement_group_assignment(
+    pg: Union[
+        InstancePlacementGroupAssignment, "PlacementGroup", Dict[str, Any], int
+    ]
+) -> Optional[Dict[str, Any]]:
+    """
+    Expands the placement group argument into a dict for use in an API request body.
+
+    :param pg: The placement group argument to be expanded.
+    :type pg: Union[InstancePlacementGroupAssignment, PlacementGroup, Dict[str, Any], int]
+
+    :returns: The expanded placement group.
+    :rtype: Optional[Dict[str, Any]]
+    """
+    # Workaround to avoid circular import
+    from linode_api4.objects.placement import (  # pylint: disable=import-outside-toplevel
+        PlacementGroup,
+    )
+
+    if pg is None:
+        return None
+
+    if isinstance(pg, dict):
+        return pg
+
+    if isinstance(pg, InstancePlacementGroupAssignment):
+        return pg.dict
+
+    if isinstance(pg, PlacementGroup):
+        return {"id": pg.id}
+
+    if isinstance(pg, int):
+        return {"id": pg}
+
+    raise TypeError(f"Invalid type for Placement Group: {type(pg)}")

@@ -37,6 +37,7 @@ class LKEClusterControlPlaneACLAddressesOptions(JSONObject):
     """
 
     ipv4: Optional[List[str]] = None
+
     ipv6: Optional[List[str]] = None
 
 
@@ -45,6 +46,8 @@ class LKEClusterControlPlaneACLOptions(JSONObject):
     """
     LKEClusterControlPlaneACLOptions is used to set
     the ACL configuration of an LKE cluster's control plane.
+
+    NOTE: Control Plane ACLs may not currently be available to all users.
     """
 
     enabled: Optional[bool] = None
@@ -78,6 +81,8 @@ class LKEClusterControlPlaneACL(JSONObject):
     """
     LKEClusterControlPlaneACL describes the ACL configuration of an LKE cluster's
     control plane.
+
+    NOTE: Control Plane ACLs may not currently be available to all users.
     """
 
     enabled: bool = False
@@ -265,6 +270,8 @@ class LKECluster(Base):
         """
         Gets the ACL configuration of this cluster's control plane.
 
+        NOTE: Control Plane ACLs may not currently be available to all users.
+
         API Documentation: TODO
 
         :returns: The cluster's control plane ACL configuration.
@@ -436,6 +443,8 @@ class LKECluster(Base):
         """
         Updates the ACL configuration for this cluster's control plane.
 
+        NOTE: Control Plane ACLs may not currently be available to all users.
+
         API Documentation: TODO
 
         :param acl: The ACL configuration to apply to this cluster.
@@ -464,6 +473,8 @@ class LKECluster(Base):
         Deletes the ACL configuration for this cluster's control plane.
         This has the same effect as calling control_plane_acl_update with the `enabled` field
         set to False. Access controls are disabled and all rules are deleted.
+
+        NOTE: Control Plane ACLs may not currently be available to all users.
 
         API Documentation: TODO
         """

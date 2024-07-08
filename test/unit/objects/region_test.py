@@ -1,7 +1,7 @@
 import json
 from test.unit.base import ClientBaseCase
 
-from linode_api4.objects import Region, Type
+from linode_api4.objects import Region
 from linode_api4.objects.region import RegionAvailabilityEntry
 
 
@@ -23,6 +23,12 @@ class RegionTest(ClientBaseCase):
         self.assertEqual(region.status, "ok")
         self.assertIsNotNone(region.resolvers)
         self.assertEqual(region.site_type, "core")
+        self.assertEqual(
+            region.placement_group_limits.maximum_pgs_per_customer, 5
+        )
+        self.assertEqual(
+            region.placement_group_limits.maximum_linodes_per_pg, 5
+        )
 
     def test_list_availability(self):
         """

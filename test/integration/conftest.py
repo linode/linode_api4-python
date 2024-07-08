@@ -1,11 +1,14 @@
+import ipaddress
 import os
 import random
 import time
 from typing import Set
 
 import pytest
+import requests
+from requests.exceptions import ConnectionError, RequestException
 
-from linode_api4 import ApiError
+from linode_api4 import ApiError, PlacementGroupAffinityType
 from linode_api4.linode_client import LinodeClient
 from linode_api4.objects import Region
 
@@ -22,6 +25,13 @@ def get_token():
 
 def get_api_url():
     return os.environ.get(ENV_API_URL_NAME, "https://api.linode.com/v4beta")
+
+
+def get_random_label():
+    timestamp = str(time.time_ns())[:-5]
+    label = "label_" + timestamp
+
+    return label
 
 
 def get_region(client: LinodeClient, capabilities: Set[str] = None):
@@ -50,16 +60,105 @@ def run_long_tests():
     return os.environ.get(RUN_LONG_TESTS, None)
 
 
-@pytest.fixture(scope="session")
-def create_linode(test_linode_client):
+@pytest.fixture(autouse=True, scope="session")
+def e2e_test_firewall(test_linode_client):
+    def is_valid_ipv4(address):
+        try:
+            ipaddress.IPv4Address(address)
+            return True
+        except ipaddress.AddressValueError:
+            return False
+
+    def is_valid_ipv6(address):
+        try:
+            ipaddress.IPv6Address(address)
+            return True
+        except ipaddress.AddressValueError:
+            return False
+
+    def get_public_ip(ip_version: str = "ipv4", retries: int = 3):
+        url = (
+            f"https://api64.ipify.org?format=json"
+            if ip_version == "ipv6"
+            else f"https://api.ipify.org?format=json"
+        )
+        for attempt in range(retries):
+            try:
+                response = requests.get(url)
+                response.raise_for_status()
+                return str(response.json()["ip"])
+            except (RequestException, ConnectionError) as e:
+                if attempt < retries - 1:
+                    time.sleep(2)  # Wait before retrying
+                else:
+                    raise e
+
+    def create_inbound_rule(ipv4_address, ipv6_address):
+        rule = [
+            {
+                "protocol": "TCP",
+                "ports": "22",
+                "addresses": {},
+                "action": "ACCEPT",
+            }
+        ]
+        if is_valid_ipv4(ipv4_address):
+            rule[0]["addresses"]["ipv4"] = [f"{ipv4_address}/32"]
+
+        if is_valid_ipv6(ipv6_address):
+            rule[0]["addresses"]["ipv6"] = [f"{ipv6_address}/128"]
+
+        return rule
+
+    try:
+        ipv4_address = get_public_ip("ipv4")
+    except (RequestException, ConnectionError, ValueError, KeyError):
+        ipv4_address = None
+
+    try:
+        ipv6_address = get_public_ip("ipv6")
+    except (RequestException, ConnectionError, ValueError, KeyError):
+        ipv6_address = None
+
+    inbound_rule = []
+    if ipv4_address or ipv6_address:
+        inbound_rule = create_inbound_rule(ipv4_address, ipv6_address)
+
     client = test_linode_client
+
+    rules = {
+        "outbound": [],
+        "outbound_policy": "ACCEPT",
+        "inbound": inbound_rule,
+        "inbound_policy": "DROP",
+    }
+
+    label = "cloud_firewall_" + str(int(time.time()))
+
+    firewall = client.networking.firewall_create(
+        label=label, rules=rules, status="enabled"
+    )
+
+    yield firewall
+
+    firewall.delete()
+
+
+@pytest.fixture(scope="session")
+def create_linode(test_linode_client, e2e_test_firewall):
+    client = test_linode_client
+
     available_regions = client.regions()
     chosen_region = available_regions[4]
     timestamp = str(time.time_ns())
     label = "TestSDK-" + timestamp
 
     linode_instance, password = client.linode.instance_create(
-        "g6-nanode-1", chosen_region, image="linode/debian10", label=label
+        "g6-nanode-1",
+        chosen_region,
+        image="linode/debian12",
+        label=label,
+        firewall=e2e_test_firewall,
     )
 
     yield linode_instance
@@ -68,15 +167,20 @@ def create_linode(test_linode_client):
 
 
 @pytest.fixture
-def create_linode_for_pass_reset(test_linode_client):
+def create_linode_for_pass_reset(test_linode_client, e2e_test_firewall):
     client = test_linode_client
+
     available_regions = client.regions()
     chosen_region = available_regions[4]
     timestamp = str(time.time_ns())
     label = "TestSDK-" + timestamp
 
     linode_instance, password = client.linode.instance_create(
-        "g6-nanode-1", chosen_region, image="linode/debian10", label=label
+        "g6-nanode-1",
+        chosen_region,
+        image="linode/debian10",
+        label=label,
+        firewall=e2e_test_firewall,
     )
 
     yield linode_instance, password
@@ -232,7 +336,7 @@ def test_sshkey(test_linode_client, ssh_key_gen):
 
 
 @pytest.fixture
-def ssh_keys_object_storage(test_linode_client):
+def access_keys_object_storage(test_linode_client):
     client = test_linode_client
     label = "TestSDK-obj-storage-key"
     key = client.object_storage.keys_create(label)
@@ -267,8 +371,10 @@ def test_firewall(test_linode_client):
 @pytest.fixture
 def test_oauth_client(test_linode_client):
     client = test_linode_client
+    label = get_random_label() + "_oauth"
+
     oauth_client = client.account.oauth_client_create(
-        "test-oauth-client", "https://localhost/oauth/callback"
+        label, "https://localhost/oauth/callback"
     )
 
     yield oauth_client
@@ -303,7 +409,7 @@ def create_vpc_with_subnet(test_linode_client, create_vpc):
 
 @pytest.fixture(scope="session")
 def create_vpc_with_subnet_and_linode(
-    test_linode_client, create_vpc_with_subnet
+    test_linode_client, create_vpc_with_subnet, e2e_test_firewall
 ):
     vpc, subnet = create_vpc_with_subnet
 
@@ -311,7 +417,11 @@ def create_vpc_with_subnet_and_linode(
     label = "TestSDK-" + timestamp
 
     instance, password = test_linode_client.linode.instance_create(
-        "g6-standard-1", vpc.region, image="linode/debian11", label=label
+        "g6-standard-1",
+        vpc.region,
+        image="linode/debian11",
+        label=label,
+        firewall=e2e_test_firewall,
     )
 
     yield vpc, subnet, instance, password
@@ -344,6 +454,42 @@ def create_multiple_vpcs(test_linode_client):
     vpc_1.delete()
 
     vpc_2.delete()
+
+
+@pytest.fixture(scope="session")
+def create_placement_group(test_linode_client):
+    client = test_linode_client
+
+    timestamp = str(int(time.time()))
+
+    pg = client.placement.group_create(
+        "pythonsdk-" + timestamp,
+        get_region(test_linode_client, {"Placement Group"}),
+        PlacementGroupAffinityType.anti_affinity_local,
+    )
+    yield pg
+
+    pg.delete()
+
+
+@pytest.fixture(scope="session")
+def create_placement_group_with_linode(
+    test_linode_client, create_placement_group
+):
+    client = test_linode_client
+
+    inst = client.linode.instance_create(
+        "g6-nanode-1",
+        create_placement_group.region,
+        label=create_placement_group.label,
+        placement_group=create_placement_group,
+    )
+
+    create_placement_group.invalidate()
+
+    yield create_placement_group, inst
+
+    inst.delete()
 
 
 @pytest.mark.smoke

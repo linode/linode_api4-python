@@ -19,7 +19,6 @@ from linode_api4.objects import (
     ServiceTransfer,
     User,
 )
-from linode_api4.objects.profile import PersonalAccessToken
 
 
 class AccountGroup(Group):
@@ -502,6 +501,8 @@ class AccountGroup(Group):
     def child_accounts(self, *filters):
         """
         Returns a list of all child accounts under the this parent account.
+
+        NOTE: Parent/Child related features may not be generally available.
 
         API doc: TBD
 
