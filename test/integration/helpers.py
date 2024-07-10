@@ -79,14 +79,12 @@ def wait_for_condition(
 
 
 # Retry function to help in case of requests sending too quickly before instance is ready
-def retry_sending_request(
-    retries: int, condition: Callable, *args, **kwargs
-) -> object:
+def retry_sending_request(retries: int, condition: Callable, *args) -> object:
     curr_t = 0
     while curr_t < retries:
         try:
             curr_t += 1
-            res = condition(*args, **kwargs)
+            res = condition(*args)
             return res
         except ApiError:
             if curr_t >= retries:

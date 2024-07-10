@@ -22,23 +22,10 @@ from linode_api4.objects import (
 from linode_api4.objects.base import MappedObject
 from linode_api4.objects.filtering import FilterableAttribute
 from linode_api4.objects.networking import IPAddress, IPv6Range, VPCIPAddress
-from linode_api4.objects.serializable import StrEnum
 from linode_api4.objects.vpc import VPC, VPCSubnet
 from linode_api4.paginated_list import PaginatedList
 
 PASSWORD_CHARS = string.ascii_letters + string.digits + string.punctuation
-
-
-class InstanceDiskEncryptionType(StrEnum):
-    """
-    InstanceDiskEncryptionType defines valid values for the
-    Instance(...).disk_encryption field.
-
-    API Documentation: TODO
-    """
-
-    enabled = "enabled"
-    disabled = "disabled"
 
 
 class Backup(DerivedBase):
@@ -127,7 +114,6 @@ class Disk(DerivedBase):
         "filesystem": Property(),
         "updated": Property(is_datetime=True),
         "linode_id": Property(identifier=True),
-        "disk_encryption": Property(),
     }
 
     def duplicate(self):
@@ -676,8 +662,6 @@ class Instance(Base):
         "host_uuid": Property(),
         "watchdog_enabled": Property(mutable=True),
         "has_user_data": Property(),
-        "disk_encryption": Property(),
-        "lke_cluster_id": Property(),
     }
 
     @property
@@ -1407,16 +1391,7 @@ class Instance(Base):
         i = IPAddress(self._client, result["address"], result)
         return i
 
-    def rebuild(
-        self,
-        image,
-        root_pass=None,
-        authorized_keys=None,
-        disk_encryption: Optional[
-            Union[InstanceDiskEncryptionType, str]
-        ] = None,
-        **kwargs,
-    ):
+    def rebuild(self, image, root_pass=None, authorized_keys=None, **kwargs):
         """
         Rebuilding an Instance deletes all existing Disks and Configs and deploys
         a new :any:`Image` to it.  This can be used to reset an existing
@@ -1434,8 +1409,6 @@ class Instance(Base):
                                 be a single key, or a path to a file containing
                                 the key.
         :type authorized_keys: list or str
-        :param disk_encryption: The disk encryption policy for this Linode.
-        :type disk_encryption: InstanceDiskEncryptionType or str
 
         :returns: The newly generated password, if one was not provided
                   (otherwise True)
@@ -1453,10 +1426,6 @@ class Instance(Base):
             "root_pass": root_pass,
             "authorized_keys": authorized_keys,
         }
-
-        if disk_encryption is not None:
-            params["disk_encryption"] = str(disk_encryption)
-
         params.update(kwargs)
 
         result = self._client.post(
@@ -1785,22 +1754,6 @@ class Instance(Base):
         return self._client.get(
             "{}/stats".format(Instance.api_endpoint), model=self
         )
-
-    @property
-    def lke_cluster(self) -> Optional["LKECluster"]:
-        """
-        Returns the LKE Cluster this Instance is a node of.
-
-        :returns: The LKE Cluster this Instance is a node of.
-        :rtype: Optional[LKECluster]
-        """
-
-        # Local import to prevent circular dependency
-        from linode_api4.objects.lke import (  # pylint: disable=import-outside-toplevel
-            LKECluster,
-        )
-
-        return LKECluster(self._client, self.lke_cluster_id)
 
     def stats_for(self, dt):
         """
