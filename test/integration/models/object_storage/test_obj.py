@@ -114,7 +114,9 @@ def test_get_ssl_cert(bucket: ObjectStorageBucket):
     assert not bucket.ssl_cert().ssl
 
 
-def test_get_cluster(test_linode_client, bucket: ObjectStorageBucket):
+def test_get_cluster(
+    test_linode_client: LinodeClient, bucket: ObjectStorageBucket
+):
     cluster = test_linode_client.load(ObjectStorageCluster, bucket.cluster)
 
     assert "linodeobjects.com" in cluster.domain
@@ -123,7 +125,7 @@ def test_get_cluster(test_linode_client, bucket: ObjectStorageBucket):
 
 
 def test_get_buckets_in_cluster(
-    test_linode_client, bucket: ObjectStorageBucket
+    test_linode_client: LinodeClient, bucket: ObjectStorageBucket
 ):
     cluster = test_linode_client.load(ObjectStorageCluster, bucket.cluster)
     assert any(bucket.id == b.id for b in cluster.buckets_in_cluster())
