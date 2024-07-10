@@ -23,5 +23,6 @@
       "example tag",
       "another example"
     ],
-    "type": "g6-standard-4"
+    "type": "g6-standard-4",
+    "disk_encryption": "enabled"
   }
