@@ -584,7 +584,7 @@ def test_get_linode_types_overrides(test_linode_client):
 def test_save_linode_noforce(test_linode_client, create_linode):
     linode = create_linode
     old_label = linode.label
-    linode.label = "updated_no_force_label"
+    linode.label = old_label + "updated_no_force"
     linode.save(force=False)
 
     linode = test_linode_client.load(Instance, linode.id)
@@ -595,8 +595,8 @@ def test_save_linode_noforce(test_linode_client, create_linode):
 def test_save_linode_force(test_linode_client, create_linode):
     linode = create_linode
     old_label = linode.label
-    linode.label = "updated_force_label"
-    linode.save(force=False)
+    linode.label = old_label + "updated_force"
+    linode.save(force=True)
 
     linode = test_linode_client.load(Instance, linode.id)
 
