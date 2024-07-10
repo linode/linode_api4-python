@@ -7,6 +7,7 @@ from linode_api4.linode_client import LinodeClient
 from linode_api4.objects.object_storage import (
     ObjectStorageACL,
     ObjectStorageBucket,
+    ObjectStorageCluster,
     ObjectStorageKeyPermission,
     ObjectStorageKeys,
 )
@@ -90,3 +91,39 @@ def test_bucket(
     buckets = test_linode_client.object_storage.buckets_in_region(region=region)
     assert len(buckets) >= 1
     assert any(b.label == bucket.label for b in buckets)
+
+
+def test_list_obj_storage_bucket(
+    test_linode_client: LinodeClient,
+    bucket: ObjectStorageBucket,
+):
+    buckets = test_linode_client.object_storage.buckets()
+    target_bucket_id = bucket.id
+    assert any(target_bucket_id == b.id for b in buckets)
+
+
+def test_bucket_access_modify(bucket: ObjectStorageBucket):
+    bucket.access_modify(ObjectStorageACL.PRIVATE, cors_enabled=True)
+
+
+def test_bucket_access_update(bucket: ObjectStorageBucket):
+    bucket.access_update(ObjectStorageACL.PRIVATE, cors_enabled=True)
+
+
+def test_get_ssl_cert(bucket: ObjectStorageBucket):
+    assert not bucket.ssl_cert().ssl
+
+
+def test_get_cluster(test_linode_client, bucket: ObjectStorageBucket):
+    cluster = test_linode_client.load(ObjectStorageCluster, bucket.cluster)
+
+    assert "linodeobjects.com" in cluster.domain
+    assert cluster.id == bucket.cluster
+    assert "available" == cluster.status
+
+
+def test_get_buckets_in_cluster(
+    test_linode_client, bucket: ObjectStorageBucket
+):
+    cluster = test_linode_client.load(ObjectStorageCluster, bucket.cluster)
+    assert any(bucket.id == b.id for b in cluster.buckets_in_cluster())
