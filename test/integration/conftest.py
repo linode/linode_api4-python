@@ -8,7 +8,7 @@ import pytest
 import requests
 from requests.exceptions import ConnectionError, RequestException
 
-from linode_api4 import ApiError, PlacementGroupAffinityType
+from linode_api4 import ApiError, PlacementGroupPolicy, PlacementGroupType
 from linode_api4.linode_client import LinodeClient
 from linode_api4.objects import Region
 
@@ -465,7 +465,8 @@ def create_placement_group(test_linode_client):
     pg = client.placement.group_create(
         "pythonsdk-" + timestamp,
         get_region(test_linode_client, {"Placement Group"}),
-        PlacementGroupAffinityType.anti_affinity_local,
+        PlacementGroupType.anti_affinity_local,
+        PlacementGroupPolicy.flexible,
     )
     yield pg
 

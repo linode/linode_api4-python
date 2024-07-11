@@ -1,9 +1,10 @@
 from test.unit.base import ClientBaseCase
 
+from linode_api4 import PlacementGroupPolicy
 from linode_api4.objects import (
     PlacementGroup,
-    PlacementGroupAffinityType,
     PlacementGroupMember,
+    PlacementGroupType,
 )
 
 
@@ -42,8 +43,8 @@ class PlacementTest(ClientBaseCase):
             pg = self.client.placement.group_create(
                 "test",
                 "eu-west",
-                PlacementGroupAffinityType.anti_affinity_local,
-                is_strict=True,
+                PlacementGroupType.anti_affinity_local,
+                PlacementGroupPolicy.strict,
             )
 
             assert m.call_url == "/placement/groups"
@@ -53,10 +54,10 @@ class PlacementTest(ClientBaseCase):
                 {
                     "label": "test",
                     "region": "eu-west",
-                    "affinity_type": str(
-                        PlacementGroupAffinityType.anti_affinity_local
+                    "placement_group_type": str(
+                        PlacementGroupType.anti_affinity_local
                     ),
-                    "is_strict": True,
+                    "placement_group_policy": PlacementGroupPolicy.strict,
                 },
             )
 
@@ -109,8 +110,8 @@ class PlacementTest(ClientBaseCase):
         assert pg.id == 123
         assert pg.label == "test"
         assert pg.region.id == "eu-west"
-        assert pg.affinity_type == "anti_affinity:local"
-        assert pg.is_strict
+        assert pg.placement_group_type == "anti_affinity:local"
+        assert pg.placement_group_policy == "strict"
         assert pg.is_compliant
         assert pg.members[0] == PlacementGroupMember(
             linode_id=123, is_compliant=True
