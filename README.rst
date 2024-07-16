@@ -3,7 +3,7 @@ linode_api4
 
 The official python library for the `Linode API v4`_ in python.
 
-.. _Linode API v4: https://developers.linode.com/api/v4/
+.. _Linode API v4: https://techdocs.akamai.com/linode-api/reference/api
 
 .. image:: https://img.shields.io/github/actions/workflow/status/linode/linode_api4-python/main.yml?label=tests
     :target: https://img.shields.io/github/actions/workflow/status/linode/linode_api4-python/main.yml?label=tests

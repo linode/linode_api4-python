@@ -2,11 +2,11 @@ linode_api4
 ===========
 
 This is the documentation for the official Python bindings of the Linode
-API v4.  For API documentation, see `developers.linode.com`_.
+API v4.  For API documentation, see `techdocs.akamai.com`_.
 
 This library can be used to interact with all features of the Linode API.
 
-.. _developers.linode.com: https://developers.linode.com/api/v4
+.. _techdocs.akamai.com: https://techdocs.akamai.com/linode-api/reference/api
 
 Installation
 ------------
