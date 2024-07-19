@@ -17,7 +17,7 @@ class LongviewGroup(Group):
         Requests and returns a paginated list of LongviewClients on your
         account.
 
-        API Documentation: https://www.linode.com/docs/api/longview/#longview-clients-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-longview-clients
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -32,7 +32,7 @@ class LongviewGroup(Group):
         """
         Creates a new LongviewClient, optionally with a given label.
 
-        API Documentation: https://www.linode.com/docs/api/longview/#longview-client-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-longview-client
 
         :param label: The label for the new client.  If None, a default label based
             on the new client's ID will be used.
@@ -58,7 +58,7 @@ class LongviewGroup(Group):
         """
         Requests and returns a paginated list of LongviewSubscriptions available
 
-        API Documentation: https://www.linode.com/docs/api/longview/#longview-subscriptions-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-longview-subscriptions
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`

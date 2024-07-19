@@ -23,7 +23,7 @@ class IPv6Range(Base):
     """
     An instance of a Linode IPv6 Range.
 
-    API Documentation: https://www.linode.com/docs/api/networking/#ipv6-range-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-ipv6-range
     """
 
     api_endpoint = "/networking/ipv6/ranges/{range}"
@@ -68,7 +68,7 @@ class IPAddress(Base):
         # Re-populate all attributes with new information from the API
         ip.invalidate()
 
-    API Documentation: https://www.linode.com/docs/api/networking/#ip-address-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-ip
     """
 
     api_endpoint = "/networking/ips/{address}"
@@ -144,7 +144,7 @@ class VLAN(Base):
     VLANs provide a mechanism for secure communication between two or more Linodes that are assigned to the same VLAN.
     VLANs are implicitly created during Instance or Instance Config creation.
 
-    API Documentation: https://www.linode.com/docs/api/networking/#vlans-list
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-vlans
     """
 
     api_endpoint = "/networking/vlans/{label}"
@@ -162,7 +162,7 @@ class FirewallDevice(DerivedBase):
     """
     An object representing the assignment between a Linode Firewall and another Linode resource.
 
-    API Documentation: https://www.linode.com/docs/api/networking/#firewall-device-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-firewall-device
     """
 
     api_endpoint = "/networking/firewalls/{firewall_id}/devices/{id}"
@@ -183,7 +183,7 @@ class Firewall(Base):
 
     An instance of a Linode Cloud Firewall.
 
-    API Documentation: https://www.linode.com/docs/api/networking/#firewall-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-firewall
     """
 
     api_endpoint = "/networking/firewalls/{id}"
@@ -203,7 +203,7 @@ class Firewall(Base):
         """
         Sets the JSON rules for this Firewall.
 
-        API Documentation: https://www.linode.com/docs/api/networking/#firewall-rules-update__request-samples
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/put-firewall-rules
 
         :param rules: The rules to apply to this Firewall.
         :type rules: dict
@@ -217,7 +217,7 @@ class Firewall(Base):
         """
         Gets the JSON rules for this Firewall.
 
-        API Documentation: https://www.linode.com/docs/api/networking/#firewall-rules-update__request-samples
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/put-firewall-rules
 
         :returns: The rules that this Firewall is currently configured with.
         :rtype: dict
@@ -230,7 +230,7 @@ class Firewall(Base):
         """
         Creates and attaches a device to this Firewall
 
-        API Documentation: https://www.linode.com/docs/api/networking/#firewall-device-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-firewall-device
 
         :param id: The ID of the entity to create a device for.
         :type id: int

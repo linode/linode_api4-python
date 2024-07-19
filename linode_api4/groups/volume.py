@@ -13,7 +13,7 @@ class VolumeGroup(Group):
 
            volumes = client.volumes()
 
-        API Documentation: https://www.linode.com/docs/api/volumes/#volumes-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-volumes
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -29,7 +29,7 @@ class VolumeGroup(Group):
         Creates a new Block Storage Volume, either in the given Region or
         attached to the given Instance.
 
-        API Documentation: https://www.linode.com/docs/api/volumes/#volumes-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-volumes
 
         :param label: The label for the new Volume.
         :type label: str
