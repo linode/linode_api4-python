@@ -13,7 +13,7 @@ class EventError(Exception):
 
     def __init__(self, event_id: int, message: Optional[str]):
         # Edge case, sometimes the message is populated with an empty string
-        if len(message) < 1:
+        if message is not None and len(message) < 1:
             message = None
 
         self.event_id = event_id
