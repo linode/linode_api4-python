@@ -208,14 +208,17 @@ def test_linode_rebuild(test_linode_client):
         3,
         linode.rebuild,
         "linode/debian10",
-        disk_encryption=InstanceDiskEncryptionType.disabled,
+        # TODO(LDE): Uncomment once LDE is available
+        # disk_encryption=InstanceDiskEncryptionType.disabled,
     )
 
     wait_for_condition(10, 100, get_status, linode, "rebuilding")
 
     assert linode.status == "rebuilding"
     assert linode.image.id == "linode/debian10"
-    assert linode.disk_encryption == InstanceDiskEncryptionType.disabled
+
+    # TODO(LDE): Uncomment once LDE is available
+    # assert linode.disk_encryption == InstanceDiskEncryptionType.disabled
 
     wait_for_condition(10, 300, get_status, linode, "running")
 
@@ -418,6 +421,8 @@ def test_linode_volumes(linode_with_volume_firewall):
     assert "test" in volumes[0].label
 
 
+# TODO(LDE): Remove skip once LDE is available
+@pytest.skip("LDE is not currently enabled")
 @pytest.mark.parametrize(
     "linode_with_disk_encryption", ["disabled"], indirect=True
 )
