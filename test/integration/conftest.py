@@ -496,5 +496,6 @@ def create_placement_group_with_linode(
 @pytest.mark.smoke
 def pytest_configure(config):
     config.addinivalue_line(
-        "markers", "smoke: mark test as part of smoke test suite"
+        "markers",
+        "smoke: mark test as part of smoke test suite",
     )

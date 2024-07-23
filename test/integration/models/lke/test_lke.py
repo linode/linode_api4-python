@@ -11,7 +11,6 @@ from typing import Any, Dict
 import pytest
 
 from linode_api4 import (
-    InstanceDiskEncryptionType,
     LKEClusterControlPlaneACLAddressesOptions,
     LKEClusterControlPlaneACLOptions,
     LKEClusterControlPlaneOptions,
@@ -24,7 +23,11 @@ from linode_api4.objects import LKECluster, LKENodePool
 def lke_cluster(test_linode_client):
     node_type = test_linode_client.linode.types()[1]  # g6-standard-1
     version = test_linode_client.lke.versions()[0]
-    region = get_region(test_linode_client, {"Disk Encryption", "Kubernetes"})
+
+    # TODO(LDE): Uncomment once LDE is available
+    # region = get_region(test_linode_client, {"Kubernetes", "Disk Encryption"})
+    region = get_region(test_linode_client, {"Kubernetes"})
+
     node_pools = test_linode_client.lke.node_pool(node_type, 3)
     label = get_test_label() + "_cluster"
 
@@ -98,7 +101,9 @@ def test_get_lke_pool(test_linode_client, lke_cluster):
         return {k: v for k, v in p._raw_json.items() if k not in {"nodes"}}
 
     assert _to_comparable(cluster.pools[0]) == _to_comparable(pool)
-    assert pool.disk_encryption == InstanceDiskEncryptionType.enabled
+
+    # TODO(LDE): Uncomment once LDE is available
+    # assert pool.disk_encryption == InstanceDiskEncryptionType.enabled
 
 
 def test_cluster_dashboard_url_view(lke_cluster):
