@@ -19,7 +19,7 @@ class KubeVersion(Base):
     """
     A KubeVersion is a version of Kubernetes that can be deployed on LKE.
 
-    API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubernetes-version-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-lke-version
     """
 
     api_endpoint = "/lke/versions/{id}"
@@ -120,7 +120,7 @@ class LKENodePool(DerivedBase):
     An LKE Node Pool describes a pool of Linode Instances that exist within an
     LKE Cluster.
 
-    API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#node-pool-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-lke-node-pool
     """
 
     api_endpoint = "/lke/clusters/{cluster_id}/pools/{id}"
@@ -164,7 +164,7 @@ class LKENodePool(DerivedBase):
         Completing this operation may take several minutes.  This operation will
         cause all local data on Linode Instances in this pool to be lost.
 
-        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#node-pool-recycle
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-lke-cluster-pool-recycle
         """
         self._client.post(
             "{}/recycle".format(LKENodePool.api_endpoint), model=self
@@ -176,7 +176,7 @@ class LKECluster(Base):
     """
     An LKE Cluster is a single k8s cluster deployed via Linode Kubernetes Engine.
 
-    API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubernetes-cluster-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-lke-cluster
     """
 
     api_endpoint = "/lke/clusters/{id}"
@@ -213,7 +213,7 @@ class LKECluster(Base):
         """
         A list of API Endpoints for this Cluster.
 
-        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubernetes-api-endpoints-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-lke-cluster-api-endpoints
 
         :returns: A list of MappedObjects of the API Endpoints
         :rtype: List[MappedObject]
@@ -251,7 +251,7 @@ class LKECluster(Base):
         It may take a few minutes for a config to be ready when creating a new
         cluster; during that time this request may fail.
 
-        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubeconfig-view
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-lke-cluster-kubeconfig
 
         :returns: The Kubeconfig file for this Cluster.
         :rtype: str
@@ -291,7 +291,7 @@ class LKECluster(Base):
         """
         Creates a new :any:`LKENodePool` for this cluster.
 
-        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#node-pool-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-lke-cluster-pools
 
         :param node_type: The type of nodes to create in this pool.
         :type node_type: :any:`Type` or str
@@ -325,7 +325,7 @@ class LKECluster(Base):
         """
         Get a Kubernetes Dashboard access URL for this Cluster.
 
-        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubernetes-cluster-dashboard-url-view
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-lke-cluster-dashboard
 
         :returns: The Kubernetes Dashboard access URL for this Cluster.
         :rtype: str
@@ -341,7 +341,7 @@ class LKECluster(Base):
         """
         Delete and regenerate the Kubeconfig file for a Cluster.
 
-        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubeconfig-delete
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/delete-lke-cluster-kubeconfig
         """
 
         self._client.delete(
@@ -352,7 +352,7 @@ class LKECluster(Base):
         """
         Get a specific Node by ID.
 
-        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#node-view
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-lke-cluster-node
 
         :param nodeId: ID of the Node to look up.
         :type nodeId: str
@@ -374,7 +374,7 @@ class LKECluster(Base):
         """
         Delete a specific Node from a Node Pool.
 
-        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#node-delete
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/delete-lke-cluster-node
 
         :param nodeId: ID of the Node to delete.
         :type nodeId: str
@@ -391,7 +391,7 @@ class LKECluster(Base):
         """
         Recycle a specific Node from an LKE cluster.
 
-        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#node-recycle
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-lke-cluster-node-recycle
 
         :param nodeId: ID of the Node to recycle.
         :type nodeId: str
@@ -408,7 +408,7 @@ class LKECluster(Base):
         """
         Recycles all nodes in all pools of a designated Kubernetes Cluster.
 
-        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#cluster-nodes-recycle
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-lke-cluster-recycle
         """
 
         self._client.post(
@@ -419,7 +419,7 @@ class LKECluster(Base):
         """
         Regenerate the Kubeconfig file and/or the service account token for a Cluster.
 
-        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubernetes-cluster-regenerate
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-lke-cluster-regenerate
         """
 
         self._client.post(
@@ -430,7 +430,7 @@ class LKECluster(Base):
         """
         Delete and regenerate the service account token for a Cluster.
 
-        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#service-token-delete
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/delete-lke-service-token
         """
 
         self._client.delete(

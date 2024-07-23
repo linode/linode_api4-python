@@ -509,7 +509,7 @@ class LinodeTest(ClientBaseCase):
 
         assert pg.id == 123
         assert pg.label == "test"
-        assert pg.affinity_type == "anti_affinity:local"
+        assert pg.placement_group_type == "anti_affinity:local"
 
         # Invalidate the instance and try again
         # This makes sure the implicit refresh/cache logic works
@@ -520,7 +520,7 @@ class LinodeTest(ClientBaseCase):
 
         assert pg.id == 123
         assert pg.label == "test"
-        assert pg.affinity_type == "anti_affinity:local"
+        assert pg.placement_group_type == "anti_affinity:local"
 
     def test_create_with_placement_group(self):
         """

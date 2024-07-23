@@ -42,7 +42,7 @@ class LinodeGroup(Group):
 
            standard_types = client.linode.types(Type.class == "standard")
 
-        API documentation: https://www.linode.com/docs/api/linode-types/#types-list
+        API documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-types
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -60,7 +60,7 @@ class LinodeGroup(Group):
 
            prod_linodes = client.linode.instances(Instance.group == "prod")
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#linodes-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-instances
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -80,7 +80,7 @@ class LinodeGroup(Group):
 
            my_stackscripts = client.linode.stackscripts(mine_only=True)
 
-        API Documentation: https://www.linode.com/docs/api/stackscripts/#stackscripts-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-stack-scripts
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -117,7 +117,7 @@ class LinodeGroup(Group):
         Returns a list of available :any:`Kernels<Kernel>`.  Kernels are used
         when creating or updating :any:`LinodeConfigs,LinodeConfig>`.
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#kernels-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-kernels
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -226,7 +226,7 @@ class LinodeGroup(Group):
         successfully until disks and configs are created, or it is otherwise
         configured.
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#linode-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-linode-instance
 
         :param ltype: The Instance Type we are creating
         :type ltype: str or Type
@@ -400,7 +400,7 @@ class LinodeGroup(Group):
         """
         Creates a new :any:`StackScript` on your account.
 
-        API Documentation: https://www.linode.com/docs/api/stackscripts/#stackscript-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-add-stack-script
 
         :param label: The label for this StackScript.
         :type label: str

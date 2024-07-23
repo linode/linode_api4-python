@@ -23,7 +23,7 @@ class SupportGroup(Group):
         """
         Returns a list of support tickets on this account.
 
-        API Documentation: https://www.linode.com/docs/api/support/#support-tickets-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-tickets
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -46,7 +46,7 @@ class SupportGroup(Group):
         """
         Opens a support ticket on this account.
 
-        API Documentation: https://www.linode.com/docs/api/support/#support-ticket-open
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-ticket
 
         :param summary: The summary or title for this support ticket.
         :type summary: str

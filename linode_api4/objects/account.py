@@ -26,7 +26,7 @@ class Account(Base):
     """
     The contact and billing information related to your Account.
 
-    API Documentation: https://www.linode.com/docs/api/account/#account-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-account
     """
 
     api_endpoint = "/account"
@@ -93,7 +93,7 @@ class ServiceTransfer(Base):
     """
     A transfer request for transferring a service between Linode accounts.
 
-    API Documentation: https://www.linode.com/docs/api/account/#service-transfer-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-service-transfer
     """
 
     api_endpoint = "/account/service-transfers/{token}"
@@ -112,7 +112,7 @@ class ServiceTransfer(Base):
         """
         Accept a Service Transfer for the provided token to receive the services included in the transfer to your account.
 
-        API Documentation: https://www.linode.com/docs/api/account/#service-transfer-accept
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-accept-service-transfer
         """
 
         resp = self._client.post(
@@ -131,7 +131,7 @@ class PaymentMethod(Base):
     """
     A payment method to be used on this Linode account.
 
-    API Documentation: https://www.linode.com/docs/api/account/#payment-method-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-payment-method
     """
 
     api_endpoint = "/account/payment-methods/{id}"
@@ -147,7 +147,7 @@ class PaymentMethod(Base):
         """
         Make this Payment Method the default method for automatically processing payments.
 
-        API Documentation: https://www.linode.com/docs/api/account/#payment-method-make-default
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-make-payment-method-default
         """
 
         resp = self._client.post(
@@ -166,7 +166,7 @@ class Login(Base):
     """
     A login entry for this account.
 
-    API Documentation: https://www.linode.com/docs/api/account/#login-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-account-login
     """
 
     api_endpoint = "/account/logins/{id}"
@@ -184,7 +184,7 @@ class AccountSettings(Base):
     """
     Information related to your Account settings.
 
-    API Documentation: https://www.linode.com/docs/api/account/#account-settings-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-account-settings
     """
 
     api_endpoint = "/account/settings"
@@ -205,7 +205,7 @@ class Event(Base):
     """
     An event object representing an event that took place on this account.
 
-    API Documentation: https://www.linode.com/docs/api/account/#event-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-event
     """
 
     api_endpoint = "/account/events/{id}"
@@ -310,7 +310,7 @@ class Event(Base):
         """
         Marks a single Event as read.
 
-        API Documentation: https://www.linode.com/docs/api/account/#event-mark-as-read
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-event-read
         """
 
         self._client.post("{}/read".format(Event.api_endpoint), model=self)
@@ -319,7 +319,7 @@ class Event(Base):
         """
         Marks a single Event as seen.
 
-        API Documentation: https://www.linode.com/docs/api/account/#event-mark-as-seen
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-event-seen
         """
 
         self._client.post("{}/seen".format(Event.api_endpoint), model=self)
@@ -329,7 +329,7 @@ class InvoiceItem(DerivedBase):
     """
     An individual invoice item under an :any:`Invoice` object.
 
-    API Documentation: https://www.linode.com/docs/api/account/#invoice-items-list
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-invoice-items
     """
 
     api_endpoint = "/account/invoices/{invoice_id}/items"
@@ -364,7 +364,7 @@ class Invoice(Base):
     """
     A single invoice on this Linode account.
 
-    API Documentation: https://www.linode.com/docs/api/account/#invoice-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-invoice
     """
 
     api_endpoint = "/account/invoices/{id}"
@@ -385,7 +385,7 @@ class OAuthClient(Base):
     """
     An OAuthClient object that can be used to authenticate apps with this account.
 
-    API Documentation: https://www.linode.com/docs/api/account/#oauth-client-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-client
     """
 
     api_endpoint = "/account/oauth-clients/{id}"
@@ -404,7 +404,7 @@ class OAuthClient(Base):
         """
         Resets the client secret for this client.
 
-        API Documentation: https://www.linode.com/docs/api/account/#oauth-client-secret-reset
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-reset-client-secret
         """
         result = self._client.post(
             "{}/reset_secret".format(OAuthClient.api_endpoint), model=self
@@ -424,7 +424,7 @@ class OAuthClient(Base):
         If dump_to is given, attempts to write the image to a file
         at the given location.
 
-        API Documentation: https://www.linode.com/docs/api/account/#oauth-client-thumbnail-view
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-client-thumbnail
         """
         headers = {"Authorization": "token {}".format(self._client.token)}
 
@@ -452,7 +452,7 @@ class OAuthClient(Base):
         uploads it as a png.  Otherwise, assumes thumbnail is a path to the
         thumbnail and reads it in as bytes before uploading.
 
-        API Documentation: https://www.linode.com/docs/api/account/#oauth-client-thumbnail-update
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/put-client-thumbnail
         """
         headers = {
             "Authorization": "token {}".format(self._client.token),
@@ -487,7 +487,7 @@ class Payment(Base):
     """
     An object representing a single payment on the current Linode Account.
 
-    API Documentation: https://www.linode.com/docs/api/account/#payment-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-payment
     """
 
     api_endpoint = "/account/payments/{id}"
@@ -503,7 +503,7 @@ class User(Base):
     """
     An object representing a single user on this account.
 
-    API Documentation: https://www.linode.com/docs/api/account/#user-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-user
     """
 
     api_endpoint = "/account/users/{id}"
@@ -525,7 +525,7 @@ class User(Base):
         will result in an ApiError.  This is smart, and will only fetch from the
         api once unless the object is invalidated.
 
-        API Documentation: https://www.linode.com/docs/api/account/#users-grants-view
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-user-grants
 
         :returns: The grants for this user.
         :rtype: linode.objects.account.UserGrants
@@ -624,7 +624,7 @@ class UserGrants:
     a Base-like model (such as a unique, ID-based endpoint at which to access
     it), however it has some similarities so that its usage is familiar.
 
-    API Documentation: https://www.linode.com/docs/api/account/#users-grants-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-user-grants
     """
 
     api_endpoint = "/account/users/{username}/grants"
@@ -650,7 +650,7 @@ class UserGrants:
         """
         Applies the grants to the parent user.
 
-        API Documentation: https://www.linode.com/docs/api/account/#users-grants-update
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/put-user-grants
         """
 
         req = {
@@ -680,7 +680,7 @@ class AccountBetaProgram(Base):
     """
     The details and enrollment information of a Beta program that an account is enrolled in.
 
-    API Documentation: https://www.linode.com/docs/api/beta-programs/#enrolled-beta-program-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-enrolled-beta-program
     """
 
     api_endpoint = "/account/betas/{id}"
@@ -700,7 +700,7 @@ class AccountAvailability(Base):
     Contains information about the resources available for a region under the
     current account.
 
-    API doc: https://www.linode.com/docs/api/account/#region-service-availability
+    API doc: https://techdocs.akamai.com/linode-api/reference/get-account-availability
     """
 
     api_endpoint = "/account/availability/{region}"

@@ -21,7 +21,7 @@ class NetworkingGroup(Group):
         """
         Retrieves the Firewalls your user has access to.
 
-        API Documentation: https://www.linode.com/docs/api/networking/#firewalls-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-firewalls
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -37,7 +37,7 @@ class NetworkingGroup(Group):
         Creates a new Firewall, either in the given Region or
         attached to the given Instance.
 
-        API Documentation: https://www.linode.com/docs/api/networking/#firewall-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-firewalls
 
         :param label: The label for the new Firewall.
         :type label: str
@@ -74,7 +74,7 @@ class NetworkingGroup(Group):
 
             firewall = client.networking.firewall_create('my-firewall', rules)
 
-        .. _Firewalls Documentation: https://www.linode.com/docs/api/networking/#firewall-create__request-body-schema
+        .. _Firewalls Documentation: https://techdocs.akamai.com/linode-api/reference/post-firewalls
         """
 
         params = {
@@ -97,7 +97,7 @@ class NetworkingGroup(Group):
         """
         Returns a list of IP addresses on this account, excluding private addresses.
 
-        API Documentation: https://www.linode.com/docs/api/networking/#ip-addresses-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-ips
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -112,7 +112,7 @@ class NetworkingGroup(Group):
         """
         Returns a list of IPv6 ranges on this account.
 
-        API Documentation: https://www.linode.com/docs/api/networking/#ipv6-ranges-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-ipv6-ranges
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -127,7 +127,7 @@ class NetworkingGroup(Group):
         """
         Returns a list of IPv6 pools on this account.
 
-        API Documentation: https://www.linode.com/docs/api/networking/#ipv6-pools-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-ipv6-pools
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -145,7 +145,7 @@ class NetworkingGroup(Group):
 
         Returns a list of VLANs on your account.
 
-        API Documentation: https://www.linode.com/docs/api/networking/#vlans-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-vlans
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -184,7 +184,7 @@ class NetworkingGroup(Group):
            linode1.invalidate()
            linode2.invalidate()
 
-        API Documentation: https://www.linode.com/docs/api/networking/#linodes-assign-ipv4s
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-assign-ipv4s
 
         :param region: The Region in which the assignments should take place.
                        All Instances and IPAddresses involved in the assignment
@@ -216,7 +216,7 @@ class NetworkingGroup(Group):
         Allocates an IP to a Instance you own.  Additional IPs must be requested
         by opening a support ticket first.
 
-        API Documentation: https://www.linode.com/docs/api/networking/#ip-address-allocate
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-allocate-ip
 
         :param linode: The Instance to allocate the new IP for.
         :type linode: Instance or int
@@ -249,7 +249,7 @@ class NetworkingGroup(Group):
         :any:`Instance`.  This will enable the provided Instance to bring up the
         shared IP Addresses even though it does not own them.
 
-        API Documentation: https://www.linode.com/docs/api/networking/#ipv4-sharing-configure
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-share-ipv4s
 
         :param linode: The Instance to share the IPAddresses with.  This Instance
                        will be able to bring up the given addresses.
@@ -289,7 +289,7 @@ class NetworkingGroup(Group):
         primary Linode becomes unresponsive. This means that requests to the primary Linode’s
         IP address can be automatically rerouted to secondary Linodes at the configured shared IP addresses.
 
-        API Documentation: https://www.linode.com/docs/api/networking/#ip-addresses-share
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-share-ips
 
         :param linode: The id of the Instance or the Instance to share the IPAddresses with.
                           This Instance will be able to bring up the given addresses.

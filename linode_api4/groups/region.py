@@ -13,7 +13,7 @@ class RegionGroup(Group):
 
            region = client.regions()
 
-        API Documentation: https://www.linode.com/docs/api/regions/#regions-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-regions
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -30,7 +30,7 @@ class RegionGroup(Group):
         Returns the availability of Linode plans within a Region.
 
 
-        API Documentation: https://www.linode.com/docs/api/regions/#regions-availability-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-regions-availability
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`

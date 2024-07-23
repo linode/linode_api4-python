@@ -45,7 +45,7 @@ class Backup(DerivedBase):
     """
     A Backup of a Linode Instance.
 
-    API Documentation: https://www.linode.com/docs/api/linode-instances/#backup-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-backup
     """
 
     api_endpoint = "/linode/instances/{linode_id}/backups/{id}"
@@ -73,7 +73,7 @@ class Backup(DerivedBase):
         """
         Restores a Linode’s Backup to the specified Linode.
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#backup-restore
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-restore-backup
 
         :param linode: The id of the Instance or the Instance to share the IPAddresses with.
                        This Instance will be able to bring up the given addresses.
@@ -111,7 +111,7 @@ class Disk(DerivedBase):
     """
     A Disk for the storage space on a Compute Instance.
 
-    API Documentation: https://www.linode.com/docs/api/linode-instances/#disk-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-disk
     """
 
     api_endpoint = "/linode/instances/{linode_id}/disks/{id}"
@@ -135,7 +135,7 @@ class Disk(DerivedBase):
         Copies a disk, byte-for-byte, into a new Disk belonging to the same Linode. The Linode must have enough
         storage space available to accept a new Disk of the same size as this one or this operation will fail.
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#disk-clone
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-clone-linode-disk
 
         :returns: A Disk object representing the cloned Disk
         :rtype: Disk
@@ -154,7 +154,7 @@ class Disk(DerivedBase):
         """
         Resets the password of a Disk you have permission to read_write.
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#disk-root-password-reset
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-reset-disk-password
 
         :param root_password: The new root password for the OS installed on this Disk. The password must meet the complexity
                               strength validation requirements for a strong password.
@@ -182,7 +182,7 @@ class Disk(DerivedBase):
         fit on the new disk size.  You may need to resize the filesystem on the
         disk first before performing this action.
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#disk-resize
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-resize-disk
 
         :param new_size: The intended new size of the disk, in MB
         :type new_size: int
@@ -222,7 +222,7 @@ class Kernel(Base):
           to compile the kernel from source than to download it from your package manager. For more
           information on custom compiled kernels, review our guides for Debian, Ubuntu, and CentOS.
 
-    API Documentation: https://www.linode.com/docs/api/linode-instances/#kernel-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-kernel
     """
 
     api_endpoint = "/linode/kernels/{id}"
@@ -246,7 +246,7 @@ class Type(Base):
     """
     Linode Plan type to specify the resources available to a Linode Instance.
 
-    API Documentation: https://www.linode.com/docs/api/linode-types/#type-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-type
     """
 
     api_endpoint = "/linode/types/{id}"
@@ -430,7 +430,7 @@ class Config(DerivedBase):
     """
     A Configuration Profile for a Linode Instance.
 
-    API Documentation: https://www.linode.com/docs/api/linode-instances/#configuration-profile-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-config
     """
 
     api_endpoint = "/linode/instances/{linode_id}/configs/{id}"
@@ -650,7 +650,7 @@ class Instance(Base):
     """
     A Linode Instance.
 
-    API Documentation: https://www.linode.com/docs/api/linode-instances/#linode-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-instance
     """
 
     api_endpoint = "/linode/instances/{id}"
@@ -686,7 +686,7 @@ class Instance(Base):
         The ips related collection is not normalized like the others, so we have to
         make an ad-hoc object to return for its response
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#networking-information-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-ips
 
         :returns: A List of the ips of the Linode Instance.
         :rtype: List[IPAddress]
@@ -767,7 +767,7 @@ class Instance(Base):
         """
         The backups response contains what backups are available to be restored.
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#backups-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-backups
 
         :returns: A List of the available backups for the Linode Instance.
         :rtype: List[Backup]
@@ -825,7 +825,7 @@ class Instance(Base):
         """
         Resets the root password for this Linode.
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#linode-root-password-reset
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-reset-linode-password
 
         :param root_password: The root user’s password on this Linode. Linode passwords must
                               meet a password strength score requirement that is calculated internally
@@ -849,7 +849,7 @@ class Instance(Base):
         """
         Get per-linode transfer for specified month
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#network-transfer-view-yearmonth
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-transfer-by-year-month
 
         :param year: Numeric value representing the year to look up.
         :type: year: int
@@ -877,7 +877,7 @@ class Instance(Base):
         """
         Get per-linode transfer
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#network-transfer-view
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-transfer
 
         :returns: The network transfer statistics for the current month.
         :rtype: MappedObject
@@ -967,7 +967,7 @@ class Instance(Base):
               (because the Linode was never booted or the last booted config was deleted)
               an error will be returned.
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#linode-boot
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-boot-linode-instance
 
         :param config: The Linode Config ID to boot into.
         :type: config: int
@@ -992,7 +992,7 @@ class Instance(Base):
         are currently running or queued, those actions must be completed
         first before you can initiate a shutdown.
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#linode-shut-down
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-shutdown-linode-instance
 
         :returns: True if the operation was successful.
         :rtype: bool
@@ -1011,7 +1011,7 @@ class Instance(Base):
         Reboots a Linode you have permission to modify. If any actions are currently running
         or queued, those actions must be completed first before you can initiate a reboot.
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#linode-reboot
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-reboot-linode-instance
 
         :returns: True if the operation was successful.
         :rtype: bool
@@ -1043,7 +1043,7 @@ class Instance(Base):
             - The Linode must not have more disk allocation than the new Type allows.
                 - In that situation, you must first delete or resize the disk to be smaller.
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#linode-resize
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-resize-linode-instance
 
         :param new_type: The Linode Type or the id representing it.
         :type: new_type: Type or int
@@ -1112,7 +1112,7 @@ class Instance(Base):
         """
         Creates a Linode Config with the given attributes.
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#configuration-profile-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-add-linode-config
 
         :param kernel: The kernel to boot with.
         :param label: The config label
@@ -1227,7 +1227,7 @@ class Instance(Base):
         """
         Creates a new Disk for this Instance.
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#disk-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-add-linode-disk
 
         :param size: The size of the disk, in MB
         :param label: The label of the disk.  If not given, a default label will be generated.
@@ -1312,7 +1312,7 @@ class Instance(Base):
         For more information on Instance's Backups service and pricing, see our
         Backups Page: https://www.linode.com/backups
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#backups-enable
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-enable-backups
 
         :returns: True if the operation was successful.
         :rtype: bool
@@ -1329,7 +1329,7 @@ class Instance(Base):
         including any snapshots that have been taken.  This cannot be undone,
         but Backups can be re-enabled at a later date.
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#backups-cancel
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-cancel-backups
 
         :returns: True if the operation was successful.
         :rtype: bool
@@ -1347,7 +1347,7 @@ class Instance(Base):
         Important: If you already have a snapshot of this Linode, this
         is a destructive action. The previous snapshot will be deleted.
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#snapshot-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-snapshot
 
         :param label: The label for the new snapshot.
         :type: label: str
@@ -1381,7 +1381,7 @@ class Instance(Base):
         before you can add one.  You may only have, at most, one private IP per
         Instance.
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#ipv4-address-allocate
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-add-linode-ip
 
         :param public: If the new IP should be public or private.  Defaults to
                        private.
@@ -1422,7 +1422,7 @@ class Instance(Base):
         a new :any:`Image` to it.  This can be used to reset an existing
         Instance or to install an Image on an empty Instance.
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#linode-rebuild
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-rebuild-linode-instance
 
         :param image: The Image to deploy to this Instance
         :type image: str or Image
@@ -1487,7 +1487,7 @@ class Instance(Base):
 
         Note that “sdh” is reserved and unavailable during rescue.
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#linode-boot-into-rescue-mode
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-rescue-linode-instance
 
         :param disks: Devices that are either Disks or Volumes
         :type: disks: dict
@@ -1527,7 +1527,7 @@ class Instance(Base):
         """
         Upgrades this Instance to the latest generation type
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#linode-upgrade
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-mutate-linode-instance
 
         :param allow_auto_disk_resize: Automatically resize disks when resizing a Linode.
                                        When resizing down to a smaller plan your Linode’s
@@ -1559,7 +1559,7 @@ class Instance(Base):
         Initiates a pending migration that is already scheduled for this Linode
         Instance
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#dc-migrationpending-host-migration-initiate
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-migrate-linode-instance
 
         :param region: The region to which the Linode will be migrated. Must be a valid region slug.
                        A list of regions can be viewed by using the GET /regions endpoint. A cross data
@@ -1604,7 +1604,7 @@ class Instance(Base):
         """
         View Firewall information for Firewalls associated with this Linode.
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#firewalls-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-firewalls
 
         :returns: A List of Firewalls of the Linode Instance.
         :rtype: List[Firewall]
@@ -1626,7 +1626,7 @@ class Instance(Base):
         """
         View a list of NodeBalancers that are assigned to this Linode and readable by the requesting User.
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#linode-nodebalancers-view
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-node-balancers
 
         :returns: A List of Nodebalancers of the Linode Instance.
         :rtype: List[Nodebalancer]
@@ -1648,7 +1648,7 @@ class Instance(Base):
         """
         View Block Storage Volumes attached to this Linode.
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#linodes-volumes-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-volumes
 
         :returns: A List of Volumes of the Linode Instance.
         :rtype: List[Volume]
@@ -1683,7 +1683,7 @@ class Instance(Base):
         """
         Clones this linode into a new linode or into a new linode in the given region
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#linode-clone
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-clone-linode-instance
 
         :param to_linode: If an existing Linode is the target for the clone, the ID of that
                           Linode. The existing Linode must have enough resources to accept the clone.
@@ -1777,7 +1777,7 @@ class Instance(Base):
         """
         Returns the JSON stats for this Instance
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#linode-statistics-view
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-stats
 
         :returns: The JSON stats for this Instance
         :rtype: dict
@@ -1807,7 +1807,7 @@ class Instance(Base):
         """
         Returns stats for the month containing the given datetime
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#statistics-view-yearmonth
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-stats-by-year-month
 
         :param dt: A Datetime for which to return statistics
         :type: dt: Datetime
@@ -1851,7 +1851,7 @@ class StackScript(Base):
     A script allowing users to reproduce specific software configurations
     when deploying Compute Instances, with more user control than static system images.
 
-    API Documentation: https://www.linode.com/docs/api/stackscripts/#stackscript-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-stack-script
     """
 
     api_endpoint = "/linode/stackscripts/{id}"

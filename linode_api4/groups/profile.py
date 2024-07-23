@@ -28,7 +28,7 @@ class ProfileGroup(Group):
 
            profile = client.profile()
 
-        API Documentation: https://www.linode.com/docs/api/profile/#profile-view
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-profile
 
         :returns: The acting user's profile.
         :rtype: Profile
@@ -47,7 +47,7 @@ class ProfileGroup(Group):
         """
         Returns the Trusted Devices on your profile.
 
-        API Documentation: https://www.linode.com/docs/api/profile/#trusted-devices-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-devices
 
         :returns: A list of Trusted Devices for this profile.
         :rtype: PaginatedList of TrustedDevice
@@ -69,7 +69,7 @@ class ProfileGroup(Group):
         """
         Returns a collection of security questions and their responses, if any, for your User Profile.
 
-        API Documentation: https://www.linode.com/docs/api/profile/#security-questions-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-security-questions
         """
 
         result = self.client.get(
@@ -120,7 +120,7 @@ class ProfileGroup(Group):
         """
         Delete the verified phone number for the User making this request.
 
-        API Documentation: https://www.linode.com/docs/api/profile/#phone-number-delete
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/delete-profile-phone-number
 
         :returns: Returns True if the operation was successful.
         :rtype: bool
@@ -143,7 +143,7 @@ class ProfileGroup(Group):
         Verify a phone number by confirming the one-time code received via SMS message
         after accessing the Phone Verification Code Send (POST /profile/phone-number) command.
 
-        API Documentation: https://www.linode.com/docs/api/profile/#phone-number-verify
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-profile-phone-number-verify
 
         :param otp_code: The one-time code received via SMS message after accessing the Phone Verification Code Send
         :type otp_code: str
@@ -175,7 +175,7 @@ class ProfileGroup(Group):
         """
         Send a one-time verification code via SMS message to the submitted phone number.
 
-        API Documentation: https://www.linode.com/docs/api/profile/#phone-number-verification-code-send
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-profile-phone-number
 
         :param iso_code: The two-letter ISO 3166 country code associated with the phone number.
         :type iso_code: str
@@ -213,7 +213,7 @@ class ProfileGroup(Group):
         """
         Returns the logins on your profile.
 
-        API Documentation: https://www.linode.com/docs/api/profile/#logins-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-profile-logins
 
         :returns: A list of logins for this profile.
         :rtype: PaginatedList of ProfileLogin
@@ -224,7 +224,7 @@ class ProfileGroup(Group):
         """
         Returns the Person Access Tokens active for this user.
 
-        API Documentation: https://www.linode.com/docs/api/profile/#personal-access-tokens-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-personal-access-tokens
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -239,7 +239,7 @@ class ProfileGroup(Group):
         """
         Creates and returns a new Personal Access Token.
 
-        API Documentation: https://www.linode.com/docs/api/profile/#personal-access-token-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-personal-access-token
 
         :param label: The label of the new Personal Access Token.
         :type label: str
@@ -275,7 +275,7 @@ class ProfileGroup(Group):
         """
         Returns the Authorized Applications for this user
 
-        API Documentation: https://www.linode.com/docs/api/profile/#authorized-apps-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-profile-apps
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -290,7 +290,7 @@ class ProfileGroup(Group):
         """
         Returns the SSH Public Keys uploaded to your profile.
 
-        API Documentation: https://www.linode.com/docs/api/profile/#ssh-keys-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-ssh-keys
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -306,7 +306,7 @@ class ProfileGroup(Group):
         Uploads a new SSH Public Key to your profile  This key can be used in
         later Linode deployments.
 
-        API Documentation: https://www.linode.com/docs/api/profile/#ssh-key-add
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-add-ssh-key
 
         :param key: The ssh key, or a path to the ssh key.  If a path is provided,
                     the file at the path must exist and be readable or an exception
