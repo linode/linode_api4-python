@@ -274,6 +274,7 @@ class LinodeGroup(Group):
         :param firewall: The firewall to attach this Linode to.
         :type firewall: int or Firewall
         :param disk_encryption: The disk encryption policy for this Linode.
+                                NOTE: Disk encryption may not currently be available to all users.
         :type disk_encryption: InstanceDiskEncryptionType or str
         :param interfaces: An array of Network Interfaces to add to this Linode’s Configuration Profile.
                            At least one and up to three Interface objects can exist in this array.

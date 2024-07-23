@@ -1435,6 +1435,7 @@ class Instance(Base):
                                 the key.
         :type authorized_keys: list or str
         :param disk_encryption: The disk encryption policy for this Linode.
+                                NOTE: Disk encryption may not currently be available to all users.
         :type disk_encryption: InstanceDiskEncryptionType or str
 
         :returns: The newly generated password, if one was not provided
