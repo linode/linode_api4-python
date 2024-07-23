@@ -21,7 +21,6 @@ from linode_api4.objects import LKECluster, LKENodePool
 
 @pytest.fixture(scope="session")
 def lke_cluster(test_linode_client):
-
     node_type = test_linode_client.linode.types()[1]  # g6-standard-1
     version = test_linode_client.lke.versions()[0]
 

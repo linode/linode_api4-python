@@ -195,7 +195,11 @@ def test_linode_transfer(test_linode_client, linode_with_volume_firewall):
 
 def test_linode_rebuild(test_linode_client):
     client = test_linode_client
-    chosen_region = get_region(client, {"Disk Encryption"})
+
+    # TODO(LDE): Uncomment once LDE is available
+    # chosen_region = get_region(client, {"Disk Encryption"})
+    chosen_region = get_region(client)
+
     label = get_test_label() + "_rebuild"
 
     linode, password = client.linode.instance_create(
@@ -422,7 +426,7 @@ def test_linode_volumes(linode_with_volume_firewall):
 
 
 # TODO(LDE): Remove skip once LDE is available
-@pytest.skip("LDE is not currently enabled")
+@pytest.mark.skip("LDE is not currently enabled")
 @pytest.mark.parametrize(
     "linode_with_disk_encryption", ["disabled"], indirect=True
 )
