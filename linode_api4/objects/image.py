@@ -5,7 +5,7 @@ class Image(Base):
     """
     An Image is something a Linode Instance or Disk can be deployed from.
 
-    API Documentation: https://www.linode.com/docs/api/images/#image-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-image
     """
 
     api_endpoint = "/images/{id}"

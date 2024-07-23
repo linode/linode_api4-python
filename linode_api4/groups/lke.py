@@ -29,7 +29,7 @@ class LKEGroup(Group):
         Returns a :any:`PaginatedList` of :any:`KubeVersion` objects that can be
         used when creating an LKE Cluster.
 
-        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubernetes-versions-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-lke-versions
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -45,7 +45,7 @@ class LKEGroup(Group):
         Returns a :any:`PaginagtedList` of :any:`LKECluster` objects that belong
         to this account.
 
-        https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubernetes-clusters-list
+        https://techdocs.akamai.com/linode-api/reference/get-lke-clusters
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -87,7 +87,7 @@ class LKEGroup(Group):
                kube_version
             )
 
-        API Documentation: https://www.linode.com/docs/api/linode-kubernetes-engine-lke/#kubernetes-cluster-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-lke-cluster
 
         :param region: The Region to create this LKE Cluster in.
         :type region: Region or str

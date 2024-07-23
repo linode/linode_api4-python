@@ -34,7 +34,7 @@ class AccountGroup(Group):
 
            account = client.account()
 
-        API Documentation: https://www.linode.com/docs/api/account/#account-view
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-account
 
         :returns: Returns the acting user's account information.
         :rtype: Account
@@ -52,7 +52,7 @@ class AccountGroup(Group):
         """
         Lists events on the current account matching the given filters.
 
-        API Documentation: https://www.linode.com/docs/api/account/#events-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-events
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -69,7 +69,7 @@ class AccountGroup(Group):
         Marks event as the last event we have seen.  If event is an int, it is treated
         as an event_id, otherwise it should be an event object whose id will be used.
 
-        API Documentation: https://www.linode.com/docs/api/account/#event-mark-as-seen
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-event-seen
 
         :param event: The Linode event to mark as seen.
         :type event: Event or int
@@ -85,7 +85,7 @@ class AccountGroup(Group):
         Returns the account settings data for this acocunt.  This is not  a
         listing endpoint.
 
-        API Documentation: https://www.linode.com/docs/api/account/#account-settings-view
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-account-settings
 
         :returns: The account settings data for this account.
         :rtype: AccountSettings
@@ -105,7 +105,7 @@ class AccountGroup(Group):
         """
         Returns Invoices issued to this account.
 
-        API Documentation: https://www.linode.com/docs/api/account/#invoices-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-invoices
 
         :param filters: Any number of filters to apply to this query.
 
@@ -118,7 +118,7 @@ class AccountGroup(Group):
         """
         Returns a list of Payments made on this account.
 
-        API Documentation: https://www.linode.com/docs/api/account/#payments-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-payments
 
         :returns: A list of payments made on this account.
         :rtype: PaginatedList of Payment
@@ -129,7 +129,7 @@ class AccountGroup(Group):
         """
         Returns the OAuth Clients associated with this account.
 
-        API Documentation: https://www.linode.com/docs/api/account/#oauth-clients-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-clients
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -144,7 +144,7 @@ class AccountGroup(Group):
         """
         Creates a new OAuth client.
 
-        API Documentation: https://www.linode.com/docs/api/account/#oauth-client-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-client
 
         :param name: The name of this application.
         :type name: str
@@ -174,7 +174,7 @@ class AccountGroup(Group):
         """
         Returns a list of users on this account.
 
-        API Documentation: https://www.linode.com/docs/api/account/#users-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-users
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -189,7 +189,7 @@ class AccountGroup(Group):
         """
         Returns a collection of successful logins for all users on the account during the last 90 days.
 
-        API Documentation: https://www.linode.com/docs/api/account/#user-logins-list-all
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-account-logins
 
         :returns: A list of Logins on this account.
         :rtype: PaginatedList of Login
@@ -201,7 +201,7 @@ class AccountGroup(Group):
         """
         Returns a collection of Maintenance objects for any entity a user has permissions to view. Cancelled Maintenance objects are not returned.
 
-        API Documentation: https://www.linode.com/docs/api/account/#user-logins-list-all
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-account-logins
 
         :returns: A list of Maintenance objects on this account.
         :rtype: List of Maintenance objects as MappedObjects
@@ -217,7 +217,7 @@ class AccountGroup(Group):
         """
         Returns a  list of Payment Methods for this Account.
 
-        API Documentation: https://www.linode.com/docs/api/account/#payment-methods-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-payment-methods
 
         :returns: A list of Payment Methods on this account.
         :rtype: PaginatedList of PaymentMethod
@@ -229,7 +229,7 @@ class AccountGroup(Group):
         """
         Adds a Payment Method to your Account with the option to set it as the default method.
 
-        API Documentation: https://www.linode.com/docs/api/account/#payment-method-add
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-payment-method
 
         :param data: An object representing the credit card information you have on file with
                      Linode to make Payments against your Account.
@@ -281,7 +281,7 @@ class AccountGroup(Group):
         """
         Returns a collection of Notification objects representing important, often time-sensitive items related to your Account.
 
-        API Documentation: https://www.linode.com/docs/api/account/#notifications-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-notifications
 
         :returns: A list of Notifications on this account.
         :rtype: List of Notification objects as MappedObjects
@@ -297,7 +297,7 @@ class AccountGroup(Group):
         """
         Enables Linode Managed for the entire account and sends a welcome email to the account’s associated email address.
 
-        API Documentation: https://www.linode.com/docs/api/account/#linode-managed-enable
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-enable-account-managed
         """
 
         resp = self.client.post(
@@ -315,7 +315,7 @@ class AccountGroup(Group):
         """
         Adds an expiring Promo Credit to your account.
 
-        API Documentation: https://www.linode.com/docs/api/account/#promo-credit-add
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-promo-credit
 
         :param promo_code: The Promo Code.
         :type promo_code: str
@@ -341,7 +341,7 @@ class AccountGroup(Group):
         """
         Returns a collection of all created and accepted Service Transfers for this account, regardless of the user that created or accepted the transfer.
 
-        API Documentation: https://www.linode.com/docs/api/account/#service-transfers-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-service-transfers
 
         :returns: A list of Service Transfers on this account.
         :rtype: PaginatedList of ServiceTransfer
@@ -353,7 +353,7 @@ class AccountGroup(Group):
         """
         Creates a transfer request for the specified services.
 
-        API Documentation: https://www.linode.com/docs/api/account/#service-transfer-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-service-transfer
 
         :param entities: A collection of the services to include in this transfer request, separated by type.
         :type entities: dict
@@ -396,7 +396,7 @@ class AccountGroup(Group):
         """
         Returns a MappedObject containing the account's transfer pool data.
 
-        API Documentation: https://www.linode.com/docs/api/account/#network-utilization-view
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-transfer
 
         :returns: Information about this account's transfer pool data.
         :rtype: MappedObject
@@ -421,7 +421,7 @@ class AccountGroup(Group):
         The new user will receive an email inviting them to set up their password.
         This must be completed before they can log in.
 
-        API Documentation: https://www.linode.com/docs/api/account/#user-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-user
 
         :param email: The new user's email address.  This is used to finish setting
                       up their user account.
@@ -459,7 +459,7 @@ class AccountGroup(Group):
         """
         Returns a list of all Beta Programs an account is enrolled in.
 
-        API doc: https://www.linode.com/docs/api/beta-programs/#enrolled-beta-programs-list
+        API doc: https://techdocs.akamai.com/linode-api/reference/get-enrolled-beta-programs
 
         :returns: a list of Beta Programs.
         :rtype: PaginatedList of AccountBetaProgram
@@ -470,7 +470,7 @@ class AccountGroup(Group):
         """
         Enrolls an account into a beta program.
 
-        API doc: https://www.linode.com/docs/api/beta-programs/#beta-program-enroll
+        API doc: https://techdocs.akamai.com/linode-api/reference/post-beta-program
 
         :param beta: The object or id of a beta program to join.
         :type beta: BetaProgram or str
@@ -491,7 +491,7 @@ class AccountGroup(Group):
         Returns a list of all available regions and the resource types which are available
         to the account.
 
-        API doc: https://www.linode.com/docs/api/account/#region-service-availability
+        API doc: https://techdocs.akamai.com/linode-api/reference/get-account-availability
 
         :returns: a list of region availability information.
         :rtype: PaginatedList of AccountAvailability

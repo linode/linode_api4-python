@@ -32,7 +32,7 @@ class ObjectStorageBucket(DerivedBase):
     """
     A bucket where objects are stored in.
 
-    API documentation: https://www.linode.com/docs/api/object-storage/#object-storage-bucket-view
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-bucket
     """
 
     api_endpoint = "/object-storage/buckets/{region}/{label}"
@@ -89,7 +89,7 @@ class ObjectStorageBucket(DerivedBase):
         and/or setting canned ACLs. For more fine-grained control of both systems,
         please use the more fully-featured S3 API directly.
 
-        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-bucket-access-modify
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-object-storage-bucket-access
 
         :param acl: The Access Control Level of the bucket using a canned ACL string.
                     For more fine-grained control of ACLs, use the S3 API directly.
@@ -130,7 +130,7 @@ class ObjectStorageBucket(DerivedBase):
         and/or setting canned ACLs. For more fine-grained control of both systems,
         please use the more fully-featured S3 API directly.
 
-        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-bucket-access-update
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/put-storage-bucket-access
 
         :param acl: The Access Control Level of the bucket using a canned ACL string.
                     For more fine-grained control of ACLs, use the S3 API directly.
@@ -165,7 +165,7 @@ class ObjectStorageBucket(DerivedBase):
         Deletes this Object Storage bucket’s user uploaded TLS/SSL certificate
         and private key.
 
-        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-tlsssl-cert-delete
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/delete-object-storage-ssl
 
         :returns: True if the TLS/SSL certificate and private key in the bucket were successfully deleted.
         :rtype: bool
@@ -189,7 +189,7 @@ class ObjectStorageBucket(DerivedBase):
         if this bucket has a corresponding TLS/SSL certificate that
         was uploaded by an Account user.
 
-        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-tlsssl-cert-view
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-ssl
 
         :returns: A result object which has a bool field indicating if this Bucket has a corresponding
                   TLS/SSL certificate that was uploaded by an Account user.
@@ -217,7 +217,7 @@ class ObjectStorageBucket(DerivedBase):
         To replace an expired certificate, delete your current certificate and
         upload a new one.
 
-        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-tlsssl-cert-upload
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-object-storage-ssl
 
         :param certificate: Your Base64 encoded and PEM formatted SSL certificate.
                             Line breaks must be represented as “\n” in the string
@@ -267,7 +267,7 @@ class ObjectStorageBucket(DerivedBase):
         This endpoint is available for convenience.
         It is recommended that instead you use the more fully-featured S3 API directly.
 
-        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-bucket-contents-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-bucket-content
 
         :param marker: The “marker” for this request, which can be used to paginate
                        through large buckets. Its value should be the value of the
@@ -326,7 +326,7 @@ class ObjectStorageBucket(DerivedBase):
         This endpoint is available for convenience.
         It is recommended that instead you use the more fully-featured S3 API directly.
 
-        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-object-acl-config-view
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-bucket-acl
 
         :param name: The name of the object for which to retrieve its Access Control
                      List (ACL). Use the Object Storage Bucket Contents List endpoint
@@ -363,7 +363,7 @@ class ObjectStorageBucket(DerivedBase):
         This endpoint is available for convenience.
         It is recommended that instead you use the more fully-featured S3 API directly.
 
-        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-object-acl-config-update
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/put-object-storage-bucket-acl
 
         :param acl: The Access Control Level of the bucket, as a canned ACL string.
                     For more fine-grained control of ACLs, use the S3 API directly.
@@ -439,7 +439,7 @@ class ObjectStorageCluster(Base):
 
     A cluster where Object Storage is available.
 
-    API documentation: https://www.linode.com/docs/api/object-storage/#cluster-view
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-cluster
     """
 
     api_endpoint = "/object-storage/clusters/{id}"
@@ -466,7 +466,7 @@ class ObjectStorageCluster(Base):
         This endpoint is available for convenience.
         It is recommended that instead you use the more fully-featured S3 API directly.
 
-        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-buckets-in-cluster-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-bucketin-cluster
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -489,7 +489,7 @@ class ObjectStorageKeys(Base):
     """
     A keypair that allows third-party applications to access Linode Object Storage.
 
-    API documentation: https://www.linode.com/docs/api/object-storage/#object-storage-key-view
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-key
     """
 
     api_endpoint = "/object-storage/keys/{id}"

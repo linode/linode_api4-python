@@ -13,7 +13,7 @@ class NodeBalancerGroup(Group):
 
            nodebalancers = client.nodebalancers()
 
-        API Documentation: https://www.linode.com/docs/api/nodebalancers/#nodebalancers-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-node-balancers
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -28,7 +28,7 @@ class NodeBalancerGroup(Group):
         """
         Creates a new NodeBalancer in the given Region.
 
-        API Documentation: https://www.linode.com/docs/api/nodebalancers/#nodebalancer-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-node-balancer
 
         :param region: The Region in which to create the NodeBalancer.
         :type region: Region or str

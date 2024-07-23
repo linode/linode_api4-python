@@ -6,7 +6,7 @@ class DomainRecord(DerivedBase):
     """
     A single record on a Domain.
 
-    API Documentation: https://www.linode.com/docs/api/domains/#domain-record-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-domain-record
     """
 
     api_endpoint = "/domains/{domain_id}/records/{id}"
@@ -37,7 +37,7 @@ class Domain(Base):
     Linode is not a registrar, and in order for this Domain record to work
     you must own the domain and point your registrar at Linode’s nameservers.
 
-    API Documentation: https://www.linode.com/docs/api/domains/#domain-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-domain
     """
 
     api_endpoint = "/domains/{id}"
@@ -64,7 +64,7 @@ class Domain(Base):
         Adds a new Domain Record to the zonefile this Domain represents.
         Each domain can have up to 12,000 active records.
 
-        API Documentation: https://www.linode.com/docs/api/domains/#domain-record-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-domain-record
 
         :param record_type: The type of Record this is in the DNS system. Can be one of:
                             A, AAAA, NS, MX, CNAME, TXT, SRV, PTR, CAA.
@@ -101,7 +101,7 @@ class Domain(Base):
         """
         Returns the zone file for the last rendered zone for the specified domain.
 
-        API Documentation: https://www.linode.com/docs/api/domains/#domain-zone-file-view
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-domain-zone
 
         :returns: The zone file for the last rendered zone for the specified domain in the form
                   of a list of the lines of the zone file.
@@ -118,7 +118,7 @@ class Domain(Base):
         """
         Clones a Domain and all associated DNS records from a Domain that is registered in Linode’s DNS manager.
 
-        API Documentation: https://www.linode.com/docs/api/domains/#domain-clone
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-clone-domain
 
         :param domain: The new domain for the clone. Domain labels cannot be longer
                        than 63 characters and must conform to RFC1035. Domains must be
@@ -143,7 +143,7 @@ class Domain(Base):
             - 2600:3c00::5e
             = 2600:3c00::5f
 
-        API Documentation: https://www.linode.com/docs/api/domains/#domain-import
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-import-domain
 
         :param domain: The domain to import.
         :type: domain: str

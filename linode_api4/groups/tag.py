@@ -14,7 +14,7 @@ class TagGroup(Group):
 
            tags = client.tags()
 
-        API Documentation: https://www.linode.com/docs/api/domains/#domain-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-domain
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -37,7 +37,7 @@ class TagGroup(Group):
         """
         Creates a new Tag and optionally applies it to the given entities.
 
-        API Documentation: https://www.linode.com/docs/api/tags/#tags-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-tags
 
         :param label: The label for the new Tag
         :type label: str

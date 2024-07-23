@@ -13,7 +13,7 @@ class DomainGroup(Group):
 
            domains = client.domains()
 
-        API Documentation: https://www.linode.com/docs/api/domains/#domains-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-domains
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -30,7 +30,7 @@ class DomainGroup(Group):
         your registrar to Linode's nameservers so that Linode's DNS manager will
         correctly serve your domain.
 
-        API Documentation: https://www.linode.com/docs/api/domains/#domain-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-domain
 
         :param domain: The domain to register to Linode's DNS manager.
         :type domain: str

@@ -38,7 +38,7 @@ class ObjectStorageGroup(Group):
 
            us_east_clusters = client.object_storage.clusters(ObjectStorageCluster.region == "us-east")
 
-        API Documentation: https://www.linode.com/docs/api/object-storage/#clusters-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-clusters
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -54,7 +54,7 @@ class ObjectStorageGroup(Group):
         Returns a list of Object Storage Keys active on this account.  These keys
         allow third-party applications to interact directly with Linode Object Storage.
 
-        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-keys-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-keys
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -105,7 +105,7 @@ class ObjectStorageGroup(Group):
                bucket_access=client.object_storage.bucket_access("us-east-1", "example2", "read_only"),
            )
 
-        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-key-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-object-storage-keys
 
         :param label: The label for this keypair, for identification only.
         :type label: str
@@ -220,7 +220,7 @@ class ObjectStorageGroup(Group):
         This endpoint is available for convenience.
         It is recommended that instead you use the more fully-featured S3 API directly.
 
-        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-buckets-in-cluster-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-bucketin-cluster
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -245,7 +245,7 @@ class ObjectStorageGroup(Group):
         cancelled, you will no longer receive the transfer for or be billed for
         Object Storage, and all keys will be invalidated.
 
-        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-cancel
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-cancel-object-storage
         """
         self.client.post("/object-storage/cancel", data={})
         return True
@@ -256,7 +256,7 @@ class ObjectStorageGroup(Group):
         in bytes, for the current month’s billing cycle. Object Storage adds 1 terabyte
         of outbound data transfer to your data transfer pool.
 
-        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-transfer-view
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-transfer
 
         :returns: The amount of outbound data transfer used by your account’s Object
                   Storage buckets, in bytes, for the current month’s billing cycle.
@@ -278,7 +278,7 @@ class ObjectStorageGroup(Group):
         This endpoint is available for convenience.
         It is recommended that instead you use the more fully-featured S3 API directly.
 
-        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-buckets-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-buckets
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -309,7 +309,7 @@ class ObjectStorageGroup(Group):
         This endpoint is available for convenience.
         It is recommended that instead you use the more fully-featured S3 API directly.
 
-        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-bucket-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-object-storage-bucket
 
         :param acl: The Access Control Level of the bucket using a canned ACL string.
                     For more fine-grained control of ACLs, use the S3 API directly.
@@ -401,7 +401,7 @@ class ObjectStorageGroup(Group):
         This endpoint is available for convenience.
         It is recommended that instead you use the more fully-featured S3 API directly.
 
-        API Documentation: https://www.linode.com/docs/api/object-storage/#object-storage-object-url-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-object-storage-object-url
 
         :param cluster_or_region_id: The ID of the cluster or region this bucket exists in.
         :type cluster_or_region_id: str
