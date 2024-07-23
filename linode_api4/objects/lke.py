@@ -132,6 +132,7 @@ class LKENodePool(DerivedBase):
         "cluster_id": Property(identifier=True),
         "type": Property(slug_relationship=Type),
         "disks": Property(),
+        "disk_encryption": Property(),
         "count": Property(mutable=True),
         "nodes": Property(
             volatile=True
