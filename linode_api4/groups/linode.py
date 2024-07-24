@@ -1,7 +1,9 @@
 import base64
 import os
 from collections.abc import Iterable
+from typing import Optional, Union
 
+from linode_api4 import InstanceDiskEncryptionType
 from linode_api4.common import load_and_validate_keys
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
@@ -40,7 +42,7 @@ class LinodeGroup(Group):
 
            standard_types = client.linode.types(Type.class == "standard")
 
-        API documentation: https://www.linode.com/docs/api/linode-types/#types-list
+        API documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-types
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -58,7 +60,7 @@ class LinodeGroup(Group):
 
            prod_linodes = client.linode.instances(Instance.group == "prod")
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#linodes-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-instances
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -78,7 +80,7 @@ class LinodeGroup(Group):
 
            my_stackscripts = client.linode.stackscripts(mine_only=True)
 
-        API Documentation: https://www.linode.com/docs/api/stackscripts/#stackscripts-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-stack-scripts
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -115,7 +117,7 @@ class LinodeGroup(Group):
         Returns a list of available :any:`Kernels<Kernel>`.  Kernels are used
         when creating or updating :any:`LinodeConfigs,LinodeConfig>`.
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#kernels-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-kernels
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -128,7 +130,15 @@ class LinodeGroup(Group):
 
     # create things
     def instance_create(
-        self, ltype, region, image=None, authorized_keys=None, **kwargs
+        self,
+        ltype,
+        region,
+        image=None,
+        authorized_keys=None,
+        disk_encryption: Optional[
+            Union[InstanceDiskEncryptionType, str]
+        ] = None,
+        **kwargs,
     ):
         """
         Creates a new Linode Instance. This function has several modes of operation:
@@ -216,7 +226,7 @@ class LinodeGroup(Group):
         successfully until disks and configs are created, or it is otherwise
         configured.
 
-        API Documentation: https://www.linode.com/docs/api/linode-instances/#linode-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-linode-instance
 
         :param ltype: The Instance Type we are creating
         :type ltype: str or Type
@@ -263,6 +273,9 @@ class LinodeGroup(Group):
         :type metadata: dict
         :param firewall: The firewall to attach this Linode to.
         :type firewall: int or Firewall
+        :param disk_encryption: The disk encryption policy for this Linode.
+                                NOTE: Disk encryption may not currently be available to all users.
+        :type disk_encryption: InstanceDiskEncryptionType or str
         :param interfaces: An array of Network Interfaces to add to this Linode’s Configuration Profile.
                            At least one and up to three Interface objects can exist in this array.
         :type interfaces: list[ConfigInterface] or list[dict[str, Any]]
@@ -330,6 +343,9 @@ class LinodeGroup(Group):
             "authorized_keys": authorized_keys,
         }
 
+        if disk_encryption is not None:
+            params["disk_encryption"] = str(disk_encryption)
+
         params.update(kwargs)
 
         result = self.client.post("/linode/instances", data=params)
@@ -384,7 +400,7 @@ class LinodeGroup(Group):
         """
         Creates a new :any:`StackScript` on your account.
 
-        API Documentation: https://www.linode.com/docs/api/stackscripts/#stackscript-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-add-stack-script
 
         :param label: The label for this StackScript.
         :type label: str

@@ -19,7 +19,7 @@ class TicketReply(DerivedBase):
     """
     A reply to a Support Ticket.
 
-    API Documentation: https://www.linode.com/docs/api/support/#replies-list
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-ticket-replies
     """
 
     api_endpoint = "/support/tickets/{ticket_id}/replies"
@@ -40,7 +40,7 @@ class SupportTicket(Base):
     """
     An objected representing a Linode Support Ticket.
 
-    API Documentation: https://www.linode.com/docs/api/support/#replies-list
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-ticket-replies
     """
 
     api_endpoint = "/support/tickets/{id}"
@@ -117,7 +117,7 @@ class SupportTicket(Base):
         """
         Adds a reply to an existing Support Ticket.
 
-        API Documentation: https://www.linode.com/docs/api/support/#reply-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-ticket-reply
 
         :param description: The content of this Support Ticket Reply.
         :type description: str
@@ -146,7 +146,7 @@ class SupportTicket(Base):
         """
         Uploads an attachment to an existing Support Ticket.
 
-        API Documentation: https://www.linode.com/docs/api/support/#support-ticket-attachment-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-ticket-attachment
 
         :param attachment: A path to the file to upload as an attachment.
         :type attachment: str
@@ -187,7 +187,7 @@ class SupportTicket(Base):
         """
         Closes a Support Ticket.
 
-        API Documentation: https://www.linode.com/docs/api/support/#support-ticket-close
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-close-ticket
         """
 
         self._client.post("{}/close".format(self.api_endpoint), model=self)

@@ -2,7 +2,11 @@ from typing import Union
 
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
-from linode_api4.objects.placement import PlacementGroup
+from linode_api4.objects.placement import (
+    PlacementGroup,
+    PlacementGroupPolicy,
+    PlacementGroupType,
+)
 from linode_api4.objects.region import Region
 
 
@@ -31,8 +35,8 @@ class PlacementAPIGroup(Group):
         self,
         label: str,
         region: Union[Region, str],
-        affinity_type: str,
-        is_strict: bool = False,
+        placement_group_type: PlacementGroupType,
+        placement_group_policy: PlacementGroupPolicy,
         **kwargs,
     ) -> PlacementGroup:
         """
@@ -44,10 +48,10 @@ class PlacementAPIGroup(Group):
         :type label: str
         :param region: The region where the placement group will be created. Can be either a Region object or a string representing the region ID.
         :type region: Union[Region, str]
-        :param affinity_type: The affinity type of the placement group.
-        :type affinity_type: PlacementGroupAffinityType
-        :param is_strict: Whether the placement group is strict (defaults to False).
-        :type is_strict: bool
+        :param placement_group_type: The type of the placement group.
+        :type placement_group_type: PlacementGroupType
+        :param placement_group_policy: The policy for assignments to this placement group.
+        :type placement_group_policy: PlacementGroupPolicy
 
         :returns: The new Placement Group.
         :rtype: PlacementGroup
@@ -55,8 +59,8 @@ class PlacementAPIGroup(Group):
         params = {
             "label": label,
             "region": region.id if isinstance(region, Region) else region,
-            "affinity_type": affinity_type,
-            "is_strict": is_strict,
+            "placement_group_type": placement_group_type,
+            "placement_group_policy": placement_group_policy,
         }
 
         params.update(kwargs)

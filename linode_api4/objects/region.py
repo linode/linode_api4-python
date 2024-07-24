@@ -20,7 +20,7 @@ class Region(Base):
     """
     A Region. Regions correspond to individual data centers, each located in a different geographical area.
 
-    API Documentation: https://www.linode.com/docs/api/regions/#region-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-region
     """
 
     api_endpoint = "/regions/{id}"
@@ -56,7 +56,7 @@ class RegionAvailabilityEntry(JSONObject):
     """
     Represents the availability of a Linode type within a region.
 
-    API Documentation: https://www.linode.com/docs/api/regions/#region-availability-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-region-availability
     """
 
     region: str = None

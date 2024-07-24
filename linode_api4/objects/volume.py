@@ -7,7 +7,7 @@ class Volume(Base):
     A single Block Storage Volume. Block Storage Volumes are persistent storage devices
     that can be attached to a Compute Instance and used to store any type of data.
 
-    API Documentation: https://www.linode.com/docs/api/volumes/#volume-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-volume
     """
 
     api_endpoint = "/volumes/{id}"
@@ -31,7 +31,7 @@ class Volume(Base):
         """
         Attaches this Volume to the given Linode.
 
-        API Documentation: https://www.linode.com/docs/api/volumes/#volume-attach
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-attach-volume
 
         :param to_linode: The ID or object of the Linode to attach the volume to.
         :type to_linode: Union[Instance, int]
@@ -70,7 +70,7 @@ class Volume(Base):
         """
         Detaches this Volume if it is attached
 
-        API Documentation: https://www.linode.com/docs/api/volumes/#volume-detach
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-detach-volume
 
         :returns: Returns true if operation was successful
         :rtype: bool
@@ -83,7 +83,7 @@ class Volume(Base):
         """
         Resizes this Volume
 
-        API Documentation: https://www.linode.com/docs/api/volumes/#volume-resize
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-resize-volume
 
         :param size: The Volume’s size, in GiB.
         :type size: int
@@ -105,7 +105,7 @@ class Volume(Base):
         """
         Clones this volume to a new volume in the same region with the given label
 
-        API Documentation: https://www.linode.com/docs/api/volumes/#volume-clone
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-clone-volume
 
         :param label: The label for the new volume.
         :type label: str

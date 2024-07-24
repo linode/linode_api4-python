@@ -16,7 +16,7 @@ class NodeBalancerNode(DerivedBase):
     """
     The information about a single Node, a backend for this NodeBalancer’s configured port.
 
-    API documentation: https://www.linode.com/docs/api/nodebalancers/#node-view
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-node-balancer-node
     """
 
     api_endpoint = (
@@ -61,7 +61,7 @@ class NodeBalancerConfig(DerivedBase):
     """
     The configuration information for a single port of this NodeBalancer.
 
-    API documentation: https://www.linode.com/docs/api/nodebalancers/#config-view
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-node-balancer-config
     """
 
     api_endpoint = "/nodebalancers/{nodebalancer_id}/configs/{id}"
@@ -100,7 +100,7 @@ class NodeBalancerConfig(DerivedBase):
         Returns a paginated list of NodeBalancer nodes associated with this Config.
         These are the backends that will be sent traffic for this port.
 
-        API documentation: https://www.linode.com/docs/api/nodebalancers/#nodes-list
+        API documentation: https://techdocs.akamai.com/linode-api/reference/get-node-balancer-config-nodes
 
         :returns: A paginated list of NodeBalancer nodes.
         :rtype: PaginatedList of NodeBalancerNode
@@ -127,7 +127,7 @@ class NodeBalancerConfig(DerivedBase):
         NodeBalancer Config. Nodes are routed requests on the configured port based
         on their status.
 
-        API documentation: https://www.linode.com/docs/api/nodebalancers/#node-create
+        API documentation: https://techdocs.akamai.com/linode-api/reference/post-node-balancer-node
 
         :param address: The private IP Address where this backend can be reached.
                         This must be a private IP address.
@@ -200,7 +200,7 @@ class NodeBalancer(Base):
     """
     A single NodeBalancer you can access.
 
-    API documentation: https://www.linode.com/docs/api/nodebalancers/#nodebalancer-view
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-node-balancer
     """
 
     api_endpoint = "/nodebalancers/{id}"
@@ -227,7 +227,7 @@ class NodeBalancer(Base):
         on a new port. You will need to add NodeBalancer Nodes to the new Config before
         it can actually serve requests.
 
-        API documentation: https://www.linode.com/docs/api/nodebalancers/#config-create
+        API documentation: https://techdocs.akamai.com/linode-api/reference/post-node-balancer-config
 
         :returns: The config that created successfully.
         :rtype: NodeBalancerConfig
@@ -254,7 +254,7 @@ class NodeBalancer(Base):
         Rebuilds a NodeBalancer Config and its Nodes that you have permission to modify.
         Use this command to update a NodeBalancer’s Config and Nodes with a single request.
 
-        API documentation: https://www.linode.com/docs/api/nodebalancers/#config-rebuild
+        API documentation: https://techdocs.akamai.com/linode-api/reference/post-rebuild-node-balancer-config
 
         :param config_id: The ID of the Config to access.
         :type config_id: int
@@ -289,7 +289,7 @@ class NodeBalancer(Base):
         """
         Returns detailed statistics about the requested NodeBalancer.
 
-        API documentation: https://www.linode.com/docs/api/nodebalancers/#nodebalancer-statistics-view
+        API documentation: https://techdocs.akamai.com/linode-api/reference/get-node-balancer-stats
 
         :returns: The requested stats.
         :rtype: MappedObject
