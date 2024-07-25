@@ -14,8 +14,8 @@ from linode_api4.objects import Image
 def image_upload_url(test_linode_client):
     label = get_test_label() + "_image"
 
-    # TODO: use get_region to get regions randomly with specific functionality
-    # region = get_region(test_linode_client, {"Functionality"})
+    # TODO: get random region with core site_type once functional generally
+    # region = get_region(test_linode_client, site_type="core")
 
     test_linode_client.image_create_upload(
         label, "us-east", "integration test image upload"
@@ -38,6 +38,9 @@ def test_uploaded_image(test_linode_client):
     )
 
     label = get_test_label() + "_image"
+    # TODO: get random region with core site_type once functional generally
+    # region = get_region(test_linode_client, site_type="core")
+
     image = test_linode_client.image_upload(
         label,
         "us-east",
@@ -66,7 +69,6 @@ def test_image_create_upload(test_linode_client, test_uploaded_image):
     assert image.tags[0] == "tests"
 
 
-# TODO: Image is not ready for replication yet. We'll verify this test when the API is ready.
 @pytest.mark.smoke
 def test_image_replication(test_linode_client, test_uploaded_image):
     image = test_linode_client.load(Image, test_uploaded_image.id)
@@ -80,11 +82,12 @@ def test_image_replication(test_linode_client, test_uploaded_image):
         polling.poll(
             poll_func,
             step=10,
-            timeout=100,
+            timeout=250,
         )
     except polling.TimeoutException:
         print("failed to wait for image status: timeout period expired.")
 
+    # image replication works stably in these two regions
     image.replicate(["us-east", "eu-west"])
 
     assert image.label == test_uploaded_image.label
