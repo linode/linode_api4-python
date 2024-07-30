@@ -159,7 +159,14 @@ class LKENodePool(DerivedBase):
                             "Node dictionary does not contain 'id' key"
                         )
                 elif isinstance(c, str):
-                    new_nodes.append(LKENodePoolNode(self._client, c))
+                    node_details = self._client.get(
+                        LKENodePool.api_endpoint.format(
+                            cluster_id=self.id, id=c
+                        )
+                    )
+                    new_nodes.append(
+                        LKENodePoolNode(self._client, node_details)
+                    )
                 else:
                     raise TypeError("Unsupported node type: {}".format(type(c)))
             json["nodes"] = new_nodes
