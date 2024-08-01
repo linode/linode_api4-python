@@ -146,14 +146,29 @@ class LKENodePool(DerivedBase):
         Parse Nodes into more useful LKENodePoolNode objects
         """
         if json is not None and json != {}:
-            new_nodes = [
-                (
-                    LKENodePoolNode(self._client, c)
-                    if not isinstance(c, dict)
-                    else c
-                )
-                for c in json["nodes"]
-            ]
+            new_nodes = []
+            for c in json["nodes"]:
+                if isinstance(c, LKENodePoolNode):
+                    new_nodes.append(c)
+                elif isinstance(c, dict):
+                    node_id = c.get("id")
+                    if node_id is not None:
+                        new_nodes.append(LKENodePoolNode(self._client, c))
+                    else:
+                        raise ValueError(
+                            "Node dictionary does not contain 'id' key"
+                        )
+                elif isinstance(c, str):
+                    node_details = self._client.get(
+                        LKENodePool.api_endpoint.format(
+                            cluster_id=self.id, id=c
+                        )
+                    )
+                    new_nodes.append(
+                        LKENodePoolNode(self._client, node_details)
+                    )
+                else:
+                    raise TypeError("Unsupported node type: {}".format(type(c)))
             json["nodes"] = new_nodes
 
         super()._populate(json)
