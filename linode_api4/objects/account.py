@@ -62,7 +62,7 @@ class ChildAccount(Account):
 
     NOTE: Parent/Child related features may not be generally available.
 
-    API Documentation: TBD
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-child-account
     """
 
     api_endpoint = "/account/child-accounts/{euuid}"
@@ -70,9 +70,9 @@ class ChildAccount(Account):
 
     def create_token(self, **kwargs):
         """
-        Create a ephemeral token for accessing the child account.
+        Create an ephemeral token for accessing the child account.
 
-        API Documentation: TBD
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-child-account-token
         """
         resp = self._client.post(
             "{}/token".format(self.api_endpoint),
