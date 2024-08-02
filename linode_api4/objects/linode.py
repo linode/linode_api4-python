@@ -294,7 +294,7 @@ class NetworkInterface(DerivedBase):
     NOTE: This class cannot be used for the `interfaces` attribute on Config
     POST and PUT requests.
 
-    API Documentation: TODO
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-config-interface
     """
 
     api_endpoint = (
@@ -369,7 +369,7 @@ class ConfigInterface(JSONObject):
     If you would like to access a config interface directly,
     consider using :any:`NetworkInterface`.
 
-    API Documentation: TODO
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-config-interface
     """
 
     purpose: str = "public"
@@ -462,7 +462,7 @@ class Config(DerivedBase):
         This differs from the `interfaces` field as each NetworkInterface
         object is treated as its own API object.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-config-interfaces
         """
 
         return [
@@ -523,7 +523,7 @@ class Config(DerivedBase):
         """
         Creates a public interface for this Configuration Profile.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-linode-config-interface
 
         :param primary: Whether this interface is a primary interface.
         :type primary: bool
@@ -540,7 +540,7 @@ class Config(DerivedBase):
         """
         Creates a VLAN interface for this Configuration Profile.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-linode-config-interface
 
         :param label: The label of the VLAN to associate this interface with.
         :type label: str
@@ -569,7 +569,7 @@ class Config(DerivedBase):
         """
         Creates a VPC interface for this Configuration Profile.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-linode-config-interface
 
         :param subnet: The VPC subnet to associate this interface with.
         :type subnet: int or VPCSubnet
@@ -605,7 +605,7 @@ class Config(DerivedBase):
         """
         Change the order of the interfaces for this Configuration Profile.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-linode-config-interfaces
 
         :param interfaces: A list of interfaces in the desired order.
         :type interfaces: List of str or NetworkInterface

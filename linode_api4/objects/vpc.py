@@ -23,7 +23,7 @@ class VPCSubnet(DerivedBase):
     """
     An instance of a VPC subnet.
 
-    API Documentation: TODO
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-vpc-subnet
     """
 
     api_endpoint = "/vpcs/{vpc_id}/subnets/{id}"
@@ -44,7 +44,7 @@ class VPC(Base):
     """
     An instance of a VPC.
 
-    API Documentation: TODO
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-vpc
     """
 
     api_endpoint = "/vpcs/{id}"
@@ -68,7 +68,7 @@ class VPC(Base):
         """
         Creates a new Subnet object under this VPC.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-vpc-subnet
 
         :param label: The label of this subnet.
         :type label: str
@@ -104,7 +104,7 @@ class VPC(Base):
         """
         Get all the IP addresses under this VPC.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-vpc-ips
 
         :returns: A list of VPCIPAddresses the acting user can access.
         :rtype: PaginatedList of VPCIPAddress
