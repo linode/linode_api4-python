@@ -152,7 +152,7 @@ class LKENodePool(DerivedBase):
         "autoscaler": Property(mutable=True),
         "tags": Property(mutable=True, unordered=True),
         "labels": Property(mutable=True),
-        "taints": Property(mutable=True, json_object=LKENodePoolTaint),
+        "taints": Property(mutable=True),
     }
 
     def _parse_raw_node(
@@ -183,21 +183,21 @@ class LKENodePool(DerivedBase):
         Parse Nodes into more useful LKENodePoolNode objects
         """
 
-        super()._populate(json)
-
         if json is not None and json != {}:
-            self._set(
-                "nodes",
-                [self._parse_raw_node(node) for node in json.get("nodes", [])],
-            )
+            json["nodes"] = [
+                self._parse_raw_node(node) for node in json.get("nodes", [])
+            ]
 
-            self._set(
-                "taints",
-                [
+            json["taints"] = [
+                (
                     LKENodePoolTaint.from_json(taint)
-                    for taint in json.get("taints", [])
-                ],
-            )
+                    if not isinstance(taint, LKENodePoolTaint)
+                    else taint
+                )
+                for taint in json.get("taints", [])
+            ]
+
+        super()._populate(json)
 
     def recycle(self):
         """
