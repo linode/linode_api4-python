@@ -277,6 +277,8 @@ class Base(object, metaclass=FilterableMetaclass):
                 ):
                     data[key] = None
 
+            # Ensure we serialize any values that may not be already serialized
+            data = self._serialize_walk(data)
         else:
             data = self._serialize()
 
@@ -314,6 +316,31 @@ class Base(object, metaclass=FilterableMetaclass):
 
         self._set("_populated", False)
 
+    @staticmethod
+    def _serialize_walk(data: Any) -> Any:
+        """
+        Recursively serializes the given data.
+        NOTE: This helper does NOT raise an error if an attribute is
+        not known to be JSON serializable.
+
+        :param data: Arbitrary data to serialize
+        :return: The serialized data.
+        """
+
+        if isinstance(data, dict):
+            return {k: Base._serialize_walk(v) for k, v in data.items()}
+
+        if isinstance(data, list):
+            return [Base._serialize_walk(v) for v in data]
+
+        if isinstance(data, Base):
+            return data.id
+
+        if isinstance(data, MappedObject) or issubclass(type(data), JSONObject):
+            return data.dict
+
+        return data
+
     def _serialize(self):
         """
         A helper method to build a dict of all mutable Properties of
@@ -343,10 +370,7 @@ class Base(object, metaclass=FilterableMetaclass):
 
         # Resolve the underlying IDs of results
         for k, v in result.items():
-            if isinstance(v, Base):
-                result[k] = v.id
-            elif isinstance(v, MappedObject) or issubclass(type(v), JSONObject):
-                result[k] = v.dict
+            result[k] = self._serialize_walk(v)
 
         return result
 

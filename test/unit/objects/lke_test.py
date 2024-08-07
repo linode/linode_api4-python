@@ -10,7 +10,7 @@ from linode_api4.objects import (
     LKEClusterControlPlaneOptions,
     LKENodePool,
 )
-from linode_api4.objects.lke import LKENodePoolNode
+from linode_api4.objects.lke import LKENodePoolNode, LKENodePoolTaint
 
 
 class LKETest(ClientBaseCase):
@@ -47,16 +47,23 @@ class LKETest(ClientBaseCase):
 
         pool = LKENodePool(self.client, 456, 18881)
 
-        self.assertEqual(pool.id, 456)
-        self.assertEqual(pool.cluster_id, 18881)
-        self.assertEqual(pool.type.id, "g6-standard-4")
-        self.assertEqual(
-            pool.disk_encryption, InstanceDiskEncryptionType.enabled
-        )
-        self.assertIsNotNone(pool.disks)
-        self.assertIsNotNone(pool.nodes)
-        self.assertIsNotNone(pool.autoscaler)
-        self.assertIsNotNone(pool.tags)
+        assert pool.id == 456
+        assert pool.cluster_id == 18881
+        assert pool.type.id == "g6-standard-4"
+        assert pool.disk_encryption == InstanceDiskEncryptionType.enabled
+
+        assert pool.disks is not None
+        assert pool.nodes is not None
+        assert pool.autoscaler is not None
+        assert pool.tags is not None
+
+        assert pool.labels.foo == "bar"
+        assert pool.labels.bar == "foo"
+
+        assert isinstance(pool.taints[0], LKENodePoolTaint)
+        assert pool.taints[0].key == "foo"
+        assert pool.taints[0].value == "bar"
+        assert pool.taints[0].effect == "NoSchedule"
 
     def test_cluster_dashboard_url_view(self):
         """
@@ -265,6 +272,83 @@ class LKETest(ClientBaseCase):
             assert m.call_url == "/lke/clusters/18881/control_plane_acl"
             assert m.method == "get"
 
+    def test_lke_node_pool_update(self):
+        """
+        Tests that an LKE Node Pool can be properly updated.
+        """
+        pool = LKENodePool(self.client, 456, 18881)
+
+        pool.tags = ["foobar"]
+        pool.count = 5
+        pool.autoscaler = {
+            "enabled": True,
+            "min": 2,
+            "max": 10,
+        }
+        pool.labels = {"updated-key": "updated-value"}
+        pool.taints = [
+            LKENodePoolTaint(
+                key="updated-key", value="updated-value", effect="NoExecute"
+            )
+        ]
+
+        with self.mock_put("lke/clusters/18881/pools/456") as m:
+            pool.save()
+
+            assert m.call_data == {
+                "tags": ["foobar"],
+                "count": 5,
+                "autoscaler": {
+                    "enabled": True,
+                    "min": 2,
+                    "max": 10,
+                },
+                "labels": {
+                    "updated-key": "updated-value",
+                },
+                "taints": [
+                    {
+                        "key": "updated-key",
+                        "value": "updated-value",
+                        "effect": "NoExecute",
+                    }
+                ],
+            }
+
+    def test_populate_with_taints(self):
+        """
+        Tests that LKENodePool correctly handles a list of LKENodePoolTaint and Dict objects.
+        """
+        self.client = MagicMock()
+        self.pool = LKENodePool(self.client, 456, 18881)
+
+        self.pool._populate(
+            {
+                "taints": [
+                    LKENodePoolTaint(
+                        key="wow", value="cool", effect="NoExecute"
+                    ),
+                    {
+                        "key": "foo",
+                        "value": "bar",
+                        "effect": "NoSchedule",
+                    },
+                ],
+            }
+        )
+
+        assert len(self.pool.taints) == 2
+        assert self.pool.taints[0].dict == {
+            "key": "wow",
+            "value": "cool",
+            "effect": "NoExecute",
+        }
+        assert self.pool.taints[1].dict == {
+            "key": "foo",
+            "value": "bar",
+            "effect": "NoSchedule",
+        }
+
     def test_populate_with_node_objects(self):
         """
         Tests that LKENodePool correctly handles a list of LKENodePoolNode objects.
@@ -298,11 +382,13 @@ class LKETest(ClientBaseCase):
         node_dict2 = {"id": "node4", "instance_id": 104, "status": "failed"}
         self.pool._populate({"nodes": [node_dict1, node_dict2]})
 
-        self.assertEqual(len(self.pool.nodes), 2)
-        self.assertIsInstance(self.pool.nodes[0], LKENodePoolNode)
-        self.assertIsInstance(self.pool.nodes[1], LKENodePoolNode)
-        self.assertEqual(self.pool.nodes[0].id, "node3")
-        self.assertEqual(self.pool.nodes[1].id, "node4")
+        assert len(self.pool.nodes) == 2
+
+        assert isinstance(self.pool.nodes[0], LKENodePoolNode)
+        assert isinstance(self.pool.nodes[1], LKENodePoolNode)
+
+        assert self.pool.nodes[0].id == "node3"
+        assert self.pool.nodes[1].id == "node4"
 
     def test_populate_with_node_ids(self):
         """
@@ -313,20 +399,30 @@ class LKETest(ClientBaseCase):
 
         node_id1 = "node5"
         node_id2 = "node6"
+
         # Mock instances creation
-        self.client.get = MagicMock(
+        self.client.load = MagicMock(
             side_effect=[
-                {"id": "node5", "instance_id": 105, "status": "active"},
-                {"id": "node6", "instance_id": 106, "status": "inactive"},
+                LKENodePoolNode(
+                    self.client,
+                    {"id": "node5", "instance_id": 105, "status": "active"},
+                ),
+                LKENodePoolNode(
+                    self.client,
+                    {"id": "node6", "instance_id": 106, "status": "inactive"},
+                ),
             ]
         )
+
         self.pool._populate({"nodes": [node_id1, node_id2]})
 
-        self.assertEqual(len(self.pool.nodes), 2)
-        self.assertIsInstance(self.pool.nodes[0], LKENodePoolNode)
-        self.assertIsInstance(self.pool.nodes[1], LKENodePoolNode)
-        self.assertEqual(self.pool.nodes[0].id, "node5")
-        self.assertEqual(self.pool.nodes[1].id, "node6")
+        assert len(self.pool.nodes) == 2
+
+        assert isinstance(self.pool.nodes[0], LKENodePoolNode)
+        assert isinstance(self.pool.nodes[1], LKENodePoolNode)
+
+        assert self.pool.nodes[0].id == "node5"
+        assert self.pool.nodes[1].id == "node6"
 
     def test_populate_with_mixed_types(self):
         """
@@ -341,17 +437,20 @@ class LKETest(ClientBaseCase):
         node_dict = {"id": "node8", "instance_id": 108, "status": "inactive"}
         node_id = "node9"
         # Mock instances creation
-        self.client.get = MagicMock(
+        self.client.load = MagicMock(
             side_effect=[
-                {"id": "node9", "instance_id": 109, "status": "pending"}
+                LKENodePoolNode(
+                    self.client,
+                    {"id": "node9", "instance_id": 109, "status": "pending"},
+                )
             ]
         )
         self.pool._populate({"nodes": [node1, node_dict, node_id]})
 
-        self.assertEqual(len(self.pool.nodes), 3)
-        self.assertIsInstance(self.pool.nodes[0], LKENodePoolNode)
-        self.assertIsInstance(self.pool.nodes[1], LKENodePoolNode)
-        self.assertIsInstance(self.pool.nodes[2], LKENodePoolNode)
-        self.assertEqual(self.pool.nodes[0].id, "node7")
-        self.assertEqual(self.pool.nodes[1].id, "node8")
-        self.assertEqual(self.pool.nodes[2].id, "node9")
+        assert len(self.pool.nodes) == 3
+        assert isinstance(self.pool.nodes[0], LKENodePoolNode)
+        assert isinstance(self.pool.nodes[1], LKENodePoolNode)
+        assert isinstance(self.pool.nodes[2], LKENodePoolNode)
+        assert self.pool.nodes[0].id == "node7"
+        assert self.pool.nodes[1].id == "node8"
+        assert self.pool.nodes[2].id == "node9"
