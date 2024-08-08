@@ -345,9 +345,7 @@ class LKETest(ClientBaseCase):
             assert m.call_data["node_pools"][0] == {
                 "type": "g6-nanode-1",
                 "count": 3,
-                "labels": {
-                    "foo": "bar"
-                },
+                "labels": {"foo": "bar"},
                 "taints": [
                     {"key": "a", "value": "b", "effect": "NoSchedule"},
                     {"key": "b", "value": "a", "effect": "NoSchedule"},
