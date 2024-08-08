@@ -12,7 +12,9 @@ from linode_api4.objects import ConfigInterface, ObjectStorageKeys, Region
 @pytest.fixture(scope="session")
 def setup_client_and_linode(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    chosen_region = get_region(client, {"Kubernetes", "NodeBalancers"}, "core").id
+    chosen_region = get_region(
+        client, {"Kubernetes", "NodeBalancers"}, "core"
+    ).id
 
     label = get_test_label()
 
