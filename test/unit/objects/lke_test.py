@@ -315,6 +315,45 @@ class LKETest(ClientBaseCase):
                 ],
             }
 
+    def test_cluster_create_with_labels_and_taints(self):
+        """
+        Tests that an LKE cluster can be created with labels and taints.
+        """
+
+        with self.mock_post("lke/clusters") as m:
+            self.client.lke.cluster_create(
+                "us-mia",
+                "test-acl-cluster",
+                [
+                    self.client.lke.node_pool(
+                        "g6-nanode-1",
+                        3,
+                        labels={
+                            "foo": "bar",
+                        },
+                        taints=[
+                            LKENodePoolTaint(
+                                key="a", value="b", effect="NoSchedule"
+                            ),
+                            {"key": "b", "value": "a", "effect": "NoSchedule"},
+                        ],
+                    )
+                ],
+                "1.29",
+            )
+
+            assert m.call_data["node_pools"][0] == {
+                "type": "g6-nanode-1",
+                "count": 3,
+                "labels": {
+                    "foo": "bar"
+                },
+                "taints": [
+                    {"key": "a", "value": "b", "effect": "NoSchedule"},
+                    {"key": "b", "value": "a", "effect": "NoSchedule"},
+                ],
+            }
+
     def test_populate_with_taints(self):
         """
         Tests that LKENodePool correctly handles a list of LKENodePoolTaint and Dict objects.
@@ -338,11 +377,13 @@ class LKETest(ClientBaseCase):
         )
 
         assert len(self.pool.taints) == 2
+
         assert self.pool.taints[0].dict == {
             "key": "wow",
             "value": "cool",
             "effect": "NoExecute",
         }
+
         assert self.pool.taints[1].dict == {
             "key": "foo",
             "value": "bar",

@@ -278,7 +278,7 @@ class Base(object, metaclass=FilterableMetaclass):
                     data[key] = None
 
             # Ensure we serialize any values that may not be already serialized
-            data = self._serialize_walk(data)
+            data = _flatten_request_body_recursive(data)
         else:
             data = self._serialize()
 
@@ -316,31 +316,6 @@ class Base(object, metaclass=FilterableMetaclass):
 
         self._set("_populated", False)
 
-    @staticmethod
-    def _serialize_walk(data: Any) -> Any:
-        """
-        Recursively serializes the given data.
-        NOTE: This helper does NOT raise an error if an attribute is
-        not known to be JSON serializable.
-
-        :param data: Arbitrary data to serialize
-        :return: The serialized data.
-        """
-
-        if isinstance(data, dict):
-            return {k: Base._serialize_walk(v) for k, v in data.items()}
-
-        if isinstance(data, list):
-            return [Base._serialize_walk(v) for v in data]
-
-        if isinstance(data, Base):
-            return data.id
-
-        if isinstance(data, MappedObject) or issubclass(type(data), JSONObject):
-            return data.dict
-
-        return data
-
     def _serialize(self):
         """
         A helper method to build a dict of all mutable Properties of
@@ -370,7 +345,7 @@ class Base(object, metaclass=FilterableMetaclass):
 
         # Resolve the underlying IDs of results
         for k, v in result.items():
-            result[k] = self._serialize_walk(v)
+            result[k] = _flatten_request_body_recursive(v)
 
         return result
 
@@ -526,3 +501,29 @@ class Base(object, metaclass=FilterableMetaclass):
         :returns: A new instance of this type, populated with json
         """
         return Base.make(id, client, cls, parent_id=parent_id, json=json)
+
+
+def _flatten_request_body_recursive(data: Any) -> Any:
+    """
+    This is a helper recursively flatten the given data for use in an API request body.
+
+    NOTE: This helper does NOT raise an error if an attribute is
+    not known to be JSON serializable.
+
+    :param data: Arbitrary data to flatten.
+    :return: The serialized data.
+    """
+
+    if isinstance(data, dict):
+        return {k: _flatten_request_body_recursive(v) for k, v in data.items()}
+
+    if isinstance(data, list):
+        return [_flatten_request_body_recursive(v) for v in data]
+
+    if isinstance(data, Base):
+        return data.id
+
+    if isinstance(data, MappedObject) or issubclass(type(data), JSONObject):
+        return data.dict
+
+    return data
