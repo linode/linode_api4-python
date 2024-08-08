@@ -16,7 +16,7 @@ from linode_api4 import (
     LKEClusterControlPlaneOptions,
 )
 from linode_api4.errors import ApiError
-from linode_api4.objects import LKECluster, LKENodePool
+from linode_api4.objects import LKECluster, LKENodePool, LKENodePoolTaint
 
 
 @pytest.fixture(scope="session")
@@ -61,6 +61,43 @@ def lke_cluster_with_acl(test_linode_client):
                 ),
             )
         ),
+    )
+
+    yield cluster
+
+    cluster.delete()
+
+
+# NOTE: This needs to be function-scoped because it is mutated in a test below.
+@pytest.fixture(scope="function")
+def lke_cluster_with_labels_and_taints(test_linode_client):
+    node_type = test_linode_client.linode.types()[1]  # g6-standard-1
+    version = test_linode_client.lke.versions()[0]
+
+    region = get_region(test_linode_client, {"Kubernetes"})
+
+    node_pools = test_linode_client.lke.node_pool(
+        node_type,
+        3,
+        labels={
+            "foo.example.com/test": "bar",
+            "foo.example.com/test2": "test",
+        },
+        taints=[
+            LKENodePoolTaint(
+                key="foo.example.com/test", value="bar", effect="NoSchedule"
+            ),
+            {
+                "key": "foo.example.com/test2",
+                "value": "cool",
+                "effect": "NoExecute",
+            },
+        ],
+    )
+    label = get_test_label() + "_cluster"
+
+    cluster = test_linode_client.lke.cluster_create(
+        region, label, node_pools, version
     )
 
     yield cluster
@@ -232,3 +269,54 @@ def test_lke_cluster_acl(lke_cluster_with_acl):
     cluster.control_plane_acl_delete()
 
     assert not cluster.control_plane_acl.enabled
+
+
+def test_lke_cluster_labels_and_taints(lke_cluster_with_labels_and_taints):
+    pool = lke_cluster_with_labels_and_taints.pools[0]
+
+    assert vars(pool.labels) == {
+        "foo.example.com/test": "bar",
+        "foo.example.com/test2": "test",
+    }
+
+    assert (
+        LKENodePoolTaint(
+            key="foo.example.com/test", value="bar", effect="NoSchedule"
+        )
+        in pool.taints
+    )
+
+    assert (
+        LKENodePoolTaint(
+            key="foo.example.com/test2", value="cool", effect="NoExecute"
+        )
+        in pool.taints
+    )
+
+    updated_labels = {
+        "foo.example.com/test": "bar",
+        "foo.example.com/test2": "cool",
+    }
+
+    updated_taints = [
+        LKENodePoolTaint(
+            key="foo.example.com/test", value="bar", effect="NoSchedule"
+        ),
+        {
+            "key": "foo.example.com/test2",
+            "value": "cool",
+            "effect": "NoExecute",
+        },
+    ]
+
+    pool.labels = updated_labels
+    pool.taints = updated_taints
+
+    pool.save()
+
+    # Invalidate the pool so we can assert on the refreshed values
+    pool.invalidate()
+
+    assert vars(pool.labels) == updated_labels
+    assert updated_taints[0] in pool.taints
+    assert LKENodePoolTaint.from_json(updated_taints[1]) in pool.taints

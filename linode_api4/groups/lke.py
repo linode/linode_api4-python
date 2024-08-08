@@ -3,13 +3,13 @@ from typing import Any, Dict, Union
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
-    Base,
-    JSONObject,
     KubeVersion,
     LKECluster,
     LKEClusterControlPlaneOptions,
+    Type,
     drop_null_keys,
 )
+from linode_api4.objects.base import _flatten_request_body_recursive
 
 
 class LKEGroup(Group):
@@ -107,41 +107,22 @@ class LKEGroup(Group):
         :returns: The new LKE Cluster
         :rtype: LKECluster
         """
-        pools = []
-        if not isinstance(node_pools, list):
-            node_pools = [node_pools]
-
-        for c in node_pools:
-            if isinstance(c, dict):
-                new_pool = {
-                    "type": (
-                        c["type"].id
-                        if "type" in c and issubclass(type(c["type"]), Base)
-                        else c.get("type")
-                    ),
-                    "count": c.get("count"),
-                }
-
-                pools += [new_pool]
 
         params = {
             "label": label,
-            "region": region.id if issubclass(type(region), Base) else region,
-            "node_pools": pools,
-            "k8s_version": (
-                kube_version.id
-                if issubclass(type(kube_version), Base)
-                else kube_version
+            "region": region,
+            "k8s_version": kube_version,
+            "node_pools": (
+                node_pools if isinstance(node_pools, list) else [node_pools]
             ),
-            "control_plane": (
-                control_plane.dict
-                if issubclass(type(control_plane), JSONObject)
-                else control_plane
-            ),
+            "control_plane": control_plane,
         }
         params.update(kwargs)
 
-        result = self.client.post("/lke/clusters", data=drop_null_keys(params))
+        result = self.client.post(
+            "/lke/clusters",
+            data=_flatten_request_body_recursive(drop_null_keys(params)),
+        )
 
         if "id" not in result:
             raise UnexpectedResponseError(
@@ -150,7 +131,7 @@ class LKEGroup(Group):
 
         return LKECluster(self.client, result["id"], result)
 
-    def node_pool(self, node_type, node_count):
+    def node_pool(self, node_type: Union[Type, str], node_count: int, **kwargs):
         """
         Returns a dict that is suitable for passing into the `node_pools` array
         of :any:`cluster_create`.  This is a convenience method, and need not be
@@ -160,11 +141,17 @@ class LKEGroup(Group):
         :type node_type: Type or str
         :param node_count: The number of nodes to create in this node pool.
         :type node_count: int
+        :param kwargs: Other attributes to create this node pool with.
+        :type kwargs: Any
 
         :returns: A dict describing the desired node pool.
         :rtype: dict
         """
-        return {
+        result = {
             "type": node_type,
             "count": node_count,
         }
+
+        result.update(kwargs)
+
+        return result
