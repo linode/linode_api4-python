@@ -21,7 +21,7 @@ class Tag(Base):
     A User-defined labels attached to objects in your Account, such as Linodes.
     Used for specifying and grouping attributes of objects that are relevant to the User.
 
-    API Documentation: https://www.linode.com/docs/api/tags/#tags-list
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-tags
     """
 
     api_endpoint = "/tags/{label}"
@@ -64,7 +64,7 @@ class Tag(Base):
         Returns a list of objects with this Tag.  This list may contain any
         taggable object type.
 
-        API Documentation: https://www.linode.com/docs/api/tags/#tagged-objects-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-tagged-objects
 
         :returns: Objects with this Tag
         :rtype: PaginatedList of objects with this Tag

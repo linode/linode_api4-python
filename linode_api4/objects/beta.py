@@ -6,7 +6,7 @@ class BetaProgram(Base):
     Beta program is a new product or service that's not generally available to all customers.
     User with permissions can enroll into a beta program and access the functionalities.
 
-    API Documentation: https://www.linode.com/docs/api/beta-programs/#beta-program-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-beta-program
     """
 
     api_endpoint = "/betas/{id}"

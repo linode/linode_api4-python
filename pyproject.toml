@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "linode_api4"
-authors = [{ name = "Linode", email = "developers@linode.com" }]
+authors = [{ name = "Linode", email = "devs@linode.com" }]
 description = "The official Python SDK for Linode API v4"
 readme = "README.rst"
 requires-python = ">=3.8"
@@ -31,7 +31,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-dependencies = ["requests", "polling"]
+dependencies = ["requests", "polling", "deprecated"]
 dynamic = ["version"]
 
 [project.optional-dependencies]

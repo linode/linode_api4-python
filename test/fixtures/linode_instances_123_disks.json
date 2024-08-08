@@ -10,7 +10,8 @@
       "id": 12345,
       "updated": "2017-01-01T00:00:00",
       "label": "Ubuntu 17.04 Disk",
-      "created": "2017-01-01T00:00:00"
+      "created": "2017-01-01T00:00:00",
+      "disk_encryption": "disabled"
     },
     {
       "size": 512,
@@ -19,7 +20,8 @@
       "id": 12346,
       "updated": "2017-01-01T00:00:00",
       "label": "512 MB Swap Image",
-      "created": "2017-01-01T00:00:00"
+      "created": "2017-01-01T00:00:00",
+      "disk_encryption": "disabled"
     }
   ]
 }

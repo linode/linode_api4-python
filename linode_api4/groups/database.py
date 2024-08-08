@@ -31,7 +31,7 @@ class DatabaseGroup(Group):
 
            database_types = client.database.types(DatabaseType.deprecated == False)
 
-        API Documentation: https://www.linode.com/docs/api/databases/#managed-database-types-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-databases-types
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -51,7 +51,7 @@ class DatabaseGroup(Group):
 
            mysql_engines = client.database.engines(DatabaseEngine.engine == 'mysql')
 
-        API Documentation: https://www.linode.com/docs/api/databases/#managed-database-engines-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-databases-engines
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -66,7 +66,7 @@ class DatabaseGroup(Group):
         """
         Returns a list of Managed Databases active on this account.
 
-        API Documentation: https://www.linode.com/docs/api/databases/#managed-databases-list-all
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-databases-instances
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -81,7 +81,7 @@ class DatabaseGroup(Group):
         """
         Returns a list of Managed MySQL Databases active on this account.
 
-        API Documentation: https://www.linode.com/docs/api/databases/#managed-mysql-databases-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-databases-mysql-instances
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -112,7 +112,7 @@ class DatabaseGroup(Group):
                type.id
             )
 
-        API Documentation: https://www.linode.com/docs/api/databases/#managed-mysql-database-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-databases-mysql-instances
 
         :param label: The name for this cluster
         :type label: str
@@ -146,7 +146,7 @@ class DatabaseGroup(Group):
         """
         Returns a list of Managed PostgreSQL Databases active on this account.
 
-        API Documentation: https://www.linode.com/docs/api/databases/#managed-postgresql-databases-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-databases-postgre-sql-instances
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -177,7 +177,7 @@ class DatabaseGroup(Group):
                type.id
             )
 
-        API Documentation: https://www.linode.com/docs/api/databases/#managed-postgresql-database-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-databases-postgre-sql-instances
 
         :param label: The name for this cluster
         :type label: str

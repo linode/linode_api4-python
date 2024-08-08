@@ -357,26 +357,6 @@ def test_fails_to_create_cluster_with_invalid_version(test_linode_client):
         assert e.status == 400
 
 
-# ProfileGroupTest
-
-
-def test_get_sshkeys(test_linode_client, test_sshkey):
-    client = test_linode_client
-
-    ssh_keys = client.profile.ssh_keys()
-
-    ssh_labels = [i.label for i in ssh_keys]
-
-    assert test_sshkey.label in ssh_labels
-
-
-def test_ssh_key_create(test_sshkey, ssh_key_gen):
-    pub_key = ssh_key_gen[0]
-    key = test_sshkey
-
-    assert pub_key == key._raw_json["ssh_key"]
-
-
 # ObjectStorageGroupTests
 
 
@@ -389,9 +369,9 @@ def test_get_object_storage_clusters(test_linode_client):
     assert "us-east" in clusters[0].region.id
 
 
-def test_get_keys(test_linode_client, ssh_keys_object_storage):
+def test_get_keys(test_linode_client, access_keys_object_storage):
     client = test_linode_client
-    key = ssh_keys_object_storage
+    key = access_keys_object_storage
 
     keys = client.object_storage.keys()
     key_labels = [i.label for i in keys]
@@ -399,8 +379,8 @@ def test_get_keys(test_linode_client, ssh_keys_object_storage):
     assert key.label in key_labels
 
 
-def test_keys_create(test_linode_client, ssh_keys_object_storage):
-    key = ssh_keys_object_storage
+def test_keys_create(test_linode_client, access_keys_object_storage):
+    key = access_keys_object_storage
 
     assert type(key) == type(
         ObjectStorageKeys(client=test_linode_client, id="123")

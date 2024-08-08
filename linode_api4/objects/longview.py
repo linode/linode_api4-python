@@ -5,7 +5,7 @@ class LongviewClient(Base):
     """
     A Longview Client that is accessible for use. Longview is Linode’s system data graphing service.
 
-    API Documentation: https://www.linode.com/docs/api/longview/#longview-client-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-longview-client
     """
 
     api_endpoint = "/longview/clients/{id}"
@@ -25,7 +25,7 @@ class LongviewSubscription(Base):
     """
     Contains the Longview Plan details for a specific subscription id.
 
-    API Documentation: https://www.linode.com/docs/api/longview/#longview-subscription-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-longview-subscription
     """
 
     api_endpoint = "/longview/subscriptions/{id}"
@@ -42,7 +42,7 @@ class LongviewPlan(Base):
     """
     The current Longview Plan an account is using.
 
-    API Documentation: https://www.linode.com/docs/api/longview/#longview-plan-view
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-longview-plan
     """
 
     api_endpoint = "/longview/plan"

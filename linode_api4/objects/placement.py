@@ -7,13 +7,21 @@ from linode_api4.objects.region import Region
 from linode_api4.objects.serializable import JSONObject, StrEnum
 
 
-class PlacementGroupAffinityType(StrEnum):
+class PlacementGroupType(StrEnum):
     """
-    An enum class that represents the available affinity policies for Linodes
-    in a Placement Group.
+    An enum class that represents the available types of a Placement Group.
     """
 
     anti_affinity_local = "anti_affinity:local"
+
+
+class PlacementGroupPolicy(StrEnum):
+    """
+    An enum class that represents the policy for Linode assignments to a Placement Group.
+    """
+
+    strict = "strict"
+    flexible = "flexible"
 
 
 @dataclass
@@ -33,7 +41,7 @@ class PlacementGroup(Base):
     A VM Placement Group, defining the affinity policy for Linodes
     created in a region.
 
-    API Documentation: TODO
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-placement-group
     """
 
     api_endpoint = "/placement/groups/{id}"
@@ -42,9 +50,9 @@ class PlacementGroup(Base):
         "id": Property(identifier=True),
         "label": Property(mutable=True),
         "region": Property(slug_relationship=Region),
-        "affinity_type": Property(),
+        "placement_group_type": Property(),
+        "placement_group_policy": Property(),
         "is_compliant": Property(),
-        "is_strict": Property(),
         "members": Property(json_object=PlacementGroupMember),
     }
 
@@ -58,8 +66,6 @@ class PlacementGroup(Base):
 
         :param linodes: A list of Linodes to assign to the Placement Group.
         :type linodes: List[Union[Instance, int]]
-        :param compliant_only: TODO
-        :type compliant_only: bool
         """
         params = {
             "linodes": [

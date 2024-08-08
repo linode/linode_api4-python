@@ -19,10 +19,10 @@ class PollingGroup(Group):
         Creates a new instance of the EventPoller class.
 
         :param entity_type: The type of the entity to poll for events on.
-                            Valid values for this field can be found here: https://www.linode.com/docs/api/account/#events-list__responses
+                            Valid values for this field can be found here: https://techdocs.akamai.com/linode-api/reference/get-events
         :type entity_type: str
         :param action: The action that caused the Event to poll for.
-                       Valid values for this field can be found here: https://www.linode.com/docs/api/account/#events-list__responses
+                       Valid values for this field can be found here: https://techdocs.akamai.com/linode-api/reference/get-events
         :type action: str
         :param entity_id: The ID of the entity to poll for.
         :type entity_id: int
@@ -51,7 +51,7 @@ class PollingGroup(Group):
         Waits for all events relevant events to not be scheduled or in-progress.
 
         :param entity_type: The type of the entity to poll for events on.
-                            Valid values for this field can be found here: https://www.linode.com/docs/api/account/#events-list__responses
+                            Valid values for this field can be found here: https://techdocs.akamai.com/linode-api/reference/get-events
         :type entity_type: str
         :param entity_id: The ID of the entity to poll for.
         :type entity_id: int

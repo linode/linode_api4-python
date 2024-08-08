@@ -18,7 +18,7 @@ class ImageGroup(Group):
            debian_images = client.images(
                Image.vendor == "debain")
 
-        API Documentation: https://www.linode.com/docs/api/images/#images-list
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-images
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -40,7 +40,7 @@ class ImageGroup(Group):
         """
         Creates a new Image from a disk you own.
 
-        API Documentation: https://www.linode.com/docs/api/images/#image-create
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-image
 
         :param disk: The Disk to imagize.
         :type disk: Union[Disk, int]
@@ -89,7 +89,7 @@ class ImageGroup(Group):
         """
         Creates a new Image and returns the corresponding upload URL.
 
-        API Documentation: https://www.linode.com/docs/api/images/#image-upload
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-upload-image
 
         :param label: The label of the Image to create.
         :type label: str
@@ -138,7 +138,7 @@ class ImageGroup(Group):
         """
         Creates and uploads a new image.
 
-        API Documentation: https://www.linode.com/docs/api/images/#image-upload
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-upload-image
 
         :param label: The label of the Image to create.
         :type label: str
