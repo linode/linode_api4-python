@@ -34,7 +34,7 @@ def get_random_label():
     return label
 
 
-def get_region(client: LinodeClient, capabilities: Set[str] = None):
+def get_region(client: LinodeClient, capabilities: Set[str] = None, site_type: str = None):
     region_override = os.environ.get(ENV_REGION_OVERRIDE)
 
     # Allow overriding the target test region
@@ -46,6 +46,11 @@ def get_region(client: LinodeClient, capabilities: Set[str] = None):
     if capabilities is not None:
         regions = [
             v for v in regions if set(capabilities).issubset(v.capabilities)
+        ]
+
+    if site_type is not None:
+        regions = [
+            v for v in regions if v.site_type == site_type
         ]
 
     return random.choice(regions)

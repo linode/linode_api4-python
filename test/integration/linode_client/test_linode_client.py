@@ -12,7 +12,7 @@ from linode_api4.objects import ConfigInterface, ObjectStorageKeys, Region
 @pytest.fixture(scope="session")
 def setup_client_and_linode(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    chosen_region = get_region(client, {"Kubernetes", "NodeBalancers"}).id
+    chosen_region = get_region(client, {"Kubernetes", "NodeBalancers"}, "core").id
 
     label = get_test_label()
 
@@ -220,7 +220,7 @@ def test_get_account_settings(test_linode_client):
 
     assert account_settings._populated == True
     assert re.search(
-        "'network_helper':True|False", str(account_settings._raw_json)
+        "'network_helper':\s*(True|False)", str(account_settings._raw_json)
     )
 
 
@@ -230,7 +230,7 @@ def test_get_account_settings(test_linode_client):
 # LinodeGroupTests
 def test_create_linode_instance_without_image(test_linode_client):
     client = test_linode_client
-    chosen_region = get_region(client, {"Linodes"}).id
+    chosen_region = get_region(client, {"Linodes"}, "core").id
     label = get_test_label()
 
     linode_instance = client.linode.instance_create(
