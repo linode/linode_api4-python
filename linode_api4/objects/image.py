@@ -66,7 +66,7 @@ class Image(Base):
 
         Note: Image replication may not currently be available to all users.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-replicate-image
 
         :param regions: A list of regions that the customer wants to replicate this image in.
                         At least one valid region is required and only core regions allowed.

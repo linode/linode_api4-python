@@ -1,4 +1,5 @@
 from io import BytesIO
+from test.integration.conftest import get_region
 from test.integration.helpers import (
     delete_instance_with_test_kw,
     get_test_label,
@@ -14,11 +15,10 @@ from linode_api4.objects import Image
 def image_upload_url(test_linode_client):
     label = get_test_label() + "_image"
 
-    # TODO: get random region with core site_type once functional generally
-    # region = get_region(test_linode_client, site_type="core")
+    region = get_region(test_linode_client, site_type="core")
 
     test_linode_client.image_create_upload(
-        label, "us-east", "integration test image upload"
+        label, region.id, "integration test image upload"
     )
 
     image = test_linode_client.images()[0]
@@ -38,8 +38,6 @@ def test_uploaded_image(test_linode_client):
     )
 
     label = get_test_label() + "_image"
-    # TODO: get random region with core site_type once functional generally
-    # region = get_region(test_linode_client, site_type="core")
 
     image = test_linode_client.image_upload(
         label,
