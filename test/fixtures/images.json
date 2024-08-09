@@ -18,7 +18,15 @@
           "eol": "2026-07-01T04:00:00",
           "expiry": "2026-08-01T04:00:00",
           "updated": "2020-07-01T04:00:00",
-          "capabilities": []
+          "capabilities": [],
+          "tags": ["tests"],
+          "total_size": 1100,
+          "regions": [
+            {
+              "region": "us-east",
+              "status": "available"
+            }
+          ]
         },
         {
           "created": "2017-01-01T00:01:01",
@@ -35,7 +43,19 @@
           "eol": "2026-07-01T04:00:00",
           "expiry": "2026-08-01T04:00:00",
           "updated": "2020-07-01T04:00:00",
-          "capabilities": []
+          "capabilities": [],
+          "tags": ["tests"],
+          "total_size": 3000,
+          "regions": [
+            {
+              "region": "us-east",
+              "status": "available"
+            },
+            {
+              "region": "us-mia",
+              "status": "pending"
+            }
+          ]
         },
         {
           "created": "2017-01-01T00:01:01",
