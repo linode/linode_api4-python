@@ -36,9 +36,9 @@ class LKENodePoolTaint(JSONObject):
     applied to a node pool.
     """
 
-    key: str = ""
-    value: str = ""
-    effect: str = ""
+    key: Optional[str] = None
+    value: Optional[str] = None
+    effect: Optional[str] = None
 
 
 @dataclass
