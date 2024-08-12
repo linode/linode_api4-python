@@ -504,7 +504,7 @@ class AccountGroup(Group):
 
         NOTE: Parent/Child related features may not be generally available.
 
-        API doc: TBD
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-child-accounts
 
         :returns: a list of all child accounts.
         :rtype: PaginatedList of ChildAccount

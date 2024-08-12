@@ -41,7 +41,7 @@ class PlacementGroup(Base):
     A VM Placement Group, defining the affinity policy for Linodes
     created in a region.
 
-    API Documentation: TODO
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-placement-group
     """
 
     api_endpoint = "/placement/groups/{id}"
@@ -66,8 +66,6 @@ class PlacementGroup(Base):
 
         :param linodes: A list of Linodes to assign to the Placement Group.
         :type linodes: List[Union[Instance, int]]
-        :param compliant_only: TODO
-        :type compliant_only: bool
         """
         params = {
             "linodes": [

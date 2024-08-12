@@ -20,7 +20,7 @@ class PlacementAPIGroup(Group):
 
            groups = client.placement.groups(PlacementGroup.label == "test")
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-placement-groups
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`

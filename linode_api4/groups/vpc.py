@@ -16,7 +16,7 @@ class VPCGroup(Group):
 
            vpcs = client.vpcs()
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-vpcs
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -38,7 +38,7 @@ class VPCGroup(Group):
         """
         Creates a new VPC under your Linode account.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-vpc
 
         :param label: The label of the newly created VPC.
         :type label: str
@@ -90,7 +90,7 @@ class VPCGroup(Group):
 
            vpc_ips = client.vpcs.ips()
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-vpcs-ips
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`

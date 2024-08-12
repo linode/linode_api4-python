@@ -328,3 +328,17 @@ class TestPolling:
             assert err.message == "oh no!"
         else:
             raise Exception("Expected event error, got none")
+
+    def test_event_error(
+        self,
+    ):
+        """
+        Tests that EventError objects can be constructed and
+        will be formatted to the correct output.
+
+        Tests for regression of TPT-3060
+        """
+
+        assert str(EventError(123, None)) == "Event 123 failed"
+        assert str(EventError(123, "")) == "Event 123 failed"
+        assert str(EventError(123, "foobar")) == "Event 123 failed: foobar"

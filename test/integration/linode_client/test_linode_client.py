@@ -1,5 +1,6 @@
 import re
 import time
+from test.integration.conftest import get_region
 from test.integration.helpers import get_test_label
 
 import pytest
@@ -11,8 +12,10 @@ from linode_api4.objects import ConfigInterface, ObjectStorageKeys, Region
 @pytest.fixture(scope="session")
 def setup_client_and_linode(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    available_regions = client.regions()
-    chosen_region = available_regions[4]  # us-ord (Chicago)
+    chosen_region = get_region(
+        client, {"Kubernetes", "NodeBalancers"}, "core"
+    ).id
+
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
@@ -90,14 +93,18 @@ def test_image_create(setup_client_and_linode):
 
     label = get_test_label()
     description = "Test description"
+    tags = ["test"]
     usable_disk = [v for v in linode.disks if v.filesystem != "swap"]
 
     image = client.image_create(
-        disk=usable_disk[0].id, label=label, description=description
+        disk=usable_disk[0].id, label=label, description=description, tags=tags
     )
 
     assert image.label == label
     assert image.description == description
+    assert image.tags == tags
+    # size and total_size are the same because this image is not replicated
+    assert image.size == image.total_size
 
 
 def test_fails_to_create_image_with_non_existing_disk_id(
@@ -215,7 +222,7 @@ def test_get_account_settings(test_linode_client):
 
     assert account_settings._populated == True
     assert re.search(
-        "'network_helper':True|False", str(account_settings._raw_json)
+        "'network_helper':\s*(True|False)", str(account_settings._raw_json)
     )
 
 
@@ -225,8 +232,7 @@ def test_get_account_settings(test_linode_client):
 # LinodeGroupTests
 def test_create_linode_instance_without_image(test_linode_client):
     client = test_linode_client
-    available_regions = client.regions()
-    chosen_region = available_regions[4]
+    chosen_region = get_region(client, {"Linodes"}, "core").id
     label = get_test_label()
 
     linode_instance = client.linode.instance_create(
@@ -250,8 +256,7 @@ def test_create_linode_instance_with_image(setup_client_and_linode):
 
 def test_create_linode_with_interfaces(test_linode_client):
     client = test_linode_client
-    available_regions = client.regions()
-    chosen_region = available_regions[4]
+    chosen_region = get_region(client, {"Vlans", "Linodes"}).id
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
@@ -323,7 +328,7 @@ def test_cluster_create_with_api_objects(test_linode_client):
     client = test_linode_client
     node_type = client.linode.types()[1]  # g6-standard-1
     version = client.lke.versions()[0]
-    region = client.regions().first()
+    region = get_region(client, {"Kubernetes"})
     node_pools = client.lke.node_pool(node_type, 3)
     label = get_test_label()
 
@@ -340,10 +345,11 @@ def test_cluster_create_with_api_objects(test_linode_client):
 def test_fails_to_create_cluster_with_invalid_version(test_linode_client):
     invalid_version = "a.12"
     client = test_linode_client
+    region = get_region(client, {"Kubernetes"}).id
 
     try:
         cluster = client.lke.cluster_create(
-            "us-ord",
+            region,
             "example-cluster",
             {"type": "g6-standard-1", "count": 3},
             invalid_version,
