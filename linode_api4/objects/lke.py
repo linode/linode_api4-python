@@ -30,6 +30,18 @@ class KubeVersion(Base):
 
 
 @dataclass
+class LKENodePoolTaint(JSONObject):
+    """
+    LKENodePoolTaint represents the structure of a single taint that can be
+    applied to a node pool.
+    """
+
+    key: Optional[str] = None
+    value: Optional[str] = None
+    effect: Optional[str] = None
+
+
+@dataclass
 class LKEClusterControlPlaneACLAddressesOptions(JSONObject):
     """
     LKEClusterControlPlaneACLAddressesOptions are options used to configure
@@ -139,37 +151,51 @@ class LKENodePool(DerivedBase):
         ),  # this is formatted in _populate below
         "autoscaler": Property(mutable=True),
         "tags": Property(mutable=True, unordered=True),
+        "labels": Property(mutable=True),
+        "taints": Property(mutable=True),
     }
+
+    def _parse_raw_node(
+        self, raw_node: Union[LKENodePoolNode, dict, str]
+    ) -> LKENodePoolNode:
+        """
+        Builds a list of LKENodePoolNode objects given a node pool response's JSON.
+        """
+        if isinstance(raw_node, LKENodePoolNode):
+            return raw_node
+
+        if isinstance(raw_node, dict):
+            node_id = raw_node.get("id")
+            if node_id is None:
+                raise ValueError("Node dictionary does not contain 'id' key")
+
+            return LKENodePoolNode(self._client, raw_node)
+
+        if isinstance(raw_node, str):
+            return self._client.load(
+                LKENodePoolNode, target_id=raw_node, target_parent_id=self.id
+            )
+
+        raise TypeError("Unsupported node type: {}".format(type(raw_node)))
 
     def _populate(self, json):
         """
         Parse Nodes into more useful LKENodePoolNode objects
         """
+
         if json is not None and json != {}:
-            new_nodes = []
-            for c in json["nodes"]:
-                if isinstance(c, LKENodePoolNode):
-                    new_nodes.append(c)
-                elif isinstance(c, dict):
-                    node_id = c.get("id")
-                    if node_id is not None:
-                        new_nodes.append(LKENodePoolNode(self._client, c))
-                    else:
-                        raise ValueError(
-                            "Node dictionary does not contain 'id' key"
-                        )
-                elif isinstance(c, str):
-                    node_details = self._client.get(
-                        LKENodePool.api_endpoint.format(
-                            cluster_id=self.id, id=c
-                        )
-                    )
-                    new_nodes.append(
-                        LKENodePoolNode(self._client, node_details)
-                    )
-                else:
-                    raise TypeError("Unsupported node type: {}".format(type(c)))
-            json["nodes"] = new_nodes
+            json["nodes"] = [
+                self._parse_raw_node(node) for node in json.get("nodes", [])
+            ]
+
+            json["taints"] = [
+                (
+                    LKENodePoolTaint.from_json(taint)
+                    if not isinstance(taint, LKENodePoolTaint)
+                    else taint
+                )
+                for taint in json.get("taints", [])
+            ]
 
         super()._populate(json)
 
@@ -302,7 +328,14 @@ class LKECluster(Base):
 
         return LKEClusterControlPlaneACL.from_json(self._control_plane_acl)
 
-    def node_pool_create(self, node_type, node_count, **kwargs):
+    def node_pool_create(
+        self,
+        node_type: Union[Type, str],
+        node_count: int,
+        labels: Dict[str, str] = None,
+        taints: List[Union[LKENodePoolTaint, Dict[str, Any]]] = None,
+        **kwargs,
+    ):
         """
         Creates a new :any:`LKENodePool` for this cluster.
 
@@ -312,6 +345,10 @@ class LKECluster(Base):
         :type node_type: :any:`Type` or str
         :param node_count: The number of nodes to create in this pool.
         :type node_count: int
+        :param labels: A dict mapping labels to their values to apply to this pool.
+        :type labels: Dict[str, str]
+        :param taints: A list of taints to apply to this pool.
+        :type taints: List of :any:`LKENodePoolTaint` or dict
         :param kwargs: Any other arguments to pass to the API.  See the API docs
                        for possible values.
 
@@ -322,6 +359,13 @@ class LKECluster(Base):
             "type": node_type,
             "count": node_count,
         }
+
+        if labels is not None:
+            params["labels"] = labels
+
+        if taints is not None:
+            params["taints"] = taints
+
         params.update(kwargs)
 
         result = self._client.post(
