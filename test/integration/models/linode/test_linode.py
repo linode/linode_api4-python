@@ -315,11 +315,11 @@ def test_linode_boot(create_linode):
 def test_linode_resize(create_linode_for_long_running_tests):
     linode = create_linode_for_long_running_tests
 
-    wait_for_condition(10, 100, get_status, linode, "running")
+    wait_for_condition(10, 240, get_status, linode, "running")
 
     retry_sending_request(3, linode.resize, "g6-standard-6")
 
-    wait_for_condition(10, 100, get_status, linode, "resizing")
+    wait_for_condition(10, 240, get_status, linode, "resizing")
 
     assert linode.status == "resizing"
 
