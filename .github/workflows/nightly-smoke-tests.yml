@@ -4,9 +4,17 @@ on:
   schedule:
     - cron: "0 0 * * *"
   workflow_dispatch:
+    inputs:
+      sha:
+        description: 'Commit SHA to test'
+        required: false
+        default: ''
+        type: string
+
 
 jobs:
   smoke_tests:
+    if: github.repository == 'linode/linode_api4-python' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
     steps:
@@ -29,7 +37,26 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run smoke tests
+        id: smoke_tests
         run: |
           make smoketest
         env:
           LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
+
+      - name: Notify Slack
+        if: always()
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_USERNAME: 'GHBot'
+          SLACK_COLOR: ${{ job.status }}
+          SLACK_MESSAGE: |
+            *Nightly Smoke Tests Completed*
+
+            *Build Result:* ${{ steps.smoke_tests.outcome == 'success' && 'Build Passed ' || 'Build Failed' }}
+
+            *Job Details:*
+            - Workflow: ${{ github.workflow }}
+            - Branch: `${{ github.ref_name }}`
+            - Run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            - Commit: <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|`${{ github.sha }}`>

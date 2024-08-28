@@ -26,7 +26,7 @@ def test_oauth_client_two(test_linode_client):
 
     oauth_client.delete()
 
-
+@pytest.mark.smoke
 def test_get_oathclient(test_linode_client, test_oauth_client):
     client = test_linode_client
 

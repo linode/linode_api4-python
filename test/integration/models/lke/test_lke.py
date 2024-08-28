@@ -121,6 +121,7 @@ def test_get_lke_clusters(test_linode_client, lke_cluster):
     assert cluster._raw_json == lke_cluster._raw_json
 
 
+@pytest.mark.smoke
 def test_get_lke_pool(test_linode_client, lke_cluster):
     cluster = lke_cluster
 
