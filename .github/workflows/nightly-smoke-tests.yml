@@ -43,6 +43,10 @@ jobs:
         env:
           LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
 
+      - name: Set outputs
+        id: slack_payload_vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
       - name: Notify Slack
         if: always()
         uses: slackapi/slack-github-action@v1.26.0
@@ -70,7 +74,7 @@ jobs:
                     },
                     {
                       "type": "mrkdwn",
-                      "text": "*Branch:*\n`${{ github.ref_name }}"
+                      "text": "*Branch:*\n`${{ github.ref_name }}"`
                     }
                   ]
                 },
@@ -79,7 +83,7 @@ jobs:
                   "fields": [
                     {
                       "type": "mrkdwn",
-                      "text": "*Commit Hash:*\n:link: <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}>"
+                      "text": "*Commit Hash:*\n:link: <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|${{ steps.slack_payload_vars.outputs.sha_short }}>"
                     },
                     {
                       "type": "mrkdwn",
