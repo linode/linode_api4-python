@@ -50,17 +50,58 @@ jobs:
           channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
           payload: |
             {
-              "text": "*Nightly Smoke Tests Completed*",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Nightly Smoke Tests Completed*\n\n*Build Result:* ${{ steps.smoke_tests.outcome == 'success' && 'Build Passed' || 'Build Failed' }}\n\n*Job Details:*\n- Workflow: ${{ github.workflow }}\n- Branch: `${{ github.ref_name }}`\n- Run URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n- Commit: <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|`${{ github.sha }}`>"
+                    "text": ":rocket: *Nightly Smoke Tests Completed* :white_check_mark:"
                   }
+                },
+                {
+                  "type": "divider"
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Build Result:*\n${{ steps.smoke_tests.outcome == 'success' && ':large_green_circle: Build Passed' || ':red_circle: Build Failed' }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Branch:*\n`${{ github.ref_name }} - :link: <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|`${{ github.sha }}`>"
+                    }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Workflow:*\n${{ github.workflow }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Run URL:*\n:link: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Run Details>"
+                    }
+                  ]
+                },
+                {
+                  "type": "divider"
+                },
+                {
+                  "type": "context",
+                  "elements": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "Triggered by: `${{ github.actor }} :bust_in_silhouette:`"
+                    }
+                  ]
                 }
               ]
             }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
 
