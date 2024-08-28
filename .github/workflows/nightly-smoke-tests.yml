@@ -70,7 +70,7 @@ jobs:
                     },
                     {
                       "type": "mrkdwn",
-                      "text": "*Branch:*\n`${{ github.ref_name }} - :link: <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|`${{ github.sha }}`>"
+                      "text": "*Branch:*\n`${{ github.ref_name }}"
                     }
                   ]
                 },
@@ -84,7 +84,16 @@ jobs:
                     {
                       "type": "mrkdwn",
                       "text": "*Run URL:*\n:link: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Run Details>"
-                    }
+                    },
+                  ]
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Commit:* \n:link:<${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|`${{ github.sha | slice(0, 7) }}`>"
+                    },
                   ]
                 },
                 {
@@ -95,7 +104,7 @@ jobs:
                   "elements": [
                     {
                       "type": "mrkdwn",
-                      "text": "Triggered by: `${{ github.actor }} :bust_in_silhouette:`"
+                      "text": "Triggered by: :bust_in_silhouette: `${{ github.actor }}`"
                     }
                   ]
                 }
