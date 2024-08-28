@@ -92,7 +92,7 @@ jobs:
                   "fields": [
                     {
                       "type": "mrkdwn",
-                      "text": "*Commit:* \n:link:<${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|`${{ github.sha | slice(0, 7) }}`>"
+                      "text": "*Commit:*\n:link:<${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}>"
                     },
                   ]
                 },
