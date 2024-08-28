@@ -43,10 +43,6 @@ jobs:
         env:
           LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
 
-      - name: Set outputs
-        id: payload_vars
-        run: echo "SHORT_SHA=`echo ${{ github.sha }} | cut -c1-8`" >> $GITHUB_ENV
-
       - name: Notify Slack
         if: always()
         uses: slackapi/slack-github-action@v1.26.0
@@ -83,7 +79,7 @@ jobs:
                   "fields": [
                     {
                       "type": "mrkdwn",
-                      "text": "*Commit Hash:*\n:link: <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|${{ env.SHORT_SHA }}>"
+                      "text": "*Commit Hash:*\n:link: <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}>"
                     },
                     {
                       "type": "mrkdwn",
