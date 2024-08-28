@@ -1,4 +1,5 @@
 import pytest
+
 from linode_api4 import PlacementGroup
 
 

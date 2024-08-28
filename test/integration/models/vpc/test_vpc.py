@@ -4,11 +4,13 @@ import pytest
 
 from linode_api4 import VPC, ApiError, VPCSubnet
 
+
 @pytest.mark.smoke
 def test_get_vpc(test_linode_client, create_vpc):
     vpc = test_linode_client.load(VPC, create_vpc.id)
     test_linode_client.vpcs()
     assert vpc.id == create_vpc.id
+
 
 @pytest.mark.smoke
 def test_update_vpc(test_linode_client, create_vpc):
@@ -31,6 +33,7 @@ def test_get_subnet(test_linode_client, create_vpc_with_subnet):
     loaded_subnet = test_linode_client.load(VPCSubnet, subnet.id, vpc.id)
 
     assert loaded_subnet.id == subnet.id
+
 
 @pytest.mark.smoke
 def test_update_subnet(test_linode_client, create_vpc_with_subnet):
