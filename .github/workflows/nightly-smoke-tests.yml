@@ -45,7 +45,7 @@ jobs:
 
       - name: Set outputs
         id: payload_vars
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+        run: echo "SHORT_SHA=`echo ${{ github.sha }} | cut -c1-8`" >> $GITHUB_ENV
 
       - name: Notify Slack
         if: always()
@@ -83,7 +83,7 @@ jobs:
                   "fields": [
                     {
                       "type": "mrkdwn",
-                      "text": "*Commit Hash:*\n:link: <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|${{ steps.payload_vars.outputs.sha_short }}>"
+                      "text": "*Commit Hash:*\n:link: <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|${{ env.SHORT_SHA }}>"
                     },
                     {
                       "type": "mrkdwn",
