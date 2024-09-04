@@ -25,6 +25,7 @@ class Volume(Base):
         "filesystem_path": Property(),
         "hardware_type": Property(),
         "linode_label": Property(),
+        "encryption": Property(),
     }
 
     def attach(self, to_linode, config=None):

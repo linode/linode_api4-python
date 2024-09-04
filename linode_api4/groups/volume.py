@@ -45,6 +45,8 @@ class VolumeGroup(Group):
                      tags included do not exist, they will be created as part of
                      this operation.
         :type tags: list[str]
+        :param encryption: Whether the new Volume should opt in or out of disk encryption.
+        :type encryption: str
 
         :returns: The new Volume.
         :rtype: Volume
