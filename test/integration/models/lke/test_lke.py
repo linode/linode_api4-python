@@ -320,3 +320,9 @@ def test_lke_cluster_labels_and_taints(lke_cluster_with_labels_and_taints):
     assert vars(pool.labels) == updated_labels
     assert updated_taints[0] in pool.taints
     assert LKENodePoolTaint.from_json(updated_taints[1]) in pool.taints
+
+
+def test_lke_types(test_linode_client):
+    types = test_linode_client.lke.types()
+
+    assert len(types) > 0

@@ -121,3 +121,9 @@ def test_detach_volume_to_linode(
 
     # time wait for volume to detach before deletion occurs
     time.sleep(30)
+
+
+def test_volume_types(test_linode_client):
+    types = test_linode_client.volumes.types()
+
+    assert len(types) > 0

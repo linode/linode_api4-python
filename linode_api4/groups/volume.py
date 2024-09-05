@@ -1,6 +1,6 @@
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
-from linode_api4.objects import Base, Volume
+from linode_api4.objects import Base, Volume, VolumeType
 
 
 class VolumeGroup(Group):
@@ -71,3 +71,21 @@ class VolumeGroup(Group):
 
         v = Volume(self.client, result["id"], result)
         return v
+
+    def types(self, *filters):
+        """
+        Returns a :any:`PaginatedList` of :any:`VolumeType` objects that represents a valid Volume type.
+
+        API Documentation: TODO
+
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
+
+        :returns: A Paginated List of Volume types that match the query.
+        :rtype: PaginatedList of VolumeType
+        """
+
+        return self.client._get_and_filter(
+            VolumeType, *filters, endpoint="/volumes/types"
+        )

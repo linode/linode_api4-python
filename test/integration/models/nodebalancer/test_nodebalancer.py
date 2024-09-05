@@ -121,3 +121,9 @@ def test_delete_nb_node(test_linode_client, create_nb_config):
             (create_nb_config.id, create_nb_config.nodebalancer_id),
         )
         assert "Not Found" in str(e.json)
+
+
+def test_nodebalancer_types(test_linode_client):
+    types = test_linode_client.nodebalancers.types()
+
+    assert len(types) > 0
