@@ -9,7 +9,7 @@ from test.integration.helpers import (
 import pytest
 
 from linode_api4 import ApiError, LinodeClient
-from linode_api4.objects import Volume
+from linode_api4.objects import RegionPrice, Volume, VolumeType
 
 
 @pytest.fixture(scope="session")
@@ -121,3 +121,22 @@ def test_detach_volume_to_linode(
 
     # time wait for volume to detach before deletion occurs
     time.sleep(30)
+
+
+def test_volume_types(test_linode_client):
+    types = test_linode_client.volumes.types()
+
+    if len(types) > 0:
+        for volume_type in types:
+            assert type(volume_type) is VolumeType
+            assert volume_type.price.monthly is None or (
+                isinstance(volume_type.price.monthly, (float, int))
+                and volume_type.price.monthly >= 0
+            )
+            if len(volume_type.region_prices) > 0:
+                region_price = volume_type.region_prices[0]
+                assert type(region_price) is RegionPrice
+                assert region_price.monthly is None or (
+                    isinstance(region_price.monthly, (float, int))
+                    and region_price.monthly >= 0
+                )

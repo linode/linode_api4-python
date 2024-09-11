@@ -6,6 +6,7 @@ from linode_api4.objects import (
     KubeVersion,
     LKECluster,
     LKEClusterControlPlaneOptions,
+    LKEType,
     Type,
     drop_null_keys,
 )
@@ -155,3 +156,21 @@ class LKEGroup(Group):
         result.update(kwargs)
 
         return result
+
+    def types(self, *filters):
+        """
+        Returns a :any:`PaginatedList` of :any:`LKEType` objects that represents a valid LKE type.
+
+        API Documentation: TODO
+
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
+
+        :returns: A Paginated List of LKE types that match the query.
+        :rtype: PaginatedList of LKEType
+        """
+
+        return self.client._get_and_filter(
+            LKEType, *filters, endpoint="/lke/types"
+        )

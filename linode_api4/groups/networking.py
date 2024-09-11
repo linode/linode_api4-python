@@ -8,6 +8,7 @@ from linode_api4.objects import (
     IPAddress,
     IPv6Pool,
     IPv6Range,
+    NetworkTransferPrice,
     Region,
 )
 
@@ -348,3 +349,21 @@ class NetworkingGroup(Group):
         params = {"assignments": assignments, "region": region}
 
         self.client.post("/networking/ips/assign", model=self, data=params)
+
+    def transfer_prices(self, *filters):
+        """
+        Returns a :any:`PaginatedList` of :any:`NetworkTransferPrice` objects that represents a valid network transfer price.
+
+        API Documentation: TODO
+
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
+
+        :returns: A Paginated List of network transfer price that match the query.
+        :rtype: PaginatedList of NetworkTransferPrice
+        """
+
+        return self.client._get_and_filter(
+            NetworkTransferPrice, *filters, endpoint="/network-transfer/prices"
+        )
