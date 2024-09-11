@@ -15,8 +15,14 @@ from linode_api4 import (
     LKEClusterControlPlaneACLOptions,
     LKEClusterControlPlaneOptions,
 )
+from linode_api4.common import RegionPrice
 from linode_api4.errors import ApiError
-from linode_api4.objects import LKECluster, LKENodePool, LKENodePoolTaint
+from linode_api4.objects import (
+    LKECluster,
+    LKENodePool,
+    LKENodePoolTaint,
+    LKEType,
+)
 
 
 @pytest.fixture(scope="session")
@@ -325,4 +331,17 @@ def test_lke_cluster_labels_and_taints(lke_cluster_with_labels_and_taints):
 def test_lke_types(test_linode_client):
     types = test_linode_client.lke.types()
 
-    assert len(types) > 0
+    if len(types) > 0:
+        for lke_type in types:
+            assert type(lke_type) is LKEType
+            assert lke_type.price.monthly is None or (
+                isinstance(lke_type.price.monthly, (float, int))
+                and lke_type.price.monthly >= 0
+            )
+            if len(lke_type.region_prices) > 0:
+                region_price = lke_type.region_prices[0]
+                assert type(region_price) is RegionPrice
+                assert lke_type.price.monthly is None or (
+                    isinstance(lke_type.price.monthly, (float, int))
+                    and lke_type.price.monthly >= 0
+                )

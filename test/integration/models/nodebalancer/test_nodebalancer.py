@@ -3,7 +3,12 @@ import re
 import pytest
 
 from linode_api4 import ApiError
-from linode_api4.objects import NodeBalancerConfig, NodeBalancerNode
+from linode_api4.objects import (
+    NodeBalancerConfig,
+    NodeBalancerNode,
+    NodeBalancerType,
+    RegionPrice,
+)
 
 
 @pytest.fixture(scope="session")
@@ -126,4 +131,17 @@ def test_delete_nb_node(test_linode_client, create_nb_config):
 def test_nodebalancer_types(test_linode_client):
     types = test_linode_client.nodebalancers.types()
 
-    assert len(types) > 0
+    if len(types) > 0:
+        for nb_type in types:
+            assert type(nb_type) is NodeBalancerType
+            assert nb_type.price.monthly is None or (
+                isinstance(nb_type.price.monthly, (float, int))
+                and nb_type.price.monthly >= 0
+            )
+            if len(nb_type.region_prices) > 0:
+                region_price = nb_type.region_prices[0]
+                assert type(region_price) is RegionPrice
+                assert region_price.monthly is None or (
+                    isinstance(region_price.monthly, (float, int))
+                    and region_price.monthly >= 0
+                )

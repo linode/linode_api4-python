@@ -3,6 +3,7 @@ from test.integration.helpers import get_rand_nanosec_test_label
 import pytest
 
 from linode_api4.objects import Config, ConfigInterfaceIPv4, Firewall, IPAddress
+from linode_api4.objects.networking import NetworkTransferPrice, Price
 
 
 @pytest.mark.smoke
@@ -126,4 +127,10 @@ def test_ip_info_vpc(test_linode_client, create_vpc_with_subnet_and_linode):
 def test_network_transfer_prices(test_linode_client):
     transfer_prices = test_linode_client.networking.transfer_prices()
 
-    assert len(transfer_prices) > 0
+    if len(transfer_prices) > 0:
+        assert type(transfer_prices[0]) is NetworkTransferPrice
+        assert type(transfer_prices[0].price) is Price
+        assert (
+            transfer_prices[0].price is None
+            or transfer_prices[0].price.hourly >= 0
+        )
