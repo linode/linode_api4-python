@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Union
 from urllib import parse
 
+from linode_api4.common import Price, RegionPrice
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import (
     Base,
@@ -13,6 +14,24 @@ from linode_api4.objects import (
     Region,
     Type,
 )
+
+
+class LKEType(Base):
+    """
+    An LKEType represents the structure of a valid LKE type.
+    Currently the LKEType can only be retrieved by listing, i.e.:
+        types = client.lke.types()
+
+    API documentation: TODO
+    """
+
+    properties = {
+        "id": Property(identifier=True),
+        "label": Property(),
+        "price": Property(json_object=Price),
+        "region_prices": Property(json_object=RegionPrice),
+        "transfer": Property(),
+    }
 
 
 class KubeVersion(Base):

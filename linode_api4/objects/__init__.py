@@ -6,7 +6,7 @@ from .filtering import and_, or_
 from .region import Region
 from .image import Image
 from .linode import *
-from .volume import Volume
+from .volume import *
 from .domain import *
 from .account import *
 from .networking import *

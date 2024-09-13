@@ -720,6 +720,19 @@ class LKEGroupTest(ClientBaseCase):
         self.assertEqual(cluster.region.id, "ap-west")
         self.assertEqual(cluster.k8s_version.id, "1.19")
 
+    def test_lke_types(self):
+        """
+        Tests that a list of LKETypes can be retrieved
+        """
+        types = self.client.lke.types()
+        self.assertEqual(len(types), 2)
+        self.assertEqual(types[1].id, "lke-ha")
+        self.assertEqual(types[1].price.hourly, 0.09)
+        self.assertEqual(types[1].price.monthly, 60)
+        self.assertEqual(types[1].region_prices[0].id, "id-cgk")
+        self.assertEqual(types[1].region_prices[0].hourly, 0.108)
+        self.assertEqual(types[1].region_prices[0].monthly, 72)
+
     def test_cluster_create_with_string_repr(self):
         """
         Tests clusters can be created using string representations
@@ -1236,3 +1249,57 @@ class NetworkingGroupTest(ClientBaseCase):
         ranges = self.client.networking.ipv6_ranges()
         self.assertEqual(len(ranges), 1)
         self.assertEqual(ranges[0].range, "2600:3c01::")
+
+    def test_network_transfer_prices(self):
+        """
+        Tests that a list of NetworkTransferPrices can be retrieved
+        """
+        transfer_prices = self.client.networking.transfer_prices()
+        self.assertEqual(len(transfer_prices), 2)
+        self.assertEqual(transfer_prices[1].id, "network_transfer")
+        self.assertEqual(transfer_prices[1].price.hourly, 0.005)
+        self.assertEqual(transfer_prices[1].price.monthly, None)
+        self.assertEqual(len(transfer_prices[1].region_prices), 2)
+        self.assertEqual(transfer_prices[1].region_prices[0].id, "id-cgk")
+        self.assertEqual(transfer_prices[1].region_prices[0].hourly, 0.015)
+        self.assertEqual(transfer_prices[1].region_prices[0].monthly, None)
+
+
+class NodeBalancerGroupTest(ClientBaseCase):
+    """
+    Tests methods of the NodeBalancerGroup
+    """
+
+    def test_nodebalancer_types(self):
+        """
+        Tests that a list of NodebalancerTypes can be retrieved
+        """
+        types = self.client.nodebalancers.types()
+        self.assertEqual(len(types), 1)
+        self.assertEqual(types[0].id, "nodebalancer")
+        self.assertEqual(types[0].price.hourly, 0.015)
+        self.assertEqual(types[0].price.monthly, 10)
+        self.assertEqual(len(types[0].region_prices), 2)
+        self.assertEqual(types[0].region_prices[0].id, "id-cgk")
+        self.assertEqual(types[0].region_prices[0].hourly, 0.018)
+        self.assertEqual(types[0].region_prices[0].monthly, 12)
+
+
+class VolumeGroupTest(ClientBaseCase):
+    """
+    Tests methods of the VolumeGroup
+    """
+
+    def test_volume_types(self):
+        """
+        Tests that a list of VolumeTypes can be retrieved
+        """
+        types = self.client.volumes.types()
+        self.assertEqual(len(types), 1)
+        self.assertEqual(types[0].id, "volume")
+        self.assertEqual(types[0].price.hourly, 0.00015)
+        self.assertEqual(types[0].price.monthly, 0.1)
+        self.assertEqual(len(types[0].region_prices), 2)
+        self.assertEqual(types[0].region_prices[0].id, "id-cgk")
+        self.assertEqual(types[0].region_prices[0].hourly, 0.00018)
+        self.assertEqual(types[0].region_prices[0].monthly, 0.12)
