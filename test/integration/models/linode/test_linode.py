@@ -312,6 +312,7 @@ def test_linode_boot(create_linode):
     assert linode.status == "running"
 
 
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 def test_linode_resize(create_linode_for_long_running_tests):
     linode = create_linode_for_long_running_tests
 
@@ -590,6 +591,7 @@ def test_get_linode_types_overrides(test_linode_client):
         assert linode_type.region_prices[0].monthly >= 0
 
 
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 def test_save_linode_noforce(test_linode_client, create_linode):
     linode = create_linode
     old_label = linode.label
@@ -601,6 +603,7 @@ def test_save_linode_noforce(test_linode_client, create_linode):
     assert old_label != linode.label
 
 
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 def test_save_linode_force(test_linode_client, create_linode):
     linode = create_linode
     old_label = linode.label
