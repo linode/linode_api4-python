@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from importlib.metadata import version
-from typing import BinaryIO, List, Tuple
+from typing import BinaryIO, List, Optional, Tuple
 from urllib import parse
 
 import requests
