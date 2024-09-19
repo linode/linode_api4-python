@@ -222,7 +222,7 @@ def test_get_account_settings(test_linode_client):
 
     assert account_settings._populated == True
     assert re.search(
-        "'network_helper':\s*(True|False)", str(account_settings._raw_json)
+        r"'network_helper':\s*(True|False)", str(account_settings._raw_json)
     )
 
 

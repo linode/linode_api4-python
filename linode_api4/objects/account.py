@@ -5,21 +5,20 @@ from datetime import datetime
 import requests
 
 from linode_api4.errors import ApiError, UnexpectedResponseError
-from linode_api4.objects import (
-    DATE_FORMAT,
-    Base,
-    DerivedBase,
-    Domain,
-    Image,
-    Instance,
-    Property,
-    StackScript,
-    Volume,
-)
+from linode_api4.objects import DATE_FORMAT, Volume
+from linode_api4.objects.base import Base, Property
+from linode_api4.objects.database import Database
+from linode_api4.objects.dbase import DerivedBase
+from linode_api4.objects.domain import Domain
+from linode_api4.objects.image import Image
+from linode_api4.objects.linode import Instance, StackScript
 from linode_api4.objects.longview import LongviewClient, LongviewSubscription
+from linode_api4.objects.networking import Firewall
 from linode_api4.objects.nodebalancer import NodeBalancer
 from linode_api4.objects.profile import PersonalAccessToken
 from linode_api4.objects.support import SupportTicket
+from linode_api4.objects.volume import Volume
+from linode_api4.objects.vpc import VPC
 
 
 class Account(Base):
@@ -554,10 +553,6 @@ def get_obj_grants():
     """
     Returns Grant keys mapped to Object types.
     """
-    from linode_api4.objects import (  # pylint: disable=import-outside-toplevel
-        Database,
-        Firewall,
-    )
 
     return (
         ("linode", Instance),
@@ -569,6 +564,7 @@ def get_obj_grants():
         ("longview", LongviewClient),
         ("database", Database),
         ("firewall", Firewall),
+        ("vpc", VPC),
     )
 
 
@@ -641,10 +637,47 @@ class UserGrants:
         self.global_grants = type("global_grants", (object,), json["global"])
 
         for key, cls in get_obj_grants():
-            lst = []
-            for gdct in json[key]:
-                lst.append(Grant(self._client, cls, gdct))
-            setattr(self, key, lst)
+            if key in json:
+                lst = []
+                for gdct in json[key]:
+                    lst.append(Grant(self._client, cls, gdct))
+                setattr(self, key, lst)
+
+    @property
+    def _global_grants_dict(self):
+        """
+        The global grants stored in this object.
+        """
+        return {
+            k: v
+            for k, v in vars(self.global_grants).items()
+            if not k.startswith("_")
+        }
+
+    @property
+    def _grants_dict(self):
+        """
+        The grants stored in this object.
+        """
+        grants = {}
+        for key, _ in get_obj_grants():
+            if hasattr(self, key):
+                lst = []
+                for cg in getattr(self, key):
+                    lst.append(cg._serialize())
+                grants[key] = lst
+
+        return grants
+
+    def _serialize(self):
+        """
+        Returns the user grants in as JSON the api will accept.
+        This is only relevant in the context of UserGrants.save
+        """
+        return {
+            "global": self._global_grants_dict,
+            **self._grants_dict,
+        }
 
     def save(self):
         """
@@ -653,19 +686,7 @@ class UserGrants:
         API Documentation: https://techdocs.akamai.com/linode-api/reference/put-user-grants
         """
 
-        req = {
-            "global": {
-                k: v
-                for k, v in vars(self.global_grants).items()
-                if not k.startswith("_")
-            },
-        }
-
-        for key, _ in get_obj_grants():
-            lst = []
-            for cg in getattr(self, key):
-                lst.append(cg._serialize())
-            req[key] = lst
+        req = self._serialize()
 
         result = self._client.put(
             UserGrants.api_endpoint.format(username=self.username), data=req
