@@ -107,12 +107,12 @@ def linode_for_disk_tests(test_linode_client, e2e_test_firewall):
     # Provisioning time
     wait_for_condition(10, 300, get_status, linode_instance, "running")
 
-    linode_instance.shutdown()
+    send_request_when_resource_available(300, linode_instance.shutdown)
 
     wait_for_condition(10, 100, get_status, linode_instance, "offline")
 
     # Now it allocates 100% disk space hence need to clear some space for tests
-    linode_instance.disks[1].delete()
+    send_request_when_resource_available(300, linode_instance.disks[1].delete)
 
     test_linode_client.polling.event_poller_create(
         "linode", "disk_delete", entity_id=linode_instance.id
@@ -512,21 +512,27 @@ def test_linode_ips(create_linode):
     assert ips.ipv4.public[0].address == linode.ipv4[0]
 
 
-def test_linode_initate_migration(test_linode_client):
+# TODO(LDE): Remove skip once LDE is available
+@pytest.mark.skip("LDE is not currently enabled")
+def test_linode_initate_migration(test_linode_client, e2e_test_firewall):
     client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[4]
     label = get_test_label() + "_migration"
 
     linode, _ = client.linode.instance_create(
-        "g6-nanode-1", chosen_region, image="linode/debian12", label=label
+        "g6-nanode-1",
+        chosen_region,
+        image="linode/debian12",
+        label=label,
+        firewall=e2e_test_firewall,
     )
 
     # Says it could take up to ~6 hrs for migration to fully complete
     send_request_when_resource_available(
         300,
         linode.initiate_migration,
-        region="us-mia",
+        region="us-lax",
         migration_type=MigrationType.COLD,
     )
 
