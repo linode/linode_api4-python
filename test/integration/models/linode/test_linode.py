@@ -512,8 +512,6 @@ def test_linode_ips(create_linode):
     assert ips.ipv4.public[0].address == linode.ipv4[0]
 
 
-# TODO(LDE): Remove skip once LDE is available
-@pytest.mark.skip("LDE is not currently enabled")
 def test_linode_initate_migration(test_linode_client, e2e_test_firewall):
     client = test_linode_client
     available_regions = client.regions()
@@ -532,7 +530,7 @@ def test_linode_initate_migration(test_linode_client, e2e_test_firewall):
     send_request_when_resource_available(
         300,
         linode.initiate_migration,
-        region="us-lax",
+        region="us-central",
         migration_type=MigrationType.COLD,
     )
 
