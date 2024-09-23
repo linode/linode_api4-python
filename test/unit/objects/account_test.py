@@ -1,3 +1,5 @@
+from collections.abc import Iterable
+from copy import deepcopy
 from datetime import datetime
 from test.unit.base import ClientBaseCase
 
@@ -21,10 +23,12 @@ from linode_api4.objects import (
     ServiceTransfer,
     StackScript,
     User,
+    UserGrants,
     Volume,
     get_obj_grants,
 )
 from linode_api4.objects.account import ChildAccount
+from linode_api4.objects.vpc import VPC
 
 
 class InvoiceTest(ClientBaseCase):
@@ -204,22 +208,6 @@ class InvoiceTest(ClientBaseCase):
         self.assertTrue(paymentMethod.is_default)
         self.assertEqual(paymentMethod.type, "credit_card")
 
-    def test_get_user_grant(self):
-        """
-        Tests that a user grant is loaded correctly
-        """
-        grants = get_obj_grants()
-
-        self.assertTrue(grants.count(("linode", Instance)) > 0)
-        self.assertTrue(grants.count(("domain", Domain)) > 0)
-        self.assertTrue(grants.count(("stackscript", StackScript)) > 0)
-        self.assertTrue(grants.count(("nodebalancer", NodeBalancer)) > 0)
-        self.assertTrue(grants.count(("volume", Volume)) > 0)
-        self.assertTrue(grants.count(("image", Image)) > 0)
-        self.assertTrue(grants.count(("longview", LongviewClient)) > 0)
-        self.assertTrue(grants.count(("database", Database)) > 0)
-        self.assertTrue(grants.count(("firewall", Firewall)) > 0)
-
     def test_payment_method_make_default(self):
         """
         Tests that making a payment method default creates the correct api request.
@@ -309,3 +297,89 @@ class ChildAccountTest(ClientBaseCase):
             token = child_account.create_token()
             self.assertEqual(token.token, "abcdefghijklmnop")
             self.assertEqual(m.call_data, {})
+
+
+def test_get_user_grant():
+    """
+    Tests that a user grant is loaded correctly
+    """
+    grants = get_obj_grants()
+
+    assert grants.count(("linode", Instance)) > 0
+    assert grants.count(("domain", Domain)) > 0
+    assert grants.count(("stackscript", StackScript)) > 0
+    assert grants.count(("nodebalancer", NodeBalancer)) > 0
+    assert grants.count(("volume", Volume)) > 0
+    assert grants.count(("image", Image)) > 0
+    assert grants.count(("longview", LongviewClient)) > 0
+    assert grants.count(("database", Database)) > 0
+    assert grants.count(("firewall", Firewall)) > 0
+    assert grants.count(("vpc", VPC)) > 0
+
+
+def test_user_grants_serialization():
+    """
+    Tests that user grants from JSON is serialized correctly
+    """
+    user_grants_json = {
+        "database": [
+            {"id": 123, "label": "example-entity", "permissions": "read_only"}
+        ],
+        "domain": [
+            {"id": 123, "label": "example-entity", "permissions": "read_only"}
+        ],
+        "firewall": [
+            {"id": 123, "label": "example-entity", "permissions": "read_only"}
+        ],
+        "global": {
+            "account_access": "read_only",
+            "add_databases": True,
+            "add_domains": True,
+            "add_firewalls": True,
+            "add_images": True,
+            "add_linodes": True,
+            "add_longview": True,
+            "add_nodebalancers": True,
+            "add_placement_groups": True,
+            "add_stackscripts": True,
+            "add_volumes": True,
+            "add_vpcs": True,
+            "cancel_account": False,
+            "child_account_access": True,
+            "longview_subscription": True,
+        },
+        "image": [
+            {"id": 123, "label": "example-entity", "permissions": "read_only"}
+        ],
+        "linode": [
+            {"id": 123, "label": "example-entity", "permissions": "read_only"}
+        ],
+        "longview": [
+            {"id": 123, "label": "example-entity", "permissions": "read_only"}
+        ],
+        "nodebalancer": [
+            {"id": 123, "label": "example-entity", "permissions": "read_only"}
+        ],
+        "stackscript": [
+            {"id": 123, "label": "example-entity", "permissions": "read_only"}
+        ],
+        "volume": [
+            {"id": 123, "label": "example-entity", "permissions": "read_only"}
+        ],
+        "vpc": [
+            {"id": 123, "label": "example-entity", "permissions": "read_only"}
+        ],
+    }
+
+    expected_serialized_grants = deepcopy(user_grants_json)
+
+    for grants in expected_serialized_grants.values():
+        if isinstance(grants, Iterable):
+            for grant in grants:
+                if isinstance(grant, dict) and "label" in grant:
+                    del grant["label"]
+
+    assert (
+        UserGrants(None, None, user_grants_json)._serialize()
+        == expected_serialized_grants
+    )
