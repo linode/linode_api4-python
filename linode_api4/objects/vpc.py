@@ -16,7 +16,7 @@ class VPCSubnetLinodeInterface(JSONObject):
 @dataclass
 class VPCSubnetLinode(JSONObject):
     id: int = 0
-    interfaces: List[VPCSubnetLinodeInterface] = None
+    interfaces: Optional[List[VPCSubnetLinodeInterface]] = None
 
 
 class VPCSubnet(DerivedBase):

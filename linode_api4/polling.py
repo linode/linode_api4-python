@@ -104,7 +104,7 @@ class EventPoller:
         client: "LinodeClient",
         entity_type: str,
         action: str,
-        entity_id: int = None,
+        entity_id: Optional[int] = None,
     ):
         self._client = client
         self._entity_type = entity_type

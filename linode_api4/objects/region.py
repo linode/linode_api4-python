@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects.base import Base, JSONObject, Property
@@ -59,6 +59,6 @@ class RegionAvailabilityEntry(JSONObject):
     API Documentation: https://techdocs.akamai.com/linode-api/reference/get-region-availability
     """
 
-    region: str = None
-    plan: str = None
+    region: Optional[str] = None
+    plan: Optional[str] = None
     available: bool = False

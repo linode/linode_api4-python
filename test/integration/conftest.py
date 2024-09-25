@@ -2,7 +2,7 @@ import ipaddress
 import os
 import random
 import time
-from typing import Set
+from typing import Optional, Set
 
 import pytest
 import requests
@@ -35,7 +35,9 @@ def get_random_label():
 
 
 def get_regions(
-    client: LinodeClient, capabilities: Set[str] = None, site_type: str = None
+    client: LinodeClient,
+    capabilities: Optional[Set[str]] = None,
+    site_type: Optional[str] = None,
 ):
     region_override = os.environ.get(ENV_REGION_OVERRIDE)
 

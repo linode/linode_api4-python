@@ -32,8 +32,8 @@ class ImageGroup(Group):
     def create(
         self,
         disk: Union[Disk, int],
-        label: str = None,
-        description: str = None,
+        label: Optional[str] = None,
+        description: Optional[str] = None,
         cloud_init: bool = False,
         tags: Optional[List[str]] = None,
     ):
@@ -82,7 +82,7 @@ class ImageGroup(Group):
         self,
         label: str,
         region: str,
-        description: str = None,
+        description: Optional[str] = None,
         cloud_init: bool = False,
         tags: Optional[List[str]] = None,
     ) -> Tuple[Image, str]:
@@ -132,7 +132,7 @@ class ImageGroup(Group):
         label: str,
         region: str,
         file: BinaryIO,
-        description: str = None,
+        description: Optional[str] = None,
         tags: Optional[List[str]] = None,
     ) -> Image:
         """
