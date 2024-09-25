@@ -277,6 +277,7 @@ def test_lke_cluster_acl(lke_cluster_with_acl):
     assert not cluster.control_plane_acl.enabled
 
 
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 def test_lke_cluster_labels_and_taints(lke_cluster_with_labels_and_taints):
     pool = lke_cluster_with_labels_and_taints.pools[0]
 

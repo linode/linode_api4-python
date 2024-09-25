@@ -87,6 +87,7 @@ def test_get_regions(test_linode_client):
 
 
 @pytest.mark.smoke
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 def test_image_create(setup_client_and_linode):
     client = setup_client_and_linode[0]
     linode = setup_client_and_linode[1]

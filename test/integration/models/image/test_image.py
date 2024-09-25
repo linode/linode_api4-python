@@ -74,6 +74,7 @@ def test_image_create_upload(test_linode_client, test_uploaded_image):
 
 
 @pytest.mark.smoke
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 def test_image_replication(test_linode_client, test_uploaded_image):
     uploaded_image, regions = test_uploaded_image
 
