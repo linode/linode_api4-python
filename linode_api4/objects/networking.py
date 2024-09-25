@@ -3,7 +3,10 @@ from typing import Optional
 
 from linode_api4.common import Price, RegionPrice
 from linode_api4.errors import UnexpectedResponseError
-from linode_api4.objects import Base, DerivedBase, JSONObject, Property, Region
+from linode_api4.objects.base import Base, Property
+from linode_api4.objects.dbase import DerivedBase
+from linode_api4.objects.region import Region
+from linode_api4.objects.serializable import JSONObject
 
 
 class IPv6Pool(Base):
