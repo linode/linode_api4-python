@@ -1,4 +1,5 @@
 import time
+from test.integration.helpers import get_test_label
 
 import pytest
 
@@ -10,7 +11,7 @@ def linode_fw(test_linode_client):
     client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[4]
-    label = "linode_instance_fw_device"
+    label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1", chosen_region, image="linode/debian10", label=label
@@ -79,6 +80,6 @@ def test_get_device(test_linode_client, test_firewall, linode_fw):
         FirewallDevice, firewall.devices.first().id, firewall.id
     )
 
-    assert firewall_device.entity.label == "linode_instance_fw_device"
+    assert "test_" in firewall_device.entity.label
     assert firewall_device.entity.type == "linode"
     assert "/v4/linode/instances/" in firewall_device.entity.url
