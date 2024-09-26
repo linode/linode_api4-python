@@ -44,8 +44,8 @@ jobs:
           LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
 
       - name: Notify Slack
-        if: always()
-        uses: slackapi/slack-github-action@v1.26.0
+        if: always() && github.repository == 'linode/linode_api4-python'
+        uses: slackapi/slack-github-action@v1.27.0
         with:
           channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
           payload: |
