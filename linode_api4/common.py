@@ -1,4 +1,7 @@
 import os
+from dataclasses import dataclass
+
+from linode_api4.objects import JSONObject
 
 SSH_KEY_TYPES = (
     "ssh-dss",
@@ -57,3 +60,24 @@ def load_and_validate_keys(authorized_keys):
                     )
                 )
     return ret
+
+
+@dataclass
+class Price(JSONObject):
+    """
+    Price contains the core fields of a price object returned by various pricing endpoints.
+    """
+
+    hourly: int = 0
+    monthly: int = 0
+
+
+@dataclass
+class RegionPrice(JSONObject):
+    """
+    RegionPrice contains the core fields of a region_price object returned by various pricing endpoints.
+    """
+
+    id: int = 0
+    hourly: int = 0
+    monthly: int = 0

@@ -1221,6 +1221,9 @@ class Instance(Base):
         root_pass=None,
         authorized_keys=None,
         authorized_users=None,
+        disk_encryption: Optional[
+            Union[InstanceDiskEncryptionType, str]
+        ] = None,
         stackscript=None,
         **stackscript_args,
     ):
@@ -1245,6 +1248,9 @@ class Instance(Base):
                                  as trusted for the root user.  These user's keys
                                  should already be set up, see :any:`ProfileGroup.ssh_keys`
                                  for details.
+        :param disk_encryption: The disk encryption policy for this Linode.
+                                NOTE: Disk encryption may not currently be available to all users.
+        :type disk_encryption: InstanceDiskEncryptionType or str
         :param stackscript: A StackScript object, or the ID of one, to deploy to this
                             disk.  Requires deploying a compatible image.
         :param **stackscript_args: Any arguments to pass to the StackScript, as defined
@@ -1273,6 +1279,9 @@ class Instance(Base):
             "authorized_keys": authorized_keys,
             "authorized_users": authorized_users,
         }
+
+        if disk_encryption is not None:
+            params["disk_encryption"] = str(disk_encryption)
 
         if image:
             params.update(

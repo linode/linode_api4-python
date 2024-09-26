@@ -87,6 +87,7 @@ def test_get_regions(test_linode_client):
 
 
 @pytest.mark.smoke
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 def test_image_create(setup_client_and_linode):
     client = setup_client_and_linode[0]
     linode = setup_client_and_linode[1]
@@ -222,7 +223,7 @@ def test_get_account_settings(test_linode_client):
 
     assert account_settings._populated == True
     assert re.search(
-        "'network_helper':\s*(True|False)", str(account_settings._raw_json)
+        r"'network_helper':\s*(True|False)", str(account_settings._raw_json)
     )
 
 

@@ -1,6 +1,6 @@
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
-from linode_api4.objects import Base, NodeBalancer
+from linode_api4.objects import Base, NodeBalancer, NodeBalancerType
 
 
 class NodeBalancerGroup(Group):
@@ -50,3 +50,21 @@ class NodeBalancerGroup(Group):
 
         n = NodeBalancer(self.client, result["id"], result)
         return n
+
+    def types(self, *filters):
+        """
+        Returns a :any:`PaginatedList` of :any:`NodeBalancerType` objects that represents a valid NodeBalancer type.
+
+        API Documentation: TODO
+
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
+
+        :returns: A Paginated List of NodeBalancer types that match the query.
+        :rtype: PaginatedList of NodeBalancerType
+        """
+
+        return self.client._get_and_filter(
+            NodeBalancerType, *filters, endpoint="/nodebalancers/types"
+        )

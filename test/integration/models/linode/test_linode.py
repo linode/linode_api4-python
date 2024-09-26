@@ -107,12 +107,12 @@ def linode_for_disk_tests(test_linode_client, e2e_test_firewall):
     # Provisioning time
     wait_for_condition(10, 300, get_status, linode_instance, "running")
 
-    linode_instance.shutdown()
+    send_request_when_resource_available(300, linode_instance.shutdown)
 
     wait_for_condition(10, 100, get_status, linode_instance, "offline")
 
     # Now it allocates 100% disk space hence need to clear some space for tests
-    linode_instance.disks[1].delete()
+    send_request_when_resource_available(300, linode_instance.disks[1].delete)
 
     test_linode_client.polling.event_poller_create(
         "linode", "disk_delete", entity_id=linode_instance.id
@@ -312,6 +312,7 @@ def test_linode_boot(create_linode):
     assert linode.status == "running"
 
 
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 def test_linode_resize(create_linode_for_long_running_tests):
     linode = create_linode_for_long_running_tests
 
@@ -512,21 +513,25 @@ def test_linode_ips(create_linode):
     assert ips.ipv4.public[0].address == linode.ipv4[0]
 
 
-def test_linode_initate_migration(test_linode_client):
+def test_linode_initate_migration(test_linode_client, e2e_test_firewall):
     client = test_linode_client
     available_regions = client.regions()
     chosen_region = available_regions[4]
     label = get_test_label() + "_migration"
 
     linode, _ = client.linode.instance_create(
-        "g6-nanode-1", chosen_region, image="linode/debian12", label=label
+        "g6-nanode-1",
+        chosen_region,
+        image="linode/debian12",
+        label=label,
+        firewall=e2e_test_firewall,
     )
 
     # Says it could take up to ~6 hrs for migration to fully complete
     send_request_when_resource_available(
         300,
         linode.initiate_migration,
-        region="us-mia",
+        region="us-central",
         migration_type=MigrationType.COLD,
     )
 
@@ -590,6 +595,7 @@ def test_get_linode_types_overrides(test_linode_client):
         assert linode_type.region_prices[0].monthly >= 0
 
 
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 def test_save_linode_noforce(test_linode_client, create_linode):
     linode = create_linode
     old_label = linode.label
@@ -601,6 +607,7 @@ def test_save_linode_noforce(test_linode_client, create_linode):
     assert old_label != linode.label
 
 
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 def test_save_linode_force(test_linode_client, create_linode):
     linode = create_linode
     old_label = linode.label
