@@ -1,6 +1,9 @@
+import pytest
+
 from linode_api4 import PlacementGroup
 
 
+@pytest.mark.smoke
 def test_get_pg(test_linode_client, create_placement_group):
     """
     Tests that a Placement Group can be loaded.
@@ -9,6 +12,7 @@ def test_get_pg(test_linode_client, create_placement_group):
     assert pg.id == create_placement_group.id
 
 
+@pytest.mark.smoke
 def test_update_pg(test_linode_client, create_placement_group):
     """
     Tests that a Placement Group can be updated successfully.
