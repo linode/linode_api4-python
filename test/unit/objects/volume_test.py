@@ -31,6 +31,10 @@ class VolumeTest(ClientBaseCase):
         self.assertEqual(volume.hardware_type, "hdd")
         self.assertEqual(volume.linode_label, None)
 
+    def test_get_volume_with_encryption(self):
+        volume = Volume(self.client, 4)
+        self.assertEqual(volume.encryption, "enabled")
+
     def test_update_volume_tags(self):
         """
         Tests that updating tags on an entity send the correct request
