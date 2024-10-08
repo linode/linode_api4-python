@@ -80,9 +80,10 @@ def test_latest_get_event(test_linode_client, e2e_test_firewall):
 
     latest_events = events._raw_json.get("data")
 
+    linode.delete()
+
     for event in latest_events[:15]:
         if label == event["entity"]["label"]:
-            linode.delete()
             break
     else:
         assert False, f"Linode '{label}' not found in the last 15 events"
