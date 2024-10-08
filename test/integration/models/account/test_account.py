@@ -61,7 +61,7 @@ def test_get_account_settings(test_linode_client):
 
 
 @pytest.mark.smoke
-def test_latest_get_event(test_linode_client):
+def test_latest_get_event(test_linode_client, e2e_test_firewall):
     client = test_linode_client
 
     available_regions = client.regions()
@@ -69,7 +69,11 @@ def test_latest_get_event(test_linode_client):
     label = get_test_label()
 
     linode, password = client.linode.instance_create(
-        "g6-nanode-1", chosen_region, image="linode/debian10", label=label
+        "g6-nanode-1",
+        chosen_region,
+        image="linode/debian10",
+        label=label,
+        firewall=e2e_test_firewall,
     )
 
     events = client.load(Event, "")
