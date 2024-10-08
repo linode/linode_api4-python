@@ -3,14 +3,10 @@ from urllib import parse
 
 from linode_api4.common import Price, RegionPrice
 from linode_api4.errors import UnexpectedResponseError
-from linode_api4.objects import (
-    Base,
-    DerivedBase,
-    MappedObject,
-    Property,
-    Region,
-)
+from linode_api4.objects.base import Base, MappedObject, Property
+from linode_api4.objects.dbase import DerivedBase
 from linode_api4.objects.networking import Firewall, IPAddress
+from linode_api4.objects.region import Region
 
 
 class NodeBalancerType(Base):

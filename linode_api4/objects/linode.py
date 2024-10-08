@@ -11,18 +11,19 @@ from urllib import parse
 from linode_api4 import util
 from linode_api4.common import load_and_validate_keys
 from linode_api4.errors import UnexpectedResponseError
-from linode_api4.objects import (
-    Base,
-    DerivedBase,
-    Image,
-    JSONObject,
-    Property,
-    Region,
-)
-from linode_api4.objects.base import MappedObject
+from linode_api4.objects.base import Base, MappedObject, Property
+from linode_api4.objects.dbase import DerivedBase
 from linode_api4.objects.filtering import FilterableAttribute
-from linode_api4.objects.networking import IPAddress, IPv6Range, VPCIPAddress
-from linode_api4.objects.serializable import StrEnum
+from linode_api4.objects.image import Image
+from linode_api4.objects.networking import (
+    Firewall,
+    IPAddress,
+    IPv6Range,
+    VPCIPAddress,
+)
+from linode_api4.objects.nodebalancer import NodeBalancer
+from linode_api4.objects.region import Region
+from linode_api4.objects.serializable import JSONObject, StrEnum
 from linode_api4.objects.vpc import VPC, VPCSubnet
 from linode_api4.paginated_list import PaginatedList
 
@@ -1618,9 +1619,6 @@ class Instance(Base):
         :returns: A List of Firewalls of the Linode Instance.
         :rtype: List[Firewall]
         """
-        from linode_api4.objects import (  # pylint: disable=import-outside-toplevel
-            Firewall,
-        )
 
         result = self._client.get(
             "{}/firewalls".format(Instance.api_endpoint), model=self
@@ -1640,9 +1638,6 @@ class Instance(Base):
         :returns: A List of Nodebalancers of the Linode Instance.
         :rtype: List[Nodebalancer]
         """
-        from linode_api4.objects import (  # pylint: disable=import-outside-toplevel
-            NodeBalancer,
-        )
 
         result = self._client.get(
             "{}/nodebalancers".format(Instance.api_endpoint), model=self

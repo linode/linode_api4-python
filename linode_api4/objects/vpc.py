@@ -3,6 +3,7 @@ from typing import List, Optional
 
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import Base, DerivedBase, Property, Region
+from linode_api4.objects.networking import VPCIPAddress
 from linode_api4.objects.serializable import JSONObject
 from linode_api4.paginated_list import PaginatedList
 
@@ -109,11 +110,6 @@ class VPC(Base):
         :returns: A list of VPCIPAddresses the acting user can access.
         :rtype: PaginatedList of VPCIPAddress
         """
-
-        # need to avoid circular import
-        from linode_api4.objects import (  # pylint: disable=import-outside-toplevel
-            VPCIPAddress,
-        )
 
         return self._client._get_and_filter(
             VPCIPAddress, endpoint="/vpcs/{}/ips".format(self.id)
