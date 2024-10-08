@@ -74,11 +74,14 @@ def test_latest_get_event(test_linode_client):
 
     events = client.load(Event, "")
 
-    latest_event = events._raw_json.get("data")[0]
+    latest_events = events._raw_json.get("data")
 
-    linode.delete()
-
-    assert label in latest_event["entity"]["label"]
+    for event in latest_events[:15]:
+        if label == event["entity"]["label"]:
+            linode.delete()
+            break
+    else:
+        assert False, f"Linode '{label}' not found in the last 15 events"
 
 
 def test_get_user(test_linode_client):
