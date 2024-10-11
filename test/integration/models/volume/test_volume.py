@@ -60,6 +60,15 @@ def test_get_volume(test_linode_client, test_volume):
     assert volume.id == test_volume.id
 
 
+def test_get_volume_with_encryption(
+    test_linode_client, test_volume_with_encryption
+):
+    volume = test_linode_client.load(Volume, test_volume_with_encryption.id)
+
+    assert volume.id == test_volume_with_encryption.id
+    assert volume.encryption == "enabled"
+
+
 def test_update_volume_tag(test_linode_client, test_volume):
     volume = test_volume
     tag_1 = "volume_test_tag1"
