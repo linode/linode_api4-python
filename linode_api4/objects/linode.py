@@ -11,18 +11,19 @@ from urllib import parse
 from linode_api4 import util
 from linode_api4.common import load_and_validate_keys
 from linode_api4.errors import UnexpectedResponseError
-from linode_api4.objects import (
-    Base,
-    DerivedBase,
-    Image,
-    JSONObject,
-    Property,
-    Region,
-)
-from linode_api4.objects.base import MappedObject
+from linode_api4.objects.base import Base, MappedObject, Property
+from linode_api4.objects.dbase import DerivedBase
 from linode_api4.objects.filtering import FilterableAttribute
-from linode_api4.objects.networking import IPAddress, IPv6Range, VPCIPAddress
-from linode_api4.objects.serializable import StrEnum
+from linode_api4.objects.image import Image
+from linode_api4.objects.networking import (
+    Firewall,
+    IPAddress,
+    IPv6Range,
+    VPCIPAddress,
+)
+from linode_api4.objects.nodebalancer import NodeBalancer
+from linode_api4.objects.region import Region
+from linode_api4.objects.serializable import JSONObject, StrEnum
 from linode_api4.objects.vpc import VPC, VPCSubnet
 from linode_api4.paginated_list import PaginatedList
 
@@ -1222,6 +1223,9 @@ class Instance(Base):
         root_pass=None,
         authorized_keys=None,
         authorized_users=None,
+        disk_encryption: Optional[
+            Union[InstanceDiskEncryptionType, str]
+        ] = None,
         stackscript=None,
         **stackscript_args,
     ):
@@ -1246,6 +1250,9 @@ class Instance(Base):
                                  as trusted for the root user.  These user's keys
                                  should already be set up, see :any:`ProfileGroup.ssh_keys`
                                  for details.
+        :param disk_encryption: The disk encryption policy for this Linode.
+                                NOTE: Disk encryption may not currently be available to all users.
+        :type disk_encryption: InstanceDiskEncryptionType or str
         :param stackscript: A StackScript object, or the ID of one, to deploy to this
                             disk.  Requires deploying a compatible image.
         :param **stackscript_args: Any arguments to pass to the StackScript, as defined
@@ -1274,6 +1281,9 @@ class Instance(Base):
             "authorized_keys": authorized_keys,
             "authorized_users": authorized_users,
         }
+
+        if disk_encryption is not None:
+            params["disk_encryption"] = str(disk_encryption)
 
         if image:
             params.update(
@@ -1610,9 +1620,6 @@ class Instance(Base):
         :returns: A List of Firewalls of the Linode Instance.
         :rtype: List[Firewall]
         """
-        from linode_api4.objects import (  # pylint: disable=import-outside-toplevel
-            Firewall,
-        )
 
         result = self._client.get(
             "{}/firewalls".format(Instance.api_endpoint), model=self
@@ -1632,9 +1639,6 @@ class Instance(Base):
         :returns: A List of Nodebalancers of the Linode Instance.
         :rtype: List[Nodebalancer]
         """
-        from linode_api4.objects import (  # pylint: disable=import-outside-toplevel
-            NodeBalancer,
-        )
 
         result = self._client.get(
             "{}/nodebalancers".format(Instance.api_endpoint), model=self

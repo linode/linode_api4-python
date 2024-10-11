@@ -2,7 +2,7 @@ import ipaddress
 import os
 import random
 import time
-from typing import Set
+from typing import Optional, Set
 
 import pytest
 import requests
@@ -34,8 +34,10 @@ def get_random_label():
     return label
 
 
-def get_region(
-    client: LinodeClient, capabilities: Set[str] = None, site_type: str = None
+def get_regions(
+    client: LinodeClient,
+    capabilities: Optional[Set[str]] = None,
+    site_type: Optional[str] = None,
 ):
     region_override = os.environ.get(ENV_REGION_OVERRIDE)
 
@@ -53,7 +55,13 @@ def get_region(
     if site_type is not None:
         regions = [v for v in regions if v.site_type == site_type]
 
-    return random.choice(regions)
+    return regions
+
+
+def get_region(
+    client: LinodeClient, capabilities: Set[str] = None, site_type: str = None
+):
+    return random.choice(get_regions(client, capabilities, site_type))
 
 
 def get_api_ca_file():

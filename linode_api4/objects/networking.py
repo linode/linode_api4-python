@@ -1,8 +1,12 @@
 from dataclasses import dataclass
 from typing import Optional
 
+from linode_api4.common import Price, RegionPrice
 from linode_api4.errors import UnexpectedResponseError
-from linode_api4.objects import Base, DerivedBase, JSONObject, Property, Region
+from linode_api4.objects.base import Base, Property
+from linode_api4.objects.dbase import DerivedBase
+from linode_api4.objects.region import Region
+from linode_api4.objects.serializable import JSONObject
 
 
 class IPv6Pool(Base):
@@ -256,3 +260,21 @@ class Firewall(Base):
 
         c = FirewallDevice(self._client, result["id"], self.id, result)
         return c
+
+
+class NetworkTransferPrice(Base):
+    """
+    An NetworkTransferPrice represents the structure of a valid network transfer price.
+    Currently the NetworkTransferPrice can only be retrieved by listing, i.e.:
+        types = client.networking.transfer_prices()
+
+    API documentation: TODO
+    """
+
+    properties = {
+        "id": Property(identifier=True),
+        "label": Property(),
+        "price": Property(json_object=Price),
+        "region_prices": Property(json_object=RegionPrice),
+        "transfer": Property(),
+    }

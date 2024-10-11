@@ -1,5 +1,26 @@
+from linode_api4.common import Price, RegionPrice
 from linode_api4.errors import UnexpectedResponseError
-from linode_api4.objects import Base, Instance, Property, Region
+from linode_api4.objects.base import Base, Property
+from linode_api4.objects.linode import Instance, Region
+from linode_api4.objects.region import Region
+
+
+class VolumeType(Base):
+    """
+    An VolumeType represents the structure of a valid Volume type.
+    Currently the VolumeType can only be retrieved by listing, i.e.:
+        types = client.volumes.types()
+
+    API documentation: TODO
+    """
+
+    properties = {
+        "id": Property(identifier=True),
+        "label": Property(),
+        "price": Property(json_object=Price),
+        "region_prices": Property(json_object=RegionPrice),
+        "transfer": Property(),
+    }
 
 
 class Volume(Base):

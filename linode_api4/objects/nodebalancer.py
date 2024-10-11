@@ -1,15 +1,30 @@
 import os
 from urllib import parse
 
+from linode_api4.common import Price, RegionPrice
 from linode_api4.errors import UnexpectedResponseError
-from linode_api4.objects import (
-    Base,
-    DerivedBase,
-    MappedObject,
-    Property,
-    Region,
-)
+from linode_api4.objects.base import Base, MappedObject, Property
+from linode_api4.objects.dbase import DerivedBase
 from linode_api4.objects.networking import Firewall, IPAddress
+from linode_api4.objects.region import Region
+
+
+class NodeBalancerType(Base):
+    """
+    An NodeBalancerType represents the structure of a valid NodeBalancer type.
+    Currently the NodeBalancerType can only be retrieved by listing, i.e.:
+        types = client.nodebalancers.types()
+
+    API documentation: TODO
+    """
+
+    properties = {
+        "id": Property(identifier=True),
+        "label": Property(),
+        "price": Property(json_object=Price),
+        "region_prices": Property(json_object=RegionPrice),
+        "transfer": Property(),
+    }
 
 
 class NodeBalancerNode(DerivedBase):

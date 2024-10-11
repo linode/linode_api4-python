@@ -53,6 +53,7 @@ dev = [
     "sphinxcontrib-fulltoc>=1.2.0",
     "build>=0.10.0",
     "twine>=4.0.2",
+    "pytest-rerunfailures",
 ]
 
 doc = [
@@ -88,3 +89,9 @@ in-place = true
 recursive = true
 remove-all-unused-imports = true
 remove-duplicate-keys = false
+
+[tool.pytest.ini_options]
+markers = [
+    "smoke: mark a test as a smoke test",
+    "flaky: mark a test as a flaky test for rerun"
+]

@@ -1,3 +1,5 @@
+from typing import Optional
+
 import polling
 
 from linode_api4.groups import Group
@@ -13,7 +15,7 @@ class PollingGroup(Group):
         self,
         entity_type: str,
         action: str,
-        entity_id: int = None,
+        entity_id: Optional[int] = None,
     ) -> EventPoller:
         """
         Creates a new instance of the EventPoller class.

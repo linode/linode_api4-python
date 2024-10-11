@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Union
 from urllib import parse
 
+from linode_api4.common import Price, RegionPrice
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import (
     Base,
@@ -13,6 +14,24 @@ from linode_api4.objects import (
     Region,
     Type,
 )
+
+
+class LKEType(Base):
+    """
+    An LKEType represents the structure of a valid LKE type.
+    Currently the LKEType can only be retrieved by listing, i.e.:
+        types = client.lke.types()
+
+    API documentation: TODO
+    """
+
+    properties = {
+        "id": Property(identifier=True),
+        "label": Property(),
+        "price": Property(json_object=Price),
+        "region_prices": Property(json_object=RegionPrice),
+        "transfer": Property(),
+    }
 
 
 class KubeVersion(Base):
@@ -84,8 +103,8 @@ class LKEClusterControlPlaneACLAddresses(JSONObject):
     to access an LKE cluster's control plane.
     """
 
-    ipv4: List[str] = None
-    ipv6: List[str] = None
+    ipv4: Optional[List[str]] = None
+    ipv6: Optional[List[str]] = None
 
 
 @dataclass
@@ -98,7 +117,7 @@ class LKEClusterControlPlaneACL(JSONObject):
     """
 
     enabled: bool = False
-    addresses: LKEClusterControlPlaneACLAddresses = None
+    addresses: Optional[LKEClusterControlPlaneACLAddresses] = None
 
 
 class LKENodePoolNode:
@@ -332,7 +351,7 @@ class LKECluster(Base):
         self,
         node_type: Union[Type, str],
         node_count: int,
-        labels: Dict[str, str] = None,
+        labels: Optional[Dict[str, str]] = None,
         taints: List[Union[LKENodePoolTaint, Dict[str, Any]]] = None,
         **kwargs,
     ):

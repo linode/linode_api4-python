@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from importlib.metadata import version
-from typing import BinaryIO, List, Tuple
+from typing import BinaryIO, List, Optional, Tuple
 from urllib import parse
 
 import requests
@@ -391,8 +391,8 @@ class LinodeClient:
         self,
         label: str,
         region: str,
-        description: str = None,
-        tags: List[str] = None,
+        description: Optional[str] = None,
+        tags: Optional[List[str]] = None,
     ) -> Tuple[Image, str]:
         """
         .. note:: This method is an alias to maintain backwards compatibility.
@@ -409,8 +409,8 @@ class LinodeClient:
         label: str,
         region: str,
         file: BinaryIO,
-        description: str = None,
-        tags: List[str] = None,
+        description: Optional[str] = None,
+        tags: Optional[List[str]] = None,
     ) -> Image:
         """
         .. note:: This method is an alias to maintain backwards compatibility.
