@@ -55,6 +55,8 @@ class LKENodePoolTaint(JSONObject):
     applied to a node pool.
     """
 
+    include_none_values = True
+
     key: Optional[str] = None
     value: Optional[str] = None
     effect: Optional[str] = None
@@ -103,6 +105,8 @@ class LKEClusterControlPlaneACLAddresses(JSONObject):
     to access an LKE cluster's control plane.
     """
 
+    include_none_values = True
+
     ipv4: Optional[List[str]] = None
     ipv6: Optional[List[str]] = None
 
@@ -115,6 +119,8 @@ class LKEClusterControlPlaneACL(JSONObject):
 
     NOTE: Control Plane ACLs may not currently be available to all users.
     """
+
+    include_none_values = True
 
     enabled: bool = False
     addresses: Optional[LKEClusterControlPlaneACLAddresses] = None

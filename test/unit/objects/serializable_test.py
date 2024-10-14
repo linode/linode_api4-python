@@ -26,3 +26,24 @@ class JSONObjectTest(ClientBaseCase):
         assert foo["foo"] == "test"
         assert foo["bar"] == "test2"
         assert foo["baz"] == "test3"
+
+    def test_serialize_optional_include_None(self):
+        @dataclass
+        class Foo(JSONObject):
+            include_none_values = True
+
+            foo: Optional[str] = None
+            bar: Optional[str] = None
+            baz: str = None
+
+        foo = Foo().dict
+
+        assert foo["foo"] is None
+        assert foo["bar"] is None
+        assert foo["baz"] is None
+
+        foo = Foo(foo="test", bar="test2", baz="test3").dict
+
+        assert foo["foo"] == "test"
+        assert foo["bar"] == "test2"
+        assert foo["baz"] == "test3"
