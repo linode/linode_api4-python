@@ -295,6 +295,35 @@ def test_volume(test_linode_client):
                 raise e
 
 
+@pytest.fixture(scope="session")
+def test_volume_with_encryption(test_linode_client):
+    client = test_linode_client
+    timestamp = str(time.time_ns())
+    region = get_region(client, {"Block Storage Encryption"})
+    label = "TestSDK-" + timestamp
+
+    volume = client.volume_create(
+        label=label, region=region, encryption="enabled"
+    )
+
+    yield volume
+
+    timeout = 100  # give 100s for volume to be detached before deletion
+
+    start_time = time.time()
+
+    while time.time() - start_time < timeout:
+        try:
+            res = volume.delete()
+            if res:
+                break
+            else:
+                time.sleep(3)
+        except ApiError as e:
+            if time.time() - start_time > timeout:
+                raise e
+
+
 @pytest.fixture
 def test_tag(test_linode_client):
     client = test_linode_client

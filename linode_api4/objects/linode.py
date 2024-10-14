@@ -679,6 +679,7 @@ class Instance(Base):
         "has_user_data": Property(),
         "disk_encryption": Property(),
         "lke_cluster_id": Property(),
+        "capabilities": Property(unordered=True),
     }
 
     @property

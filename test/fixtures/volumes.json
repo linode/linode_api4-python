@@ -41,9 +41,24 @@
       "filesystem_path": "this/is/a/file/path",
       "hardware_type": "nvme",
       "linode_label": "some_label"
+    },
+    {
+      "id": 4,
+      "label": "block4",
+      "created": "2017-08-04T03:00:00",
+      "region": "ap-west-1a",
+      "linode_id": null,
+      "size": 40,
+      "updated": "2017-08-04T04:00:00",
+      "status": "active",
+      "tags": ["something"],
+      "filesystem_path": "this/is/a/file/path",
+      "hardware_type": "hdd",
+      "linode_label": null,
+      "encryption": "enabled"
     }
   ],
-  "results": 3,
+  "results": 4,
   "pages": 1,
   "page": 1
 }

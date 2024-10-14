@@ -124,6 +124,25 @@ def linode_for_disk_tests(test_linode_client, e2e_test_firewall):
 
 
 @pytest.fixture
+def linode_with_block_storage_encryption(test_linode_client, e2e_test_firewall):
+    client = test_linode_client
+    chosen_region = get_region(client, {"Linodes", "Block Storage Encryption"})
+    label = get_test_label()
+
+    linode_instance, password = client.linode.instance_create(
+        "g6-nanode-1",
+        chosen_region,
+        image="linode/alpine3.19",
+        label=label + "block-storage-encryption",
+        firewall=e2e_test_firewall,
+    )
+
+    yield linode_instance
+
+    linode_instance.delete()
+
+
+@pytest.fixture
 def create_linode_for_long_running_tests(test_linode_client, e2e_test_firewall):
     client = test_linode_client
     available_regions = client.regions()
@@ -438,6 +457,13 @@ def test_linode_with_disk_encryption_disabled(linode_with_disk_encryption):
     assert (
         linode.disks[0].disk_encryption == InstanceDiskEncryptionType.disabled
     )
+
+
+def test_linode_with_block_storage_encryption(
+    linode_with_block_storage_encryption,
+):
+    linode = linode_with_block_storage_encryption
+    assert "Block Storage Encryption" in linode.capabilities
 
 
 def wait_for_disk_status(disk: Disk, timeout):
