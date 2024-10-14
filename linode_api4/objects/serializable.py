@@ -58,6 +58,12 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
         )
     """
 
+    include_none_values: ClassVar[bool] = False
+    """
+    If true, all None values for this class will be explicitly included in 
+    the serialized output for instance of this class.
+    """
+
     always_include: ClassVar[Set[str]] = {}
     """
     A set of keys corresponding to fields that should always be
@@ -169,7 +175,7 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
             Returns whether the given key/value pair should be included in the resulting dict.
             """
 
-            if key in cls.always_include:
+            if cls.include_none_values or key in cls.always_include:
                 return True
 
             hint = type_hints.get(key)

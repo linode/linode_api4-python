@@ -24,6 +24,8 @@ class ImageRegion(JSONObject):
     The region and status of an image replica.
     """
 
+    include_none_values = True
+
     region: str = ""
     status: Optional[ReplicationStatus] = None
 
