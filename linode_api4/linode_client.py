@@ -287,23 +287,9 @@ class LinodeClient:
         if warning:
             logger.warning("Received warning from server: {}".format(warning))
 
-        if 399 < response.status_code < 600:
-            j = None
-            error_msg = "{}: ".format(response.status_code)
-            try:
-                j = response.json()
-                if "errors" in j.keys():
-                    for e in j["errors"]:
-                        msg = e.get("reason", "")
-                        field = e.get("field", None)
-
-                        error_msg += "{}{}; ".format(
-                            f"[{field}] " if field is not None else "",
-                            msg,
-                        )
-            except:
-                pass
-            raise ApiError(error_msg, status=response.status_code, json=j)
+        api_error = ApiError.from_response(response)
+        if api_error is not None:
+            raise api_error
 
         if response.status_code != 204:
             j = response.json()

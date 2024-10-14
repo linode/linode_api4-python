@@ -174,12 +174,9 @@ class SupportTicket(Base):
                 files={"file": f},
             )
 
-        if not result.status_code == 200:
-            errors = []
-            j = result.json()
-            if "errors" in j:
-                errors = [e["reason"] for e in j["errors"]]
-            raise ApiError("{}: {}".format(result.status_code, errors), json=j)
+        api_exc = ApiError.from_response(result)
+        if api_exc is not None:
+            raise api_exc
 
         return True
 
