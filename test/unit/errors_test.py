@@ -1,7 +1,6 @@
 from types import SimpleNamespace
 from unittest import TestCase
 
-import requests.exceptions
 
 from linode_api4.errors import ApiError, UnexpectedResponseError
 
