@@ -436,8 +436,10 @@ class OAuthClient(Base):
         )
 
         if not result.status_code == 200:
-            raise ApiError(
-                "No thumbnail found for OAuthClient {}".format(self.id)
+            raise ApiError.from_response(
+                result,
+                "No thumbnail found for OAuthClient {}".format(self.id),
+                disable_formatting=True,
             )
 
         if dump_to:
@@ -472,12 +474,9 @@ class OAuthClient(Base):
             data=thumbnail,
         )
 
-        if not result.status_code == 200:
-            errors = []
-            j = result.json()
-            if "errors" in j:
-                errors = [e["reason"] for e in j["errors"]]
-            raise ApiError("{}: {}".format(result.status_code, errors), json=j)
+        api_exc = ApiError.from_response(result)
+        if api_exc is not None:
+            raise api_exc
 
         return True
 
