@@ -1,7 +1,7 @@
 from datetime import datetime
 from io import BytesIO
 from test.unit.base import ClientBaseCase
-from typing import BinaryIO
+from typing import BinaryIO, Optional
 from unittest.mock import patch
 
 from linode_api4.objects import Image, Region
@@ -95,7 +95,7 @@ class ImageTest(ClientBaseCase):
         Test that an image can be uploaded.
         """
 
-        def put_mock(url: str, data: BinaryIO = None, **kwargs):
+        def put_mock(url: str, data: Optional[BinaryIO] = None, **kwargs):
             self.assertEqual(url, "https://linode.com/")
             self.assertEqual(data.read(), TEST_IMAGE_CONTENT)
 

@@ -78,6 +78,7 @@ def test_create_nb_node(
     assert "node_test" == node.label
 
 
+@pytest.mark.smoke
 def test_get_nb_node(test_linode_client, create_nb_config):
     node = test_linode_client.load(
         NodeBalancerNode,

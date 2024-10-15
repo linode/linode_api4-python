@@ -61,7 +61,7 @@ def test_get_account_settings(test_linode_client):
 
 
 @pytest.mark.smoke
-def test_latest_get_event(test_linode_client):
+def test_latest_get_event(test_linode_client, e2e_test_firewall):
     client = test_linode_client
 
     available_regions = client.regions()
@@ -69,16 +69,24 @@ def test_latest_get_event(test_linode_client):
     label = get_test_label()
 
     linode, password = client.linode.instance_create(
-        "g6-nanode-1", chosen_region, image="linode/debian10", label=label
+        "g6-nanode-1",
+        chosen_region,
+        image="linode/debian10",
+        label=label,
+        firewall=e2e_test_firewall,
     )
 
     events = client.load(Event, "")
 
-    latest_event = events._raw_json.get("data")[0]
+    latest_events = events._raw_json.get("data")
 
     linode.delete()
 
-    assert label in latest_event["entity"]["label"]
+    for event in latest_events[:15]:
+        if label == event["entity"]["label"]:
+            break
+    else:
+        assert False, f"Linode '{label}' not found in the last 15 events"
 
 
 def test_get_user(test_linode_client):

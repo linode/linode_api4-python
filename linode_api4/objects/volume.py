@@ -1,6 +1,8 @@
 from linode_api4.common import Price, RegionPrice
 from linode_api4.errors import UnexpectedResponseError
-from linode_api4.objects import Base, Instance, Property, Region
+from linode_api4.objects.base import Base, Property
+from linode_api4.objects.linode import Instance, Region
+from linode_api4.objects.region import Region
 
 
 class VolumeType(Base):
@@ -44,6 +46,7 @@ class Volume(Base):
         "filesystem_path": Property(),
         "hardware_type": Property(),
         "linode_label": Property(),
+        "encryption": Property(),
     }
 
     def attach(self, to_linode, config=None):

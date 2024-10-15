@@ -12,12 +12,6 @@ def get_test_label():
     return label
 
 
-def get_rand_nanosec_test_label():
-    unique_timestamp = str(time.time_ns())[:-3]
-    label = "test_" + unique_timestamp
-    return label
-
-
 def delete_instance_with_test_kw(paginated_list: PaginatedList):
     for i in paginated_list:
         try:

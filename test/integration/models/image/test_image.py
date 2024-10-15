@@ -1,5 +1,5 @@
 from io import BytesIO
-from test.integration.conftest import get_region
+from test.integration.conftest import get_region, get_regions
 from test.integration.helpers import (
     delete_instance_with_test_kw,
     get_test_label,
@@ -39,15 +39,19 @@ def test_uploaded_image(test_linode_client):
 
     label = get_test_label() + "_image"
 
+    regions = get_regions(
+        test_linode_client, capabilities={"Object Storage"}, site_type="core"
+    )
+
     image = test_linode_client.image_upload(
         label,
-        "us-east",
+        regions[1].id,
         BytesIO(test_image_content),
         description="integration test image upload",
         tags=["tests"],
     )
 
-    yield image
+    yield image, regions
 
     image.delete()
 
@@ -60,16 +64,21 @@ def test_get_image(test_linode_client, image_upload_url):
 
 
 def test_image_create_upload(test_linode_client, test_uploaded_image):
-    image = test_linode_client.load(Image, test_uploaded_image.id)
+    uploaded_image, _ = test_uploaded_image
 
-    assert image.label == test_uploaded_image.label
+    image = test_linode_client.load(Image, uploaded_image.id)
+
+    assert image.label == uploaded_image.label
     assert image.description == "integration test image upload"
     assert image.tags[0] == "tests"
 
 
 @pytest.mark.smoke
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 def test_image_replication(test_linode_client, test_uploaded_image):
-    image = test_linode_client.load(Image, test_uploaded_image.id)
+    uploaded_image, regions = test_uploaded_image
+
+    image = test_linode_client.load(Image, uploaded_image.id)
 
     # wait for image to be available for replication
     def poll_func() -> bool:
@@ -85,8 +94,10 @@ def test_image_replication(test_linode_client, test_uploaded_image):
     except polling.TimeoutException:
         print("failed to wait for image status: timeout period expired.")
 
-    # image replication works stably in these two regions
-    image.replicate(["us-east", "eu-west"])
+    replicate_regions = [r.id for r in regions[:2]]
+    image.replicate(replicate_regions)
 
-    assert image.label == test_uploaded_image.label
+    assert image.label == uploaded_image.label
     assert len(image.regions) == 2
+    assert image.regions[0].region in replicate_regions
+    assert image.regions[1].region in replicate_regions

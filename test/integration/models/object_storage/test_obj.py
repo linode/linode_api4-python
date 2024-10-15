@@ -93,6 +93,7 @@ def test_bucket(
     assert any(b.label == bucket.label for b in buckets)
 
 
+@pytest.mark.smoke
 def test_list_obj_storage_bucket(
     test_linode_client: LinodeClient,
     bucket: ObjectStorageBucket,

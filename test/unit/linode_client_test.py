@@ -150,7 +150,7 @@ class LinodeClientGeneralTest(ClientBaseCase):
     def test_get_volumes(self):
         v = self.client.volumes()
 
-        self.assertEqual(len(v), 3)
+        self.assertEqual(len(v), 4)
         self.assertEqual(v[0].label, "block1")
         self.assertEqual(v[0].region.id, "us-east-1a")
         self.assertEqual(v[1].label, "block2")

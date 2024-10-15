@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Union
+from typing import List, Optional, Union
 
 from linode_api4.objects import Base, Property, Region
 from linode_api4.objects.serializable import JSONObject, StrEnum
@@ -24,8 +24,10 @@ class ImageRegion(JSONObject):
     The region and status of an image replica.
     """
 
+    include_none_values = True
+
     region: str = ""
-    status: ReplicationStatus = None
+    status: Optional[ReplicationStatus] = None
 
 
 class Image(Base):
@@ -62,6 +64,8 @@ class Image(Base):
 
     def replicate(self, regions: Union[List[str], List[Region]]):
         """
+        NOTE: Image replication may not currently be available to all users.
+
         Replicate the image to other regions.
 
         Note: Image replication may not currently be available to all users.
