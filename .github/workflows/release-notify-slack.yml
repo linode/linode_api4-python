@@ -21,7 +21,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*<${{ github.event.release.html_url }}|${{ github.repository }}: ${{ github.event.release.tag_name }}>* is now live! :tada:"
+                    "text": "*New Release Published: *<${{ github.event.release.html_url }}|${{ github.repository }} - ${{ github.event.release.tag_name }}>* is now live! :tada:"
                   }
                 }
               ]
@@ -36,7 +36,7 @@ jobs:
           payload: |
             {
               "thread_ts": "${{ steps.main_message.outputs.ts }}",
-              "text": "Release Notes:\n${{ github.event.release.body }}"
+              "text": "Release Notes"
             }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
