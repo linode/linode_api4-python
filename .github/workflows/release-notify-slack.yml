@@ -1,7 +1,7 @@
 name: Notify Dev DX Channel on Release
-
 on:
   release:
+    workflow_dispatch: null
     types: [published]
 
 jobs:
