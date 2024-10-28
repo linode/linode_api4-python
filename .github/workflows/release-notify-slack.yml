@@ -35,7 +35,7 @@ jobs:
           payload: |
             {
               "thread_ts": "${{ steps.main_message.outputs.ts }}",
-              "text": "${{ github.event.release.body }}"
+              "text": "Release Notes:\n${{ toJSON(github.event.release.body) }}"
             }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
