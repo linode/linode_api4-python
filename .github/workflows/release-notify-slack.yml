@@ -1,0 +1,39 @@
+name: Notify Dev DX Channel on Release
+
+on:
+  release:
+    types: [published]
+#    if: github-token.repository == 'linode/linode_api4-python'
+    steps:
+      - name: Notify Slack - Main Message
+        id: main_message
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
+          payload: |
+            {
+              "text": "*New Release Published in ${{ github.repository }}!*",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*<${{ github.event.release.html_url }}|${{ github.repository }}: ${{ github.event.release.tag_name }}>* is now live! :tada:"
+                  }
+                }
+              ]
+            }
+          env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      - name: Notify Slack - Threaded Release Notes
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
+          payload: |
+            {
+              "thread_ts": "${{ steps.main_message.outputs.ts }}",
+              "text": "Release Notes:\n${{ github.event.release.body }}"
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
