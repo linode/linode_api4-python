@@ -3,7 +3,10 @@ name: Notify Dev DX Channel on Release
 on:
   release:
     types: [published]
-#    if: github-token.repository == 'linode/linode_api4-python'
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
     steps:
       - name: Notify Slack - Main Message
         id: main_message
@@ -23,7 +26,7 @@ on:
                 }
               ]
             }
-          env:
+        env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
       - name: Notify Slack - Threaded Release Notes
