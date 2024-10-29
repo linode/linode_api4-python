@@ -20,7 +20,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*New Release Published: linode_api4-python - ${{ github.event.release.tag_name }}* is now live! :tada:"
+                    "text": "*New Release Published: _linode_api4-python_ - ${{ github.event.release.tag_name }} is now live!* :tada:"
                   }
                 }
               ]
@@ -35,7 +35,7 @@ jobs:
           payload: |
             {
               "thread_ts": "${{ steps.main_message.outputs.ts }}",
-              "text": "*<${{ github.event.release.html_url }}| ${{ github.event.release.tag_name }} Release notes }}>*
+              "text": "*<${{ github.event.release.html_url }}| ${{ github.event.release.tag_name }} Release notes }}>*"
             }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
