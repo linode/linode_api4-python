@@ -6,7 +6,7 @@ on:
 
 jobs:
   notify:
-#    if: github.repository == 'linode/linode_api4-python'
+    if: github.repository == 'linode/linode_api4-python'
     runs-on: ubuntu-latest
     steps:
       - name: Notify Slack - Main Message
