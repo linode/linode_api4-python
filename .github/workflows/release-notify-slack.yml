@@ -12,7 +12,7 @@ jobs:
         id: main_message
         uses: slackapi/slack-github-action@v1.27.0
         with:
-          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
+          channel-id: ${{ secrets.DEV_DX_SLACK_CHANNEL_ID }}
           payload: |
             {
               "blocks": [
@@ -31,7 +31,7 @@ jobs:
       - name: Notify Slack - Threaded Release Notes
         uses: slackapi/slack-github-action@v1.27.0
         with:
-          channel-id: ${{ secrets.SLACK_CHANNEL_ID }}
+          channel-id: ${{ secrets.DEV_DX_SLACK_CHANNEL_ID }}
           payload: |
             {
               "thread_ts": "${{ steps.main_message.outputs.ts }}",
