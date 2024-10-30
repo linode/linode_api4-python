@@ -15,7 +15,7 @@ class NodeBalancerType(Base):
     Currently the NodeBalancerType can only be retrieved by listing, i.e.:
         types = client.nodebalancers.types()
 
-    API documentation: TODO
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-node-balancer-types
     """
 
     properties = {

@@ -161,7 +161,7 @@ class LKEGroup(Group):
         """
         Returns a :any:`PaginatedList` of :any:`LKEType` objects that represents a valid LKE type.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-lke-types
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`

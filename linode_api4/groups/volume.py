@@ -78,7 +78,7 @@ class VolumeGroup(Group):
         """
         Returns a :any:`PaginatedList` of :any:`VolumeType` objects that represents a valid Volume type.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-volume-types
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
