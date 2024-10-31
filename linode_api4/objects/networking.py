@@ -268,7 +268,7 @@ class NetworkTransferPrice(Base):
     Currently the NetworkTransferPrice can only be retrieved by listing, i.e.:
         types = client.networking.transfer_prices()
 
-    API documentation: TODO
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-network-transfer-prices
     """
 
     properties = {

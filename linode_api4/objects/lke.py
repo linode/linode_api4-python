@@ -22,7 +22,7 @@ class LKEType(Base):
     Currently the LKEType can only be retrieved by listing, i.e.:
         types = client.lke.types()
 
-    API documentation: TODO
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-lke-types
     """
 
     properties = {
@@ -338,7 +338,7 @@ class LKECluster(Base):
 
         NOTE: Control Plane ACLs may not currently be available to all users.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-lke-cluster-acl
 
         :returns: The cluster's control plane ACL configuration.
         :rtype: LKEClusterControlPlaneACL
@@ -529,7 +529,7 @@ class LKECluster(Base):
 
         NOTE: Control Plane ACLs may not currently be available to all users.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/put-lke-cluster-acl
 
         :param acl: The ACL configuration to apply to this cluster.
         :type acl: LKEClusterControlPlaneACLOptions or Dict[str, Any]
@@ -560,7 +560,7 @@ class LKECluster(Base):
 
         NOTE: Control Plane ACLs may not currently be available to all users.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/delete-lke-cluster-acl
         """
         self._client.delete(
             f"{LKECluster.api_endpoint}/control_plane_acl", model=self

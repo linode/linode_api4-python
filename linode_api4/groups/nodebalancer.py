@@ -55,7 +55,7 @@ class NodeBalancerGroup(Group):
         """
         Returns a :any:`PaginatedList` of :any:`NodeBalancerType` objects that represents a valid NodeBalancer type.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-node-balancer-types
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`

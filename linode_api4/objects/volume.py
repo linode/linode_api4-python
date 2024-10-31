@@ -11,7 +11,7 @@ class VolumeType(Base):
     Currently the VolumeType can only be retrieved by listing, i.e.:
         types = client.volumes.types()
 
-    API documentation: TODO
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-volume-types
     """
 
     properties = {
