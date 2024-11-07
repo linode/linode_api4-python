@@ -11,6 +11,18 @@ on:
         description: 'The hash value of the commit'
         required: false
         default: ''
+      python-version:
+        description: 'Specify Python version to use'
+        required: false
+        default: '3.10'
+      run-eol-python-version:
+        description: 'Run EOL python version?'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
   push:
     branches:
       - main
@@ -40,7 +52,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: ${{ inputs.run-eol-python-version == 'true' && '3.9' || inputs.python-version }}
 
       - name: Install Python deps
         run: pip install -U setuptools wheel boto3 certifi
