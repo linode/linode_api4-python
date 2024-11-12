@@ -14,7 +14,6 @@ on:
       python-version:
         description: 'Specify Python version to use'
         required: false
-        default: '3.10'
       run-eol-python-version:
         description: 'Run EOL python version?'
         required: false
@@ -28,11 +27,14 @@ on:
       - main
       - dev
 
+env:
+  DEFAULT_PYTHON_VERSION: "3.9"
+  EOL_PYTHON_VERSION: "3.8"
+  EXIT_STATUS: 0
+
 jobs:
   integration-tests:
     runs-on: ubuntu-latest
-    env:
-      EXIT_STATUS: 0
     steps:
       - name: Clone Repository with SHA
         if: ${{ inputs.sha != '' }}
@@ -52,7 +54,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ inputs.run-eol-python-version == 'true' && '3.9' || inputs.python-version }}
+          python-version: ${{ inputs.run-eol-python-version == 'true' && env.EOL_PYTHON_VERSION || inputs.python-version || env.DEFAULT_PYTHON_VERSION }}
 
       - name: Install Python deps
         run: pip install -U setuptools wheel boto3 certifi
