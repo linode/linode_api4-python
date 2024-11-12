@@ -392,7 +392,7 @@ def test_linode_resize_with_migration_type(
         # there is no resizing state in warm migration anymore hence wait for resizing and poll event
         test_linode_client.polling.event_poller_create(
             "linode", "linode_resize", entity_id=linode.id
-        ).wait_for_next_event_finished(interval=5)
+        ).wait_for_next_event_finished(interval=5, timeout=500)
 
         wait_for_condition(
             10,
