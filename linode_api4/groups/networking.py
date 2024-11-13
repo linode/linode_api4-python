@@ -354,7 +354,7 @@ class NetworkingGroup(Group):
         """
         Returns a :any:`PaginatedList` of :any:`NetworkTransferPrice` objects that represents a valid network transfer price.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-network-transfer-prices
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`

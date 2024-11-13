@@ -434,10 +434,9 @@ class LinodeLoginClient:
         )
 
         if r.status_code != 200:
-            raise ApiError(
-                "OAuth token exchange failed",
-                status=r.status_code,
-                json=r.json(),
+            raise ApiError.from_response(
+                r,
+                message="OAuth token exchange failed",
             )
 
         token = r.json()["access_token"]
@@ -479,7 +478,7 @@ class LinodeLoginClient:
         )
 
         if r.status_code != 200:
-            raise ApiError("Refresh failed", r)
+            raise ApiError.from_response(r, message="Refresh failed")
 
         token = r.json()["access_token"]
         scopes = OAuthScopes.parse(r.json()["scopes"])
@@ -516,5 +515,5 @@ class LinodeLoginClient:
         )
 
         if r.status_code != 200:
-            raise ApiError("Failed to expire token!", r)
+            raise ApiError.from_response(r, "Failed to expire token!")
         return True
