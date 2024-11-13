@@ -103,6 +103,10 @@ jobs:
           fetch-depth: 0
           submodules: 'recursive'
 
+      - name: Set LINODE_TOKEN
+        run: |
+          echo "LINODE_TOKEN=${{ secrets[inputs.use_minimal_test_account == 'true' && 'MINIMAL_LINODE_TOKEN' || 'LINODE_TOKEN'] }}" >> $GITHUB_ENV
+
       - name: Download kubectl and calicoctl for LKE clusters
         run: |
           curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
@@ -131,6 +135,10 @@ jobs:
       - name: Install Linode CLI
         run: |
           pip install linode-cli
+
+      - name: Set LINODE_TOKEN
+        run: |
+          echo "LINODE_TOKEN=${{ secrets[inputs.use_minimal_test_account == 'true' && 'MINIMAL_LINODE_TOKEN' || 'LINODE_TOKEN'] }}" >> $GITHUB_ENV
 
       - name: Create Firewall and Attach to Instances
         run: |
