@@ -1,5 +1,6 @@
 import re
 import time
+from test.integration.helpers import get_test_label
 
 import pytest
 
@@ -22,7 +23,7 @@ def test_update_longview_label(test_linode_client, test_longview_client):
     longview = test_linode_client.load(LongviewClient, test_longview_client.id)
     old_label = longview.label
 
-    label = "updated_longview_label"
+    label = get_test_label(10)
 
     longview.label = label
 
@@ -33,7 +34,7 @@ def test_update_longview_label(test_linode_client, test_longview_client):
 
 def test_delete_client(test_linode_client, test_longview_client):
     client = test_linode_client
-    label = "TestSDK-longview"
+    label = get_test_label(length=8)
     longview_client = client.longview.client_create(label=label)
 
     time.sleep(5)

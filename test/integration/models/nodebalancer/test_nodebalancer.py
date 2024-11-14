@@ -1,8 +1,15 @@
 import re
+from test.integration.conftest import (
+    get_api_ca_file,
+    get_api_url,
+    get_region,
+    get_token,
+)
+from test.integration.helpers import get_test_label
 
 import pytest
 
-from linode_api4 import ApiError
+from linode_api4 import ApiError, LinodeClient
 from linode_api4.objects import (
     NodeBalancerConfig,
     NodeBalancerNode,
@@ -10,17 +17,25 @@ from linode_api4.objects import (
     RegionPrice,
 )
 
+TEST_REGION = get_region(
+    LinodeClient(
+        token=get_token(),
+        base_url=get_api_url(),
+        ca_path=get_api_ca_file(),
+    ),
+    {"Linodes", "Cloud Firewall", "NodeBalancers"},
+    site_type="core",
+)
+
 
 @pytest.fixture(scope="session")
 def linode_with_private_ip(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    available_regions = client.regions()
-    chosen_region = available_regions[4]
-    label = "linode_with_privateip"
+    label = get_test_label(8)
 
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
-        chosen_region,
+        TEST_REGION,
         image="linode/debian10",
         label=label,
         private_ip=True,
@@ -35,12 +50,10 @@ def linode_with_private_ip(test_linode_client, e2e_test_firewall):
 @pytest.fixture(scope="session")
 def create_nb_config(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    available_regions = client.regions()
-    chosen_region = available_regions[4]
-    label = "nodebalancer_test"
+    label = get_test_label(8)
 
     nb = client.nodebalancer_create(
-        region=chosen_region, label=label, firewall=e2e_test_firewall.id
+        region=TEST_REGION, label=label, firewall=e2e_test_firewall.id
     )
 
     config = nb.config_create()

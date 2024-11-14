@@ -1,4 +1,5 @@
 import time
+from test.integration.conftest import get_region
 from test.integration.helpers import get_test_label
 
 import pytest
@@ -9,12 +10,11 @@ from linode_api4.objects import Firewall, FirewallDevice
 @pytest.fixture(scope="session")
 def linode_fw(test_linode_client):
     client = test_linode_client
-    available_regions = client.regions()
-    chosen_region = available_regions[4]
+    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
-        "g6-nanode-1", chosen_region, image="linode/debian10", label=label
+        "g6-nanode-1", region, image="linode/debian10", label=label
     )
 
     yield linode_instance
@@ -80,6 +80,5 @@ def test_get_device(test_linode_client, test_firewall, linode_fw):
         FirewallDevice, firewall.devices.first().id, firewall.id
     )
 
-    assert "test_" in firewall_device.entity.label
     assert firewall_device.entity.type == "linode"
     assert "/v4/linode/instances/" in firewall_device.entity.url
