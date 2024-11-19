@@ -2,13 +2,17 @@ import ipaddress
 import os
 import random
 import time
+from test.integration.helpers import (
+    get_test_label,
+    send_request_when_resource_available,
+)
 from typing import Optional, Set
 
 import pytest
 import requests
 from requests.exceptions import ConnectionError, RequestException
 
-from linode_api4 import ApiError, PlacementGroupPolicy, PlacementGroupType
+from linode_api4 import PlacementGroupPolicy, PlacementGroupType
 from linode_api4.linode_client import LinodeClient
 from linode_api4.objects import Region
 
@@ -25,13 +29,6 @@ def get_token():
 
 def get_api_url():
     return os.environ.get(ENV_API_URL_NAME, "https://api.linode.com/v4beta")
-
-
-def get_random_label():
-    timestamp = str(time.time_ns())[:-5]
-    label = "label_" + timestamp
-
-    return label
 
 
 def get_regions(
@@ -59,7 +56,7 @@ def get_regions(
 
 
 def get_region(
-    client: LinodeClient, capabilities: Set[str] = None, site_type: str = None
+    client: LinodeClient, capabilities: Set[str] = None, site_type: str = "core"
 ):
     return random.choice(get_regions(client, capabilities, site_type))
 
@@ -161,14 +158,12 @@ def e2e_test_firewall(test_linode_client):
 def create_linode(test_linode_client, e2e_test_firewall):
     client = test_linode_client
 
-    available_regions = client.regions()
-    chosen_region = available_regions[4]
-    timestamp = str(time.time_ns())
-    label = "TestSDK-" + timestamp
+    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    label = get_test_label(length=8)
 
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
-        chosen_region,
+        region,
         image="linode/debian12",
         label=label,
         firewall=e2e_test_firewall,
@@ -183,14 +178,12 @@ def create_linode(test_linode_client, e2e_test_firewall):
 def create_linode_for_pass_reset(test_linode_client, e2e_test_firewall):
     client = test_linode_client
 
-    available_regions = client.regions()
-    chosen_region = available_regions[4]
-    timestamp = str(time.time_ns())
-    label = "TestSDK-" + timestamp
+    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    label = get_test_label(length=8)
 
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
-        chosen_region,
+        region,
         image="linode/debian10",
         label=label,
         firewall=e2e_test_firewall,
@@ -271,36 +264,21 @@ def test_domain(test_linode_client):
 @pytest.fixture(scope="session")
 def test_volume(test_linode_client):
     client = test_linode_client
-    timestamp = str(time.time_ns())
-    region = client.regions()[4]
-    label = "TestSDK-" + timestamp
+    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    label = get_test_label(length=8)
 
     volume = client.volume_create(label=label, region=region)
 
     yield volume
 
-    timeout = 100  # give 100s for volume to be detached before deletion
-
-    start_time = time.time()
-
-    while time.time() - start_time < timeout:
-        try:
-            res = volume.delete()
-            if res:
-                break
-            else:
-                time.sleep(3)
-        except ApiError as e:
-            if time.time() - start_time > timeout:
-                raise e
+    send_request_when_resource_available(timeout=100, func=volume.delete)
 
 
 @pytest.fixture(scope="session")
 def test_volume_with_encryption(test_linode_client):
     client = test_linode_client
-    timestamp = str(time.time_ns())
     region = get_region(client, {"Block Storage Encryption"})
-    label = "TestSDK-" + timestamp
+    label = get_test_label(length=8)
 
     volume = client.volume_create(
         label=label, region=region, encryption="enabled"
@@ -308,28 +286,14 @@ def test_volume_with_encryption(test_linode_client):
 
     yield volume
 
-    timeout = 100  # give 100s for volume to be detached before deletion
-
-    start_time = time.time()
-
-    while time.time() - start_time < timeout:
-        try:
-            res = volume.delete()
-            if res:
-                break
-            else:
-                time.sleep(3)
-        except ApiError as e:
-            if time.time() - start_time > timeout:
-                raise e
+    send_request_when_resource_available(timeout=100, func=volume.delete)
 
 
 @pytest.fixture
 def test_tag(test_linode_client):
     client = test_linode_client
 
-    timestamp = str(time.time_ns())
-    label = "TestSDK-" + timestamp
+    label = get_test_label(length=8)
 
     tag = client.tag_create(label=label)
 
@@ -342,11 +306,10 @@ def test_tag(test_linode_client):
 def test_nodebalancer(test_linode_client):
     client = test_linode_client
 
-    timestamp = str(time.time_ns())
-    label = "TestSDK-" + timestamp
+    label = get_test_label(length=8)
 
     nodebalancer = client.nodebalancer_create(
-        region=get_region(client), label=label
+        region=get_region(client, capabilities={"NodeBalancers"}), label=label
     )
 
     yield nodebalancer
@@ -357,8 +320,7 @@ def test_nodebalancer(test_linode_client):
 @pytest.fixture
 def test_longview_client(test_linode_client):
     client = test_linode_client
-    timestamp = str(time.time_ns())
-    label = "TestSDK-" + timestamp
+    label = get_test_label(length=8)
     longview_client = client.longview.client_create(label=label)
 
     yield longview_client
@@ -370,7 +332,8 @@ def test_longview_client(test_linode_client):
 def test_sshkey(test_linode_client, ssh_key_gen):
     pub_key = ssh_key_gen[0]
     client = test_linode_client
-    key = client.profile.ssh_key_upload(pub_key, "IntTestSDK-sshkey")
+    key_label = get_test_label(8) + "_key"
+    key = client.profile.ssh_key_upload(pub_key, key_label)
 
     yield key
 
@@ -380,7 +343,7 @@ def test_sshkey(test_linode_client, ssh_key_gen):
 @pytest.fixture
 def access_keys_object_storage(test_linode_client):
     client = test_linode_client
-    label = "TestSDK-obj-storage-key"
+    label = get_test_label(length=8)
     key = client.object_storage.keys_create(label)
 
     yield key
@@ -398,8 +361,7 @@ def test_firewall(test_linode_client):
         "inbound_policy": "ACCEPT",
     }
 
-    timestamp = str(time.time_ns())
-    label = "firewall_" + timestamp
+    label = get_test_label(8) + "_firewall"
 
     firewall = client.networking.firewall_create(
         label=label, rules=rules, status="enabled"
@@ -413,7 +375,7 @@ def test_firewall(test_linode_client):
 @pytest.fixture
 def test_oauth_client(test_linode_client):
     client = test_linode_client
-    label = get_random_label() + "_oauth"
+    label = get_test_label(length=8) + "_oauth"
 
     oauth_client = client.account.oauth_client_create(
         label, "https://localhost/oauth/callback"
@@ -428,10 +390,10 @@ def test_oauth_client(test_linode_client):
 def create_vpc(test_linode_client):
     client = test_linode_client
 
-    timestamp = str(int(time.time()))
+    label = get_test_label(length=10)
 
     vpc = client.vpcs.create(
-        "pythonsdk-" + timestamp,
+        label,
         get_region(test_linode_client, {"VPCs"}),
         description="test description",
     )
@@ -455,8 +417,7 @@ def create_vpc_with_subnet_and_linode(
 ):
     vpc, subnet = create_vpc_with_subnet
 
-    timestamp = str(int(time.time()))
-    label = "TestSDK-" + timestamp
+    label = get_test_label(length=8)
 
     instance, password = test_linode_client.linode.instance_create(
         "g6-standard-1",
@@ -475,18 +436,18 @@ def create_vpc_with_subnet_and_linode(
 def create_multiple_vpcs(test_linode_client):
     client = test_linode_client
 
-    timestamp = str(int(time.time_ns() % 10**10))
+    label = get_test_label(length=10)
 
-    timestamp_2 = str(int(time.time_ns() % 10**10))
+    label_2 = get_test_label(length=10)
 
     vpc_1 = client.vpcs.create(
-        "pythonsdk-" + timestamp,
+        label,
         get_region(test_linode_client, {"VPCs"}),
         description="test description",
     )
 
     vpc_2 = client.vpcs.create(
-        "pythonsdk-" + timestamp_2,
+        label_2,
         get_region(test_linode_client, {"VPCs"}),
         description="test description",
     )
@@ -502,10 +463,10 @@ def create_multiple_vpcs(test_linode_client):
 def create_placement_group(test_linode_client):
     client = test_linode_client
 
-    timestamp = str(int(time.time()))
+    label = get_test_label(10)
 
     pg = client.placement.group_create(
-        "pythonsdk-" + timestamp,
+        label,
         get_region(test_linode_client, {"Placement Group"}),
         PlacementGroupType.anti_affinity_local,
         PlacementGroupPolicy.flexible,
