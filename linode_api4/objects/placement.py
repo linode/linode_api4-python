@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Union
+from typing import List, Optional, Union
 
 from linode_api4.objects.base import Base, Property
 from linode_api4.objects.linode import Instance
@@ -34,6 +34,26 @@ class PlacementGroupMember(JSONObject):
     is_compliant: bool = False
 
 
+@dataclass
+class MigratedInstance(JSONObject):
+    """
+    The ID for a compute instance being migrated into or out of the placement group.
+    """
+
+    linode_id: int = 0
+
+
+@dataclass
+class PlacementGroupMigrations(JSONObject):
+    """
+    Any compute instances that are being migrated to or from the placement group.
+    Returns an empty object if no migrations are taking place.
+    """
+
+    inbound: Optional[List[MigratedInstance]] = None
+    outbound: Optional[List[MigratedInstance]] = None
+
+
 class PlacementGroup(Base):
     """
     NOTE: Placement Groups may not currently be available to all users.
@@ -54,6 +74,7 @@ class PlacementGroup(Base):
         "placement_group_policy": Property(),
         "is_compliant": Property(),
         "members": Property(json_object=PlacementGroupMember),
+        "migrations": Property(json_object=PlacementGroupMigrations),
     }
 
     def assign(
