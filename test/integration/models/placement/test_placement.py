@@ -1,6 +1,18 @@
+from test.integration.conftest import get_region
+from test.integration.helpers import (
+    get_test_label,
+    send_request_when_resource_available,
+)
+
 import pytest
 
-from linode_api4 import PlacementGroup
+from linode_api4 import (
+    MigratedInstance,
+    MigrationType,
+    PlacementGroup,
+    PlacementGroupPolicy,
+    PlacementGroupType,
+)
 
 
 @pytest.mark.smoke
@@ -48,3 +60,52 @@ def test_pg_assignment(test_linode_client, create_placement_group_with_linode):
 
     assert pg.members[0].linode_id == inst.id
     assert inst.placement_group.id == pg.id
+
+
+def test_pg_migration(
+    test_linode_client, e2e_test_firewall, create_placement_group
+):
+    """
+    Tests that an instance can be migrated into and our of PGs successfully.
+    """
+    client = test_linode_client
+
+    label = get_test_label(10)
+
+    pg_outbound = client.placement.group_create(
+        label,
+        get_region(test_linode_client, {"Placement Group"}),
+        PlacementGroupType.anti_affinity_local,
+        PlacementGroupPolicy.flexible,
+    )
+
+    linode = client.linode.instance_create(
+        "g6-nanode-1",
+        pg_outbound.region,
+        label=create_placement_group.label,
+        placement_group=pg_outbound,
+    )
+
+    pg_inbound = create_placement_group
+
+    # Says it could take up to ~6 hrs for migration to fully complete
+    send_request_when_resource_available(
+        300,
+        linode.initiate_migration,
+        placement_group=pg_inbound.id,
+        migration_type=MigrationType.COLD,
+        region=pg_inbound.region,
+    )
+
+    pg_inbound = test_linode_client.load(PlacementGroup, pg_inbound.id)
+    pg_outbound = test_linode_client.load(PlacementGroup, pg_outbound.id)
+
+    assert pg_inbound.migrations.inbound[0] == MigratedInstance(
+        linode_id=linode.id
+    )
+    assert pg_outbound.migrations.outbound[0] == MigratedInstance(
+        linode_id=linode.id
+    )
+
+    linode.delete()
+    pg_outbound.delete()
