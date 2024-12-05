@@ -1,4 +1,5 @@
 import re
+import os
 import time
 from test.integration.helpers import (
     get_test_label,
@@ -35,9 +36,6 @@ def get_postgres_db_status(client: LinodeClient, db_id, status: str):
 
 @pytest.fixture(scope="session")
 def test_create_sql_db(test_linode_client):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     client = test_linode_client
     label = get_test_label() + "-sqldb"
     region = "us-ord"
@@ -62,12 +60,8 @@ def test_create_sql_db(test_linode_client):
 
     send_request_when_resource_available(300, db.delete)
 
-
 @pytest.fixture(scope="session")
 def test_create_postgres_db(test_linode_client):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     client = test_linode_client
     label = get_test_label() + "-postgresqldb"
     region = "us-ord"
@@ -93,11 +87,44 @@ def test_create_postgres_db(test_linode_client):
     send_request_when_resource_available(300, db.delete)
 
 
-# ------- SQL DB Test cases -------
-def test_get_types(test_linode_client):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
+@pytest.mark.skipif(os.getenv("RUN_DB_FORK_TESTS") is None, reason="RUN_DB_FORK_TESTS environment variable not set")
+def test_fork_sql_db(test_linode_client, test_create_sql_db):
+    client = test_linode_client
+    db_fork = client.database.mysql_fork(
+            test_create_sql_db.id,
+            test_create_sql_db.updated
     )
+
+    def get_db_fork_status():
+        return db_fork.status == "active"
+
+    # TAKES 15-30 MINUTES TO FULLY PROVISION DB
+    wait_for_condition(60, 2000, get_db_fork_status)
+
+    assert db_fork.fork.source == test_create_sql_db.id
+
+    db_fork.delete()
+
+@pytest.mark.skipif(os.getenv("RUN_DB_FORK_TESTS") is None, reason="RUN_DB_FORK_TESTS environment variable not set")
+def test_fork_postgres_db(test_linode_client, test_create_postgres_db):
+    client = test_linode_client
+    db_fork = client.database.postgresql_fork(
+            test_create_postgres_db.id,
+            test_create_postgres_db.updated
+    )
+
+    def get_db_fork_status():
+        return db_fork.status == "active"
+
+    # TAKES 15-30 MINUTES TO FULLY PROVISION DB
+    wait_for_condition(60, 2000, get_db_fork_status)
+
+    assert db_fork.fork.source == test_create_postgres_db.id
+
+    db_fork.delete()
+
+@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
+def test_get_types(test_linode_client):
     client = test_linode_client
     types = client.database.types()
 
@@ -106,10 +133,8 @@ def test_get_types(test_linode_client):
     assert types[0].engines.mongodb[0].price.monthly == 15
 
 
+@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
 def test_get_engines(test_linode_client):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     client = test_linode_client
     engines = client.database.engines()
 
@@ -119,20 +144,16 @@ def test_get_engines(test_linode_client):
         assert e.id == e.engine + "/" + e.version
 
 
+@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
 def test_database_instance(test_linode_client, test_create_sql_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     dbs = test_linode_client.database.mysql_instances()
 
     assert str(test_create_sql_db.id) in str(dbs.lists)
 
 
 # ------- POSTGRESQL DB Test cases -------
+@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
 def test_get_sql_db_instance(test_linode_client, test_create_sql_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     dbs = test_linode_client.database.mysql_instances()
     database = ""
     for db in dbs:
@@ -146,10 +167,8 @@ def test_get_sql_db_instance(test_linode_client, test_create_sql_db):
     assert "-mysql-primary.servers.linodedb.net" in database.hosts.primary
 
 
+@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
 def test_update_sql_db(test_linode_client, test_create_sql_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
 
     new_allow_list = ["192.168.0.1/32"]
@@ -178,10 +197,8 @@ def test_update_sql_db(test_linode_client, test_create_sql_db):
     assert database.updates.day_of_week == 2
 
 
+@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
 def test_create_sql_backup(test_linode_client, test_create_sql_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
     label = "database_backup_test"
 
@@ -227,14 +244,12 @@ def test_create_sql_backup(test_linode_client, test_create_sql_db):
     backup.delete()
 
 
+@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
 def test_sql_backup_restore(test_linode_client, test_create_sql_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
     try:
         backup = db.backups[0]
-    except IndexError as e:
+    except IndexError:
         pytest.skip(
             "Skipping this test. Reason: Couldn't find db backup instance"
         )
@@ -264,19 +279,15 @@ def test_sql_backup_restore(test_linode_client, test_create_sql_db):
     assert db.status == "active"
 
 
+@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
 def test_get_sql_ssl(test_linode_client, test_create_sql_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
 
     assert "ca_certificate" in str(db.ssl)
 
 
+@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
 def test_sql_patch(test_linode_client, test_create_sql_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
 
     db.patch()
@@ -304,20 +315,16 @@ def test_sql_patch(test_linode_client, test_create_sql_db):
     assert db.status == "active"
 
 
+@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
 def test_get_sql_credentials(test_linode_client, test_create_sql_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
 
     assert db.credentials.username == "linroot"
     assert db.credentials.password
 
 
+@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
 def test_reset_sql_credentials(test_linode_client, test_create_sql_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
 
     old_pass = str(db.credentials.password)
@@ -332,11 +339,11 @@ def test_reset_sql_credentials(test_linode_client, test_create_sql_db):
 
 
 # ------- POSTGRESQL DB Test cases -------
+@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
 def test_get_postgres_db_instance(test_linode_client, test_create_postgres_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     dbs = test_linode_client.database.postgresql_instances()
+
+    database = None
 
     for db in dbs:
         if db.id == test_create_postgres_db.id:
@@ -349,10 +356,8 @@ def test_get_postgres_db_instance(test_linode_client, test_create_postgres_db):
     assert "pgsql-primary.servers.linodedb.net" in database.hosts.primary
 
 
+@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
 def test_update_postgres_db(test_linode_client, test_create_postgres_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
 
     new_allow_list = ["192.168.0.1/32"]
@@ -383,13 +388,8 @@ def test_update_postgres_db(test_linode_client, test_create_postgres_db):
     assert database.updates.day_of_week == 2
 
 
+@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
 def test_create_postgres_backup(test_linode_client, test_create_postgres_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
-    pytest.skip(
-        "Failing due to '400: The backup snapshot request failed, please contact support.'"
-    )
     db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
     label = "database_backup_test"
 
@@ -433,15 +433,13 @@ def test_create_postgres_backup(test_linode_client, test_create_postgres_db):
     assert backup.database_id == test_create_postgres_db.id
 
 
+@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
 def test_postgres_backup_restore(test_linode_client, test_create_postgres_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
 
     try:
         backup = db.backups[0]
-    except IndexError as e:
+    except IndexError:
         pytest.skip(
             "Skipping this test. Reason: Couldn't find db backup instance"
         )
@@ -469,19 +467,15 @@ def test_postgres_backup_restore(test_linode_client, test_create_postgres_db):
     assert db.status == "active"
 
 
+@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
 def test_get_postgres_ssl(test_linode_client, test_create_postgres_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
 
     assert "ca_certificate" in str(db.ssl)
 
 
+@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
 def test_postgres_patch(test_linode_client, test_create_postgres_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
 
     db.patch()
@@ -509,22 +503,18 @@ def test_postgres_patch(test_linode_client, test_create_postgres_db):
     assert db.status == "active"
 
 
+@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
 def test_get_postgres_credentials(test_linode_client, test_create_postgres_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
 
     assert db.credentials.username == "linpostgres"
     assert db.credentials.password
 
 
+@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
 def test_reset_postgres_credentials(
     test_linode_client, test_create_postgres_db
 ):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
 
     old_pass = str(db.credentials.password)

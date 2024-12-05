@@ -142,6 +142,66 @@ class DatabaseGroup(Group):
         d = MySQLDatabase(self.client, result["id"], result)
         return d
 
+    def mysql_fork(self, source, restore_time, **kwargs):
+        """
+        Forks an :any:`MySQLDatabase` on this account with
+        the given restore_time. label, region, engine, and ltype are optional.
+        For example::
+
+           client = LinodeClient(TOKEN)
+
+           db_to_fork = client.database.mysql_instances()[0]
+
+           new_fork = client.database.mysql_fork(
+                db_to_fork.id,
+                db_to_fork.updated,
+                label="new-fresh-label"
+           )
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-databases-mysql-instances
+
+        :param source: The id of the source database
+        :type source: int
+        :param restore_time: The timestamp for the fork
+        :type source: datetime
+        :param label: The name for this cluster
+        :type label: str
+        :param region: The region to deploy this cluster in
+        :type region: str or Region
+        :param engine: The engine to deploy this cluster with
+        :type engine: str or Engine
+        :param ltype: The Linode Type to use for this cluster
+        :type ltype: str or Type
+        """
+
+        params = {
+            "fork": {
+                "source": source,
+                "restore_time": restore_time.strftime("%Y-%m-%dT%H:%M:%S")
+            }
+        }
+        if "region" in kwargs:
+            region = kwargs["region"]
+            params["region"] = region.id if issubclass(type(region), Base) else region,
+        if "engine" in kwargs:
+            engine = kwargs["engine"]
+            params["engine"] = engine.id if issubclass(type(engine), Base) else engine,
+        if "ltype" in kwargs:
+            ltype = kwargs["ltype"]
+            params["type"] = ltype.id if issubclass(type(ltype), Base) else ltype,
+
+        params.update(kwargs)
+
+        result = self.client.post("/databases/mysql/instances", data=params)
+
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating MySQL Database", json=result
+            )
+
+        d = MySQLDatabase(self.client, result["id"], result)
+        return d
+
     def postgresql_instances(self, *filters):
         """
         Returns a list of Managed PostgreSQL Databases active on this account.
@@ -205,6 +265,66 @@ class DatabaseGroup(Group):
             raise UnexpectedResponseError(
                 "Unexpected response when creating PostgreSQL Database",
                 json=result,
+            )
+
+        d = PostgreSQLDatabase(self.client, result["id"], result)
+        return d
+
+    def postgresql_fork(self, source, restore_time, **kwargs):
+        """
+        Forks an :any:`PostgreSQLDatabase` on this account with
+        the given restore_time. label, region, engine, and ltype are optional.
+        For example::
+
+           client = LinodeClient(TOKEN)
+
+           db_to_fork = client.database.postgresql_instances()[0]
+
+           new_fork = client.database.postgresql_fork(
+                db_to_fork.id,
+                db_to_fork.updated,
+                label="new-fresh-label"
+           )
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-databases-postgresql-instances
+
+        :param source: The id of the source database
+        :type source: int
+        :param restore_time: The timestamp for the fork
+        :type source: datetime
+        :param label: The name for this cluster
+        :type label: str
+        :param region: The region to deploy this cluster in
+        :type region: str or Region
+        :param engine: The engine to deploy this cluster with
+        :type engine: str or Engine
+        :param ltype: The Linode Type to use for this cluster
+        :type ltype: str or Type
+        """
+
+        params = {
+            "fork": {
+                "source": source,
+                "restore_time": restore_time.strftime("%Y-%m-%dT%H:%M:%S")
+            }
+        }
+        if "region" in kwargs:
+            region = kwargs["region"]
+            params["region"] = region.id if issubclass(type(region), Base) else region,
+        if "engine" in kwargs:
+            engine = kwargs["engine"]
+            params["engine"] = engine.id if issubclass(type(engine), Base) else engine,
+        if "ltype" in kwargs:
+            ltype = kwargs["ltype"]
+            params["ltype"] = ltype.id if issubclass(type(ltype), Base) else ltype,
+
+        params.update(kwargs)
+
+        result = self.client.post("/databases/postgresql/instances", data=params)
+
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating PostgreSQL Database", json=result
             )
 
         d = PostgreSQLDatabase(self.client, result["id"], result)
