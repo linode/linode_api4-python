@@ -1,5 +1,5 @@
-import re
 import os
+import re
 import time
 from test.integration.helpers import (
     get_test_label,
@@ -60,6 +60,7 @@ def test_create_sql_db(test_linode_client):
 
     send_request_when_resource_available(300, db.delete)
 
+
 @pytest.fixture(scope="session")
 def test_create_postgres_db(test_linode_client):
     client = test_linode_client
@@ -87,12 +88,14 @@ def test_create_postgres_db(test_linode_client):
     send_request_when_resource_available(300, db.delete)
 
 
-@pytest.mark.skipif(os.getenv("RUN_DB_FORK_TESTS") is None, reason="RUN_DB_FORK_TESTS environment variable not set")
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_FORK_TESTS") is None,
+    reason="RUN_DB_FORK_TESTS environment variable not set",
+)
 def test_fork_sql_db(test_linode_client, test_create_sql_db):
     client = test_linode_client
     db_fork = client.database.mysql_fork(
-            test_create_sql_db.id,
-            test_create_sql_db.updated
+        test_create_sql_db.id, test_create_sql_db.updated
     )
 
     def get_db_fork_status():
@@ -105,12 +108,15 @@ def test_fork_sql_db(test_linode_client, test_create_sql_db):
 
     db_fork.delete()
 
-@pytest.mark.skipif(os.getenv("RUN_DB_FORK_TESTS") is None, reason="RUN_DB_FORK_TESTS environment variable not set")
+
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_FORK_TESTS") is None,
+    reason="RUN_DB_FORK_TESTS environment variable not set",
+)
 def test_fork_postgres_db(test_linode_client, test_create_postgres_db):
     client = test_linode_client
     db_fork = client.database.postgresql_fork(
-            test_create_postgres_db.id,
-            test_create_postgres_db.updated
+        test_create_postgres_db.id, test_create_postgres_db.updated
     )
 
     def get_db_fork_status():
@@ -123,7 +129,11 @@ def test_fork_postgres_db(test_linode_client, test_create_postgres_db):
 
     db_fork.delete()
 
-@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
+
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS") is None,
+    reason="RUN_DB_TESTS environment variable not set",
+)
 def test_get_types(test_linode_client):
     client = test_linode_client
     types = client.database.types()
@@ -133,7 +143,10 @@ def test_get_types(test_linode_client):
     assert types[0].engines.mongodb[0].price.monthly == 15
 
 
-@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS") is None,
+    reason="RUN_DB_TESTS environment variable not set",
+)
 def test_get_engines(test_linode_client):
     client = test_linode_client
     engines = client.database.engines()
@@ -144,7 +157,10 @@ def test_get_engines(test_linode_client):
         assert e.id == e.engine + "/" + e.version
 
 
-@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS") is None,
+    reason="RUN_DB_TESTS environment variable not set",
+)
 def test_database_instance(test_linode_client, test_create_sql_db):
     dbs = test_linode_client.database.mysql_instances()
 
@@ -152,7 +168,10 @@ def test_database_instance(test_linode_client, test_create_sql_db):
 
 
 # ------- POSTGRESQL DB Test cases -------
-@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS") is None,
+    reason="RUN_DB_TESTS environment variable not set",
+)
 def test_get_sql_db_instance(test_linode_client, test_create_sql_db):
     dbs = test_linode_client.database.mysql_instances()
     database = ""
@@ -167,7 +186,10 @@ def test_get_sql_db_instance(test_linode_client, test_create_sql_db):
     assert "-mysql-primary.servers.linodedb.net" in database.hosts.primary
 
 
-@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS") is None,
+    reason="RUN_DB_TESTS environment variable not set",
+)
 def test_update_sql_db(test_linode_client, test_create_sql_db):
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
 
@@ -197,7 +219,10 @@ def test_update_sql_db(test_linode_client, test_create_sql_db):
     assert database.updates.day_of_week == 2
 
 
-@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS") is None,
+    reason="RUN_DB_TESTS environment variable not set",
+)
 def test_create_sql_backup(test_linode_client, test_create_sql_db):
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
     label = "database_backup_test"
@@ -244,7 +269,10 @@ def test_create_sql_backup(test_linode_client, test_create_sql_db):
     backup.delete()
 
 
-@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS") is None,
+    reason="RUN_DB_TESTS environment variable not set",
+)
 def test_sql_backup_restore(test_linode_client, test_create_sql_db):
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
     try:
@@ -279,14 +307,20 @@ def test_sql_backup_restore(test_linode_client, test_create_sql_db):
     assert db.status == "active"
 
 
-@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS") is None,
+    reason="RUN_DB_TESTS environment variable not set",
+)
 def test_get_sql_ssl(test_linode_client, test_create_sql_db):
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
 
     assert "ca_certificate" in str(db.ssl)
 
 
-@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS") is None,
+    reason="RUN_DB_TESTS environment variable not set",
+)
 def test_sql_patch(test_linode_client, test_create_sql_db):
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
 
@@ -315,7 +349,10 @@ def test_sql_patch(test_linode_client, test_create_sql_db):
     assert db.status == "active"
 
 
-@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS") is None,
+    reason="RUN_DB_TESTS environment variable not set",
+)
 def test_get_sql_credentials(test_linode_client, test_create_sql_db):
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
 
@@ -323,7 +360,10 @@ def test_get_sql_credentials(test_linode_client, test_create_sql_db):
     assert db.credentials.password
 
 
-@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS") is None,
+    reason="RUN_DB_TESTS environment variable not set",
+)
 def test_reset_sql_credentials(test_linode_client, test_create_sql_db):
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
 
@@ -339,7 +379,10 @@ def test_reset_sql_credentials(test_linode_client, test_create_sql_db):
 
 
 # ------- POSTGRESQL DB Test cases -------
-@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS") is None,
+    reason="RUN_DB_TESTS environment variable not set",
+)
 def test_get_postgres_db_instance(test_linode_client, test_create_postgres_db):
     dbs = test_linode_client.database.postgresql_instances()
 
@@ -356,7 +399,10 @@ def test_get_postgres_db_instance(test_linode_client, test_create_postgres_db):
     assert "pgsql-primary.servers.linodedb.net" in database.hosts.primary
 
 
-@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS") is None,
+    reason="RUN_DB_TESTS environment variable not set",
+)
 def test_update_postgres_db(test_linode_client, test_create_postgres_db):
     db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
 
@@ -388,7 +434,10 @@ def test_update_postgres_db(test_linode_client, test_create_postgres_db):
     assert database.updates.day_of_week == 2
 
 
-@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS") is None,
+    reason="RUN_DB_TESTS environment variable not set",
+)
 def test_create_postgres_backup(test_linode_client, test_create_postgres_db):
     db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
     label = "database_backup_test"
@@ -433,7 +482,10 @@ def test_create_postgres_backup(test_linode_client, test_create_postgres_db):
     assert backup.database_id == test_create_postgres_db.id
 
 
-@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS") is None,
+    reason="RUN_DB_TESTS environment variable not set",
+)
 def test_postgres_backup_restore(test_linode_client, test_create_postgres_db):
     db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
 
@@ -467,14 +519,20 @@ def test_postgres_backup_restore(test_linode_client, test_create_postgres_db):
     assert db.status == "active"
 
 
-@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS") is None,
+    reason="RUN_DB_TESTS environment variable not set",
+)
 def test_get_postgres_ssl(test_linode_client, test_create_postgres_db):
     db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
 
     assert "ca_certificate" in str(db.ssl)
 
 
-@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS") is None,
+    reason="RUN_DB_TESTS environment variable not set",
+)
 def test_postgres_patch(test_linode_client, test_create_postgres_db):
     db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
 
@@ -503,7 +561,10 @@ def test_postgres_patch(test_linode_client, test_create_postgres_db):
     assert db.status == "active"
 
 
-@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS") is None,
+    reason="RUN_DB_TESTS environment variable not set",
+)
 def test_get_postgres_credentials(test_linode_client, test_create_postgres_db):
     db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
 
@@ -511,7 +572,10 @@ def test_get_postgres_credentials(test_linode_client, test_create_postgres_db):
     assert db.credentials.password
 
 
-@pytest.mark.skipif(os.getenv("RUN_DB_TESTS") is None, reason="RUN_DB_TESTS environment variable not set")
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS") is None,
+    reason="RUN_DB_TESTS environment variable not set",
+)
 def test_reset_postgres_credentials(
     test_linode_client, test_create_postgres_db
 ):

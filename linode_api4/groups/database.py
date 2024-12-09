@@ -177,18 +177,24 @@ class DatabaseGroup(Group):
         params = {
             "fork": {
                 "source": source,
-                "restore_time": restore_time.strftime("%Y-%m-%dT%H:%M:%S")
+                "restore_time": restore_time.strftime("%Y-%m-%dT%H:%M:%S"),
             }
         }
         if "region" in kwargs:
             region = kwargs["region"]
-            params["region"] = region.id if issubclass(type(region), Base) else region,
+            params["region"] = (
+                region.id if issubclass(type(region), Base) else region,
+            )
         if "engine" in kwargs:
             engine = kwargs["engine"]
-            params["engine"] = engine.id if issubclass(type(engine), Base) else engine,
+            params["engine"] = (
+                engine.id if issubclass(type(engine), Base) else engine,
+            )
         if "ltype" in kwargs:
             ltype = kwargs["ltype"]
-            params["type"] = ltype.id if issubclass(type(ltype), Base) else ltype,
+            params["type"] = (
+                ltype.id if issubclass(type(ltype), Base) else ltype,
+            )
 
         params.update(kwargs)
 
@@ -305,26 +311,35 @@ class DatabaseGroup(Group):
         params = {
             "fork": {
                 "source": source,
-                "restore_time": restore_time.strftime("%Y-%m-%dT%H:%M:%S")
+                "restore_time": restore_time.strftime("%Y-%m-%dT%H:%M:%S"),
             }
         }
         if "region" in kwargs:
             region = kwargs["region"]
-            params["region"] = region.id if issubclass(type(region), Base) else region,
+            params["region"] = (
+                region.id if issubclass(type(region), Base) else region,
+            )
         if "engine" in kwargs:
             engine = kwargs["engine"]
-            params["engine"] = engine.id if issubclass(type(engine), Base) else engine,
+            params["engine"] = (
+                engine.id if issubclass(type(engine), Base) else engine,
+            )
         if "ltype" in kwargs:
             ltype = kwargs["ltype"]
-            params["ltype"] = ltype.id if issubclass(type(ltype), Base) else ltype,
+            params["ltype"] = (
+                ltype.id if issubclass(type(ltype), Base) else ltype,
+            )
 
         params.update(kwargs)
 
-        result = self.client.post("/databases/postgresql/instances", data=params)
+        result = self.client.post(
+            "/databases/postgresql/instances", data=params
+        )
 
         if "id" not in result:
             raise UnexpectedResponseError(
-                "Unexpected response when creating PostgreSQL Database", json=result
+                "Unexpected response when creating PostgreSQL Database",
+                json=result,
             )
 
         d = PostgreSQLDatabase(self.client, result["id"], result)
