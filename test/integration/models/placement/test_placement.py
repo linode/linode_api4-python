@@ -70,10 +70,12 @@ def test_pg_migration(
     """
     client = test_linode_client
 
-    label = get_test_label(10)
+    label_pg = get_test_label(10)
+
+    label_instance = get_test_label(10)
 
     pg_outbound = client.placement.group_create(
-        label,
+        label_pg,
         get_region(test_linode_client, {"Placement Group"}),
         PlacementGroupType.anti_affinity_local,
         PlacementGroupPolicy.flexible,
@@ -82,7 +84,7 @@ def test_pg_migration(
     linode = client.linode.instance_create(
         "g6-nanode-1",
         pg_outbound.region,
-        label=create_placement_group.label,
+        label=label_instance,
         placement_group=pg_outbound,
     )
 
