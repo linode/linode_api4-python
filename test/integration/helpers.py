@@ -1,116 +1,59 @@
+import random
 import time
+from string import ascii_lowercase
 from typing import Callable
 
-from linode_api4 import PaginatedList
 from linode_api4.errors import ApiError
-from linode_api4.linode_client import LinodeClient
 
 
-def get_test_label():
-    unique_timestamp = str(time.time_ns())[:-3]
-    label = "test_" + unique_timestamp
-    return label
-
-
-def delete_instance_with_test_kw(paginated_list: PaginatedList):
-    for i in paginated_list:
-        try:
-            if hasattr(i, "label"):
-                label = getattr(i, "label")
-                if "IntTestSDK" in str(label):
-                    i.delete()
-                elif "lke" in str(label):
-                    iso_created_date = getattr(i, "created")
-                    created_time = int(
-                        time.mktime(iso_created_date.timetuple())
-                    )
-                    timestamp = int(time.time())
-                    if (timestamp - created_time) < 86400:
-                        i.delete()
-            elif hasattr(i, "domain"):
-                domain = getattr(i, "domain")
-                if "IntTestSDK" in domain:
-                    i.delete()
-        except AttributeError as e:
-            if "IntTestSDK" in str(i.__dict__):
-                i.delete()
-
-
-def delete_all_test_instances(client: LinodeClient):
-    tags = client.tags()
-    linodes = client.linode.instances()
-    images = client.images()
-    volumes = client.volumes()
-    nodebalancers = client.nodebalancers()
-    domains = client.domains()
-    longview_clients = client.longview.clients()
-    clusters = client.lke.clusters()
-    firewalls = client.networking.firewalls()
-
-    delete_instance_with_test_kw(tags)
-    delete_instance_with_test_kw(linodes)
-    delete_instance_with_test_kw(images)
-    delete_instance_with_test_kw(volumes)
-    delete_instance_with_test_kw(nodebalancers)
-    delete_instance_with_test_kw(domains)
-    delete_instance_with_test_kw(longview_clients)
-    delete_instance_with_test_kw(clusters)
-    delete_instance_with_test_kw(firewalls)
+def get_test_label(length: int = 8):
+    return "".join(random.choice(ascii_lowercase) for i in range(length))
 
 
 def wait_for_condition(
     interval: int, timeout: int, condition: Callable, *args
 ) -> object:
-    start_time = time.time()
-    while True:
-        if condition(*args):
-            break
-
-        if time.time() - start_time > timeout:
-            raise TimeoutError("Wait for condition timeout error")
-
+    end_time = time.time() + timeout
+    while time.time() < end_time:
+        result = condition(*args)
+        if result:
+            return result
         time.sleep(interval)
+    raise TimeoutError(
+        f"Timeout Error: resource not available in {timeout} seconds"
+    )
 
 
 # Retry function to help in case of requests sending too quickly before instance is ready
 def retry_sending_request(
-    retries: int, condition: Callable, *args, **kwargs
+    retries: int, condition: Callable, *args, backoff: int = 5, **kwargs
 ) -> object:
-    curr_t = 0
-    while curr_t < retries:
+    for attempt in range(1, retries + 1):
         try:
-            curr_t += 1
-            res = condition(*args, **kwargs)
-            return res
+            return condition(*args, **kwargs)
         except ApiError:
-            if curr_t >= retries:
-                raise ApiError
-        time.sleep(5)
+            if attempt == retries:
+                raise ApiError(
+                    "Api Error: Failed after all retry attempts"
+                ) from None
+            time.sleep(backoff)
 
 
 def send_request_when_resource_available(
     timeout: int, func: Callable, *args, **kwargs
 ) -> object:
     start_time = time.time()
+    retry_statuses = {400, 500}
 
     while True:
         try:
-            res = func(*args, **kwargs)
-            return res
+            return func(*args, **kwargs)
         except ApiError as e:
-            if (
-                e.status == 400
-                or e.status == 500
-                or "Please try again later" in str(e.__dict__)
-            ):
+            if e.status in retry_statuses or "Please try again later" in str(e):
                 if time.time() - start_time > timeout:
                     raise TimeoutError(
-                        "Timeout Error: resource is not available in "
-                        + str(timeout)
-                        + " seconds"
+                        f"Timeout Error: resource not available in {timeout} seconds"
                     )
                 time.sleep(10)
             else:
                 raise e
-
-    return res

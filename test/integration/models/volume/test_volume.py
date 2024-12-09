@@ -1,28 +1,54 @@
 import time
-from test.integration.conftest import get_token
+from test.integration.conftest import (
+    get_api_ca_file,
+    get_api_url,
+    get_region,
+    get_token,
+)
 from test.integration.helpers import (
     get_test_label,
     retry_sending_request,
+    send_request_when_resource_available,
     wait_for_condition,
 )
 
 import pytest
 
-from linode_api4 import ApiError, LinodeClient
+from linode_api4 import LinodeClient
 from linode_api4.objects import RegionPrice, Volume, VolumeType
+
+TEST_REGION = get_region(
+    LinodeClient(
+        token=get_token(),
+        base_url=get_api_url(),
+        ca_path=get_api_ca_file(),
+    ),
+    {"Linodes", "Cloud Firewall"},
+    site_type="core",
+)
+
+
+@pytest.fixture(scope="session")
+def test_volume(test_linode_client):
+    client = test_linode_client
+    label = get_test_label(length=8)
+
+    volume = client.volume_create(label=label, region=TEST_REGION)
+
+    yield volume
+
+    send_request_when_resource_available(timeout=100, func=volume.delete)
 
 
 @pytest.fixture(scope="session")
 def linode_for_volume(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    available_regions = client.regions()
-    chosen_region = available_regions[4]
-    timestamp = str(time.time_ns())
-    label = "TestSDK-" + timestamp
+
+    label = get_test_label(length=8)
 
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
-        chosen_region,
+        TEST_REGION,
         image="linode/debian10",
         label=label,
         firewall=e2e_test_firewall,
@@ -30,25 +56,17 @@ def linode_for_volume(test_linode_client, e2e_test_firewall):
 
     yield linode_instance
 
-    timeout = 100  # give 100s for volume to be detached before deletion
-
-    start_time = time.time()
-
-    while time.time() - start_time < timeout:
-        try:
-            res = linode_instance.delete()
-
-            if res:
-                break
-            else:
-                time.sleep(3)
-        except ApiError as e:
-            if time.time() - start_time > timeout:
-                raise e
+    send_request_when_resource_available(
+        timeout=100, func=linode_instance.delete
+    )
 
 
 def get_status(volume: Volume, status: str):
-    client = LinodeClient(token=get_token())
+    client = LinodeClient(
+        token=get_token(),
+        base_url=get_api_url(),
+        ca_path=get_api_ca_file(),
+    )
     volume = client.load(Volume, volume.id)
     return volume.status == status
 
@@ -71,15 +89,15 @@ def test_get_volume_with_encryption(
 
 def test_update_volume_tag(test_linode_client, test_volume):
     volume = test_volume
-    tag_1 = "volume_test_tag1"
-    tag_2 = "volume_test_tag2"
+    tag_1 = get_test_label(10)
+    tag_2 = get_test_label(10)
 
     volume.tags = [tag_1, tag_2]
     volume.save()
 
     volume = test_linode_client.load(Volume, test_volume.id)
 
-    assert [tag_1, tag_2] == volume.tags
+    assert all(tag in volume.tags for tag in [tag_1, tag_2])
 
 
 def test_volume_resize(test_linode_client, test_volume):
@@ -113,7 +131,7 @@ def test_attach_volume_to_linode(
     volume = test_volume
     linode = linode_for_volume
 
-    res = retry_sending_request(5, volume.attach, linode.id)
+    res = retry_sending_request(5, volume.attach, linode.id, backoff=30)
 
     assert res
 

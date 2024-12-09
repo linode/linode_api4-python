@@ -1,5 +1,6 @@
 import time
 from datetime import datetime
+from test.integration.conftest import get_region
 from test.integration.helpers import get_test_label
 
 import pytest
@@ -64,13 +65,12 @@ def test_get_account_settings(test_linode_client):
 def test_latest_get_event(test_linode_client, e2e_test_firewall):
     client = test_linode_client
 
-    available_regions = client.regions()
-    chosen_region = available_regions[4]
+    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label()
 
     linode, password = client.linode.instance_create(
         "g6-nanode-1",
-        chosen_region,
+        region,
         image="linode/debian10",
         label=label,
         firewall=e2e_test_firewall,

@@ -12,15 +12,13 @@ from linode_api4.objects import ConfigInterface, ObjectStorageKeys, Region
 @pytest.fixture(scope="session")
 def setup_client_and_linode(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    chosen_region = get_region(
-        client, {"Kubernetes", "NodeBalancers"}, "core"
-    ).id
+    region = get_region(client, {"Kubernetes", "NodeBalancers"}, "core").id
 
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
-        chosen_region,
+        region,
         image="linode/debian10",
         label=label,
         firewall=e2e_test_firewall,
@@ -233,11 +231,11 @@ def test_get_account_settings(test_linode_client):
 # LinodeGroupTests
 def test_create_linode_instance_without_image(test_linode_client):
     client = test_linode_client
-    chosen_region = get_region(client, {"Linodes"}, "core").id
+    region = get_region(client, {"Linodes"}, "core").id
     label = get_test_label()
 
     linode_instance = client.linode.instance_create(
-        "g6-nanode-1", chosen_region, label=label
+        "g6-nanode-1", region, label=label
     )
 
     assert linode_instance.label == label
@@ -257,12 +255,12 @@ def test_create_linode_instance_with_image(setup_client_and_linode):
 
 def test_create_linode_with_interfaces(test_linode_client):
     client = test_linode_client
-    chosen_region = get_region(client, {"Vlans", "Linodes"}).id
+    region = get_region(client, {"Vlans", "Linodes"}, site_type="core").id
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
-        chosen_region,
+        region,
         label=label,
         image="linode/debian10",
         interfaces=[

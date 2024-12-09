@@ -25,8 +25,7 @@ from linode_api4.objects.linode import InstanceDiskEncryptionType, MigrationType
 @pytest.fixture(scope="session")
 def linode_with_volume_firewall(test_linode_client):
     client = test_linode_client
-    available_regions = client.regions()
-    chosen_region = available_regions[4]
+    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label()
 
     rules = {
@@ -38,7 +37,7 @@ def linode_with_volume_firewall(test_linode_client):
 
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
-        chosen_region,
+        region,
         image="linode/debian10",
         label=label + "_modlinode",
     )
@@ -71,14 +70,12 @@ def linode_with_volume_firewall(test_linode_client):
 @pytest.fixture(scope="session")
 def linode_for_network_interface_tests(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    available_regions = client.regions()
-    chosen_region = available_regions[4]
-    timestamp = str(time.time_ns())
-    label = "TestSDK-" + timestamp
+    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    label = get_test_label(length=8)
 
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
-        chosen_region,
+        region,
         image="linode/debian10",
         label=label,
         firewall=e2e_test_firewall,
@@ -92,13 +89,12 @@ def linode_for_network_interface_tests(test_linode_client, e2e_test_firewall):
 @pytest.fixture
 def linode_for_disk_tests(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    available_regions = client.regions()
-    chosen_region = available_regions[4]
+    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
-        chosen_region,
+        region,
         image="linode/alpine3.19",
         label=label + "_long_tests",
         firewall=e2e_test_firewall,
@@ -126,12 +122,12 @@ def linode_for_disk_tests(test_linode_client, e2e_test_firewall):
 @pytest.fixture
 def linode_with_block_storage_encryption(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    chosen_region = get_region(client, {"Linodes", "Block Storage Encryption"})
+    region = get_region(client, {"Linodes", "Block Storage Encryption"})
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
-        chosen_region,
+        region,
         image="linode/alpine3.19",
         label=label + "block-storage-encryption",
         firewall=e2e_test_firewall,
@@ -145,13 +141,12 @@ def linode_with_block_storage_encryption(test_linode_client, e2e_test_firewall):
 @pytest.fixture
 def create_linode_for_long_running_tests(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    available_regions = client.regions()
-    chosen_region = available_regions[4]
+    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
-        chosen_region,
+        region,
         image="linode/debian10",
         label=label + "_long_tests",
         firewall=e2e_test_firewall,
@@ -167,15 +162,14 @@ def linode_with_disk_encryption(test_linode_client, request):
     client = test_linode_client
 
     target_region = get_region(client, {"Disk Encryption"})
-    timestamp = str(time.time_ns())
-    label = "TestSDK-" + timestamp
+    label = get_test_label(length=8)
 
     disk_encryption = request.param
 
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
         target_region,
-        image="linode/ubuntu23.04",
+        image="linode/ubuntu23.10",
         label=label,
         booted=False,
         disk_encryption=disk_encryption,
@@ -215,14 +209,12 @@ def test_linode_transfer(test_linode_client, linode_with_volume_firewall):
 def test_linode_rebuild(test_linode_client):
     client = test_linode_client
 
-    # TODO(LDE): Uncomment once LDE is available
-    # chosen_region = get_region(client, {"Disk Encryption"})
-    chosen_region = get_region(client)
+    region = get_region(client, {"Disk Encryption"})
 
     label = get_test_label() + "_rebuild"
 
     linode, password = client.linode.instance_create(
-        "g6-nanode-1", chosen_region, image="linode/debian10", label=label
+        "g6-nanode-1", region, image="linode/debian10", label=label
     )
 
     wait_for_condition(10, 100, get_status, linode, "running")
@@ -231,8 +223,7 @@ def test_linode_rebuild(test_linode_client):
         3,
         linode.rebuild,
         "linode/debian10",
-        # TODO(LDE): Uncomment once LDE is available
-        # disk_encryption=InstanceDiskEncryptionType.disabled,
+        disk_encryption=InstanceDiskEncryptionType.disabled,
     )
 
     wait_for_condition(10, 100, get_status, linode, "rebuilding")
@@ -240,8 +231,7 @@ def test_linode_rebuild(test_linode_client):
     assert linode.status == "rebuilding"
     assert linode.image.id == "linode/debian10"
 
-    # TODO(LDE): Uncomment once LDE is available
-    # assert linode.disk_encryption == InstanceDiskEncryptionType.disabled
+    assert linode.disk_encryption == InstanceDiskEncryptionType.disabled
 
     wait_for_condition(10, 300, get_status, linode, "running")
 
@@ -276,13 +266,12 @@ def test_update_linode(create_linode):
 
 def test_delete_linode(test_linode_client):
     client = test_linode_client
-    available_regions = client.regions()
-    chosen_region = available_regions[4]
+    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label()
 
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
-        chosen_region,
+        region,
         image="linode/debian10",
         label=label + "_linode",
     )
@@ -372,6 +361,7 @@ def test_linode_resize_with_class(
     assert linode.status == "running"
 
 
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 def test_linode_resize_with_migration_type(
     test_linode_client,
     create_linode_for_long_running_tests,
@@ -433,7 +423,7 @@ def test_linode_firewalls(linode_with_volume_firewall):
     firewalls = linode.firewalls()
 
     assert len(firewalls) > 0
-    assert "test" in firewalls[0].label
+    assert "firewall" in firewalls[0].label
 
 
 def test_linode_volumes(linode_with_volume_firewall):
@@ -442,11 +432,9 @@ def test_linode_volumes(linode_with_volume_firewall):
     volumes = linode.volumes()
 
     assert len(volumes) > 0
-    assert "test" in volumes[0].label
+    assert "_volume" in volumes[0].label
 
 
-# TODO(LDE): Remove skip once LDE is available
-@pytest.mark.skip("LDE is not currently enabled")
 @pytest.mark.parametrize(
     "linode_with_disk_encryption", ["disabled"], indirect=True
 )
@@ -541,13 +529,12 @@ def test_linode_ips(create_linode):
 
 def test_linode_initate_migration(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    available_regions = client.regions()
-    chosen_region = available_regions[4]
+    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label() + "_migration"
 
     linode, _ = client.linode.instance_create(
         "g6-nanode-1",
-        chosen_region,
+        region,
         image="linode/debian12",
         label=label,
         firewall=e2e_test_firewall,

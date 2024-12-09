@@ -23,6 +23,7 @@ from linode_api4.objects import (
     LKENodePoolTaint,
     LKEType,
 )
+from linode_api4.objects.linode import InstanceDiskEncryptionType
 
 
 @pytest.fixture(scope="session")
@@ -30,9 +31,7 @@ def lke_cluster(test_linode_client):
     node_type = test_linode_client.linode.types()[1]  # g6-standard-1
     version = test_linode_client.lke.versions()[0]
 
-    # TODO(LDE): Uncomment once LDE is available
-    # region = get_region(test_linode_client, {"Kubernetes", "Disk Encryption"})
-    region = get_region(test_linode_client, {"Kubernetes"})
+    region = get_region(test_linode_client, {"Kubernetes", "Disk Encryption"})
 
     node_pools = test_linode_client.lke.node_pool(node_type, 3)
     label = get_test_label() + "_cluster"
@@ -146,8 +145,7 @@ def test_get_lke_pool(test_linode_client, lke_cluster):
 
     assert _to_comparable(cluster.pools[0]) == _to_comparable(pool)
 
-    # TODO(LDE): Uncomment once LDE is available
-    # assert pool.disk_encryption == InstanceDiskEncryptionType.enabled
+    assert pool.disk_encryption == InstanceDiskEncryptionType.enabled
 
 
 def test_cluster_dashboard_url_view(lke_cluster):

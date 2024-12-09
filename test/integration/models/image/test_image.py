@@ -1,9 +1,6 @@
 from io import BytesIO
 from test.integration.conftest import get_region, get_regions
-from test.integration.helpers import (
-    delete_instance_with_test_kw,
-    get_test_label,
-)
+from test.integration.helpers import get_test_label
 
 import polling
 import pytest
@@ -15,7 +12,11 @@ from linode_api4.objects import Image
 def image_upload_url(test_linode_client):
     label = get_test_label() + "_image"
 
-    region = get_region(test_linode_client, site_type="core")
+    region = get_region(
+        test_linode_client,
+        capabilities={"Linodes", "Object Storage"},
+        site_type="core",
+    )
 
     test_linode_client.image_create_upload(
         label, region.id, "integration test image upload"
@@ -26,8 +27,6 @@ def image_upload_url(test_linode_client):
     yield image
 
     image.delete()
-    images = test_linode_client.images()
-    delete_instance_with_test_kw(images)
 
 
 @pytest.fixture(scope="session")

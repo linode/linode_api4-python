@@ -12,7 +12,19 @@
           "linode_id": 123,
           "is_compliant": true
         }
-      ]
+      ],
+      "migrations": {
+        "inbound": [
+          {
+            "linode_id": 123
+          }
+        ],
+        "outbound": [
+          {
+            "linode_id": 456
+          }
+        ]
+      }
     }
   ],
   "page": 1,
