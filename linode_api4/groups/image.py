@@ -4,7 +4,8 @@ import requests
 
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
-from linode_api4.objects import Base, Disk, Image
+from linode_api4.objects import Disk, Image
+from linode_api4.objects.base import _flatten_request_body_recursive
 from linode_api4.util import drop_null_keys
 
 
@@ -58,7 +59,7 @@ class ImageGroup(Group):
         :rtype: Image
         """
         params = {
-            "disk_id": disk.id if issubclass(type(disk), Base) else disk,
+            "disk_id": disk,
             "label": label,
             "description": description,
             "tags": tags,
@@ -67,7 +68,10 @@ class ImageGroup(Group):
         if cloud_init:
             params["cloud_init"] = cloud_init
 
-        result = self.client.post("/images", data=drop_null_keys(params))
+        result = self.client.post(
+            "/images",
+            data=_flatten_request_body_recursive(drop_null_keys(params)),
+        )
 
         if not "id" in result:
             raise UnexpectedResponseError(

@@ -1,13 +1,13 @@
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
-    Base,
     Database,
     DatabaseEngine,
     DatabaseType,
     MySQLDatabase,
     PostgreSQLDatabase,
 )
+from linode_api4.objects.base import _flatten_request_body_recursive
 
 
 class DatabaseGroup(Group):
@@ -126,13 +126,16 @@ class DatabaseGroup(Group):
 
         params = {
             "label": label,
-            "region": region.id if issubclass(type(region), Base) else region,
-            "engine": engine.id if issubclass(type(engine), Base) else engine,
-            "type": ltype.id if issubclass(type(ltype), Base) else ltype,
+            "region": region,
+            "engine": engine,
+            "type": ltype,
         }
         params.update(kwargs)
 
-        result = self.client.post("/databases/mysql/instances", data=params)
+        result = self.client.post(
+            _flatten_request_body_recursive("/databases/mysql/instances"),
+            data=params,
+        )
 
         if "id" not in result:
             raise UnexpectedResponseError(
@@ -191,14 +194,15 @@ class DatabaseGroup(Group):
 
         params = {
             "label": label,
-            "region": region.id if issubclass(type(region), Base) else region,
-            "engine": engine.id if issubclass(type(engine), Base) else engine,
-            "type": ltype.id if issubclass(type(ltype), Base) else ltype,
+            "region": region,
+            "engine": engine,
+            "type": ltype,
         }
         params.update(kwargs)
 
         result = self.client.post(
-            "/databases/postgresql/instances", data=params
+            "/databases/postgresql/instances",
+            data=_flatten_request_body_recursive(params),
         )
 
         if "id" not in result:
