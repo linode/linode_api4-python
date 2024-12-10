@@ -1,32 +1,36 @@
+from test.integration.conftest import (
+    get_api_ca_file,
+    get_api_url,
+    get_region,
+    get_token,
+)
 from test.integration.helpers import get_test_label
 
 import pytest
 
+from linode_api4 import LinodeClient
 from linode_api4.objects import Config, ConfigInterfaceIPv4, Firewall, IPAddress
 from linode_api4.objects.networking import NetworkTransferPrice, Price
 
-
-@pytest.mark.smoke
-def test_get_networking_rules(test_linode_client, test_firewall):
-    firewall = test_linode_client.load(Firewall, test_firewall.id)
-
-    rules = firewall.get_rules()
-
-    assert "inbound" in str(rules)
-    assert "inbound_policy" in str(rules)
-    assert "outbound" in str(rules)
-    assert "outbound_policy" in str(rules)
+TEST_REGION = get_region(
+    LinodeClient(
+        token=get_token(),
+        base_url=get_api_url(),
+        ca_path=get_api_ca_file(),
+    ),
+    {"Linodes", "Cloud Firewall"},
+    site_type="core",
+)
 
 
 def create_linode(test_linode_client):
     client = test_linode_client
-    available_regions = client.regions()
-    chosen_region = available_regions[4]
+
     label = get_test_label()
 
     linode_instance, _ = client.linode.instance_create(
         "g6-nanode-1",
-        chosen_region,
+        TEST_REGION,
         image="linode/debian12",
         label=label,
     )
@@ -50,6 +54,18 @@ def create_linode_to_be_shared_with_ips(test_linode_client):
     yield linode
 
     linode.delete()
+
+
+@pytest.mark.smoke
+def test_get_networking_rules(test_linode_client, test_firewall):
+    firewall = test_linode_client.load(Firewall, test_firewall.id)
+
+    rules = firewall.get_rules()
+
+    assert "inbound" in str(rules)
+    assert "inbound_policy" in str(rules)
+    assert "outbound" in str(rules)
+    assert "outbound_policy" in str(rules)
 
 
 @pytest.mark.smoke

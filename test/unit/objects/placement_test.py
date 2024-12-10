@@ -2,6 +2,7 @@ from test.unit.base import ClientBaseCase
 
 from linode_api4 import PlacementGroupPolicy
 from linode_api4.objects import (
+    MigratedInstance,
     PlacementGroup,
     PlacementGroupMember,
     PlacementGroupType,
@@ -116,3 +117,5 @@ class PlacementTest(ClientBaseCase):
         assert pg.members[0] == PlacementGroupMember(
             linode_id=123, is_compliant=True
         )
+        assert pg.migrations.inbound[0] == MigratedInstance(linode_id=123)
+        assert pg.migrations.outbound[0] == MigratedInstance(linode_id=456)
