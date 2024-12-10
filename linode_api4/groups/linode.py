@@ -1,25 +1,29 @@
 import base64
 import os
 from collections.abc import Iterable
-from typing import Optional, Union
+from typing import Any, Dict, Optional, Union
 
-from linode_api4 import InstanceDiskEncryptionType
 from linode_api4.common import load_and_validate_keys
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
-    Base,
     ConfigInterface,
     Firewall,
-    Image,
     Instance,
+    InstanceDiskEncryptionType,
     Kernel,
+    PlacementGroup,
     StackScript,
     Type,
 )
+from linode_api4.objects.base import _flatten_request_body_recursive
 from linode_api4.objects.filtering import Filter
-from linode_api4.objects.linode import _expand_placement_group_assignment
-from linode_api4.paginated_list import PaginatedList
+from linode_api4.objects.linode import (
+    Backup,
+    InstancePlacementGroupAssignment,
+    _expand_placement_group_assignment,
+)
+from linode_api4.util import drop_null_keys
 
 
 class LinodeGroup(Group):
@@ -135,8 +139,19 @@ class LinodeGroup(Group):
         region,
         image=None,
         authorized_keys=None,
+        firewall: Optional[Union[Firewall, int]] = None,
+        backup: Optional[Union[Backup, int]] = None,
+        stackscript: Optional[Union[StackScript, int]] = None,
         disk_encryption: Optional[
             Union[InstanceDiskEncryptionType, str]
+        ] = None,
+        placement_group: Optional[
+            Union[
+                InstancePlacementGroupAssignment,
+                PlacementGroup,
+                Dict[str, Any],
+                int,
+            ]
         ] = None,
         **kwargs,
     ):
@@ -290,65 +305,45 @@ class LinodeGroup(Group):
                                          This usually indicates that you are using
                                          an outdated library.
         """
+
         ret_pass = None
         if image and not "root_pass" in kwargs:
             ret_pass = Instance.generate_root_password()
             kwargs["root_pass"] = ret_pass
 
-        authorized_keys = load_and_validate_keys(authorized_keys)
-
-        if "stackscript" in kwargs:
-            # translate stackscripts
-            kwargs["stackscript_id"] = (
-                kwargs["stackscript"].id
-                if issubclass(type(kwargs["stackscript"]), Base)
-                else kwargs["stackscript"]
-            )
-            del kwargs["stackscript"]
-
-        if "backup" in kwargs:
-            # translate backups
-            kwargs["backup_id"] = (
-                kwargs["backup"].id
-                if issubclass(type(kwargs["backup"]), Base)
-                else kwargs["backup"]
-            )
-            del kwargs["backup"]
-
-        if "firewall" in kwargs:
-            fw = kwargs.pop("firewall")
-            kwargs["firewall_id"] = fw.id if isinstance(fw, Firewall) else fw
-
-        if "interfaces" in kwargs:
-            interfaces = kwargs.get("interfaces")
-            if interfaces is not None and isinstance(interfaces, Iterable):
-                kwargs["interfaces"] = [
-                    i._serialize() if isinstance(i, ConfigInterface) else i
-                    for i in interfaces
-                ]
-
-        if "placement_group" in kwargs:
-            kwargs["placement_group"] = _expand_placement_group_assignment(
-                kwargs.get("placement_group")
-            )
+        interfaces = kwargs.get("interfaces", None)
+        if interfaces is not None and isinstance(interfaces, Iterable):
+            kwargs["interfaces"] = [
+                i._serialize() if isinstance(i, ConfigInterface) else i
+                for i in interfaces
+            ]
 
         params = {
-            "type": ltype.id if issubclass(type(ltype), Base) else ltype,
-            "region": region.id if issubclass(type(region), Base) else region,
-            "image": (
-                (image.id if issubclass(type(image), Base) else image)
-                if image
+            "type": ltype,
+            "region": region,
+            "image": image,
+            "authorized_keys": load_and_validate_keys(authorized_keys),
+            # These will automatically be flattened below
+            "firewall_id": firewall,
+            "backup_id": backup,
+            "stackscript_id": stackscript,
+            # Special cases
+            "disk_encryption": (
+                str(disk_encryption) if disk_encryption else None
+            ),
+            "placement_group": (
+                _expand_placement_group_assignment(placement_group)
+                if placement_group
                 else None
             ),
-            "authorized_keys": authorized_keys,
         }
-
-        if disk_encryption is not None:
-            params["disk_encryption"] = str(disk_encryption)
 
         params.update(kwargs)
 
-        result = self.client.post("/linode/instances", data=params)
+        result = self.client.post(
+            "/linode/instances",
+            data=_flatten_request_body_recursive(drop_null_keys(params)),
+        )
 
         if not "id" in result:
             raise UnexpectedResponseError(
@@ -421,19 +416,6 @@ class LinodeGroup(Group):
         :returns: The new StackScript
         :rtype: StackScript
         """
-        image_list = None
-        if type(images) is list or type(images) is PaginatedList:
-            image_list = [
-                d.id if issubclass(type(d), Base) else d for d in images
-            ]
-        elif type(images) is Image:
-            image_list = [images.id]
-        elif type(images) is str:
-            image_list = [images]
-        else:
-            raise ValueError(
-                "images must be a list of Images or a single Image"
-            )
 
         script_body = script
         if not script.startswith("#!"):
@@ -448,14 +430,17 @@ class LinodeGroup(Group):
 
         params = {
             "label": label,
-            "images": image_list,
+            "images": images,
             "is_public": public,
             "script": script_body,
             "description": desc if desc else "",
         }
         params.update(kwargs)
 
-        result = self.client.post("/linode/stackscripts", data=params)
+        result = self.client.post(
+            "/linode/stackscripts",
+            data=_flatten_request_body_recursive(params),
+        )
 
         if not "id" in result:
             raise UnexpectedResponseError(

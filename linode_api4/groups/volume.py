@@ -1,6 +1,7 @@
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
-from linode_api4.objects import Base, Volume, VolumeType
+from linode_api4.objects import Volume, VolumeType
+from linode_api4.objects.base import _flatten_request_body_recursive
 
 
 class VolumeGroup(Group):
@@ -57,14 +58,15 @@ class VolumeGroup(Group):
         params = {
             "label": label,
             "size": size,
-            "region": region.id if issubclass(type(region), Base) else region,
-            "linode_id": (
-                linode.id if issubclass(type(linode), Base) else linode
-            ),
+            "region": region,
+            "linode_id": linode,
         }
         params.update(kwargs)
 
-        result = self.client.post("/volumes", data=params)
+        result = self.client.post(
+            "/volumes",
+            data=_flatten_request_body_recursive(params),
+        )
 
         if not "id" in result:
             raise UnexpectedResponseError(
