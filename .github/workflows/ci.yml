@@ -1,0 +1,43 @@
+
+name: Continuous Integration
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v4
+
+      - name: setup python 3
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: install dependencies
+        run: make dev-install
+
+      - name: run linter
+        run: make lint
+
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run tests
+        run: |
+          pip install ".[test]"
+          tox
