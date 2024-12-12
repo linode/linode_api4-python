@@ -86,6 +86,26 @@ def linode_for_network_interface_tests(test_linode_client, e2e_test_firewall):
     linode_instance.delete()
 
 
+@pytest.fixture(scope="session")
+def linode_for_vpu_tests(test_linode_client, e2e_test_firewall):
+    client = test_linode_client
+    region = "us-lax"
+
+    label = get_test_label(length=8)
+
+    linode_instance, password = client.linode.instance_create(
+        "g1-accelerated-netint-vpu-t1u1-s",
+        region,
+        image="linode/debian10",
+        label=label,
+        firewall=e2e_test_firewall,
+    )
+
+    yield linode_instance
+
+    linode_instance.delete()
+
+
 @pytest.fixture
 def linode_for_disk_tests(test_linode_client, e2e_test_firewall):
     client = test_linode_client
@@ -194,6 +214,13 @@ def test_get_linode(test_linode_client, linode_with_volume_firewall):
 
     assert linode.label == linode_with_volume_firewall.label
     assert linode.id == linode_with_volume_firewall.id
+
+
+def test_get_vpu(test_linode_client, linode_for_vpu_tests):
+    linode = test_linode_client.load(Instance, linode_for_vpu_tests.id)
+
+    assert linode.label == linode_for_vpu_tests.label
+    assert hasattr(linode.specs, "accelerated_devices")
 
 
 def test_linode_transfer(test_linode_client, linode_with_volume_firewall):
@@ -339,7 +366,7 @@ def test_linode_resize(create_linode_for_long_running_tests):
 
 
 def test_linode_resize_with_class(
-    test_linode_client, create_linode_for_long_running_tests
+        test_linode_client, create_linode_for_long_running_tests
 ):
     linode = create_linode_for_long_running_tests
     ltype = Type(test_linode_client, "g6-standard-6")
@@ -363,8 +390,8 @@ def test_linode_resize_with_class(
 
 @pytest.mark.flaky(reruns=3, reruns_delay=2)
 def test_linode_resize_with_migration_type(
-    test_linode_client,
-    create_linode_for_long_running_tests,
+        test_linode_client,
+        create_linode_for_long_running_tests,
 ):
     linode = create_linode_for_long_running_tests
     m_type = MigrationType.WARM
@@ -443,12 +470,12 @@ def test_linode_with_disk_encryption_disabled(linode_with_disk_encryption):
 
     assert linode.disk_encryption == InstanceDiskEncryptionType.disabled
     assert (
-        linode.disks[0].disk_encryption == InstanceDiskEncryptionType.disabled
+            linode.disks[0].disk_encryption == InstanceDiskEncryptionType.disabled
     )
 
 
 def test_linode_with_block_storage_encryption(
-    linode_with_block_storage_encryption,
+        linode_with_block_storage_encryption,
 ):
     linode = linode_with_block_storage_encryption
     assert "Block Storage Encryption" in linode.capabilities
@@ -591,6 +618,9 @@ def test_get_linode_types(test_linode_client):
     assert len(types) > 0
     assert "g6-nanode-1" in ids
 
+    for linode_type in types:
+        assert hasattr(linode_type, "accelerated_devices")
+
 
 def test_get_linode_types_overrides(test_linode_client):
     types = test_linode_client.linode.types()
@@ -691,11 +721,14 @@ class TestNetworkInterface:
         assert interface.label == "testvlan"
         assert interface.ipam_address == "10.0.0.2/32"
 
+    def test_create_vpu(self, test_linode_client, linode_for_vpu_tests):
+        assert hasattr(linode_for_vpu_tests.specs, "accelerated_devices")
+
     def test_create_vpc(
-        self,
-        test_linode_client,
-        linode_for_network_interface_tests,
-        create_vpc_with_subnet_and_linode,
+            self,
+            test_linode_client,
+            linode_for_network_interface_tests,
+            create_vpc_with_subnet_and_linode,
     ):
         vpc, subnet, linode, _ = create_vpc_with_subnet_and_linode
 
@@ -749,9 +782,9 @@ class TestNetworkInterface:
         assert vpc_ips[0].nat_1_1 == linode.ips.ipv4.public[0].address
 
     def test_update_vpc(
-        self,
-        linode_for_network_interface_tests,
-        create_vpc_with_subnet_and_linode,
+            self,
+            linode_for_network_interface_tests,
+            create_vpc_with_subnet_and_linode,
     ):
         vpc, subnet, linode, _ = create_vpc_with_subnet_and_linode
 
@@ -812,7 +845,7 @@ class TestNetworkInterface:
         ]
 
     def test_delete_interface_containing_vpc(
-        self, create_vpc_with_subnet_and_linode
+            self, create_vpc_with_subnet_and_linode
     ):
         vpc, subnet, linode, _ = create_vpc_with_subnet_and_linode
 
