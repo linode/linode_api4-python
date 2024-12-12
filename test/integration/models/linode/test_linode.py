@@ -366,7 +366,7 @@ def test_linode_resize(create_linode_for_long_running_tests):
 
 
 def test_linode_resize_with_class(
-        test_linode_client, create_linode_for_long_running_tests
+    test_linode_client, create_linode_for_long_running_tests
 ):
     linode = create_linode_for_long_running_tests
     ltype = Type(test_linode_client, "g6-standard-6")
@@ -390,8 +390,8 @@ def test_linode_resize_with_class(
 
 @pytest.mark.flaky(reruns=3, reruns_delay=2)
 def test_linode_resize_with_migration_type(
-        test_linode_client,
-        create_linode_for_long_running_tests,
+    test_linode_client,
+    create_linode_for_long_running_tests,
 ):
     linode = create_linode_for_long_running_tests
     m_type = MigrationType.WARM
@@ -470,12 +470,12 @@ def test_linode_with_disk_encryption_disabled(linode_with_disk_encryption):
 
     assert linode.disk_encryption == InstanceDiskEncryptionType.disabled
     assert (
-            linode.disks[0].disk_encryption == InstanceDiskEncryptionType.disabled
+        linode.disks[0].disk_encryption == InstanceDiskEncryptionType.disabled
     )
 
 
 def test_linode_with_block_storage_encryption(
-        linode_with_block_storage_encryption,
+    linode_with_block_storage_encryption,
 ):
     linode = linode_with_block_storage_encryption
     assert "Block Storage Encryption" in linode.capabilities
@@ -725,10 +725,10 @@ class TestNetworkInterface:
         assert hasattr(linode_for_vpu_tests.specs, "accelerated_devices")
 
     def test_create_vpc(
-            self,
-            test_linode_client,
-            linode_for_network_interface_tests,
-            create_vpc_with_subnet_and_linode,
+        self,
+        test_linode_client,
+        linode_for_network_interface_tests,
+        create_vpc_with_subnet_and_linode,
     ):
         vpc, subnet, linode, _ = create_vpc_with_subnet_and_linode
 
@@ -782,9 +782,9 @@ class TestNetworkInterface:
         assert vpc_ips[0].nat_1_1 == linode.ips.ipv4.public[0].address
 
     def test_update_vpc(
-            self,
-            linode_for_network_interface_tests,
-            create_vpc_with_subnet_and_linode,
+        self,
+        linode_for_network_interface_tests,
+        create_vpc_with_subnet_and_linode,
     ):
         vpc, subnet, linode, _ = create_vpc_with_subnet_and_linode
 
@@ -845,7 +845,7 @@ class TestNetworkInterface:
         ]
 
     def test_delete_interface_containing_vpc(
-            self, create_vpc_with_subnet_and_linode
+        self, create_vpc_with_subnet_and_linode
     ):
         vpc, subnet, linode, _ = create_vpc_with_subnet_and_linode
 
