@@ -1,14 +1,14 @@
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
-    Base,
     Database,
     DatabaseEngine,
     DatabaseType,
     MySQLDatabase,
     PostgreSQLDatabase,
+    drop_null_keys,
 )
-
+from linode_api4.objects.base import _flatten_request_body_recursive
 
 class DatabaseGroup(Group):
     """
@@ -126,13 +126,16 @@ class DatabaseGroup(Group):
 
         params = {
             "label": label,
-            "region": region.id if issubclass(type(region), Base) else region,
-            "engine": engine.id if issubclass(type(engine), Base) else engine,
-            "type": ltype.id if issubclass(type(ltype), Base) else ltype,
+            "region": region,
+            "engine": engine,
+            "type": ltype,
         }
         params.update(kwargs)
 
-        result = self.client.post("/databases/mysql/instances", data=params)
+        result = self.client.post(
+                "/databases/mysql/instances",
+                data=_flatten_request_body_recursive(drop_null_keys(params))
+        )
 
         if "id" not in result:
             raise UnexpectedResponseError(
@@ -180,25 +183,14 @@ class DatabaseGroup(Group):
                 "restore_time": restore_time.strftime("%Y-%m-%dT%H:%M:%S"),
             }
         }
-        if "region" in kwargs:
-            region = kwargs["region"]
-            params["region"] = (
-                region.id if issubclass(type(region), Base) else region,
-            )
-        if "engine" in kwargs:
-            engine = kwargs["engine"]
-            params["engine"] = (
-                engine.id if issubclass(type(engine), Base) else engine,
-            )
         if "ltype" in kwargs:
-            ltype = kwargs["ltype"]
-            params["type"] = (
-                ltype.id if issubclass(type(ltype), Base) else ltype,
-            )
-
+            params["type"] = kwargs["ltype"]
         params.update(kwargs)
 
-        result = self.client.post("/databases/mysql/instances", data=params)
+        result = self.client.post(
+                "/databases/mysql/instances",
+                data=_flatten_request_body_recursive(drop_null_keys(params))
+        )
 
         if "id" not in result:
             raise UnexpectedResponseError(
@@ -257,14 +249,15 @@ class DatabaseGroup(Group):
 
         params = {
             "label": label,
-            "region": region.id if issubclass(type(region), Base) else region,
-            "engine": engine.id if issubclass(type(engine), Base) else engine,
-            "type": ltype.id if issubclass(type(ltype), Base) else ltype,
+            "region": region,
+            "engine": engine,
+            "type": ltype,
         }
         params.update(kwargs)
 
         result = self.client.post(
-            "/databases/postgresql/instances", data=params
+                "/databases/postgresql/instances",
+                data=_flatten_request_body_recursive(drop_null_keys(params))
         )
 
         if "id" not in result:
@@ -314,26 +307,13 @@ class DatabaseGroup(Group):
                 "restore_time": restore_time.strftime("%Y-%m-%dT%H:%M:%S"),
             }
         }
-        if "region" in kwargs:
-            region = kwargs["region"]
-            params["region"] = (
-                region.id if issubclass(type(region), Base) else region,
-            )
-        if "engine" in kwargs:
-            engine = kwargs["engine"]
-            params["engine"] = (
-                engine.id if issubclass(type(engine), Base) else engine,
-            )
         if "ltype" in kwargs:
-            ltype = kwargs["ltype"]
-            params["ltype"] = (
-                ltype.id if issubclass(type(ltype), Base) else ltype,
-            )
-
+            params["type"] = kwargs["ltype"]
         params.update(kwargs)
 
         result = self.client.post(
-            "/databases/postgresql/instances", data=params
+                "/databases/postgresql/instances",
+                data=_flatten_request_body_recursive(drop_null_keys(params))
         )
 
         if "id" not in result:
