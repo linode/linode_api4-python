@@ -10,6 +10,7 @@ from linode_api4.objects import (
 )
 from linode_api4.objects.base import _flatten_request_body_recursive
 
+
 class DatabaseGroup(Group):
     """
     Encapsulates Linode Managed Databases related methods of the :any:`LinodeClient`. This
@@ -133,8 +134,8 @@ class DatabaseGroup(Group):
         params.update(kwargs)
 
         result = self.client.post(
-                "/databases/mysql/instances",
-                data=_flatten_request_body_recursive(drop_null_keys(params))
+            "/databases/mysql/instances",
+            data=_flatten_request_body_recursive(drop_null_keys(params)),
         )
 
         if "id" not in result:
@@ -188,8 +189,8 @@ class DatabaseGroup(Group):
         params.update(kwargs)
 
         result = self.client.post(
-                "/databases/mysql/instances",
-                data=_flatten_request_body_recursive(drop_null_keys(params))
+            "/databases/mysql/instances",
+            data=_flatten_request_body_recursive(drop_null_keys(params)),
         )
 
         if "id" not in result:
@@ -256,8 +257,8 @@ class DatabaseGroup(Group):
         params.update(kwargs)
 
         result = self.client.post(
-                "/databases/postgresql/instances",
-                data=_flatten_request_body_recursive(drop_null_keys(params))
+            "/databases/postgresql/instances",
+            data=_flatten_request_body_recursive(drop_null_keys(params)),
         )
 
         if "id" not in result:
@@ -312,8 +313,8 @@ class DatabaseGroup(Group):
         params.update(kwargs)
 
         result = self.client.post(
-                "/databases/postgresql/instances",
-                data=_flatten_request_body_recursive(drop_null_keys(params))
+            "/databases/postgresql/instances",
+            data=_flatten_request_body_recursive(drop_null_keys(params)),
         )
 
         if "id" not in result:
