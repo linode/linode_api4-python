@@ -43,7 +43,7 @@ jobs:
           pip install -r requirements.txt -r requirements-dev.txt --upgrade-strategy only-if-needed
 
       - name: install ansible dependencies
-        run: ansible-galaxy collection install amazon.aws:==6.0.1
+        run: ansible-galaxy collection install amazon.aws:==9.1.0
 
       - name: install collection
         run: |
