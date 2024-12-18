@@ -656,7 +656,7 @@ class TypeTest(ClientBaseCase):
         """
         types = self.client.linode.types()
 
-        self.assertEqual(len(types), 4)
+        self.assertEqual(len(types), 5)
         for t in types:
             self.assertTrue(t._populated)
             self.assertIsNotNone(t.id)
@@ -667,6 +667,7 @@ class TypeTest(ClientBaseCase):
             self.assertIsNone(t.successor)
             self.assertIsNotNone(t.region_prices)
             self.assertIsNotNone(t.addons.backups.region_prices)
+            self.assertIsNotNone(t.accelerated_devices)
 
     def test_get_type_by_id(self):
         """

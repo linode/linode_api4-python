@@ -269,6 +269,7 @@ class Type(Base):
         "vcpus": Property(),
         "gpus": Property(),
         "successor": Property(),
+        "accelerated_devices": Property(),
         # type_class is populated from the 'class' attribute of the returned JSON
     }
 

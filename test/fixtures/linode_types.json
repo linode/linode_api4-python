@@ -1,9 +1,10 @@
 {
-  "results": 4,
+  "results": 5,
   "pages": 1,
   "page": 1,
   "data": [
     {
+      "accelerated_devices": 0,
       "disk": 20480,
       "memory": 1024,
       "transfer": 1000,
@@ -52,6 +53,7 @@
       "successor": null
     },
     {
+      "accelerated_devices": 0,
       "disk": 20480,
       "memory": 16384,
       "transfer": 5000,
@@ -100,6 +102,7 @@
       "successor": null
     },
     {
+      "accelerated_devices": 0,
       "disk": 30720,
       "memory": 2048,
       "transfer": 2000,
@@ -148,6 +151,7 @@
       "successor": null
     },
     {
+      "accelerated_devices": 0,
       "disk": 49152,
       "memory": 4096,
       "transfer": 3000,
@@ -194,6 +198,33 @@
         }
       ],
       "successor": null
+    },
+    {
+      "id": "g1-accelerated-netint-vpu-t1u1-m",
+      "label": "Netint Quadra T1U x1 Medium",
+      "price": {
+        "hourly": 0.0,
+        "monthly": 0.0
+      },
+      "region_prices": [],
+      "addons": {
+        "backups": {
+          "price": {
+            "hourly": 0.0,
+            "monthly": 0.0
+          },
+          "region_prices": []
+        }
+      },
+      "memory": 24576,
+      "disk": 307200,
+      "transfer": 0,
+      "vcpus": 12,
+      "gpus": 0,
+      "network_out": 16000,
+      "class": "accelerated",
+      "successor": null,
+      "accelerated_devices": 1
     }
   ]
 }
