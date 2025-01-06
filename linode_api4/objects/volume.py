@@ -1,8 +1,13 @@
 from linode_api4.common import Price, RegionPrice
 from linode_api4.errors import UnexpectedResponseError
-from linode_api4.objects.base import Base, Property
+from linode_api4.objects.base import (
+    Base,
+    Property,
+    _flatten_request_body_recursive,
+)
 from linode_api4.objects.linode import Instance, Region
 from linode_api4.objects.region import Region
+from linode_api4.util import drop_null_keys
 
 
 class VolumeType(Base):
@@ -63,21 +68,16 @@ class Volume(Base):
                        If not given, the last booted Config will be chosen.
         :type config: Union[Config, int]
         """
+
+        body = {
+            "linode_id": to_linode,
+            "config": config,
+        }
+
         result = self._client.post(
             "{}/attach".format(Volume.api_endpoint),
             model=self,
-            data={
-                "linode_id": (
-                    to_linode.id
-                    if issubclass(type(to_linode), Base)
-                    else to_linode
-                ),
-                "config": (
-                    None
-                    if not config
-                    else config.id if issubclass(type(config), Base) else config
-                ),
-            },
+            data=_flatten_request_body_recursive(drop_null_keys(body)),
         )
 
         if not "id" in result:
