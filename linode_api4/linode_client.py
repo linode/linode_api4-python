@@ -275,7 +275,6 @@ class LinodeClient:
         body = None
         if data is not None:
             body = json.dumps(data)
-            print(body)
 
         response = method(
             url,

@@ -167,15 +167,15 @@ class DatabaseGroup(Group):
         :param source: The id of the source database
         :type source: int
         :param restore_time: The timestamp for the fork
-        :type source: datetime
+        :type restore_time: datetime
         :param label: The name for this cluster
         :type label: str
         :param region: The region to deploy this cluster in
-        :type region: str or Region
+        :type region: str | Region
         :param engine: The engine to deploy this cluster with
-        :type engine: str or Engine
+        :type engine: str | Engine
         :param ltype: The Linode Type to use for this cluster
-        :type ltype: str or Type
+        :type ltype: str | Type
         """
 
         params = {
@@ -291,15 +291,15 @@ class DatabaseGroup(Group):
         :param source: The id of the source database
         :type source: int
         :param restore_time: The timestamp for the fork
-        :type source: datetime
+        :type restore_time: datetime
         :param label: The name for this cluster
         :type label: str
         :param region: The region to deploy this cluster in
-        :type region: str or Region
+        :type region: str | Region
         :param engine: The engine to deploy this cluster with
-        :type engine: str or Engine
+        :type engine: str | Engine
         :param ltype: The Linode Type to use for this cluster
-        :type ltype: str or Type
+        :type ltype: str | Type
         """
 
         params = {
