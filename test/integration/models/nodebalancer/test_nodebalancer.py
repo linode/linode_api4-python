@@ -9,7 +9,7 @@ from test.integration.helpers import get_test_label
 
 import pytest
 
-from linode_api4 import ApiError, LinodeClient, NodeBalancer, ExplicitNullValue
+from linode_api4 import ApiError, ExplicitNullValue, LinodeClient, NodeBalancer
 from linode_api4.objects import (
     NodeBalancerConfig,
     NodeBalancerNode,
@@ -100,7 +100,10 @@ def test_create_nb(test_linode_client, e2e_test_firewall):
     label = get_test_label(8)
 
     nb = client.nodebalancer_create(
-        region=TEST_REGION, label=label, firewall=e2e_test_firewall.id, client_udp_sess_throttle=5
+        region=TEST_REGION,
+        label=label,
+        firewall=e2e_test_firewall.id,
+        client_udp_sess_throttle=5,
     )
 
     assert TEST_REGION, nb.region
@@ -155,6 +158,8 @@ def test_get_nb(test_linode_client, create_nb):
         NodeBalancer,
         create_nb.id,
     )
+
+    assert nb.id == create_nb.id
 
 
 def test_update_nb(test_linode_client, create_nb):
