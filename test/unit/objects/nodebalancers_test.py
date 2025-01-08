@@ -42,6 +42,10 @@ class NodeBalancerConfigTest(ClientBaseCase):
         self.assertEqual(config.ssl_fingerprint, "")
         self.assertEqual(config.proxy_protocol, "none")
 
+        config_udp = NodeBalancerConfig(self.client, 65431, 123456)
+        self.assertEqual(config_udp.protocol, "udp")
+        self.assertEqual(config_udp.udp_check_port, 12345)
+
 
 class NodeBalancerNodeTest(ClientBaseCase):
     """
@@ -65,6 +69,9 @@ class NodeBalancerNodeTest(ClientBaseCase):
         self.assertEqual(node.mode, "accept")
         self.assertEqual(node.config_id, 65432)
         self.assertEqual(node.nodebalancer_id, 123456)
+
+        node_udp = NodeBalancerNode(self.client, 12345, (65432, 123456))
+        self.assertEqual(node_udp.mode, "none")
 
     def test_create_node(self):
         """
