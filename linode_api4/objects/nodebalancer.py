@@ -76,6 +76,13 @@ class NodeBalancerConfig(DerivedBase):
     """
     The configuration information for a single port of this NodeBalancer.
 
+    When attempting to update a NodeBalancerConfig with UDP protocol, consider setting the cipher_suite field to Null
+    using the ExplicitNullValue class::
+
+        config.udp_check_port = 4321
+        config.cipher_suite = ExplicitNullValue
+        config.save()
+
     API documentation: https://techdocs.akamai.com/linode-api/reference/get-node-balancer-config
     """
 
@@ -97,6 +104,8 @@ class NodeBalancerConfig(DerivedBase):
         "check_path": Property(mutable=True),
         "check_body": Property(mutable=True),
         "check_passive": Property(mutable=True),
+        "udp_check_port": Property(mutable=True),
+        "udp_session_timeout": Property(),
         "ssl_cert": Property(mutable=True),
         "ssl_key": Property(mutable=True),
         "ssl_commonname": Property(),
@@ -233,6 +242,7 @@ class NodeBalancer(Base):
         "configs": Property(derived_class=NodeBalancerConfig),
         "transfer": Property(),
         "tags": Property(mutable=True, unordered=True),
+        "client_udp_sess_throttle": Property(mutable=True),
     }
 
     # create derived objects
