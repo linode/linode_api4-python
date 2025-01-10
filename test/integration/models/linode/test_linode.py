@@ -38,7 +38,7 @@ def linode_with_volume_firewall(test_linode_client):
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
         region,
-        image="linode/debian10",
+        image="linode/debian12",
         label=label + "_modlinode",
     )
 
