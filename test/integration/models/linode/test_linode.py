@@ -38,7 +38,7 @@ def linode_with_volume_firewall(test_linode_client):
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
         region,
-        image="linode/debian10",
+        image="linode/debian12",
         label=label + "_modlinode",
     )
 
@@ -76,7 +76,7 @@ def linode_for_network_interface_tests(test_linode_client, e2e_test_firewall):
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
         region,
-        image="linode/debian10",
+        image="linode/debian12",
         label=label,
         firewall=e2e_test_firewall,
     )
@@ -96,7 +96,7 @@ def linode_for_vpu_tests(test_linode_client, e2e_test_firewall):
     linode_instance, password = client.linode.instance_create(
         "g1-accelerated-netint-vpu-t1u1-s",
         region,
-        image="linode/debian10",
+        image="linode/debian12",
         label=label,
         firewall=e2e_test_firewall,
     )
@@ -167,7 +167,7 @@ def create_linode_for_long_running_tests(test_linode_client, e2e_test_firewall):
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
         region,
-        image="linode/debian10",
+        image="linode/debian12",
         label=label + "_long_tests",
         firewall=e2e_test_firewall,
     )
@@ -241,7 +241,7 @@ def test_linode_rebuild(test_linode_client):
     label = get_test_label() + "_rebuild"
 
     linode, password = client.linode.instance_create(
-        "g6-nanode-1", region, image="linode/debian10", label=label
+        "g6-nanode-1", region, image="linode/debian12", label=label
     )
 
     wait_for_condition(10, 100, get_status, linode, "running")
@@ -249,14 +249,14 @@ def test_linode_rebuild(test_linode_client):
     retry_sending_request(
         3,
         linode.rebuild,
-        "linode/debian10",
+        "linode/debian12",
         disk_encryption=InstanceDiskEncryptionType.disabled,
     )
 
     wait_for_condition(10, 100, get_status, linode, "rebuilding")
 
     assert linode.status == "rebuilding"
-    assert linode.image.id == "linode/debian10"
+    assert linode.image.id == "linode/debian12"
 
     assert linode.disk_encryption == InstanceDiskEncryptionType.disabled
 
@@ -299,7 +299,7 @@ def test_delete_linode(test_linode_client):
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
         region,
-        image="linode/debian10",
+        image="linode/debian12",
         label=label + "_linode",
     )
 
