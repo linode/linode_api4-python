@@ -141,7 +141,6 @@ def test_update_nb_config(test_linode_client, create_nb_config_with_udp):
     )
 
     config.udp_check_port = 4321
-    config.cipher_suite = ExplicitNullValue
     config.save()
 
     config_updated = test_linode_client.load(

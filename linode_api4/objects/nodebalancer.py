@@ -3,7 +3,7 @@ from urllib import parse
 
 from linode_api4.common import Price, RegionPrice
 from linode_api4.errors import UnexpectedResponseError
-from linode_api4.objects.base import Base, MappedObject, Property
+from linode_api4.objects.base import Base, MappedObject, Property, ExplicitNullValue, _flatten_request_body_recursive
 from linode_api4.objects.dbase import DerivedBase
 from linode_api4.objects.networking import Firewall, IPAddress
 from linode_api4.objects.region import Region
@@ -76,13 +76,6 @@ class NodeBalancerConfig(DerivedBase):
     """
     The configuration information for a single port of this NodeBalancer.
 
-    When attempting to update a NodeBalancerConfig with UDP protocol, consider setting the cipher_suite field to Null
-    using the ExplicitNullValue class::
-
-        config.udp_check_port = 4321
-        config.cipher_suite = ExplicitNullValue
-        config.save()
-
     API documentation: https://techdocs.akamai.com/linode-api/reference/get-node-balancer-config
     """
 
@@ -114,6 +107,67 @@ class NodeBalancerConfig(DerivedBase):
         "nodes_status": Property(),
         "proxy_protocol": Property(mutable=True),
     }
+
+    def _serialize(self):
+        """
+        A helper method to build a dict of all mutable Properties of
+        this NodeBalancerConfig
+        """
+
+        result = {}
+
+        # Aggregate mutable values into a dict
+        for k, v in NodeBalancerConfig.properties.items():
+            if not v.mutable:
+                continue
+
+            value = getattr(self, k)
+
+            if not v.nullable and (value is None or value == ""):
+                continue
+
+            # Exclude cipher_suite if protocol is udp
+            if k == "cipher_suite" and getattr(self, "protocol", None) == "udp":
+                continue
+
+            # Allow explicit null values
+            if (
+                    isinstance(value, ExplicitNullValue)
+                    or value == ExplicitNullValue
+            ):
+                value = None
+
+            result[k] = value
+
+        # Resolve the underlying IDs of results
+        for k, v in result.items():
+            result[k] = _flatten_request_body_recursive(v)
+
+        return result
+
+    def save(self, force=True) -> bool:
+        """
+        Send this NodeBalancerConfig's mutable values to the server in a PUT request.
+        :param force: If true, this method will always send a PUT request regardless of
+                      whether the field has been explicitly updated. For optimization
+                      purposes, this field should be set to false for typical update
+                      operations. (Defaults to True)
+        :type force: bool
+        """
+
+        if not force and not self._changed:
+            return False
+
+        data = self._serialize()
+
+        result = self._client.put(NodeBalancerConfig.api_endpoint, model=self, data=data)
+
+        if "error" in result:
+            return False
+
+        self._populate(result)
+
+        return True
 
     @property
     def nodes(self):
