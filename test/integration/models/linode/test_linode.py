@@ -169,7 +169,7 @@ def linode_with_disk_encryption(test_linode_client, request):
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
         target_region,
-        image="linode/ubuntu23.10",
+        image="linode/ubuntu24.10",
         label=label,
         booted=False,
         disk_encryption=disk_encryption,
