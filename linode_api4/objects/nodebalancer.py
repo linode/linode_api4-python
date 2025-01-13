@@ -3,7 +3,13 @@ from urllib import parse
 
 from linode_api4.common import Price, RegionPrice
 from linode_api4.errors import UnexpectedResponseError
-from linode_api4.objects.base import Base, MappedObject, Property, ExplicitNullValue, _flatten_request_body_recursive
+from linode_api4.objects.base import (
+    Base,
+    ExplicitNullValue,
+    MappedObject,
+    Property,
+    _flatten_request_body_recursive,
+)
 from linode_api4.objects.dbase import DerivedBase
 from linode_api4.objects.networking import Firewall, IPAddress
 from linode_api4.objects.region import Region
@@ -132,8 +138,8 @@ class NodeBalancerConfig(DerivedBase):
 
             # Allow explicit null values
             if (
-                    isinstance(value, ExplicitNullValue)
-                    or value == ExplicitNullValue
+                isinstance(value, ExplicitNullValue)
+                or value == ExplicitNullValue
             ):
                 value = None
 
@@ -160,7 +166,9 @@ class NodeBalancerConfig(DerivedBase):
 
         data = self._serialize()
 
-        result = self._client.put(NodeBalancerConfig.api_endpoint, model=self, data=data)
+        result = self._client.put(
+            NodeBalancerConfig.api_endpoint, model=self, data=data
+        )
 
         if "error" in result:
             return False

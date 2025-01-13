@@ -9,7 +9,7 @@ from test.integration.helpers import get_test_label
 
 import pytest
 
-from linode_api4 import ApiError, ExplicitNullValue, LinodeClient, NodeBalancer
+from linode_api4 import ApiError, LinodeClient, NodeBalancer
 from linode_api4.objects import (
     NodeBalancerConfig,
     NodeBalancerNode,
