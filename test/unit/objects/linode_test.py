@@ -413,7 +413,7 @@ class LinodeTest(ClientBaseCase):
                 1234,
                 label="test",
                 authorized_users=["test"],
-                image="linode/debian10",
+                image="linode/debian12",
             )
             self.assertEqual(m.call_url, "/linode/instances/123/disks")
             self.assertEqual(
@@ -422,7 +422,7 @@ class LinodeTest(ClientBaseCase):
                     "size": 1234,
                     "label": "test",
                     "root_pass": gen_pass,
-                    "image": "linode/debian10",
+                    "image": "linode/debian12",
                     "authorized_users": ["test"],
                     "read_only": False,
                 },
