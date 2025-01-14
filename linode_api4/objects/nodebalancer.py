@@ -3,13 +3,7 @@ from urllib import parse
 
 from linode_api4.common import Price, RegionPrice
 from linode_api4.errors import UnexpectedResponseError
-from linode_api4.objects.base import (
-    Base,
-    ExplicitNullValue,
-    MappedObject,
-    Property,
-    _flatten_request_body_recursive,
-)
+from linode_api4.objects.base import Base, MappedObject, Property
 from linode_api4.objects.dbase import DerivedBase
 from linode_api4.objects.networking import Firewall, IPAddress
 from linode_api4.objects.region import Region
@@ -114,43 +108,6 @@ class NodeBalancerConfig(DerivedBase):
         "proxy_protocol": Property(mutable=True),
     }
 
-    def _serialize(self):
-        """
-        A helper method to build a dict of all mutable Properties of
-        this NodeBalancerConfig
-        """
-
-        result = {}
-
-        # Aggregate mutable values into a dict
-        for k, v in NodeBalancerConfig.properties.items():
-            if not v.mutable:
-                continue
-
-            value = getattr(self, k)
-
-            if not v.nullable and (value is None or value == ""):
-                continue
-
-            # Exclude cipher_suite if protocol is udp
-            if k == "cipher_suite" and getattr(self, "protocol", None) == "udp":
-                continue
-
-            # Allow explicit null values
-            if (
-                isinstance(value, ExplicitNullValue)
-                or value == ExplicitNullValue
-            ):
-                value = None
-
-            result[k] = value
-
-        # Resolve the underlying IDs of results
-        for k, v in result.items():
-            result[k] = _flatten_request_body_recursive(v)
-
-        return result
-
     def save(self, force=True) -> bool:
         """
         Send this NodeBalancerConfig's mutable values to the server in a PUT request.
@@ -165,6 +122,13 @@ class NodeBalancerConfig(DerivedBase):
             return False
 
         data = self._serialize()
+
+        print(data)
+
+        if data.get("protocol") == "udp" and "cipher_suite" in data:
+            data.pop("cipher_suite")
+
+        print(data)
 
         result = self._client.put(
             NodeBalancerConfig.api_endpoint, model=self, data=data
