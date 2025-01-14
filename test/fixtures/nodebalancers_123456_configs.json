@@ -40,7 +40,7 @@
       "ssl_commonname": "",
       "port": 80,
       "nodebalancer_id": 123456,
-      "cipher_suite": "recommended",
+      "cipher_suite": "none",
       "ssl_key": null,
       "nodes_status": {
         "up": 0,

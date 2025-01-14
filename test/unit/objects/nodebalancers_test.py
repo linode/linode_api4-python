@@ -46,6 +46,19 @@ class NodeBalancerConfigTest(ClientBaseCase):
         self.assertEqual(config_udp.protocol, "udp")
         self.assertEqual(config_udp.udp_check_port, 12345)
 
+    def test_update_config_udp(self):
+        """
+        Tests that a config with a protocol of udp can be updated and that cipher suite is properly excluded in save()
+        """
+        with self.mock_put("nodebalancers/123456/configs/65431") as m:
+            config = self.client.load(NodeBalancerConfig, 65431, 123456)
+            config.udp_check_port = 54321
+            config.save()
+
+            self.assertEqual(m.call_url, "/nodebalancers/123456/configs/65431")
+            self.assertEqual(m.call_data["udp_check_port"], 54321)
+            self.assertNotIn("cipher_suite", m.call_data)
+
 
 class NodeBalancerNodeTest(ClientBaseCase):
     """
