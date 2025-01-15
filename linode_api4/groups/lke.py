@@ -66,6 +66,7 @@ class LKEGroup(Group):
         control_plane: Union[
             LKEClusterControlPlaneOptions, Dict[str, Any]
         ] = None,
+        apl_enabled: bool = False,
         **kwargs,
     ):
         """
@@ -100,8 +101,10 @@ class LKEGroup(Group):
                           formatted dicts.
         :param kube_version: The version of Kubernetes to use
         :type kube_version: KubeVersion or str
-        :param control_plane: Dict[str, Any] or LKEClusterControlPlaneRequest
-        :type control_plane: The control plane configuration of this LKE cluster.
+        :param control_plane: The control plane configuration of this LKE cluster.
+        :type control_plane: Dict[str, Any] or LKEClusterControlPlaneRequest
+        :param apl_enabled: Whether this cluster should use APL.
+        :type apl_enabled: bool
         :param kwargs: Any other arguments to pass along to the API.  See the API
                        docs for possible values.
 
@@ -119,6 +122,10 @@ class LKEGroup(Group):
             "control_plane": control_plane,
         }
         params.update(kwargs)
+
+        # Prevent errors for users without access to APL
+        if apl_enabled:
+            params["apl_enabled"] = apl_enabled
 
         result = self.client.post(
             "/lke/clusters",
