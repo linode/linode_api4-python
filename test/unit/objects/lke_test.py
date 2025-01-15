@@ -381,6 +381,7 @@ class LKETest(ClientBaseCase):
         assert (
             cluster.apl_console_url == "https://console.lke18881.akamai-apl.net"
         )
+
         assert (
             cluster.apl_health_check_url
             == "https://auth.lke18881.akamai-apl.net/ready"
