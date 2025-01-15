@@ -116,7 +116,8 @@ def lke_cluster_with_apl(test_linode_client):
 
     region = get_region(test_linode_client, {"Kubernetes", "Disk Encryption"})
 
-    node_pools = test_linode_client.lke.node_pool("g6-dedicated-2", 3)
+    # NOTE: g6-dedicated-4 is the minimum APL-compatible Linode type
+    node_pools = test_linode_client.lke.node_pool("g6-dedicated-4", 3)
     label = get_test_label() + "_cluster"
 
     cluster = test_linode_client.lke.cluster_create(
