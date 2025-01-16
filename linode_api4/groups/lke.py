@@ -104,7 +104,7 @@ class LKEGroup(Group):
         :param control_plane: The control plane configuration of this LKE cluster.
         :type control_plane: Dict[str, Any] or LKEClusterControlPlaneRequest
         :param apl_enabled: Whether this cluster should use APL.
-                            note:: This endpoint is in beta and may only
+                            NOTE: This endpoint is in beta and may only
                             function if base_url is set to `https://api.linode.com/v4beta`.
         :type apl_enabled: bool
         :param kwargs: Any other arguments to pass along to the API.  See the API
