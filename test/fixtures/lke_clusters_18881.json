@@ -9,5 +9,6 @@
     "tags": [],
     "control_plane": {
         "high_availability": true
-    }
+    },
+    "apl_enabled": true
 }

@@ -110,6 +110,32 @@ def lke_cluster_with_labels_and_taints(test_linode_client):
     cluster.delete()
 
 
+@pytest.fixture(scope="session")
+def lke_cluster_with_apl(test_linode_client):
+    version = test_linode_client.lke.versions()[0]
+
+    region = get_region(test_linode_client, {"Kubernetes", "Disk Encryption"})
+
+    # NOTE: g6-dedicated-4 is the minimum APL-compatible Linode type
+    node_pools = test_linode_client.lke.node_pool("g6-dedicated-4", 3)
+    label = get_test_label() + "_cluster"
+
+    cluster = test_linode_client.lke.cluster_create(
+        region,
+        label,
+        node_pools,
+        version,
+        control_plane=LKEClusterControlPlaneOptions(
+            high_availability=True,
+        ),
+        apl_enabled=True,
+    )
+
+    yield cluster
+
+    cluster.delete()
+
+
 def get_cluster_status(cluster: LKECluster, status: str):
     return cluster._raw_json["status"] == status
 
@@ -326,6 +352,19 @@ def test_lke_cluster_labels_and_taints(lke_cluster_with_labels_and_taints):
     assert vars(pool.labels) == updated_labels
     assert updated_taints[0] in pool.taints
     assert LKENodePoolTaint.from_json(updated_taints[1]) in pool.taints
+
+
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
+def test_lke_cluster_with_apl(lke_cluster_with_apl):
+    assert lke_cluster_with_apl.apl_enabled == True
+    assert (
+        lke_cluster_with_apl.apl_console_url
+        == f"https://console.lke{lke_cluster_with_apl.id}.akamai-apl.net"
+    )
+    assert (
+        lke_cluster_with_apl.apl_health_check_url
+        == f"https://auth.lke{lke_cluster_with_apl.id}.akamai-apl.net/ready"
+    )
 
 
 def test_lke_types(test_linode_client):
