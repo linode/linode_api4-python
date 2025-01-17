@@ -97,6 +97,8 @@ class NodeBalancerConfig(DerivedBase):
         "check_path": Property(mutable=True),
         "check_body": Property(mutable=True),
         "check_passive": Property(mutable=True),
+        "udp_check_port": Property(mutable=True),
+        "udp_session_timeout": Property(),
         "ssl_cert": Property(mutable=True),
         "ssl_key": Property(mutable=True),
         "ssl_commonname": Property(),
@@ -105,6 +107,39 @@ class NodeBalancerConfig(DerivedBase):
         "nodes_status": Property(),
         "proxy_protocol": Property(mutable=True),
     }
+
+    def save(self, force=True) -> bool:
+        """
+        Send this NodeBalancerConfig's mutable values to the server in a PUT request.
+        :param force: If true, this method will always send a PUT request regardless of
+                      whether the field has been explicitly updated. For optimization
+                      purposes, this field should be set to false for typical update
+                      operations. (Defaults to True)
+        :type force: bool
+        """
+
+        if not force and not self._changed:
+            return False
+
+        data = self._serialize()
+
+        print(data)
+
+        if data.get("protocol") == "udp" and "cipher_suite" in data:
+            data.pop("cipher_suite")
+
+        print(data)
+
+        result = self._client.put(
+            NodeBalancerConfig.api_endpoint, model=self, data=data
+        )
+
+        if "error" in result:
+            return False
+
+        self._populate(result)
+
+        return True
 
     @property
     def nodes(self):
@@ -233,6 +268,7 @@ class NodeBalancer(Base):
         "configs": Property(derived_class=NodeBalancerConfig),
         "transfer": Property(),
         "tags": Property(mutable=True, unordered=True),
+        "client_udp_sess_throttle": Property(mutable=True),
     }
 
     # create derived objects
