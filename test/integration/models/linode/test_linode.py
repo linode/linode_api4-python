@@ -453,6 +453,14 @@ def test_linode_firewalls(linode_with_volume_firewall):
     assert "firewall" in firewalls[0].label
 
 
+def test_linode_apply_firewalls(linode_with_volume_firewall):
+    linode = linode_with_volume_firewall
+
+    result = linode.apply_firewalls()
+
+    assert result
+
+
 def test_linode_volumes(linode_with_volume_firewall):
     linode = linode_with_volume_firewall
 

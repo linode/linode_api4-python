@@ -284,6 +284,19 @@ class LinodeTest(ClientBaseCase):
             self.assertEqual(m.call_url, "/linode/instances/123/firewalls")
             self.assertEqual(len(result), 1)
 
+    def test_apply_firewalls(self):
+        """
+        Tests that you can submit a correct apply firewalls api request
+        """
+        linode = Instance(self.client, 123)
+
+        with self.mock_post({}) as m:
+            result = linode.apply_firewalls()
+            self.assertEqual(
+                m.call_url, "/linode/instances/123/firewalls/apply"
+            )
+            self.assertEqual(result, True)
+
     def test_volumes(self):
         """
         Tests that you can submit a correct volumes api request

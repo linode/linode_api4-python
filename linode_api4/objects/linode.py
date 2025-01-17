@@ -1639,6 +1639,22 @@ class Instance(Base):
             for firewall in result["data"]
         ]
 
+    def apply_firewalls(self):
+        """
+        Reapply assigned firewalls to a Linode in case they were not applied successfully.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-apply-firewalls
+
+        :returns: Returns True if the operation was successful
+        :rtype: bool
+        """
+
+        self._client.post(
+            "{}/firewalls/apply".format(Instance.api_endpoint), model=self
+        )
+
+        return True
+
     def nodebalancers(self):
         """
         View a list of NodeBalancers that are assigned to this Linode and readable by the requesting User.
