@@ -36,7 +36,7 @@ def linode_with_private_ip(test_linode_client, e2e_test_firewall):
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
         TEST_REGION,
-        image="linode/debian10",
+        image="linode/debian12",
         label=label,
         private_ip=True,
         firewall=e2e_test_firewall,

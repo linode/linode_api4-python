@@ -426,7 +426,7 @@ class LinodeTest(ClientBaseCase):
                 1234,
                 label="test",
                 authorized_users=["test"],
-                image="linode/debian10",
+                image="linode/debian12",
             )
             self.assertEqual(m.call_url, "/linode/instances/123/disks")
             self.assertEqual(
@@ -435,7 +435,7 @@ class LinodeTest(ClientBaseCase):
                     "size": 1234,
                     "label": "test",
                     "root_pass": gen_pass,
-                    "image": "linode/debian10",
+                    "image": "linode/debian12",
                     "authorized_users": ["test"],
                     "read_only": False,
                 },
@@ -669,7 +669,7 @@ class TypeTest(ClientBaseCase):
         """
         types = self.client.linode.types()
 
-        self.assertEqual(len(types), 4)
+        self.assertEqual(len(types), 5)
         for t in types:
             self.assertTrue(t._populated)
             self.assertIsNotNone(t.id)
@@ -680,6 +680,7 @@ class TypeTest(ClientBaseCase):
             self.assertIsNone(t.successor)
             self.assertIsNotNone(t.region_prices)
             self.assertIsNotNone(t.addons.backups.region_prices)
+            self.assertIsNotNone(t.accelerated_devices)
 
     def test_get_type_by_id(self):
         """

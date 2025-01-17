@@ -19,7 +19,7 @@ def setup_client_and_linode(test_linode_client, e2e_test_firewall):
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
         region,
-        image="linode/debian10",
+        image="linode/debian12",
         label=label,
         firewall=e2e_test_firewall,
     )
@@ -250,7 +250,7 @@ def test_create_linode_instance_without_image(test_linode_client):
 def test_create_linode_instance_with_image(setup_client_and_linode):
     linode = setup_client_and_linode[1]
 
-    assert re.search("linode/debian10", str(linode.image))
+    assert re.search("linode/debian12", str(linode.image))
 
 
 def test_create_linode_with_interfaces(test_linode_client):
@@ -262,7 +262,7 @@ def test_create_linode_with_interfaces(test_linode_client):
         "g6-nanode-1",
         region,
         label=label,
-        image="linode/debian10",
+        image="linode/debian12",
         interfaces=[
             {"purpose": "public"},
             ConfigInterface(
