@@ -150,3 +150,16 @@ def test_network_transfer_prices(test_linode_client):
             transfer_prices[0].price is None
             or transfer_prices[0].price.hourly >= 0
         )
+
+
+def test_allocate_and_delete_ip(test_linode_client, create_linode):
+    linode = create_linode
+    ip = test_linode_client.networking.ip_allocate(linode.id)
+    linode.invalidate()
+
+    assert ip.linode_id == linode.id
+    assert ip.address in linode.ipv4
+
+    is_deleted = ip.delete()
+
+    assert is_deleted is True
