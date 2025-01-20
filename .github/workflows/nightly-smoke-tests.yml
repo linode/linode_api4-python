@@ -39,7 +39,7 @@ jobs:
       - name: Run smoke tests
         id: smoke_tests
         run: |
-          make smoketest
+          make test-smoke
         env:
           LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
 
