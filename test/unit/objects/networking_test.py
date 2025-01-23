@@ -1,6 +1,6 @@
 from test.unit.base import ClientBaseCase
 
-from linode_api4 import ExplicitNullValue
+from linode_api4 import ExplicitNullValue, Instance
 from linode_api4.objects import Firewall, IPAddress, IPv6Range
 
 
@@ -83,3 +83,14 @@ class NetworkingTest(ClientBaseCase):
         self.assertEqual(ip.vpc_nat_1_1.vpc_id, 242)
         self.assertEqual(ip.vpc_nat_1_1.subnet_id, 194)
         self.assertEqual(ip.vpc_nat_1_1.address, "139.144.244.36")
+
+    def test_delete_ip(self):
+        """
+        Tests that deleting an IP creates the correct api request
+        """
+        with self.mock_delete() as m:
+            ip = IPAddress(self.client, "127.0.0.1")
+            ip.to(Instance(self.client, 123))
+            ip.delete()
+
+            self.assertEqual(m.call_url, "/linode/instances/123/ips/127.0.0.1")
