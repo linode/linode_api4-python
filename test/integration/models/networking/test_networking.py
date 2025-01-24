@@ -4,11 +4,15 @@ from test.integration.conftest import (
     get_region,
     get_token,
 )
-from test.integration.helpers import get_test_label
+from test.integration.helpers import (
+    get_test_label,
+    retry_sending_request,
+    wait_for_condition,
+)
 
 import pytest
 
-from linode_api4 import LinodeClient
+from linode_api4 import Instance, LinodeClient
 from linode_api4.objects import Config, ConfigInterfaceIPv4, Firewall, IPAddress
 from linode_api4.objects.networking import NetworkTransferPrice, Price
 
@@ -161,5 +165,47 @@ def test_allocate_and_delete_ip(test_linode_client, create_linode):
     assert ip.address in linode.ipv4
 
     is_deleted = ip.delete()
+
+    assert is_deleted is True
+
+
+def get_status(linode: Instance, status: str):
+    return linode.status == status
+
+
+def test_create_and_delete_vlan(test_linode_client, linode_for_vlan_tests):
+    linode = linode_for_vlan_tests
+
+    config: Config = linode.configs[0]
+
+    config.interfaces = []
+    config.save()
+
+    vlan_label = "testvlan"
+    interface = config.interface_create_vlan(
+        label=vlan_label, ipam_address="10.0.0.2/32"
+    )
+
+    config.invalidate()
+
+    assert interface.id == config.interfaces[0].id
+    assert interface.purpose == "vlan"
+    assert interface.label == vlan_label
+
+    # Remove the VLAN interface and reboot Linode
+    config.interfaces = []
+    config.save()
+
+    wait_for_condition(3, 100, get_status, linode, "running")
+
+    retry_sending_request(3, linode.reboot)
+
+    wait_for_condition(3, 100, get_status, linode, "rebooting")
+    assert linode.status == "rebooting"
+
+    # Delete the VLAN
+    is_deleted = test_linode_client.networking.delete_vlan(
+        vlan_label, linode.region
+    )
 
     assert is_deleted is True

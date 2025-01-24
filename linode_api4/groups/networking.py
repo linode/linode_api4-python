@@ -367,3 +367,32 @@ class NetworkingGroup(Group):
         return self.client._get_and_filter(
             NetworkTransferPrice, *filters, endpoint="/network-transfer/prices"
         )
+
+    def delete_vlan(self, vlan, region):
+        """
+        This operation deletes a VLAN.
+        You can't delete a VLAN if it's still attached to a Linode.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/delete-vlan
+
+        :param vlan: The label of the VLAN to be deleted.
+        :type vlan: str or VLAN
+        :param region: The Region in which the assignments should take place.
+               All Instances and IPAddresses involved in the assignment
+               must be within this region.
+        :type region: str or Region
+        """
+        if isinstance(region, Region):
+            region = region.id
+
+        if isinstance(vlan, VLAN):
+            vlan = vlan.label
+        resp = self.client.delete(
+            "/networking/vlans/{}/{}".format(region, vlan),
+            model=self,
+        )
+
+        if "error" in resp:
+            return False
+
+        return True
