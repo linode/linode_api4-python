@@ -377,9 +377,7 @@ class NetworkingGroup(Group):
 
         :param vlan: The label of the VLAN to be deleted.
         :type vlan: str or VLAN
-        :param region: The Region in which the assignments should take place.
-               All Instances and IPAddresses involved in the assignment
-               must be within this region.
+        :param region: The VLAN's region.
         :type region: str or Region
         """
         if isinstance(region, Region):
