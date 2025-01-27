@@ -1,3 +1,4 @@
+import logging
 from test.unit.base import ClientBaseCase
 
 from linode_api4 import PostgreSQLDatabase
@@ -106,19 +107,18 @@ class MySQLDatabaseTest(ClientBaseCase):
         Test that MySQL databases can be created
         """
 
+        logger = logging.getLogger(__name__)
+
         with self.mock_post("/databases/mysql/instances") as m:
             # We don't care about errors here; we just want to
             # validate the request.
-            try:
-                self.client.database.mysql_create(
-                    "cool",
-                    "us-southeast",
-                    "mysql/8.0.26",
-                    "g6-standard-1",
-                    cluster_size=3,
-                )
-            except Exception:
-                pass
+            self.client.database.mysql_create(
+                "cool",
+                "us-southeast",
+                "mysql/8.0.26",
+                "g6-standard-1",
+                cluster_size=3,
+            )
 
             self.assertEqual(m.method, "post")
             self.assertEqual(m.call_url, "/databases/mysql/instances")
@@ -292,16 +292,13 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
         with self.mock_post("/databases/postgresql/instances") as m:
             # We don't care about errors here; we just want to
             # validate the request.
-            try:
-                self.client.database.postgresql_create(
-                    "cool",
-                    "us-southeast",
-                    "postgresql/13.2",
-                    "g6-standard-1",
-                    cluster_size=3,
-                )
-            except Exception:
-                pass
+            self.client.database.mysql_create(
+                "cool",
+                "us-southeast",
+                "mysql/8.0.26",
+                "g6-standard-1",
+                cluster_size=3,
+            )
 
             self.assertEqual(m.method, "post")
             self.assertEqual(m.call_url, "/databases/postgresql/instances")
