@@ -1,6 +1,9 @@
+import logging
 from test.unit.base import ClientBaseCase
 
 from linode_api4.objects import MySQLDatabase
+
+logger = logging.getLogger(__name__)
 
 
 class DatabaseTest(ClientBaseCase):
@@ -116,8 +119,10 @@ class MySQLDatabaseTest(ClientBaseCase):
                     "g6-standard-1",
                     cluster_size=3,
                 )
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(
+                    "An error occurred while validating the request: %s", e
+                )
 
             self.assertEqual(m.method, "post")
             self.assertEqual(m.call_url, "/databases/mysql/instances")
@@ -173,8 +178,10 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
                     "g6-standard-1",
                     cluster_size=3,
                 )
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(
+                    "An error occurred while validating the request: %s", e
+                )
 
             self.assertEqual(m.method, "post")
             self.assertEqual(m.call_url, "/databases/postgresql/instances")

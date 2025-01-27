@@ -71,7 +71,7 @@ class VPCTest(ClientBaseCase):
 
         ip = result[0]
         assert ip.address == "10.0.0.2"
-        assert ip.address_range == None
+        assert ip.address_range is None
         assert ip.vpc_id == 123
         assert ip.subnet_id == 456
         assert ip.region == "us-mia"
