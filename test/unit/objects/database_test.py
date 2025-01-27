@@ -121,7 +121,9 @@ class MySQLDatabaseTest(ClientBaseCase):
                     cluster_size=3,
                 )
             except Exception as e:
-                logger.warning("An error occurred while validating the request: %s", e)
+                logger.warning(
+                    "An error occurred while validating the request: %s", e
+                )
 
             self.assertEqual(m.method, "post")
             self.assertEqual(m.call_url, "/databases/mysql/instances")
