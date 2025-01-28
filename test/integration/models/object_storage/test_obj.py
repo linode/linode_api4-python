@@ -19,7 +19,7 @@ def region(test_linode_client: LinodeClient):
 
 
 @pytest.fixture(scope="session")
-def bucket(test_linode_client: LinodeClient, region: str):
+def bucket(test_linode_client: LinodeClient, region: str) -> ObjectStorageBucket:
     bucket = test_linode_client.object_storage.bucket_create(
         cluster_or_region=region,
         label="bucket-" + str(time.time_ns()),
@@ -73,17 +73,29 @@ def test_keys(
     assert loaded_limited_key.label == obj_limited_key.label
 
 
-def test_bucket(
-    test_linode_client: LinodeClient,
-    bucket: ObjectStorageBucket,
-):
-    loaded_bucket = test_linode_client.load(ObjectStorageBucket, bucket.label)
+def test_bucket(test_linode_client: LinodeClient, bucket: ObjectStorageBucket):
+    print("The bucket's region is:", bucket.region)
+    print("The bucket's cluster is:", bucket.cluster)
+
+    loaded_bucket = test_linode_client.load(
+        ObjectStorageBucket, target_id=bucket.label, target_parent_id=bucket.region
+    )
 
     assert loaded_bucket.label == bucket.label
-    assert loaded_bucket.region == bucket.region
+    assert loaded_bucket.cluster == bucket.cluster
+
+# def test_bucket(test_linode_client: LinodeClient, bucket: ObjectStorageBucket):
+#     buckets = test_linode_client.object_storage.buckets()
+#
+#     target_bucket = next((b for b in buckets if b.id == bucket.id), None)
+#
+#     assert target_bucket is not None, f"Bucket with ID {bucket.id} not found"
+#
+#     assert target_bucket.label == bucket.label
+#     assert target_bucket.region == bucket.region
 
 
-def test_bucket(
+def test_buckets_in_region(
     test_linode_client: LinodeClient,
     bucket: ObjectStorageBucket,
     region: str,

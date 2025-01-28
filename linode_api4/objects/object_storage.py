@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Optional
 from urllib import parse
 
@@ -28,6 +29,32 @@ class ObjectStorageKeyPermission(StrEnum):
     READ_WRITE = "read_write"
 
 
+class ObjectStorageEndpointType(StrEnum):
+    E0 = "E0"
+    E1 = "E1"
+    E2 = "E2"
+    E3 = "E3"
+
+
+class ObjectStorageEndpoint(Base):
+    """
+    .. note:: At this time, the Linode API only supports listing ObjectStorageEndpoints.
+
+    An instance of an ObjectStorageEndpoint.
+    ObjectStorageEndpoints determine which S3 endpoints or types of endpoints are available to the requesting customer when using the API to create a bucket in a particular region
+
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-endpoints
+    """
+
+    api_endpoint = "/object-storage/endpoints"
+
+    properties = {
+        "region": Property(),
+        "s3_endpoint": Property(),
+        "endpoint_type": Property(),
+    }
+
+
 class ObjectStorageBucket(DerivedBase):
     """
     A bucket where objects are stored in.
@@ -47,6 +74,8 @@ class ObjectStorageBucket(DerivedBase):
         "label": Property(identifier=True),
         "objects": Property(),
         "size": Property(),
+        "endpoint_type": Property(),
+        "s3_endpoint": Property(),
     }
 
     @classmethod
@@ -77,6 +106,28 @@ class ObjectStorageBucket(DerivedBase):
             raise UnexpectedResponseError(
                 "Unexpected json response when making a new Object Storage Bucket instance."
             )
+
+    def access_get(self):
+        """
+        Returns a result object which wraps the current access config for this ObjectStorageBucket.
+
+        API Documentation: TODO
+
+        :returns: A result object which wraps the access that this ObjectStorageBucket is currently configured with.
+        :rtype: dict
+        """
+        result = self._client.get(
+            "{}/access".format(self.api_endpoint),
+            model=self,
+        )
+
+        if not any(key in result for key in ["acl", "acl_xml", "cors_enabled", "cors_xml"]):
+            raise UnexpectedResponseError(
+                "Unexpected response when getting the bucket access config of a bucket!",
+                json=result,
+            )
+
+        return MappedObject(**result)
 
     def access_modify(
         self,
