@@ -12,7 +12,7 @@ from linode_api4.objects import (
     Property,
     Region,
 )
-from linode_api4.objects.serializable import StrEnum
+from linode_api4.objects.serializable import JSONObject, StrEnum
 from linode_api4.util import drop_null_keys
 
 
@@ -36,23 +36,18 @@ class ObjectStorageEndpointType(StrEnum):
     E3 = "E3"
 
 
-class ObjectStorageEndpoint(Base):
+@dataclass
+class ObjectStorageEndpoint(JSONObject):
     """
-    .. note:: At this time, the Linode API only supports listing ObjectStorageEndpoints.
+    ObjectStorageEndpoint contains the core fields of an object storage endpoint object.
 
-    An instance of an ObjectStorageEndpoint.
-    ObjectStorageEndpoints determine which S3 endpoints or types of endpoints are available to the requesting customer when using the API to create a bucket in a particular region
-
-    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-endpoints
+    NOTE: This is not implemented as a typical API object (Base) because Object Storage Endpoints
+    cannot be refreshed, as there is no singular GET endpoint.
     """
 
-    api_endpoint = "/object-storage/endpoints"
-
-    properties = {
-        "region": Property(),
-        "s3_endpoint": Property(),
-        "endpoint_type": Property(),
-    }
+    region: str = ""
+    endpoint_type: str = ""
+    s3_endpoint: Optional[str] = None
 
 
 class ObjectStorageBucket(DerivedBase):
@@ -92,13 +87,10 @@ class ObjectStorageBucket(DerivedBase):
         Override this method to pass in the parent_id from the _raw_json object
         when it's available.
         """
-        if json is None:
-            return None
-
-        cluster_or_region = json.get("region") or json.get("cluster")
-
-        if parent_id is None and cluster_or_region:
-            parent_id = cluster_or_region
+        if json is not None:
+            cluster_or_region = json.get("region") or json.get("cluster")
+            if parent_id is None and cluster_or_region:
+                parent_id = cluster_or_region
 
         if parent_id:
             return super().make(id, client, cls, parent_id=parent_id, json=json)
@@ -114,14 +106,17 @@ class ObjectStorageBucket(DerivedBase):
         API Documentation: TODO
 
         :returns: A result object which wraps the access that this ObjectStorageBucket is currently configured with.
-        :rtype: dict
+        :rtype: MappedObject
         """
         result = self._client.get(
             "{}/access".format(self.api_endpoint),
             model=self,
         )
 
-        if not any(key in result for key in ["acl", "acl_xml", "cors_enabled", "cors_xml"]):
+        if not any(
+            key in result
+            for key in ["acl", "acl_xml", "cors_enabled", "cors_xml"]
+        ):
             raise UnexpectedResponseError(
                 "Unexpected response when getting the bucket access config of a bucket!",
                 json=result,

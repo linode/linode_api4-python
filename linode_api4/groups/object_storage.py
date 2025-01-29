@@ -5,7 +5,11 @@ from urllib import parse
 
 from deprecated import deprecated
 
-from linode_api4 import ObjectStorageEndpoint, ObjectStorageEndpointType
+from linode_api4 import (
+    ObjectStorageEndpoint,
+    ObjectStorageEndpointType,
+    PaginatedList,
+)
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
@@ -273,9 +277,14 @@ class ObjectStorageGroup(Group):
 
         return MappedObject(**result)
 
-    def endpoints(self, *filters):
+    def endpoints(self, *filters) -> PaginatedList:
         """
         Returns a paginated list of all Object Storage endpoints available in your account.
+
+        This is intended to be called from the :any:`LinodeClient`
+        class, like this::
+
+           endpoints = client.object_storage.endpoints()
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-endpoints
 
@@ -286,7 +295,11 @@ class ObjectStorageGroup(Group):
         :returns: A list of Object Storage Endpoints that matched the query.
         :rtype: PaginatedList of ObjectStorageEndpoint
         """
-        return self.client._get_and_filter(ObjectStorageEndpoint, *filters)
+        return self.client._get_and_filter(
+            ObjectStorageEndpoint,
+            *filters,
+            endpoint="/object-storage/endpoints",
+        )
 
     def buckets(self, *filters):
         """

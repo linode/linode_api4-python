@@ -6,7 +6,9 @@
         "hostname": "example-bucket.us-east-1.linodeobjects.com",
         "label": "example-bucket",
         "objects": 4,
-        "size": 188318981
+        "size": 188318981,
+        "endpoint_type": "E1",
+        "s3_endpoint": "us-east-12.linodeobjects.com"
       }
     ],
     "page": 1,
