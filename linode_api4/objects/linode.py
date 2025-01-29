@@ -1936,7 +1936,7 @@ class StackScript(Base):
 def _expand_placement_group_assignment(
     pg: Union[
         InstancePlacementGroupAssignment, "PlacementGroup", Dict[str, Any], int
-    ]
+    ],
 ) -> Optional[Dict[str, Any]]:
     """
     Expands the placement group argument into a dict for use in an API request body.
