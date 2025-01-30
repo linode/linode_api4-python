@@ -257,7 +257,7 @@ class LKECluster(Base):
         "k8s_version": Property(slug_relationship=KubeVersion, mutable=True),
         "pools": Property(derived_class=LKENodePool),
         "control_plane": Property(mutable=True),
-        "apl_enabled": Property(mutable=True),
+        "apl_enabled": Property(),
     }
 
     def invalidate(self):
