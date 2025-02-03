@@ -131,8 +131,8 @@ def test_fork_postgres_db(test_linode_client, test_create_postgres_db):
 
 
 @pytest.mark.skipif(
-    os.getenv("RUN_DB_TESTS") is None,
-    reason="RUN_DB_TESTS environment variable not set",
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
 )
 def test_get_types(test_linode_client):
     client = test_linode_client
@@ -144,8 +144,8 @@ def test_get_types(test_linode_client):
 
 
 @pytest.mark.skipif(
-    os.getenv("RUN_DB_TESTS") is None,
-    reason="RUN_DB_TESTS environment variable not set",
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
 )
 def test_get_engines(test_linode_client):
     client = test_linode_client
@@ -158,8 +158,8 @@ def test_get_engines(test_linode_client):
 
 
 @pytest.mark.skipif(
-    os.getenv("RUN_DB_TESTS") is None,
-    reason="RUN_DB_TESTS environment variable not set",
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
 )
 def test_database_instance(test_linode_client, test_create_sql_db):
     dbs = test_linode_client.database.mysql_instances()
@@ -169,8 +169,8 @@ def test_database_instance(test_linode_client, test_create_sql_db):
 
 # ------- POSTGRESQL DB Test cases -------
 @pytest.mark.skipif(
-    os.getenv("RUN_DB_TESTS") is None,
-    reason="RUN_DB_TESTS environment variable not set",
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
 )
 def test_get_sql_db_instance(test_linode_client, test_create_sql_db):
     dbs = test_linode_client.database.mysql_instances()
@@ -187,8 +187,8 @@ def test_get_sql_db_instance(test_linode_client, test_create_sql_db):
 
 
 @pytest.mark.skipif(
-    os.getenv("RUN_DB_TESTS") is None,
-    reason="RUN_DB_TESTS environment variable not set",
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
 )
 def test_update_sql_db(test_linode_client, test_create_sql_db):
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
@@ -220,8 +220,8 @@ def test_update_sql_db(test_linode_client, test_create_sql_db):
 
 
 @pytest.mark.skipif(
-    os.getenv("RUN_DB_TESTS") is None,
-    reason="RUN_DB_TESTS environment variable not set",
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
 )
 def test_create_sql_backup(test_linode_client, test_create_sql_db):
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
@@ -270,8 +270,8 @@ def test_create_sql_backup(test_linode_client, test_create_sql_db):
 
 
 @pytest.mark.skipif(
-    os.getenv("RUN_DB_TESTS") is None,
-    reason="RUN_DB_TESTS environment variable not set",
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
 )
 def test_sql_backup_restore(test_linode_client, test_create_sql_db):
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
@@ -308,8 +308,8 @@ def test_sql_backup_restore(test_linode_client, test_create_sql_db):
 
 
 @pytest.mark.skipif(
-    os.getenv("RUN_DB_TESTS") is None,
-    reason="RUN_DB_TESTS environment variable not set",
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
 )
 def test_get_sql_ssl(test_linode_client, test_create_sql_db):
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
@@ -318,8 +318,8 @@ def test_get_sql_ssl(test_linode_client, test_create_sql_db):
 
 
 @pytest.mark.skipif(
-    os.getenv("RUN_DB_TESTS") is None,
-    reason="RUN_DB_TESTS environment variable not set",
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
 )
 def test_sql_patch(test_linode_client, test_create_sql_db):
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
@@ -350,8 +350,8 @@ def test_sql_patch(test_linode_client, test_create_sql_db):
 
 
 @pytest.mark.skipif(
-    os.getenv("RUN_DB_TESTS") is None,
-    reason="RUN_DB_TESTS environment variable not set",
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
 )
 def test_get_sql_credentials(test_linode_client, test_create_sql_db):
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
@@ -361,8 +361,8 @@ def test_get_sql_credentials(test_linode_client, test_create_sql_db):
 
 
 @pytest.mark.skipif(
-    os.getenv("RUN_DB_TESTS") is None,
-    reason="RUN_DB_TESTS environment variable not set",
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
 )
 def test_reset_sql_credentials(test_linode_client, test_create_sql_db):
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
@@ -380,8 +380,8 @@ def test_reset_sql_credentials(test_linode_client, test_create_sql_db):
 
 # ------- POSTGRESQL DB Test cases -------
 @pytest.mark.skipif(
-    os.getenv("RUN_DB_TESTS") is None,
-    reason="RUN_DB_TESTS environment variable not set",
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
 )
 def test_get_postgres_db_instance(test_linode_client, test_create_postgres_db):
     dbs = test_linode_client.database.postgresql_instances()
@@ -400,8 +400,8 @@ def test_get_postgres_db_instance(test_linode_client, test_create_postgres_db):
 
 
 @pytest.mark.skipif(
-    os.getenv("RUN_DB_TESTS") is None,
-    reason="RUN_DB_TESTS environment variable not set",
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
 )
 def test_update_postgres_db(test_linode_client, test_create_postgres_db):
     db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
@@ -435,8 +435,8 @@ def test_update_postgres_db(test_linode_client, test_create_postgres_db):
 
 
 @pytest.mark.skipif(
-    os.getenv("RUN_DB_TESTS") is None,
-    reason="RUN_DB_TESTS environment variable not set",
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
 )
 def test_create_postgres_backup(test_linode_client, test_create_postgres_db):
     db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
@@ -483,8 +483,8 @@ def test_create_postgres_backup(test_linode_client, test_create_postgres_db):
 
 
 @pytest.mark.skipif(
-    os.getenv("RUN_DB_TESTS") is None,
-    reason="RUN_DB_TESTS environment variable not set",
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
 )
 def test_postgres_backup_restore(test_linode_client, test_create_postgres_db):
     db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
@@ -520,8 +520,8 @@ def test_postgres_backup_restore(test_linode_client, test_create_postgres_db):
 
 
 @pytest.mark.skipif(
-    os.getenv("RUN_DB_TESTS") is None,
-    reason="RUN_DB_TESTS environment variable not set",
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
 )
 def test_get_postgres_ssl(test_linode_client, test_create_postgres_db):
     db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
@@ -530,8 +530,8 @@ def test_get_postgres_ssl(test_linode_client, test_create_postgres_db):
 
 
 @pytest.mark.skipif(
-    os.getenv("RUN_DB_TESTS") is None,
-    reason="RUN_DB_TESTS environment variable not set",
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
 )
 def test_postgres_patch(test_linode_client, test_create_postgres_db):
     db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
@@ -562,8 +562,8 @@ def test_postgres_patch(test_linode_client, test_create_postgres_db):
 
 
 @pytest.mark.skipif(
-    os.getenv("RUN_DB_TESTS") is None,
-    reason="RUN_DB_TESTS environment variable not set",
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
 )
 def test_get_postgres_credentials(test_linode_client, test_create_postgres_db):
     db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
@@ -573,8 +573,8 @@ def test_get_postgres_credentials(test_linode_client, test_create_postgres_db):
 
 
 @pytest.mark.skipif(
-    os.getenv("RUN_DB_TESTS") is None,
-    reason="RUN_DB_TESTS environment variable not set",
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
 )
 def test_reset_postgres_credentials(
     test_linode_client, test_create_postgres_db
