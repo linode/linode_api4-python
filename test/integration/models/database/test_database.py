@@ -89,8 +89,8 @@ def test_create_postgres_db(test_linode_client):
 
 
 @pytest.mark.skipif(
-    os.getenv("RUN_DB_FORK_TESTS") is None,
-    reason="RUN_DB_FORK_TESTS environment variable not set",
+    os.getenv("RUN_DB_FORK_TESTS", "").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_FORK_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
 )
 def test_fork_sql_db(test_linode_client, test_create_sql_db):
     client = test_linode_client
@@ -110,8 +110,8 @@ def test_fork_sql_db(test_linode_client, test_create_sql_db):
 
 
 @pytest.mark.skipif(
-    os.getenv("RUN_DB_FORK_TESTS") is None,
-    reason="RUN_DB_FORK_TESTS environment variable not set",
+    os.getenv("RUN_DB_FORK_TESTS", "").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_FORK_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
 )
 def test_fork_postgres_db(test_linode_client, test_create_postgres_db):
     client = test_linode_client
@@ -202,8 +202,6 @@ def test_update_sql_db(test_linode_client, test_create_sql_db):
 
     res = db.save()
 
-    database = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
-
     wait_for_condition(
         30,
         300,
@@ -212,6 +210,8 @@ def test_update_sql_db(test_linode_client, test_create_sql_db):
         test_create_sql_db.id,
         "active",
     )
+
+    database = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
 
     assert res
     assert database.allow_list == new_allow_list
@@ -415,10 +415,6 @@ def test_update_postgres_db(test_linode_client, test_create_postgres_db):
 
     res = db.save()
 
-    database = test_linode_client.load(
-        PostgreSQLDatabase, test_create_postgres_db.id
-    )
-
     wait_for_condition(
         30,
         1000,
@@ -426,6 +422,10 @@ def test_update_postgres_db(test_linode_client, test_create_postgres_db):
         test_linode_client,
         test_create_postgres_db.id,
         "active",
+    )
+
+    database = test_linode_client.load(
+        PostgreSQLDatabase, test_create_postgres_db.id
     )
 
     assert res
