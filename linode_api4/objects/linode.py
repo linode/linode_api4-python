@@ -8,10 +8,14 @@ from random import randint
 from typing import Any, Dict, List, Optional, Union
 from urllib import parse
 
-from linode_api4 import util
 from linode_api4.common import load_and_validate_keys
 from linode_api4.errors import UnexpectedResponseError
-from linode_api4.objects.base import Base, MappedObject, Property
+from linode_api4.objects.base import (
+    Base,
+    MappedObject,
+    Property,
+    _flatten_request_body_recursive,
+)
 from linode_api4.objects.dbase import DerivedBase
 from linode_api4.objects.filtering import FilterableAttribute
 from linode_api4.objects.image import Image
@@ -26,6 +30,7 @@ from linode_api4.objects.region import Region
 from linode_api4.objects.serializable import JSONObject, StrEnum
 from linode_api4.objects.vpc import VPC, VPCSubnet
 from linode_api4.paginated_list import PaginatedList
+from linode_api4.util import drop_null_keys
 
 PASSWORD_CHARS = string.ascii_letters + string.digits + string.punctuation
 
@@ -96,14 +101,14 @@ class Backup(DerivedBase):
         """
 
         d = {
-            "linode_id": (
-                linode.id if issubclass(type(linode), Base) else linode
-            ),
+            "linode_id": linode,
         }
         d.update(kwargs)
 
         self._client.post(
-            "{}/restore".format(Backup.api_endpoint), model=self, data=d
+            "{}/restore".format(Backup.api_endpoint),
+            model=self,
+            data=_flatten_request_body_recursive(d),
         )
         return True
 
@@ -264,6 +269,7 @@ class Type(Base):
         "vcpus": Property(),
         "gpus": Property(),
         "successor": Property(),
+        "accelerated_devices": Property(),
         # type_class is populated from the 'class' attribute of the returned JSON
     }
 
@@ -1063,8 +1069,6 @@ class Instance(Base):
         :rtype: bool
         """
 
-        new_type = new_type.id if issubclass(type(new_type), Base) else new_type
-
         params = {
             "type": new_type,
             "allow_auto_disk_resize": allow_auto_disk_resize,
@@ -1073,7 +1077,9 @@ class Instance(Base):
         params.update(kwargs)
 
         resp = self._client.post(
-            "{}/resize".format(Instance.api_endpoint), model=self, data=params
+            "{}/resize".format(Instance.api_endpoint),
+            model=self,
+            data=_flatten_request_body_recursive(params),
         )
 
         if "error" in resp:
@@ -1189,7 +1195,7 @@ class Instance(Base):
             param_interfaces.append(interface)
 
         params = {
-            "kernel": kernel.id if issubclass(type(kernel), Base) else kernel,
+            "kernel": kernel,
             "label": (
                 label
                 if label
@@ -1201,7 +1207,9 @@ class Instance(Base):
         params.update(kwargs)
 
         result = self._client.post(
-            "{}/configs".format(Instance.api_endpoint), model=self, data=params
+            "{}/configs".format(Instance.api_endpoint),
+            model=self,
+            data=_flatten_request_body_recursive(params),
         )
         self.invalidate()
 
@@ -1280,6 +1288,7 @@ class Instance(Base):
             "filesystem": filesystem,
             "authorized_keys": authorized_keys,
             "authorized_users": authorized_users,
+            "stackscript_id": stackscript,
         }
 
         if disk_encryption is not None:
@@ -1288,20 +1297,18 @@ class Instance(Base):
         if image:
             params.update(
                 {
-                    "image": (
-                        image.id if issubclass(type(image), Base) else image
-                    ),
+                    "image": image,
                     "root_pass": root_pass,
                 }
             )
 
-        if stackscript:
-            params["stackscript_id"] = stackscript.id
-            if stackscript_args:
-                params["stackscript_data"] = stackscript_args
+        if stackscript_args:
+            params["stackscript_data"] = stackscript_args
 
         result = self._client.post(
-            "{}/disks".format(Instance.api_endpoint), model=self, data=params
+            "{}/disks".format(Instance.api_endpoint),
+            model=self,
+            data=_flatten_request_body_recursive(drop_null_keys(params)),
         )
         self.invalidate()
 
@@ -1461,18 +1468,20 @@ class Instance(Base):
         authorized_keys = load_and_validate_keys(authorized_keys)
 
         params = {
-            "image": image.id if issubclass(type(image), Base) else image,
+            "image": image,
             "root_pass": root_pass,
             "authorized_keys": authorized_keys,
+            "disk_encryption": (
+                str(disk_encryption) if disk_encryption else None
+            ),
         }
-
-        if disk_encryption is not None:
-            params["disk_encryption"] = str(disk_encryption)
 
         params.update(kwargs)
 
         result = self._client.post(
-            "{}/rebuild".format(Instance.api_endpoint), model=self, data=params
+            "{}/rebuild".format(Instance.api_endpoint),
+            model=self,
+            data=_flatten_request_body_recursive(drop_null_keys(params)),
         )
 
         if not "id" in result:
@@ -1597,7 +1606,7 @@ class Instance(Base):
         """
 
         params = {
-            "region": region.id if issubclass(type(region), Base) else region,
+            "region": region,
             "upgrade": upgrade,
             "type": migration_type,
             "placement_group": _expand_placement_group_assignment(
@@ -1605,10 +1614,10 @@ class Instance(Base):
             ),
         }
 
-        util.drop_null_keys(params)
-
         self._client.post(
-            "{}/migrate".format(Instance.api_endpoint), model=self, data=params
+            "{}/migrate".format(Instance.api_endpoint),
+            model=self,
+            data=_flatten_request_body_recursive(drop_null_keys(params)),
         )
 
     def firewalls(self):
@@ -1629,6 +1638,22 @@ class Instance(Base):
             Firewall(self._client, firewall["id"])
             for firewall in result["data"]
         ]
+
+    def apply_firewalls(self):
+        """
+        Reapply assigned firewalls to a Linode in case they were not applied successfully.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-apply-firewalls
+
+        :returns: Returns True if the operation was successful
+        :rtype: bool
+        """
+
+        self._client.post(
+            "{}/firewalls/apply".format(Instance.api_endpoint), model=self
+        )
+
+        return True
 
     def nodebalancers(self):
         """
@@ -1740,21 +1765,12 @@ class Instance(Base):
         if not isinstance(disks, list) and not isinstance(disks, PaginatedList):
             disks = [disks]
 
-        cids = [c.id if issubclass(type(c), Base) else c for c in configs]
-        dids = [d.id if issubclass(type(d), Base) else d for d in disks]
-
         params = {
-            "linode_id": (
-                to_linode.id if issubclass(type(to_linode), Base) else to_linode
-            ),
-            "region": region.id if issubclass(type(region), Base) else region,
-            "type": (
-                instance_type.id
-                if issubclass(type(instance_type), Base)
-                else instance_type
-            ),
-            "configs": cids if cids else None,
-            "disks": dids if dids else None,
+            "linode_id": to_linode,
+            "region": region,
+            "type": instance_type,
+            "configs": configs,
+            "disks": disks,
             "label": label,
             "group": group,
             "with_backups": with_backups,
@@ -1763,10 +1779,10 @@ class Instance(Base):
             ),
         }
 
-        util.drop_null_keys(params)
-
         result = self._client.post(
-            "{}/clone".format(Instance.api_endpoint), model=self, data=params
+            "{}/clone".format(Instance.api_endpoint),
+            model=self,
+            data=_flatten_request_body_recursive(drop_null_keys(params)),
         )
 
         if not "id" in result:
@@ -1920,7 +1936,7 @@ class StackScript(Base):
 def _expand_placement_group_assignment(
     pg: Union[
         InstancePlacementGroupAssignment, "PlacementGroup", Dict[str, Any], int
-    ]
+    ],
 ) -> Optional[Dict[str, Any]]:
     """
     Expands the placement group argument into a dict for use in an API request body.

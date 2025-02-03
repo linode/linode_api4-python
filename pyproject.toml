@@ -8,7 +8,7 @@ name = "linode_api4"
 authors = [{ name = "Linode", email = "devs@linode.com" }]
 description = "The official Python SDK for Linode API v4"
 readme = "README.rst"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 keywords = [
     "akamai",
     "Akamai Connected Cloud",
@@ -25,7 +25,6 @@ classifiers = [
     "License :: OSI Approved :: BSD License",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",

@@ -71,7 +71,7 @@ def test_latest_get_event(test_linode_client, e2e_test_firewall):
     linode, password = client.linode.instance_create(
         "g6-nanode-1",
         region,
-        image="linode/debian10",
+        image="linode/debian12",
         label=label,
         firewall=e2e_test_firewall,
     )

@@ -284,6 +284,19 @@ class LinodeTest(ClientBaseCase):
             self.assertEqual(m.call_url, "/linode/instances/123/firewalls")
             self.assertEqual(len(result), 1)
 
+    def test_apply_firewalls(self):
+        """
+        Tests that you can submit a correct apply firewalls api request
+        """
+        linode = Instance(self.client, 123)
+
+        with self.mock_post({}) as m:
+            result = linode.apply_firewalls()
+            self.assertEqual(
+                m.call_url, "/linode/instances/123/firewalls/apply"
+            )
+            self.assertEqual(result, True)
+
     def test_volumes(self):
         """
         Tests that you can submit a correct volumes api request
@@ -413,7 +426,7 @@ class LinodeTest(ClientBaseCase):
                 1234,
                 label="test",
                 authorized_users=["test"],
-                image="linode/debian10",
+                image="linode/debian12",
             )
             self.assertEqual(m.call_url, "/linode/instances/123/disks")
             self.assertEqual(
@@ -422,7 +435,7 @@ class LinodeTest(ClientBaseCase):
                     "size": 1234,
                     "label": "test",
                     "root_pass": gen_pass,
-                    "image": "linode/debian10",
+                    "image": "linode/debian12",
                     "authorized_users": ["test"],
                     "read_only": False,
                 },
@@ -656,7 +669,7 @@ class TypeTest(ClientBaseCase):
         """
         types = self.client.linode.types()
 
-        self.assertEqual(len(types), 4)
+        self.assertEqual(len(types), 5)
         for t in types:
             self.assertTrue(t._populated)
             self.assertIsNotNone(t.id)
@@ -667,6 +680,7 @@ class TypeTest(ClientBaseCase):
             self.assertIsNone(t.successor)
             self.assertIsNotNone(t.region_prices)
             self.assertIsNotNone(t.addons.backups.region_prices)
+            self.assertIsNotNone(t.accelerated_devices)
 
     def test_get_type_by_id(self):
         """
