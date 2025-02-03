@@ -1,6 +1,6 @@
 from test.unit.base import ClientBaseCase
 
-from linode_api4 import ExplicitNullValue, Instance
+from linode_api4 import VLAN, ExplicitNullValue, Instance, Region
 from linode_api4.objects import Firewall, IPAddress, IPv6Range
 
 
@@ -94,3 +94,17 @@ class NetworkingTest(ClientBaseCase):
             ip.delete()
 
             self.assertEqual(m.call_url, "/linode/instances/123/ips/127.0.0.1")
+
+    def test_delete_vlan(self):
+        """
+        Tests that deleting a VLAN creates the correct api request
+        """
+        with self.mock_delete() as m:
+            self.client.networking.delete_vlan(
+                VLAN(self.client, "vlan-test"),
+                Region(self.client, "us-southeast"),
+            )
+
+            self.assertEqual(
+                m.call_url, "/networking/vlans/us-southeast/vlan-test"
+            )
