@@ -4,6 +4,8 @@ from test.unit.base import ClientBaseCase
 from linode_api4 import PostgreSQLDatabase
 from linode_api4.objects import MySQLDatabase
 
+logger = logging.getLogger(__name__)
+
 
 class DatabaseTest(ClientBaseCase):
     """
@@ -183,8 +185,10 @@ class MySQLDatabaseTest(ClientBaseCase):
             # validate the request.
             try:
                 db.backup_create("mybackup", target="secondary")
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(
+                    "An error occurred while validating the request: %s", e
+                )
 
             self.assertEqual(m.method, "post")
             self.assertEqual(
@@ -366,8 +370,10 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
             # validate the request.
             try:
                 db.backup_create("mybackup", target="secondary")
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(
+                    "An error occurred while validating the request: %s", e
+                )
 
             self.assertEqual(m.method, "post")
             self.assertEqual(
