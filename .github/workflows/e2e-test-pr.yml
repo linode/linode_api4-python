@@ -2,6 +2,22 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
+      run_db_fork_tests:
+        description: 'Set this parameter to "true" to run fork database related test cases'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+      run_db_tests:
+        description: 'Set this parameter to "true" to run database related test cases'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
       test_suite:
         description: 'Enter specific test suite. E.g. domain, linode_client'
         required: false
@@ -80,7 +96,7 @@ jobs:
         run: |
           timestamp=$(date +'%Y%m%d%H%M')
           report_filename="${timestamp}_sdk_test_report.xml"
-          make test-int TEST_ARGS="--junitxml=${report_filename}" TEST_SUITE="${{ github.event.inputs.test_suite }}"
+          make test-int RUN_DB_FORK_TESTS=${{ github.event.inputs.run_db_fork_tests }} RUN_DB_TESTS=${{ github.event.inputs.run_db_tests }} TEST_ARGS="--junitxml=${report_filename}" TEST_SUITE="${{ github.event.inputs.test_suite }}"
         env:
           LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
 

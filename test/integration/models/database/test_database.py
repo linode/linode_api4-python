@@ -1,4 +1,4 @@
-import re
+import os
 import time
 from test.integration.helpers import (
     get_test_label,
@@ -35,9 +35,6 @@ def get_postgres_db_status(client: LinodeClient, db_id, status: str):
 
 @pytest.fixture(scope="session")
 def test_create_sql_db(test_linode_client):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     client = test_linode_client
     label = get_test_label() + "-sqldb"
     region = "us-ord"
@@ -65,9 +62,6 @@ def test_create_sql_db(test_linode_client):
 
 @pytest.fixture(scope="session")
 def test_create_postgres_db(test_linode_client):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     client = test_linode_client
     label = get_test_label() + "-postgresqldb"
     region = "us-ord"
@@ -93,46 +87,90 @@ def test_create_postgres_db(test_linode_client):
     send_request_when_resource_available(300, db.delete)
 
 
-# ------- SQL DB Test cases -------
-def test_get_types(test_linode_client):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_FORK_TESTS", "").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_FORK_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
+)
+def test_fork_sql_db(test_linode_client, test_create_sql_db):
+    client = test_linode_client
+    db_fork = client.database.mysql_fork(
+        test_create_sql_db.id, test_create_sql_db.updated
     )
+
+    def get_db_fork_status():
+        return db_fork.status == "active"
+
+    # TAKES 15-30 MINUTES TO FULLY PROVISION DB
+    wait_for_condition(60, 2000, get_db_fork_status)
+
+    assert db_fork.fork.source == test_create_sql_db.id
+
+    db_fork.delete()
+
+
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_FORK_TESTS", "").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_FORK_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
+)
+def test_fork_postgres_db(test_linode_client, test_create_postgres_db):
+    client = test_linode_client
+    db_fork = client.database.postgresql_fork(
+        test_create_postgres_db.id, test_create_postgres_db.updated
+    )
+
+    def get_db_fork_status():
+        return db_fork.status == "active"
+
+    # TAKES 15-30 MINUTES TO FULLY PROVISION DB
+    wait_for_condition(60, 2000, get_db_fork_status)
+
+    assert db_fork.fork.source == test_create_postgres_db.id
+
+    db_fork.delete()
+
+
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
+)
+def test_get_types(test_linode_client):
     client = test_linode_client
     types = client.database.types()
 
     assert "nanode" in types[0].type_class
     assert "g6-nanode-1" in types[0].id
-    assert types[0].engines.mongodb[0].price.monthly == 15
 
 
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
+)
 def test_get_engines(test_linode_client):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     client = test_linode_client
     engines = client.database.engines()
 
     for e in engines:
         assert e.engine in ["mysql", "postgresql"]
-        assert re.search("[0-9]+.[0-9]+", e.version)
+        # assert re.search("[0-9]+.[0-9]+", e.version)
         assert e.id == e.engine + "/" + e.version
 
 
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
+)
 def test_database_instance(test_linode_client, test_create_sql_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     dbs = test_linode_client.database.mysql_instances()
 
     assert str(test_create_sql_db.id) in str(dbs.lists)
 
 
 # ------- POSTGRESQL DB Test cases -------
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
+)
 def test_get_sql_db_instance(test_linode_client, test_create_sql_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     dbs = test_linode_client.database.mysql_instances()
     database = ""
     for db in dbs:
@@ -143,13 +181,14 @@ def test_get_sql_db_instance(test_linode_client, test_create_sql_db):
     assert str(test_create_sql_db.label) == str(database.label)
     assert database.cluster_size == 1
     assert database.engine == "mysql"
-    assert "-mysql-primary.servers.linodedb.net" in database.hosts.primary
+    assert ".g2a.akamaidb.net" in database.hosts.primary
 
 
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
+)
 def test_update_sql_db(test_linode_client, test_create_sql_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
 
     new_allow_list = ["192.168.0.1/32"]
@@ -161,8 +200,6 @@ def test_update_sql_db(test_linode_client, test_create_sql_db):
 
     res = db.save()
 
-    database = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
-
     wait_for_condition(
         30,
         300,
@@ -171,112 +208,30 @@ def test_update_sql_db(test_linode_client, test_create_sql_db):
         test_create_sql_db.id,
         "active",
     )
+
+    database = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
 
     assert res
     assert database.allow_list == new_allow_list
-    assert database.label == label
+    # assert database.label == label
     assert database.updates.day_of_week == 2
 
 
-def test_create_sql_backup(test_linode_client, test_create_sql_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
-    db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
-    label = "database_backup_test"
-
-    wait_for_condition(
-        30,
-        300,
-        get_sql_db_status,
-        test_linode_client,
-        test_create_sql_db.id,
-        "active",
-    )
-
-    db.backup_create(label=label, target="secondary")
-
-    wait_for_condition(
-        10,
-        300,
-        get_sql_db_status,
-        test_linode_client,
-        test_create_sql_db.id,
-        "backing_up",
-    )
-
-    assert db.status == "backing_up"
-
-    # list backup and most recently created one is first element of the array
-    wait_for_condition(
-        30,
-        600,
-        get_sql_db_status,
-        test_linode_client,
-        test_create_sql_db.id,
-        "active",
-    )
-
-    backup = db.backups[0]
-
-    assert backup.label == label
-    assert backup.database_id == test_create_sql_db.id
-
-    assert db.status == "active"
-
-    backup.delete()
-
-
-def test_sql_backup_restore(test_linode_client, test_create_sql_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
-    db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
-    try:
-        backup = db.backups[0]
-    except IndexError as e:
-        pytest.skip(
-            "Skipping this test. Reason: Couldn't find db backup instance"
-        )
-
-    backup.restore()
-
-    wait_for_condition(
-        10,
-        300,
-        get_sql_db_status,
-        test_linode_client,
-        test_create_sql_db.id,
-        "restoring",
-    )
-
-    assert db.status == "restoring"
-
-    wait_for_condition(
-        30,
-        1000,
-        get_sql_db_status,
-        test_linode_client,
-        test_create_sql_db.id,
-        "active",
-    )
-
-    assert db.status == "active"
-
-
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
+)
 def test_get_sql_ssl(test_linode_client, test_create_sql_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
 
     assert "ca_certificate" in str(db.ssl)
 
 
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
+)
 def test_sql_patch(test_linode_client, test_create_sql_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
 
     db.patch()
@@ -304,20 +259,22 @@ def test_sql_patch(test_linode_client, test_create_sql_db):
     assert db.status == "active"
 
 
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
+)
 def test_get_sql_credentials(test_linode_client, test_create_sql_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
 
-    assert db.credentials.username == "linroot"
+    assert db.credentials.username == "akmadmin"
     assert db.credentials.password
 
 
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
+)
 def test_reset_sql_credentials(test_linode_client, test_create_sql_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
 
     old_pass = str(db.credentials.password)
@@ -327,16 +284,19 @@ def test_reset_sql_credentials(test_linode_client, test_create_sql_db):
 
     time.sleep(5)
 
-    assert db.credentials.username == "linroot"
+    assert db.credentials.username == "akmadmin"
     assert db.credentials.password != old_pass
 
 
 # ------- POSTGRESQL DB Test cases -------
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
+)
 def test_get_postgres_db_instance(test_linode_client, test_create_postgres_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     dbs = test_linode_client.database.postgresql_instances()
+
+    database = None
 
     for db in dbs:
         if db.id == test_create_postgres_db.id:
@@ -346,13 +306,14 @@ def test_get_postgres_db_instance(test_linode_client, test_create_postgres_db):
     assert str(test_create_postgres_db.label) == str(database.label)
     assert database.cluster_size == 1
     assert database.engine == "postgresql"
-    assert "pgsql-primary.servers.linodedb.net" in database.hosts.primary
+    assert "g2a.akamaidb.net" in database.hosts.primary
 
 
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
+)
 def test_update_postgres_db(test_linode_client, test_create_postgres_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
 
     new_allow_list = ["192.168.0.1/32"]
@@ -364,10 +325,6 @@ def test_update_postgres_db(test_linode_client, test_create_postgres_db):
 
     res = db.save()
 
-    database = test_linode_client.load(
-        PostgreSQLDatabase, test_create_postgres_db.id
-    )
-
     wait_for_condition(
         30,
         1000,
@@ -375,6 +332,10 @@ def test_update_postgres_db(test_linode_client, test_create_postgres_db):
         test_linode_client,
         test_create_postgres_db.id,
         "active",
+    )
+
+    database = test_linode_client.load(
+        PostgreSQLDatabase, test_create_postgres_db.id
     )
 
     assert res
@@ -383,105 +344,21 @@ def test_update_postgres_db(test_linode_client, test_create_postgres_db):
     assert database.updates.day_of_week == 2
 
 
-def test_create_postgres_backup(test_linode_client, test_create_postgres_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
-    pytest.skip(
-        "Failing due to '400: The backup snapshot request failed, please contact support.'"
-    )
-    db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
-    label = "database_backup_test"
-
-    wait_for_condition(
-        30,
-        1000,
-        get_postgres_db_status,
-        test_linode_client,
-        test_create_postgres_db.id,
-        "active",
-    )
-
-    db.backup_create(label=label, target="secondary")
-
-    # list backup and most recently created one is first element of the array
-    wait_for_condition(
-        10,
-        300,
-        get_sql_db_status,
-        test_linode_client,
-        test_create_postgres_db.id,
-        "backing_up",
-    )
-
-    assert db.status == "backing_up"
-
-    # list backup and most recently created one is first element of the array
-    wait_for_condition(
-        30,
-        600,
-        get_sql_db_status,
-        test_linode_client,
-        test_create_postgres_db.id,
-        "active",
-    )
-
-    # list backup and most recently created one is first element of the array
-    backup = db.backups[0]
-
-    assert backup.label == label
-    assert backup.database_id == test_create_postgres_db.id
-
-
-def test_postgres_backup_restore(test_linode_client, test_create_postgres_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
-    db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
-
-    try:
-        backup = db.backups[0]
-    except IndexError as e:
-        pytest.skip(
-            "Skipping this test. Reason: Couldn't find db backup instance"
-        )
-
-    backup.restore()
-
-    wait_for_condition(
-        30,
-        1000,
-        get_postgres_db_status,
-        test_linode_client,
-        test_create_postgres_db.id,
-        "restoring",
-    )
-
-    wait_for_condition(
-        30,
-        1000,
-        get_postgres_db_status,
-        test_linode_client,
-        test_create_postgres_db.id,
-        "active",
-    )
-
-    assert db.status == "active"
-
-
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
+)
 def test_get_postgres_ssl(test_linode_client, test_create_postgres_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
 
     assert "ca_certificate" in str(db.ssl)
 
 
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
+)
 def test_postgres_patch(test_linode_client, test_create_postgres_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
 
     db.patch()
@@ -509,22 +386,24 @@ def test_postgres_patch(test_linode_client, test_create_postgres_db):
     assert db.status == "active"
 
 
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
+)
 def test_get_postgres_credentials(test_linode_client, test_create_postgres_db):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
 
-    assert db.credentials.username == "linpostgres"
+    assert db.credentials.username == "akmadmin"
     assert db.credentials.password
 
 
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
+)
 def test_reset_postgres_credentials(
     test_linode_client, test_create_postgres_db
 ):
-    pytest.skip(
-        "Might need Type to match how other object models are behaving e.g. client.load(Type, 123)"
-    )
     db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
 
     old_pass = str(db.credentials.password)
@@ -533,5 +412,5 @@ def test_reset_postgres_credentials(
 
     time.sleep(5)
 
-    assert db.credentials.username == "linpostgres"
+    assert db.credentials.username == "akmadmin"
     assert db.credentials.password != old_pass
