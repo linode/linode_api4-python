@@ -38,6 +38,7 @@ class LKETest(ClientBaseCase):
         self.assertEqual(cluster.region.id, "ap-west")
         self.assertEqual(cluster.k8s_version.id, "1.19")
         self.assertTrue(cluster.control_plane.high_availability)
+        self.assertTrue(cluster.apl_enabled)
 
     def test_get_pool(self):
         """
@@ -320,6 +321,40 @@ class LKETest(ClientBaseCase):
                     {"key": "b", "value": "a", "effect": "NoSchedule"},
                 ],
             }
+
+    def test_cluster_create_with_apl(self):
+        """
+        Tests that an LKE cluster can be created with APL enabled.
+        """
+
+        with self.mock_post("lke/clusters") as m:
+            cluster = self.client.lke.cluster_create(
+                "us-mia",
+                "test-aapl-cluster",
+                [
+                    self.client.lke.node_pool(
+                        "g6-dedicated-4",
+                        3,
+                    )
+                ],
+                "1.29",
+                apl_enabled=True,
+                control_plane=LKEClusterControlPlaneOptions(
+                    high_availability=True,
+                ),
+            )
+
+            assert m.call_data["apl_enabled"] == True
+            assert m.call_data["control_plane"]["high_availability"] == True
+
+        assert (
+            cluster.apl_console_url == "https://console.lke18881.akamai-apl.net"
+        )
+
+        assert (
+            cluster.apl_health_check_url
+            == "https://auth.lke18881.akamai-apl.net/ready"
+        )
 
     def test_populate_with_taints(self):
         """

@@ -109,6 +109,8 @@ class MySQLDatabaseTest(ClientBaseCase):
         Test that MySQL databases can be created
         """
 
+        logger = logging.getLogger(__name__)
+
         with self.mock_post("/databases/mysql/instances") as m:
             # We don't care about errors here; we just want to
             # validate the request.
@@ -120,8 +122,10 @@ class MySQLDatabaseTest(ClientBaseCase):
                     "g6-standard-1",
                     cluster_size=3,
                 )
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(
+                    "An error occurred while validating the request: %s", e
+                )
 
             self.assertEqual(m.method, "post")
             self.assertEqual(m.call_url, "/databases/mysql/instances")

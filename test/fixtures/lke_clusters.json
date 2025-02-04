@@ -6,5 +6,6 @@
     "label": "example-cluster",
     "region": "ap-west",
     "k8s_version": "1.19",
-    "tags": []
+    "tags": [],
+    "apl_enabled": true
 }
