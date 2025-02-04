@@ -1,5 +1,4 @@
 import os
-import re
 import time
 from test.integration.helpers import (
     get_test_label,
@@ -152,7 +151,7 @@ def test_get_engines(test_linode_client):
 
     for e in engines:
         assert e.engine in ["mysql", "postgresql"]
-        #assert re.search("[0-9]+.[0-9]+", e.version)
+        # assert re.search("[0-9]+.[0-9]+", e.version)
         assert e.id == e.engine + "/" + e.version
 
 
@@ -214,8 +213,9 @@ def test_update_sql_db(test_linode_client, test_create_sql_db):
 
     assert res
     assert database.allow_list == new_allow_list
-    #assert database.label == label
+    # assert database.label == label
     assert database.updates.day_of_week == 2
+
 
 @pytest.mark.skipif(
     os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
@@ -342,6 +342,7 @@ def test_update_postgres_db(test_linode_client, test_create_postgres_db):
     assert database.allow_list == new_allow_list
     assert database.label == label
     assert database.updates.day_of_week == 2
+
 
 @pytest.mark.skipif(
     os.getenv("RUN_DB_TESTS").strip().lower() not in {"yes", "true"},
