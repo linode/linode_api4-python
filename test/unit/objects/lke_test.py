@@ -7,6 +7,7 @@ from linode_api4.objects import (
     LKECluster,
     LKEClusterControlPlaneACLAddressesOptions,
     LKEClusterControlPlaneACLOptions,
+    LKEClusterControlPlaneOptions,
     LKENodePool,
 )
 from linode_api4.objects.lke import LKENodePoolNode, LKENodePoolTaint
