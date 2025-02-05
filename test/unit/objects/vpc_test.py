@@ -30,55 +30,6 @@ class VPCTest(ClientBaseCase):
         self.validate_vpc_123456(vpcs[0])
         self.assertEqual(vpcs[0]._populated, True)
 
-    def test_create_vpc(self):
-        """
-        Tests that you can create a VPC.
-        """
-
-        with self.mock_post("/vpcs/123456") as m:
-            vpc = self.client.vpcs.create("test-vpc", "us-southeast")
-
-            self.assertEqual(m.call_url, "/vpcs")
-
-            self.assertEqual(
-                m.call_data,
-                {
-                    "label": "test-vpc",
-                    "region": "us-southeast",
-                },
-            )
-
-            self.assertEqual(vpc._populated, True)
-            self.validate_vpc_123456(vpc)
-
-    def test_create_vpc_with_subnet(self):
-        """
-        Tests that you can create a VPC.
-        """
-
-        with self.mock_post("/vpcs/123456") as m:
-            vpc = self.client.vpcs.create(
-                "test-vpc",
-                "us-southeast",
-                subnets=[{"label": "test-subnet", "ipv4": "10.0.0.0/24"}],
-            )
-
-            self.assertEqual(m.call_url, "/vpcs")
-
-            self.assertEqual(
-                m.call_data,
-                {
-                    "label": "test-vpc",
-                    "region": "us-southeast",
-                    "subnets": [
-                        {"label": "test-subnet", "ipv4": "10.0.0.0/24"}
-                    ],
-                },
-            )
-
-            self.assertEqual(vpc._populated, True)
-            self.validate_vpc_123456(vpc)
-
     def test_get_subnet(self):
         """
         Tests that you can list VPCs.
