@@ -88,9 +88,7 @@ class ObjectStorageBucket(DerivedBase):
         when it's available.
         """
         if json is not None:
-            cluster_or_region = json.get("region") or json.get("cluster")
-            if parent_id is None and cluster_or_region:
-                parent_id = cluster_or_region
+            parent_id = parent_id or json.get("region") or json.get("cluster")
 
         if parent_id:
             return super().make(id, client, cls, parent_id=parent_id, json=json)

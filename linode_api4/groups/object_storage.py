@@ -328,8 +328,8 @@ class ObjectStorageGroup(Group):
         label: str,
         acl: ObjectStorageACL = ObjectStorageACL.PRIVATE,
         cors_enabled=False,
-        s3_endpoint: str = None,
-        endpoint_type: ObjectStorageEndpointType = None,
+        s3_endpoint: Optional[str] = None,
+        endpoint_type: Optional[ObjectStorageEndpointType] = None,
     ):
         """
         Creates an Object Storage Bucket in the specified cluster. Accounts with
