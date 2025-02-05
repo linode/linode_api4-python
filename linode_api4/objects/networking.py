@@ -112,6 +112,20 @@ class IPAddress(Base):
 
         return {"address": self.address, "linode_id": linode.id}
 
+    def delete(self):
+        """
+        Override the delete() function from Base to use the correct endpoint.
+        """
+        resp = self._client.delete(
+            "/linode/instances/{}/ips/{}".format(self.linode_id, self.address),
+            model=self,
+        )
+
+        if "error" in resp:
+            return False
+        self.invalidate()
+        return True
+
 
 @dataclass
 class VPCIPAddress(JSONObject):

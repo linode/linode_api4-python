@@ -184,7 +184,7 @@ def create_linode_for_pass_reset(test_linode_client, e2e_test_firewall):
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
         region,
-        image="linode/debian10",
+        image="linode/debian12",
         label=label,
         firewall=e2e_test_firewall,
     )
@@ -502,3 +502,22 @@ def pytest_configure(config):
         "markers",
         "smoke: mark test as part of smoke test suite",
     )
+
+
+@pytest.fixture(scope="session")
+def linode_for_vlan_tests(test_linode_client, e2e_test_firewall):
+    client = test_linode_client
+    region = get_region(client, {"Linodes", "Vlans"}, site_type="core")
+    label = get_test_label(length=8)
+
+    linode_instance, password = client.linode.instance_create(
+        "g6-nanode-1",
+        region,
+        image="linode/debian12",
+        label=label,
+        firewall=e2e_test_firewall,
+    )
+
+    yield linode_instance
+
+    linode_instance.delete()

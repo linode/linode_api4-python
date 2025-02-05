@@ -1,13 +1,14 @@
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
-    Base,
     Database,
     DatabaseEngine,
     DatabaseType,
     MySQLDatabase,
     PostgreSQLDatabase,
+    drop_null_keys,
 )
+from linode_api4.objects.base import _flatten_request_body_recursive
 
 
 class DatabaseGroup(Group):
@@ -126,13 +127,71 @@ class DatabaseGroup(Group):
 
         params = {
             "label": label,
-            "region": region.id if issubclass(type(region), Base) else region,
-            "engine": engine.id if issubclass(type(engine), Base) else engine,
-            "type": ltype.id if issubclass(type(ltype), Base) else ltype,
+            "region": region,
+            "engine": engine,
+            "type": ltype,
         }
         params.update(kwargs)
 
-        result = self.client.post("/databases/mysql/instances", data=params)
+        result = self.client.post(
+            "/databases/mysql/instances",
+            data=_flatten_request_body_recursive(drop_null_keys(params)),
+        )
+
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating MySQL Database", json=result
+            )
+
+        d = MySQLDatabase(self.client, result["id"], result)
+        return d
+
+    def mysql_fork(self, source, restore_time, **kwargs):
+        """
+        Forks an :any:`MySQLDatabase` on this account with
+        the given restore_time. label, region, engine, and ltype are optional.
+        For example::
+
+           client = LinodeClient(TOKEN)
+
+           db_to_fork = client.database.mysql_instances()[0]
+
+           new_fork = client.database.mysql_fork(
+                db_to_fork.id,
+                db_to_fork.updated,
+                label="new-fresh-label"
+           )
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-databases-mysql-instances
+
+        :param source: The id of the source database
+        :type source: int
+        :param restore_time: The timestamp for the fork
+        :type restore_time: datetime
+        :param label: The name for this cluster
+        :type label: str
+        :param region: The region to deploy this cluster in
+        :type region: str | Region
+        :param engine: The engine to deploy this cluster with
+        :type engine: str | Engine
+        :param ltype: The Linode Type to use for this cluster
+        :type ltype: str | Type
+        """
+
+        params = {
+            "fork": {
+                "source": source,
+                "restore_time": restore_time.strftime("%Y-%m-%dT%H:%M:%S"),
+            }
+        }
+        if "ltype" in kwargs:
+            params["type"] = kwargs["ltype"]
+        params.update(kwargs)
+
+        result = self.client.post(
+            "/databases/mysql/instances",
+            data=_flatten_request_body_recursive(drop_null_keys(params)),
+        )
 
         if "id" not in result:
             raise UnexpectedResponseError(
@@ -191,14 +250,71 @@ class DatabaseGroup(Group):
 
         params = {
             "label": label,
-            "region": region.id if issubclass(type(region), Base) else region,
-            "engine": engine.id if issubclass(type(engine), Base) else engine,
-            "type": ltype.id if issubclass(type(ltype), Base) else ltype,
+            "region": region,
+            "engine": engine,
+            "type": ltype,
         }
         params.update(kwargs)
 
         result = self.client.post(
-            "/databases/postgresql/instances", data=params
+            "/databases/postgresql/instances",
+            data=_flatten_request_body_recursive(drop_null_keys(params)),
+        )
+
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating PostgreSQL Database",
+                json=result,
+            )
+
+        d = PostgreSQLDatabase(self.client, result["id"], result)
+        return d
+
+    def postgresql_fork(self, source, restore_time, **kwargs):
+        """
+        Forks an :any:`PostgreSQLDatabase` on this account with
+        the given restore_time. label, region, engine, and ltype are optional.
+        For example::
+
+           client = LinodeClient(TOKEN)
+
+           db_to_fork = client.database.postgresql_instances()[0]
+
+           new_fork = client.database.postgresql_fork(
+                db_to_fork.id,
+                db_to_fork.updated,
+                label="new-fresh-label"
+           )
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-databases-postgresql-instances
+
+        :param source: The id of the source database
+        :type source: int
+        :param restore_time: The timestamp for the fork
+        :type restore_time: datetime
+        :param label: The name for this cluster
+        :type label: str
+        :param region: The region to deploy this cluster in
+        :type region: str | Region
+        :param engine: The engine to deploy this cluster with
+        :type engine: str | Engine
+        :param ltype: The Linode Type to use for this cluster
+        :type ltype: str | Type
+        """
+
+        params = {
+            "fork": {
+                "source": source,
+                "restore_time": restore_time.strftime("%Y-%m-%dT%H:%M:%S"),
+            }
+        }
+        if "ltype" in kwargs:
+            params["type"] = kwargs["ltype"]
+        params.update(kwargs)
+
+        result = self.client.post(
+            "/databases/postgresql/instances",
+            data=_flatten_request_body_recursive(drop_null_keys(params)),
         )
 
         if "id" not in result:

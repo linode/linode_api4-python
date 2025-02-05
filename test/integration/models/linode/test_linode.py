@@ -38,7 +38,7 @@ def linode_with_volume_firewall(test_linode_client):
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
         region,
-        image="linode/debian10",
+        image="linode/debian12",
         label=label + "_modlinode",
     )
 
@@ -76,7 +76,27 @@ def linode_for_network_interface_tests(test_linode_client, e2e_test_firewall):
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
         region,
-        image="linode/debian10",
+        image="linode/debian12",
+        label=label,
+        firewall=e2e_test_firewall,
+    )
+
+    yield linode_instance
+
+    linode_instance.delete()
+
+
+@pytest.fixture(scope="session")
+def linode_for_vpu_tests(test_linode_client, e2e_test_firewall):
+    client = test_linode_client
+    region = "us-lax"
+
+    label = get_test_label(length=8)
+
+    linode_instance, password = client.linode.instance_create(
+        "g1-accelerated-netint-vpu-t1u1-s",
+        region,
+        image="linode/debian12",
         label=label,
         firewall=e2e_test_firewall,
     )
@@ -147,7 +167,7 @@ def create_linode_for_long_running_tests(test_linode_client, e2e_test_firewall):
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
         region,
-        image="linode/debian10",
+        image="linode/debian12",
         label=label + "_long_tests",
         firewall=e2e_test_firewall,
     )
@@ -169,7 +189,7 @@ def linode_with_disk_encryption(test_linode_client, request):
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
         target_region,
-        image="linode/ubuntu23.10",
+        image="linode/ubuntu24.10",
         label=label,
         booted=False,
         disk_encryption=disk_encryption,
@@ -196,6 +216,13 @@ def test_get_linode(test_linode_client, linode_with_volume_firewall):
     assert linode.id == linode_with_volume_firewall.id
 
 
+def test_get_vpu(test_linode_client, linode_for_vpu_tests):
+    linode = test_linode_client.load(Instance, linode_for_vpu_tests.id)
+
+    assert linode.label == linode_for_vpu_tests.label
+    assert hasattr(linode.specs, "accelerated_devices")
+
+
 def test_linode_transfer(test_linode_client, linode_with_volume_firewall):
     linode = test_linode_client.load(Instance, linode_with_volume_firewall.id)
 
@@ -214,7 +241,7 @@ def test_linode_rebuild(test_linode_client):
     label = get_test_label() + "_rebuild"
 
     linode, password = client.linode.instance_create(
-        "g6-nanode-1", region, image="linode/debian10", label=label
+        "g6-nanode-1", region, image="linode/debian12", label=label
     )
 
     wait_for_condition(10, 100, get_status, linode, "running")
@@ -222,14 +249,14 @@ def test_linode_rebuild(test_linode_client):
     retry_sending_request(
         3,
         linode.rebuild,
-        "linode/debian10",
+        "linode/debian12",
         disk_encryption=InstanceDiskEncryptionType.disabled,
     )
 
     wait_for_condition(10, 100, get_status, linode, "rebuilding")
 
     assert linode.status == "rebuilding"
-    assert linode.image.id == "linode/debian10"
+    assert linode.image.id == "linode/debian12"
 
     assert linode.disk_encryption == InstanceDiskEncryptionType.disabled
 
@@ -272,7 +299,7 @@ def test_delete_linode(test_linode_client):
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
         region,
-        image="linode/debian10",
+        image="linode/debian12",
         label=label + "_linode",
     )
 
@@ -424,6 +451,14 @@ def test_linode_firewalls(linode_with_volume_firewall):
 
     assert len(firewalls) > 0
     assert "firewall" in firewalls[0].label
+
+
+def test_linode_apply_firewalls(linode_with_volume_firewall):
+    linode = linode_with_volume_firewall
+
+    result = linode.apply_firewalls()
+
+    assert result
 
 
 def test_linode_volumes(linode_with_volume_firewall):
@@ -591,6 +626,9 @@ def test_get_linode_types(test_linode_client):
     assert len(types) > 0
     assert "g6-nanode-1" in ids
 
+    for linode_type in types:
+        assert hasattr(linode_type, "accelerated_devices")
+
 
 def test_get_linode_types_overrides(test_linode_client):
     types = test_linode_client.linode.types()
@@ -690,6 +728,9 @@ class TestNetworkInterface:
         assert interface.purpose == "vlan"
         assert interface.label == "testvlan"
         assert interface.ipam_address == "10.0.0.2/32"
+
+    def test_create_vpu(self, test_linode_client, linode_for_vpu_tests):
+        assert hasattr(linode_for_vpu_tests.specs, "accelerated_devices")
 
     def test_create_vpc(
         self,

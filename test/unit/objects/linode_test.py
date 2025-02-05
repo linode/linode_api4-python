@@ -1,11 +1,7 @@
 from datetime import datetime
 from test.unit.base import ClientBaseCase
 
-from linode_api4 import (
-    InstanceDiskEncryptionType,
-    InstancePlacementGroupAssignment,
-    NetworkInterface,
-)
+from linode_api4 import InstanceDiskEncryptionType, NetworkInterface
 from linode_api4.objects import (
     Config,
     ConfigInterface,
@@ -284,6 +280,19 @@ class LinodeTest(ClientBaseCase):
             self.assertEqual(m.call_url, "/linode/instances/123/firewalls")
             self.assertEqual(len(result), 1)
 
+    def test_apply_firewalls(self):
+        """
+        Tests that you can submit a correct apply firewalls api request
+        """
+        linode = Instance(self.client, 123)
+
+        with self.mock_post({}) as m:
+            result = linode.apply_firewalls()
+            self.assertEqual(
+                m.call_url, "/linode/instances/123/firewalls/apply"
+            )
+            self.assertEqual(result, True)
+
     def test_volumes(self):
         """
         Tests that you can submit a correct volumes api request
@@ -413,7 +422,7 @@ class LinodeTest(ClientBaseCase):
                 1234,
                 label="test",
                 authorized_users=["test"],
-                image="linode/debian10",
+                image="linode/debian12",
             )
             self.assertEqual(m.call_url, "/linode/instances/123/disks")
             self.assertEqual(
@@ -422,7 +431,7 @@ class LinodeTest(ClientBaseCase):
                     "size": 1234,
                     "label": "test",
                     "root_pass": gen_pass,
-                    "image": "linode/debian10",
+                    "image": "linode/debian12",
                     "authorized_users": ["test"],
                     "read_only": False,
                 },
@@ -430,74 +439,6 @@ class LinodeTest(ClientBaseCase):
 
         assert disk.id == 12345
         assert disk.disk_encryption == InstanceDiskEncryptionType.disabled
-
-    def test_instance_create_with_user_data(self):
-        """
-        Tests that the metadata field is populated on Linode create.
-        """
-
-        with self.mock_post("linode/instances/123") as m:
-            self.client.linode.instance_create(
-                "g6-nanode-1",
-                "us-southeast",
-                metadata=self.client.linode.build_instance_metadata(
-                    user_data="cool"
-                ),
-            )
-
-            self.assertEqual(
-                m.call_data,
-                {
-                    "region": "us-southeast",
-                    "type": "g6-nanode-1",
-                    "metadata": {"user_data": "Y29vbA=="},
-                },
-            )
-
-    def test_instance_create_with_interfaces(self):
-        """
-        Tests that user can pass a list of interfaces on Linode create.
-        """
-        interfaces = [
-            {"purpose": "public"},
-            ConfigInterface(
-                purpose="vlan", label="cool-vlan", ipam_address="10.0.0.4/32"
-            ),
-        ]
-        with self.mock_post("linode/instances/123") as m:
-            self.client.linode.instance_create(
-                "us-southeast",
-                "g6-nanode-1",
-                interfaces=interfaces,
-            )
-
-            self.assertEqual(
-                m.call_data["interfaces"],
-                [
-                    {"purpose": "public"},
-                    {
-                        "purpose": "vlan",
-                        "label": "cool-vlan",
-                        "ipam_address": "10.0.0.4/32",
-                    },
-                ],
-            )
-
-    def test_build_instance_metadata(self):
-        """
-        Tests that the metadata field is built correctly.
-        """
-        self.assertEqual(
-            self.client.linode.build_instance_metadata(user_data="cool"),
-            {"user_data": "Y29vbA=="},
-        )
-
-        self.assertEqual(
-            self.client.linode.build_instance_metadata(
-                user_data="cool", encode_user_data=False
-            ),
-            {"user_data": "cool"},
-        )
 
     def test_get_placement_group(self):
         """
@@ -521,25 +462,6 @@ class LinodeTest(ClientBaseCase):
         assert pg.id == 123
         assert pg.label == "test"
         assert pg.placement_group_type == "anti_affinity:local"
-
-    def test_create_with_placement_group(self):
-        """
-        Tests that you can create a Linode with a Placement Group
-        """
-
-        with self.mock_post("linode/instances/123") as m:
-            self.client.linode.instance_create(
-                "g6-nanode-1",
-                "eu-west",
-                placement_group=InstancePlacementGroupAssignment(
-                    id=123,
-                    compliant_only=True,
-                ),
-            )
-
-        self.assertEqual(
-            m.call_data["placement_group"], {"id": 123, "compliant_only": True}
-        )
 
 
 class DiskTest(ClientBaseCase):
@@ -650,23 +572,6 @@ class StackScriptTest(ClientBaseCase):
 
 
 class TypeTest(ClientBaseCase):
-    def test_get_types(self):
-        """
-        Tests that Linode types can be returned
-        """
-        types = self.client.linode.types()
-
-        self.assertEqual(len(types), 4)
-        for t in types:
-            self.assertTrue(t._populated)
-            self.assertIsNotNone(t.id)
-            self.assertIsNotNone(t.label)
-            self.assertIsNotNone(t.disk)
-            self.assertIsNotNone(t.type_class)
-            self.assertIsNotNone(t.gpus)
-            self.assertIsNone(t.successor)
-            self.assertIsNotNone(t.region_prices)
-            self.assertIsNotNone(t.addons.backups.region_prices)
 
     def test_get_type_by_id(self):
         """

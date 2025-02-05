@@ -148,16 +148,16 @@ Running the tests
 ^^^^^^^^^^^^^^^^^
 Run the tests locally using the make command. Run the entire test suite using command below::
 
-    make testint
+    make test-int
 
 To run a specific package/suite, use the environment variable `TEST_SUITE` using directory names in `integration/...` folder ::
 
-    make TEST_SUITE="account" testint          // Runs tests in `integration/models/account` directory
-    make TEST_SUITE="linode_client" testint    // Runs tests in `integration/linode_client` directory
+    make TEST_SUITE="account" test-int          // Runs tests in `integration/models/account` directory
+    make TEST_SUITE="linode_client" test-int    // Runs tests in `integration/linode_client` directory
 
-Lastly to run a specific test case use environment variable `TEST_CASE` with `testint` command::
+Lastly to run a specific test case use environment variable `TEST_CASE` with `test-int` command::
 
-    make TEST_CASE=test_get_domain_record testint
+    make TEST_CASE=test_get_domain_record test-int
 
 Documentation
 -------------

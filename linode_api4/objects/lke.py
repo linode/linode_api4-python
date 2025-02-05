@@ -257,6 +257,7 @@ class LKECluster(Base):
         "k8s_version": Property(slug_relationship=KubeVersion, mutable=True),
         "pools": Property(derived_class=LKENodePool),
         "control_plane": Property(mutable=True),
+        "apl_enabled": Property(),
     }
 
     def invalidate(self):
@@ -352,6 +353,36 @@ class LKECluster(Base):
             self._control_plane_acl = result.get("acl")
 
         return LKEClusterControlPlaneACL.from_json(self._control_plane_acl)
+
+    @property
+    def apl_console_url(self) -> Optional[str]:
+        """
+        Returns the URL of this cluster's APL installation if this cluster
+        is APL-enabled, else None.
+
+        :returns: The URL of the APL console for this cluster.
+        :rtype: str or None
+        """
+
+        if not self.apl_enabled:
+            return None
+
+        return f"https://console.lke{self.id}.akamai-apl.net"
+
+    @property
+    def apl_health_check_url(self) -> Optional[str]:
+        """
+        Returns the URL of this cluster's APL health check endpoint if this cluster
+        is APL-enabled, else None.
+
+        :returns: The URL of the APL console for this cluster.
+        :rtype: str or None
+        """
+
+        if not self.apl_enabled:
+            return None
+
+        return f"https://auth.lke{self.id}.akamai-apl.net/ready"
 
     def node_pool_create(
         self,
