@@ -46,7 +46,7 @@ class ObjectStorageEndpoint(JSONObject):
     """
 
     region: str = ""
-    endpoint_type: str = ""
+    endpoint_type: ObjectStorageEndpointType = ""
     s3_endpoint: Optional[str] = None
 
 
