@@ -1,3 +1,5 @@
+from warnings import deprecated
+
 from linode_api4.objects import Base, DerivedBase, MappedObject, Property
 
 
@@ -63,6 +65,9 @@ class DatabaseEngine(Base):
         Base.invalidate(self)
 
 
+@deprecated(
+    reason="Backups are not supported for non-legacy database clusters."
+)
 class DatabaseBackup(DerivedBase):
     """
     A generic Managed Database backup.
@@ -97,6 +102,9 @@ class DatabaseBackup(DerivedBase):
         )
 
 
+@deprecated(
+    reason="Backups are not supported for non-legacy database clusters."
+)
 class MySQLDatabaseBackup(DatabaseBackup):
     """
     A backup for an accessible Managed MySQL Database.
@@ -107,6 +115,9 @@ class MySQLDatabaseBackup(DatabaseBackup):
     api_endpoint = "/databases/mysql/instances/{database_id}/backups/{id}"
 
 
+@deprecated(
+    reason="Backups are not supported for non-legacy database clusters."
+)
 class PostgreSQLDatabaseBackup(DatabaseBackup):
     """
     A backup for an accessible Managed PostgreSQL Database.
@@ -221,6 +232,9 @@ class MySQLDatabase(Base):
             "{}/patch".format(MySQLDatabase.api_endpoint), model=self
         )
 
+    @deprecated(
+        reason="Backups are not supported for non-legacy database clusters."
+    )
     def backup_create(self, label, **kwargs):
         """
         Creates a snapshot backup of a Managed MySQL Database.
@@ -358,6 +372,9 @@ class PostgreSQLDatabase(Base):
             "{}/patch".format(PostgreSQLDatabase.api_endpoint), model=self
         )
 
+    @deprecated(
+        reason="Backups are not supported for non-legacy database clusters."
+    )
     def backup_create(self, label, **kwargs):
         """
         Creates a snapshot backup of a Managed PostgreSQL Database.
