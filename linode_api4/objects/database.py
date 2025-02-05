@@ -1,4 +1,4 @@
-from warnings import deprecated
+from deprecated import deprecated
 
 from linode_api4.objects import Base, DerivedBase, MappedObject, Property
 
