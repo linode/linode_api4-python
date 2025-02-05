@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Optional
 from urllib import parse
 
@@ -11,7 +12,7 @@ from linode_api4.objects import (
     Property,
     Region,
 )
-from linode_api4.objects.serializable import StrEnum
+from linode_api4.objects.serializable import JSONObject, StrEnum
 from linode_api4.util import drop_null_keys
 
 
@@ -26,6 +27,27 @@ class ObjectStorageACL(StrEnum):
 class ObjectStorageKeyPermission(StrEnum):
     READ_ONLY = "read_only"
     READ_WRITE = "read_write"
+
+
+class ObjectStorageEndpointType(StrEnum):
+    E0 = "E0"
+    E1 = "E1"
+    E2 = "E2"
+    E3 = "E3"
+
+
+@dataclass
+class ObjectStorageEndpoint(JSONObject):
+    """
+    ObjectStorageEndpoint contains the core fields of an object storage endpoint object.
+
+    NOTE: This is not implemented as a typical API object (Base) because Object Storage Endpoints
+    cannot be refreshed, as there is no singular GET endpoint.
+    """
+
+    region: str = ""
+    endpoint_type: ObjectStorageEndpointType = ""
+    s3_endpoint: Optional[str] = None
 
 
 class ObjectStorageBucket(DerivedBase):
@@ -47,6 +69,8 @@ class ObjectStorageBucket(DerivedBase):
         "label": Property(identifier=True),
         "objects": Property(),
         "size": Property(),
+        "endpoint_type": Property(),
+        "s3_endpoint": Property(),
     }
 
     @classmethod
@@ -63,13 +87,8 @@ class ObjectStorageBucket(DerivedBase):
         Override this method to pass in the parent_id from the _raw_json object
         when it's available.
         """
-        if json is None:
-            return None
-
-        cluster_or_region = json.get("region") or json.get("cluster")
-
-        if parent_id is None and cluster_or_region:
-            parent_id = cluster_or_region
+        if json is not None:
+            parent_id = parent_id or json.get("region") or json.get("cluster")
 
         if parent_id:
             return super().make(id, client, cls, parent_id=parent_id, json=json)
@@ -77,6 +96,31 @@ class ObjectStorageBucket(DerivedBase):
             raise UnexpectedResponseError(
                 "Unexpected json response when making a new Object Storage Bucket instance."
             )
+
+    def access_get(self):
+        """
+        Returns a result object which wraps the current access config for this ObjectStorageBucket.
+
+        API Documentation: TODO
+
+        :returns: A result object which wraps the access that this ObjectStorageBucket is currently configured with.
+        :rtype: MappedObject
+        """
+        result = self._client.get(
+            "{}/access".format(self.api_endpoint),
+            model=self,
+        )
+
+        if not any(
+            key in result
+            for key in ["acl", "acl_xml", "cors_enabled", "cors_xml"]
+        ):
+            raise UnexpectedResponseError(
+                "Unexpected response when getting the bucket access config of a bucket!",
+                json=result,
+            )
+
+        return MappedObject(**result)
 
     def access_modify(
         self,
