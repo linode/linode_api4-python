@@ -278,12 +278,9 @@ def test_reset_sql_credentials(test_linode_client, test_create_sql_db):
     db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
 
     old_pass = str(db.credentials.password)
-
-    print(old_pass)
     db.credentials_reset()
 
     time.sleep(5)
-
     assert db.credentials.username == "akmadmin"
     assert db.credentials.password != old_pass
 
