@@ -297,6 +297,22 @@ def test_lke_cluster_acl(lke_cluster_with_acl):
     assert acl == cluster.control_plane_acl
     assert acl.addresses.ipv4 == ["10.0.0.2/32"]
 
+
+def test_lke_cluster_disable_acl(lke_cluster_with_acl):
+    cluster = lke_cluster_with_acl
+
+    assert cluster.control_plane_acl.enabled
+
+    acl = cluster.control_plane_acl_update(
+        LKEClusterControlPlaneACLOptions(
+            enabled=False,
+        )
+    )
+
+    assert acl.enabled is False
+    assert acl == cluster.control_plane_acl
+    assert acl.addresses.ipv4 == ["10.0.0.2/32"]
+
     cluster.control_plane_acl_delete()
 
     assert not cluster.control_plane_acl.enabled
