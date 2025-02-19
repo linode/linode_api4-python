@@ -101,7 +101,7 @@ class AccountGroup(Group):
         s = AccountSettings(self.client, result["managed"], result)
         return s
 
-    def invoices(self):
+    def invoices(self, *filters):
         """
         Returns Invoices issued to this account.
 
@@ -112,9 +112,9 @@ class AccountGroup(Group):
         :returns: Invoices issued to this account.
         :rtype: PaginatedList of Invoice
         """
-        return self.client._get_and_filter(Invoice)
+        return self.client._get_and_filter(Invoice, *filters)
 
-    def payments(self):
+    def payments(self, *filters):
         """
         Returns a list of Payments made on this account.
 
@@ -123,7 +123,7 @@ class AccountGroup(Group):
         :returns: A list of payments made on this account.
         :rtype: PaginatedList of Payment
         """
-        return self.client._get_and_filter(Payment)
+        return self.client._get_and_filter(Payment, *filters)
 
     def oauth_clients(self, *filters):
         """
@@ -337,7 +337,7 @@ class AccountGroup(Group):
                 json=resp,
             )
 
-    def service_transfers(self):
+    def service_transfers(self, *filters):
         """
         Returns a collection of all created and accepted Service Transfers for this account, regardless of the user that created or accepted the transfer.
 
@@ -347,7 +347,7 @@ class AccountGroup(Group):
         :rtype: PaginatedList of ServiceTransfer
         """
 
-        return self.client._get_and_filter(ServiceTransfer)
+        return self.client._get_and_filter(ServiceTransfer, *filters)
 
     def service_transfer_create(self, entities):
         """
