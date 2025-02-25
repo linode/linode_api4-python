@@ -131,7 +131,7 @@ class LKEGroup(Group):
 
         result = self.client.post(
             "/lke/clusters",
-            data=_flatten_request_body_recursive(drop_null_keys(params)),
+            data=drop_null_keys(_flatten_request_body_recursive(params)),
         )
 
         if "id" not in result:

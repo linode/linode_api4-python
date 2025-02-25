@@ -14,6 +14,7 @@ from linode_api4.objects import (
     Region,
     Type,
 )
+from linode_api4.util import drop_null_keys
 
 
 class LKEType(Base):
@@ -574,7 +575,7 @@ class LKECluster(Base):
         result = self._client.put(
             f"{LKECluster.api_endpoint}/control_plane_acl",
             model=self,
-            data={"acl": acl},
+            data={"acl": drop_null_keys(acl)},
         )
 
         acl = result.get("acl")
