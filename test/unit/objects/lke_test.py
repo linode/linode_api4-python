@@ -504,10 +504,10 @@ class LKETest(ClientBaseCase):
 
         with self.mock_put("lke/clusters/18881/control_plane_acl") as m:
             cluster.control_plane_acl_update(
-                LKEClusterControlPlaneACLOptions(
-                    enabled=True,
-                    addresses=None,
-                )
+                {
+                    "enabled": True,
+                    "addresses": None,
+                }
             )
 
             # Addresses should not be included in the API request if it's null

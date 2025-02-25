@@ -298,6 +298,20 @@ def test_lke_cluster_acl(lke_cluster_with_acl):
     assert acl.addresses.ipv4 == ["10.0.0.2/32"]
 
 
+def test_lke_cluster_update_acl_null_addresses(lke_cluster_with_acl):
+    cluster = lke_cluster_with_acl
+
+    # Addresses should not be included in the request if it's null,
+    # else an error will be returned by the API.
+    # See: TPT-3489
+    acl = cluster.control_plane_acl_update(
+        {"enabled": False, "addresses": None}
+    )
+
+    assert acl == cluster.control_plane_acl
+    assert acl.addresses.ipv4 == ["10.0.0.1/32"]
+
+
 def test_lke_cluster_disable_acl(lke_cluster_with_acl):
     cluster = lke_cluster_with_acl
 
