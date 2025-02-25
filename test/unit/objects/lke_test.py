@@ -499,7 +499,30 @@ class LKETest(ClientBaseCase):
         assert self.pool.nodes[1].id == "node8"
         assert self.pool.nodes[2].id == "node9"
 
-    def test_cluster_update_null_addresses(self):
+    def test_cluster_create_acl_null_addresses(self):
+        with self.mock_post("lke/clusters") as m:
+            self.client.lke.cluster_create(
+                region="us-mia",
+                label="foobar",
+                kube_version="1.32",
+                node_pools=[self.client.lke.node_pool("g6-standard-1", 3)],
+                control_plane={
+                    "acl": {
+                        "enabled": False,
+                        "addresses": None,
+                    }
+                },
+            )
+
+            # Addresses should not be included in the API request if it's null
+            # See: TPT-3489
+            assert m.call_data["control_plane"] == {
+                "acl": {
+                    "enabled": False,
+                }
+            }
+
+    def test_cluster_update_acl_null_addresses(self):
         cluster = LKECluster(self.client, 18881)
 
         with self.mock_put("lke/clusters/18881/control_plane_acl") as m:
