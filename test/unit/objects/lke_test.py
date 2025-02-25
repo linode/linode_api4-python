@@ -498,3 +498,18 @@ class LKETest(ClientBaseCase):
         assert self.pool.nodes[0].id == "node7"
         assert self.pool.nodes[1].id == "node8"
         assert self.pool.nodes[2].id == "node9"
+
+    def test_cluster_update_null_addresses(self):
+        cluster = LKECluster(self.client, 18881)
+
+        with self.mock_put("lke/clusters/18881/control_plane_acl") as m:
+            cluster.control_plane_acl_update(
+                LKEClusterControlPlaneACLOptions(
+                    enabled=True,
+                    addresses=None,
+                )
+            )
+
+            # Addresses should not be included in the API request if it's null
+            # See: TPT-3489
+            assert m.call_data == {"acl": {"enabled": True}}
