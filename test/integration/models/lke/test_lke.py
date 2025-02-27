@@ -291,7 +291,7 @@ def test_lke_cluster_acl(lke_cluster_with_acl):
             enabled=True,
             addresses=LKEClusterControlPlaneACLAddressesOptions(
                 ipv4=["10.0.0.2/32"]
-            )
+            ),
         )
     )
 
