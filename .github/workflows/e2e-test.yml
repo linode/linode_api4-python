@@ -197,7 +197,6 @@ jobs:
       - name: Set release version env
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
 
-
       - name: Add variables and upload test results
         if: always()
         run: |
@@ -213,12 +212,18 @@ jobs:
           LINODE_CLI_OBJ_ACCESS_KEY: ${{ secrets.LINODE_CLI_OBJ_ACCESS_KEY }}
           LINODE_CLI_OBJ_SECRET_KEY: ${{ secrets.LINODE_CLI_OBJ_SECRET_KEY }}
 
+      - name: Generate test summary and store to GITHUB ENV
+        run: |
+          filename=$(ls | grep -E '^[0-9]{12}_sdk_test_report\.xml$') 
+          python3 e2e_scripts/tod_scripts/generate_test_summary.py "${filename}"
+
   notify-slack:
     runs-on: ubuntu-latest
     needs: [integration-tests]
     if: ${{ (success() || failure()) }} # Run even if integration tests fail and only on main repository
     steps:
       - name: Notify Slack
+        id: main_message
         uses: slackapi/slack-github-action@v2.0.0
         with:
           method: chat.postMessage
@@ -248,3 +253,14 @@ jobs:
                 elements:
                   - type: mrkdwn
                     text: "Triggered by: :bust_in_silhouette: `${{ github.actor }}`"
+
+      - name: Test summary thread
+        if: success()
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: ${{ secrets.SLACK_CHANNEL_ID }}
+            thread_ts: "${{ steps.main_message.outputs.ts }}"
+            text: {{ env.TEST_SUMMARY }}"
