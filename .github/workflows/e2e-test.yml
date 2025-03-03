@@ -220,6 +220,9 @@ jobs:
       - name: Verify Environment Variable
         run: echo "$TEST_SUMMARY"
 
+      - name: Verify Environment Variable 2
+        run: echo "${{ env.TEST_SUMMARY }}"
+
   notify-slack:
     runs-on: ubuntu-latest
     needs: [integration-tests]
@@ -257,6 +260,12 @@ jobs:
                   - type: mrkdwn
                     text: "Triggered by: :bust_in_silhouette: `${{ github.actor }}`"
 
+      - name: Verify Environment Variable 3
+        run: echo "$TEST_SUMMARY"
+
+      - name: Verify Environment Variable 4
+        run: echo "${{ env.TEST_SUMMARY }}"
+
       - name: Test summary thread
         if: success()
         uses: slackapi/slack-github-action@v2.0.0
@@ -266,4 +275,4 @@ jobs:
           payload: |
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
             thread_ts: "${{ steps.main_message.outputs.ts }}"
-            text: "${{ env.TEST_SUMMARY }}"
+            text: "$TEST_SUMMARY"
