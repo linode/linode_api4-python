@@ -23,7 +23,7 @@ def test_save_null_values_excluded(test_linode_client, test_domain):
     domain.master_ips = ["127.0.0.1"]
     res = domain.save()
 
-    assert res
+    assert False
 
 
 def test_zone_file_view(test_linode_client, test_domain):
@@ -59,3 +59,12 @@ def test_import(test_linode_client, test_domain):
         'Currently failing with message: linode_api4.errors.ApiError: 400: An unknown error occured. Please open a ticket for further assistance. Command: domain_import(domain, "google.ca")'
     )
     domain = test_linode_client.load(Domain, test_domain.id)
+
+
+@pytest.fixture
+def broken_fixture():
+    raise RuntimeError("This setup is intentionally broken.")
+
+
+def test_error(broken_fixture):
+    pass  # The test will never run because the fixture fails first
