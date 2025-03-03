@@ -212,16 +212,12 @@ jobs:
           LINODE_CLI_OBJ_ACCESS_KEY: ${{ secrets.LINODE_CLI_OBJ_ACCESS_KEY }}
           LINODE_CLI_OBJ_SECRET_KEY: ${{ secrets.LINODE_CLI_OBJ_SECRET_KEY }}
 
-      - name: Generate test summary and store to GITHUB ENV
+      - name: Generate test summary and save to output
+        id: set-test-summary
         run: |
           filename=$(ls | grep -E '^[0-9]{12}_sdk_test_report\.xml$') 
-          python3 e2e_scripts/tod_scripts/generate_test_summary.py "${filename}"
-
-      - name: Verify Environment Variable
-        run: echo "$TEST_SUMMARY"
-
-      - name: Verify Environment Variable 2
-        run: echo "${{ env.TEST_SUMMARY }}"
+          summary=$(python3 e2e_scripts/tod_scripts/generate_test_summary.py "${filename}")
+          echo "summary=$summary" >> $GITHUB_OUTPUT  
 
   notify-slack:
     runs-on: ubuntu-latest
@@ -260,11 +256,12 @@ jobs:
                   - type: mrkdwn
                     text: "Triggered by: :bust_in_silhouette: `${{ github.actor }}`"
 
-      - name: Verify Environment Variable 3
-        run: echo "$TEST_SUMMARY"
-
-      - name: Verify Environment Variable 4
-        run: echo "${{ env.TEST_SUMMARY }}"
+      - name: Debug Test Summary Output
+        run: |
+          echo "TEST_SUMMARY output from previous job:"
+          echo "--------------------------------------"
+          echo "${{ needs.process-upload-report.outputs.test_summary }}"
+          echo "--------------------------------------"
 
       - name: Test summary thread
         if: success()
@@ -275,4 +272,4 @@ jobs:
           payload: |
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
             thread_ts: "${{ steps.main_message.outputs.ts }}"
-            text: "$TEST_SUMMARY"
+            text: "${{ needs.process-upload-report.outputs.test_summary }}"
