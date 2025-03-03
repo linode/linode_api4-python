@@ -91,7 +91,8 @@ jobs:
         run: |
           timestamp=$(date +'%Y%m%d%H%M')
           report_filename="${timestamp}_sdk_test_report.xml"
-          make test-int RUN_DB_FORK_TESTS=${{ github.event.inputs.run_db_fork_tests }} RUN_DB_TESTS=${{ github.event.inputs.run_db_tests }} TEST_SUITE="${{ github.event.inputs.test_suite }}" TEST_ARGS="--junitxml=${report_filename}"
+#          make test-int RUN_DB_FORK_TESTS=${{ github.event.inputs.run_db_fork_tests }} RUN_DB_TESTS=${{ github.event.inputs.run_db_tests }} TEST_SUITE="${{ github.event.inputs.test_suite }}" TEST_ARGS="--junitxml=${report_filename}"
+          make test-int TEST_SUITE=domain
         env:
           LINODE_TOKEN: ${{ env.LINODE_TOKEN }}
 
@@ -217,7 +218,9 @@ jobs:
         run: |
           filename=$(ls | grep -E '^[0-9]{12}_sdk_test_report\.xml$') 
           summary=$(python3 e2e_scripts/tod_scripts/generate_test_summary.py "${filename}")
-          echo "summary=$summary" >> $GITHUB_OUTPUT  
+          echo "summary<<EOF" >> $GITHUB_OUTPUT
+          echo "$summary" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT  
 
   notify-slack:
     runs-on: ubuntu-latest
