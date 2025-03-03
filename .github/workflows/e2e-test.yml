@@ -266,4 +266,4 @@ jobs:
           payload: |
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
             thread_ts: "${{ steps.main_message.outputs.ts }}"
-            text: {{ env.TEST_SUMMARY }}
+            text: "${{ env.TEST_SUMMARY }}"
