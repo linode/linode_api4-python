@@ -237,7 +237,7 @@ jobs:
               - type: section
                 text:
                   type: mrkdwn
-                  text: ":rocket: *${{ github.workflow }} Completed in: ${{ github.repository }}* ${{ needs.integration-tests.result == 'success' && ':white_check_mark:' || ':failed: Build Failed' }}"
+                  text: ":rocket: *${{ github.workflow }} Completed in: ${{ github.repository }}* ${{ needs.integration-tests.result == 'success' && ':white_check_mark:' || ':failed:' }}"
               - type: divider
               - type: section
                 fields:
@@ -266,4 +266,4 @@ jobs:
           payload: |
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
             thread_ts: "${{ steps.main_message.outputs.ts }}"
-            text: {{ env.TEST_SUMMARY }}"
+            text: "{{ env.TEST_SUMMARY }}"
