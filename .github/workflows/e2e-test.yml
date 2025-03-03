@@ -227,10 +227,6 @@ jobs:
     needs: [integration-tests, process-upload-report]
     if: ${{ (success() || failure()) }} # Run even if integration tests fail and only on main repository
     steps:
-      - env:
-          SUMMARY: ${{ needs.process-upload-report.outputs.summary }}
-        run: echo "$SUMMARY"
-
       - name: Notify Slack
         id: main_message
         uses: slackapi/slack-github-action@v2.0.0
@@ -263,12 +259,19 @@ jobs:
                   - type: mrkdwn
                     text: "Triggered by: :bust_in_silhouette: `${{ github.actor }}`"
 
-      - name: Debug Test Summary Output
+      - name: Decode Test Summary
+        id: decode-test-summary
         run: |
-          echo "TEST_SUMMARY output from previous job:"
-          echo "--------------------------------------"
-          echo "${{ needs.process-upload-report.outputs.summary }}"
-          echo "--------------------------------------"
+          TEST_SUMMARY_ENCODED="${{ needs.process-upload-report.outputs.summary }}"
+          if [[ -n "$TEST_SUMMARY_ENCODED" ]]; then
+            TEST_SUMMARY=$(echo "$TEST_SUMMARY_ENCODED" | base64 --decode)
+            echo "TEST_SUMMARY=$TEST_SUMMARY" >> $GITHUB_ENV
+          else
+            echo "TEST_SUMMARY=No summary available." >> $GITHUB_ENV
+          fi
+
+      - name: Debug Decoded Test Summary
+        run: echo "$TEST_SUMMARY"
 
       - name: Test summary thread
         if: success()
@@ -279,4 +282,4 @@ jobs:
           payload: |
             channel: ${{ secrets.SLACK_CHANNEL_ID }}
             thread_ts: "${{ steps.main_message.outputs.ts }}"
-            text: "${{ needs.process-upload-report.outputs.summary }}"
+            text: "${{ env.TEST_SUMMARY }}"
