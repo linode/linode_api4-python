@@ -13,7 +13,7 @@ def test_get_domain_record(test_linode_client, test_domain):
         test_linode_client, test_domain.records.first().id, test_domain.id
     )
 
-    assert dr.id == test_domain.records.first().id
+    assert False
 
 
 def test_save_null_values_excluded(test_linode_client, test_domain):
@@ -23,7 +23,7 @@ def test_save_null_values_excluded(test_linode_client, test_domain):
     domain.master_ips = ["127.0.0.1"]
     res = domain.save()
 
-    assert res
+    assert False
 
 
 def test_zone_file_view(test_linode_client, test_domain):
