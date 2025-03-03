@@ -91,7 +91,7 @@ jobs:
         run: |
           timestamp=$(date +'%Y%m%d%H%M')
           report_filename="${timestamp}_sdk_test_report.xml"
-          make test-int RUN_DB_FORK_TESTS=${{ github.event.inputs.run_db_fork_tests }} RUN_DB_TESTS=${{ github.event.inputs.run_db_tests }} TEST_SUITE="domain" TEST_ARGS="--junitxml=${report_filename}"
+          make test-int RUN_DB_FORK_TESTS=${{ github.event.inputs.run_db_fork_tests }} RUN_DB_TESTS=${{ github.event.inputs.run_db_tests }} TEST_SUITE="${{ github.event.inputs.test_suite }}" TEST_ARGS="--junitxml=${report_filename}"
         env:
           LINODE_TOKEN: ${{ env.LINODE_TOKEN }}
 
@@ -172,7 +172,7 @@ jobs:
   process-upload-report:
     runs-on: ubuntu-latest
     needs: [integration-tests]
-    if: always() #&& github.repository == 'linode/linode_api4-python' # Run even if integration tests fail and only on main repository
+    if: always() && github.repository == 'linode/linode_api4-python' # Run even if integration tests fail and only on main repository
     outputs:
       summary: ${{ steps.set-test-summary.outputs.summary }}
 
@@ -261,9 +261,6 @@ jobs:
                 elements:
                   - type: mrkdwn
                     text: "Triggered by: :bust_in_silhouette: `${{ github.actor }}`"
-
-      - name: Debug Test Summary
-        run: echo "${{ needs.process-upload-report.outputs.summary }}"
 
       - name: Test summary thread
         if: success()
