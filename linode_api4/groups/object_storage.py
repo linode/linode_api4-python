@@ -8,6 +8,7 @@ from deprecated import deprecated
 from linode_api4 import (
     ObjectStorageEndpoint,
     ObjectStorageEndpointType,
+    ObjectStorageType,
     PaginatedList,
 )
 from linode_api4.errors import UnexpectedResponseError
@@ -69,6 +70,24 @@ class ObjectStorageGroup(Group):
         :rtype: PaginatedList of ObjectStorageKeys
         """
         return self.client._get_and_filter(ObjectStorageKeys, *filters)
+
+    def types(self, *filters):
+        """
+        Returns a :any:`PaginatedList` of :any:`ObjectStorageType` objects that represents a valid Object Storage type.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-types
+
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
+
+        :returns: A Paginated List of Object Storage types that match the query.
+        :rtype: PaginatedList of ObjectStorageType
+        """
+
+        return self.client._get_and_filter(
+            ObjectStorageType, *filters, endpoint="/object-storage/types"
+        )
 
     def keys_create(
         self,
