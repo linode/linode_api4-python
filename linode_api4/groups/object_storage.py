@@ -5,6 +5,11 @@ from urllib import parse
 
 from deprecated import deprecated
 
+from linode_api4 import (
+    ObjectStorageEndpoint,
+    ObjectStorageEndpointType,
+    PaginatedList,
+)
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
@@ -272,6 +277,30 @@ class ObjectStorageGroup(Group):
 
         return MappedObject(**result)
 
+    def endpoints(self, *filters) -> PaginatedList:
+        """
+        Returns a paginated list of all Object Storage endpoints available in your account.
+
+        This is intended to be called from the :any:`LinodeClient`
+        class, like this::
+
+           endpoints = client.object_storage.endpoints()
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-endpoints
+
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
+
+        :returns: A list of Object Storage Endpoints that matched the query.
+        :rtype: PaginatedList of ObjectStorageEndpoint
+        """
+        return self.client._get_and_filter(
+            ObjectStorageEndpoint,
+            *filters,
+            endpoint="/object-storage/endpoints",
+        )
+
     def buckets(self, *filters):
         """
         Returns a paginated list of all Object Storage Buckets that you own.
@@ -299,6 +328,8 @@ class ObjectStorageGroup(Group):
         label: str,
         acl: ObjectStorageACL = ObjectStorageACL.PRIVATE,
         cors_enabled=False,
+        s3_endpoint: Optional[str] = None,
+        endpoint_type: Optional[ObjectStorageEndpointType] = None,
     ):
         """
         Creates an Object Storage Bucket in the specified cluster. Accounts with
@@ -319,6 +350,13 @@ class ObjectStorageGroup(Group):
         :param cluster: The ID of the Object Storage Cluster where this bucket
                         should be created.
         :type cluster: str
+
+        :param endpoint_type: The type of s3_endpoint available to the active user in this region.
+        :type endpoint_type: str
+                   Enum: E0,E1,E2,E3
+
+        :param s3_endpoint: The active user's s3 endpoint URL, based on the endpoint_type and region.
+        :type s3_endpoint: str
 
         :param cors_enabled: If true, the bucket will be created with CORS enabled for
                              all origins. For more fine-grained controls of CORS, use
@@ -346,6 +384,8 @@ class ObjectStorageGroup(Group):
             "label": label,
             "acl": acl,
             "cors_enabled": cors_enabled,
+            "s3_endpoint": s3_endpoint,
+            "endpoint_type": endpoint_type,
         }
 
         if self.is_cluster(cluster_or_region_id):

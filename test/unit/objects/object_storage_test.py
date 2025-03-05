@@ -1,6 +1,7 @@
 from datetime import datetime
 from test.unit.base import ClientBaseCase
 
+from linode_api4 import ObjectStorageEndpointType
 from linode_api4.objects import (
     ObjectStorageACL,
     ObjectStorageBucket,
@@ -35,6 +36,14 @@ class ObjectStorageTest(ClientBaseCase):
             )
             self.assertEqual(object_storage_bucket.objects, 4)
             self.assertEqual(object_storage_bucket.size, 188318981)
+            self.assertEqual(
+                object_storage_bucket.endpoint_type,
+                ObjectStorageEndpointType.E1,
+            )
+            self.assertEqual(
+                object_storage_bucket.s3_endpoint,
+                "us-east-12.linodeobjects.com",
+            )
             self.assertEqual(m.call_url, object_storage_bucket_api_get_url)
 
     def test_object_storage_bucket_delete(self):
@@ -47,6 +56,22 @@ class ObjectStorageTest(ClientBaseCase):
             )
             object_storage_bucket.delete()
             self.assertEqual(m.call_url, object_storage_bucket_delete_url)
+
+    def test_bucket_access_get(self):
+        bucket_access_get_url = (
+            "/object-storage/buckets/us-east/example-bucket/access"
+        )
+        with self.mock_get(bucket_access_get_url) as m:
+            object_storage_bucket = ObjectStorageBucket(
+                self.client, "example-bucket", "us-east"
+            )
+            result = object_storage_bucket.access_get()
+            self.assertIsNotNone(result)
+            self.assertEqual(m.call_url, bucket_access_get_url)
+            self.assertEqual(result.acl, "authenticated-read")
+            self.assertEqual(result.cors_enabled, True)
+            self.assertEqual(result.acl_xml, "<AccessControlPolicy...")
+            self.assertEqual(result.cors_xml, "<CORSConfiguration>...")
 
     def test_bucket_access_modify(self):
         """
@@ -115,6 +140,8 @@ class ObjectStorageTest(ClientBaseCase):
             self.assertEqual(bucket.label, "example-bucket")
             self.assertEqual(bucket.objects, 4)
             self.assertEqual(bucket.size, 188318981)
+            self.assertEqual(bucket.endpoint_type, ObjectStorageEndpointType.E1)
+            self.assertEqual(bucket.s3_endpoint, "us-east-12.linodeobjects.com")
 
     def test_ssl_cert_delete(self):
         """

@@ -1,0 +1,6 @@
+{
+    "acl": "authenticated-read",
+    "acl_xml": "<AccessControlPolicy...",
+    "cors_enabled": true,
+    "cors_xml": "<CORSConfiguration>..."
+}

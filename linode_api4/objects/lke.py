@@ -14,6 +14,7 @@ from linode_api4.objects import (
     Region,
     Type,
 )
+from linode_api4.util import drop_null_keys
 
 
 class LKEType(Base):
@@ -79,8 +80,6 @@ class LKEClusterControlPlaneACLOptions(JSONObject):
     """
     LKEClusterControlPlaneACLOptions is used to set
     the ACL configuration of an LKE cluster's control plane.
-
-    NOTE: Control Plane ACLs may not currently be available to all users.
     """
 
     enabled: Optional[bool] = None
@@ -116,8 +115,6 @@ class LKEClusterControlPlaneACL(JSONObject):
     """
     LKEClusterControlPlaneACL describes the ACL configuration of an LKE cluster's
     control plane.
-
-    NOTE: Control Plane ACLs may not currently be available to all users.
     """
 
     include_none_values = True
@@ -336,8 +333,6 @@ class LKECluster(Base):
     def control_plane_acl(self) -> LKEClusterControlPlaneACL:
         """
         Gets the ACL configuration of this cluster's control plane.
-
-        NOTE: Control Plane ACLs may not currently be available to all users.
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/get-lke-cluster-acl
 
@@ -558,8 +553,6 @@ class LKECluster(Base):
         """
         Updates the ACL configuration for this cluster's control plane.
 
-        NOTE: Control Plane ACLs may not currently be available to all users.
-
         API Documentation: https://techdocs.akamai.com/linode-api/reference/put-lke-cluster-acl
 
         :param acl: The ACL configuration to apply to this cluster.
@@ -574,7 +567,7 @@ class LKECluster(Base):
         result = self._client.put(
             f"{LKECluster.api_endpoint}/control_plane_acl",
             model=self,
-            data={"acl": acl},
+            data={"acl": drop_null_keys(acl)},
         )
 
         acl = result.get("acl")
@@ -588,8 +581,6 @@ class LKECluster(Base):
         Deletes the ACL configuration for this cluster's control plane.
         This has the same effect as calling control_plane_acl_update with the `enabled` field
         set to False. Access controls are disabled and all rules are deleted.
-
-        NOTE: Control Plane ACLs may not currently be available to all users.
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/delete-lke-cluster-acl
         """

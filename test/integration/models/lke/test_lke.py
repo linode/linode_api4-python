@@ -45,7 +45,7 @@ def lke_cluster(test_linode_client):
     cluster.delete()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def lke_cluster_with_acl(test_linode_client):
     node_type = test_linode_client.linode.types()[1]  # g6-standard-1
     version = test_linode_client.lke.versions()[0]
@@ -288,14 +288,45 @@ def test_lke_cluster_acl(lke_cluster_with_acl):
 
     acl = cluster.control_plane_acl_update(
         LKEClusterControlPlaneACLOptions(
+            enabled=True,
             addresses=LKEClusterControlPlaneACLAddressesOptions(
                 ipv4=["10.0.0.2/32"]
-            )
+            ),
         )
     )
 
     assert acl == cluster.control_plane_acl
     assert acl.addresses.ipv4 == ["10.0.0.2/32"]
+
+
+def test_lke_cluster_update_acl_null_addresses(lke_cluster_with_acl):
+    cluster = lke_cluster_with_acl
+
+    # Addresses should not be included in the request if it's null,
+    # else an error will be returned by the API.
+    # See: TPT-3489
+    acl = cluster.control_plane_acl_update(
+        {"enabled": False, "addresses": None}
+    )
+
+    assert acl == cluster.control_plane_acl
+    assert acl.addresses.ipv4 == []
+
+
+def test_lke_cluster_disable_acl(lke_cluster_with_acl):
+    cluster = lke_cluster_with_acl
+
+    assert cluster.control_plane_acl.enabled
+
+    acl = cluster.control_plane_acl_update(
+        LKEClusterControlPlaneACLOptions(
+            enabled=False,
+        )
+    )
+
+    assert acl.enabled is False
+    assert acl == cluster.control_plane_acl
+    assert acl.addresses.ipv4 == []
 
     cluster.control_plane_acl_delete()
 
