@@ -73,7 +73,7 @@ class ObjectStorageGroup(Group):
 
     def types(self, *filters):
         """
-        Returns a :any:`PaginatedList` of :any:`ObjectStorageType` objects that represents a valid Object Storage type.
+        Returns a paginated list of Object Storage Types.
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-types
 
