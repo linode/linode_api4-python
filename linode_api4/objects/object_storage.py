@@ -4,6 +4,7 @@ from urllib import parse
 
 from deprecated import deprecated
 
+from linode_api4.common import Price, RegionPrice
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import (
     Base,
@@ -48,6 +49,24 @@ class ObjectStorageEndpoint(JSONObject):
     region: str = ""
     endpoint_type: ObjectStorageEndpointType = ""
     s3_endpoint: Optional[str] = None
+
+
+class ObjectStorageType(Base):
+    """
+    An ObjectStorageType represents the structure of a valid Object Storage type.
+    Currently, the ObjectStorageType can only be retrieved by listing, i.e.:
+        types = client.object_storage.types()
+
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-types
+    """
+
+    properties = {
+        "id": Property(identifier=True),
+        "label": Property(),
+        "price": Property(json_object=Price),
+        "region_prices": Property(json_object=RegionPrice),
+        "transfer": Property(),
+    }
 
 
 class ObjectStorageBucket(DerivedBase):

@@ -1,0 +1,23 @@
+{
+  "data": [
+    {
+      "id": "objectstorage",
+      "label": "Object Storage",
+      "price": {
+        "hourly": 0.0015,
+        "monthly": 0.1
+      },
+      "region_prices": [
+        {
+          "hourly": 0.00018,
+          "id": "us-east",
+          "monthly": 0.12
+        }
+      ],
+      "transfer": 0
+    }
+  ],
+  "page": 1,
+  "pages": 1,
+  "results": 1
+}

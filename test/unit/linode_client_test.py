@@ -980,6 +980,21 @@ class ObjectStorageGroupTest(ClientBaseCase):
         self.assertEqual(key2.access_key, "testAccessKeyHere456")
         self.assertEqual(key2.secret_key, "[REDACTED]")
 
+    def test_object_storage_types(self):
+        """
+        Tests that a list of ObjectStorageTypes can be retrieved
+        """
+        types = self.client.object_storage.types()
+        self.assertEqual(len(types), 1)
+        self.assertEqual(types[0].id, "objectstorage")
+        self.assertEqual(types[0].label, "Object Storage")
+        self.assertEqual(types[0].price.hourly, 0.0015)
+        self.assertEqual(types[0].price.monthly, 0.1)
+        self.assertEqual(types[0].region_prices[0].id, "us-east")
+        self.assertEqual(types[0].region_prices[0].hourly, 0.00018)
+        self.assertEqual(types[0].region_prices[0].monthly, 0.12)
+        self.assertEqual(types[0].transfer, 0)
+
     def test_keys_create(self):
         """
         Tests that you can create Object Storage Keys
