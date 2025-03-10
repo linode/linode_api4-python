@@ -98,7 +98,7 @@ def test_get_networking_rule_versions(test_linode_client, test_firewall):
     firewall.update_rules(new_rules)
     time.sleep(1)
 
-    rule_versions = firewall.get_rule_versions()
+    rule_versions = firewall.rule_versions
 
     # Original firewall rules
     old_rule_version = firewall.get_rule_version(1)

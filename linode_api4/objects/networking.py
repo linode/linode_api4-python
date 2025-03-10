@@ -244,7 +244,8 @@ class Firewall(Base):
             "{}/rules".format(self.api_endpoint), model=self
         )
 
-    def get_rule_versions(self):
+    @property
+    def rule_versions(self):
         """
         Gets the JSON rule versions for this Firewall.
 

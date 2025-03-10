@@ -55,7 +55,7 @@ class NetworkingTest(ClientBaseCase):
         firewall = Firewall(self.client, 123)
 
         with self.mock_get("/networking/firewalls/123/history") as m:
-            result = firewall.get_rule_versions()
+            result = firewall.rule_versions
             self.assertEqual(m.call_url, "/networking/firewalls/123/history")
             self.assertEqual(result["data"][0]["status"], "enabled")
             self.assertEqual(result["data"][0]["rules"]["version"], 1)
