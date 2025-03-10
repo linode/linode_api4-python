@@ -47,6 +47,54 @@ class NetworkingTest(ClientBaseCase):
             self.assertEqual(result["inbound_policy"], "DROP")
             self.assertEqual(result["outbound_policy"], "DROP")
 
+    def test_get_rule_versions(self):
+        """
+        Tests that you can submit a correct firewall rule versions view api request.
+        """
+
+        firewall = Firewall(self.client, 123)
+
+        with self.mock_get("/networking/firewalls/123/history") as m:
+            result = firewall.rule_versions
+            self.assertEqual(m.call_url, "/networking/firewalls/123/history")
+            self.assertEqual(result["data"][0]["status"], "enabled")
+            self.assertEqual(result["data"][0]["rules"]["version"], 1)
+            self.assertEqual(result["data"][0]["status"], "enabled")
+            self.assertEqual(result["data"][1]["rules"]["version"], 2)
+
+    def test_get_rule_version(self):
+        """
+        Tests that you can submit a correct firewall rule version view api request.
+        """
+
+        firewall = Firewall(self.client, 123)
+
+        with self.mock_get("/networking/firewalls/123/history/rules/2") as m:
+            result = firewall.get_rule_version(2)
+            self.assertEqual(
+                m.call_url, "/networking/firewalls/123/history/rules/2"
+            )
+            self.assertEqual(result["inbound"][0]["action"], "ACCEPT")
+            self.assertEqual(
+                result["inbound"][0]["addresses"]["ipv4"][0], "0.0.0.0/0"
+            )
+            self.assertEqual(
+                result["inbound"][0]["addresses"]["ipv6"][0], "ff00::/8"
+            )
+            self.assertEqual(
+                result["inbound"][0]["description"],
+                "A really cool firewall rule.",
+            )
+            self.assertEqual(
+                result["inbound"][0]["label"], "really-cool-firewall-rule"
+            )
+            self.assertEqual(result["inbound"][0]["ports"], "80")
+            self.assertEqual(result["inbound"][0]["protocol"], "TCP")
+            self.assertEqual(result["outbound"], [])
+            self.assertEqual(result["inbound_policy"], "ACCEPT")
+            self.assertEqual(result["outbound_policy"], "DROP")
+            self.assertEqual(result["version"], 2)
+
     def test_rdns_reset(self):
         """
         Tests that the RDNS of an IP and be reset using an explicit null value.

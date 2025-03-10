@@ -1,3 +1,4 @@
+import time
 from test.integration.conftest import (
     get_api_ca_file,
     get_api_url,
@@ -70,6 +71,59 @@ def test_get_networking_rules(test_linode_client, test_firewall):
     assert "inbound_policy" in str(rules)
     assert "outbound" in str(rules)
     assert "outbound_policy" in str(rules)
+
+
+def test_get_networking_rule_versions(test_linode_client, test_firewall):
+    firewall = test_linode_client.load(Firewall, test_firewall.id)
+
+    # Update the firewall's rules
+    new_rules = {
+        "inbound": [
+            {
+                "action": "ACCEPT",
+                "addresses": {
+                    "ipv4": ["0.0.0.0/0"],
+                    "ipv6": ["ff00::/8"],
+                },
+                "description": "A really cool firewall rule.",
+                "label": "really-cool-firewall-rule",
+                "ports": "80",
+                "protocol": "TCP",
+            }
+        ],
+        "inbound_policy": "ACCEPT",
+        "outbound": [],
+        "outbound_policy": "DROP",
+    }
+    firewall.update_rules(new_rules)
+    time.sleep(1)
+
+    rule_versions = firewall.rule_versions
+
+    # Original firewall rules
+    old_rule_version = firewall.get_rule_version(1)
+
+    # Updated firewall rules
+    new_rule_version = firewall.get_rule_version(2)
+
+    assert "rules" in str(rule_versions)
+    assert "version" in str(rule_versions)
+    assert rule_versions["results"] == 2
+
+    assert old_rule_version["inbound"] == []
+    assert old_rule_version["inbound_policy"] == "ACCEPT"
+    assert old_rule_version["outbound"] == []
+    assert old_rule_version["outbound_policy"] == "DROP"
+    assert old_rule_version["version"] == 1
+
+    assert (
+        new_rule_version["inbound"][0]["description"]
+        == "A really cool firewall rule."
+    )
+    assert new_rule_version["inbound_policy"] == "ACCEPT"
+    assert new_rule_version["outbound"] == []
+    assert new_rule_version["outbound_policy"] == "DROP"
+    assert new_rule_version["version"] == 2
 
 
 @pytest.mark.smoke
