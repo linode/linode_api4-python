@@ -3,6 +3,7 @@ from test.integration.conftest import get_region
 
 import pytest
 
+from linode_api4.common import RegionPrice
 from linode_api4.linode_client import LinodeClient
 from linode_api4.objects.object_storage import (
     ObjectStorageACL,
@@ -11,6 +12,7 @@ from linode_api4.objects.object_storage import (
     ObjectStorageEndpointType,
     ObjectStorageKeyPermission,
     ObjectStorageKeys,
+    ObjectStorageType,
 )
 
 
@@ -191,3 +193,22 @@ def test_get_buckets_in_cluster(
 ):
     cluster = test_linode_client.load(ObjectStorageCluster, bucket.cluster)
     assert any(bucket.id == b.id for b in cluster.buckets_in_cluster())
+
+
+def test_object_storage_types(test_linode_client):
+    types = test_linode_client.object_storage.types()
+
+    if len(types) > 0:
+        for object_storage_type in types:
+            assert type(object_storage_type) is ObjectStorageType
+            assert object_storage_type.price.monthly is None or (
+                isinstance(object_storage_type.price.monthly, (float, int))
+                and object_storage_type.price.monthly >= 0
+            )
+            if len(object_storage_type.region_prices) > 0:
+                region_price = object_storage_type.region_prices[0]
+                assert type(region_price) is RegionPrice
+                assert object_storage_type.price.monthly is None or (
+                    isinstance(object_storage_type.price.monthly, (float, int))
+                    and object_storage_type.price.monthly >= 0
+                )
