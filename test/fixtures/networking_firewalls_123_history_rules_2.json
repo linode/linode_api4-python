@@ -1,0 +1,24 @@
+{
+  "inbound": [
+    {
+      "action": "ACCEPT",
+      "addresses": {
+        "ipv4": [
+          "0.0.0.0/0"
+        ],
+        "ipv6": [
+          "ff00::/8"
+        ]
+      },
+      "description": "A really cool firewall rule.",
+      "label": "really-cool-firewall-rule",
+      "ports": "80",
+      "protocol": "TCP"
+    }
+  ],
+  "inbound_policy": "ACCEPT",
+  "outbound": [],
+  "outbound_policy": "DROP",
+  "version": 2,
+  "fingerprint": "96c9568c"
+}

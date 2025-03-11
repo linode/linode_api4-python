@@ -244,6 +244,37 @@ class Firewall(Base):
             "{}/rules".format(self.api_endpoint), model=self
         )
 
+    @property
+    def rule_versions(self):
+        """
+        Gets the JSON rule versions for this Firewall.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-firewall-rule-versions
+
+        :returns: Lists the current and historical rules of the firewall (that is not deleted),
+                using version. Whenever the rules update, the version increments from 1.
+        :rtype: dict
+        """
+        return self._client.get(
+            "{}/history".format(self.api_endpoint), model=self
+        )
+
+    def get_rule_version(self, version):
+        """
+        Gets the JSON for a specific rule version for this Firewall.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-firewall-rule-version
+
+        :param version: The firewall rule version to view.
+        :type version: int
+
+        :returns: Gets a specific firewall rule version for an enabled or disabled firewall.
+        :rtype: dict
+        """
+        return self._client.get(
+            "{}/history/rules/{}".format(self.api_endpoint, version), model=self
+        )
+
     def device_create(self, id, type="linode", **kwargs):
         """
         Creates and attaches a device to this Firewall
