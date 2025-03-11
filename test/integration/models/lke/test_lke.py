@@ -14,6 +14,7 @@ from linode_api4 import (
     LKEClusterControlPlaneACLAddressesOptions,
     LKEClusterControlPlaneACLOptions,
     LKEClusterControlPlaneOptions,
+    TieredKubeVersion,
 )
 from linode_api4.common import RegionPrice
 from linode_api4.errors import ApiError
@@ -129,6 +130,38 @@ def lke_cluster_with_apl(test_linode_client):
             high_availability=True,
         ),
         apl_enabled=True,
+    )
+
+    yield cluster
+
+    cluster.delete()
+
+
+@pytest.fixture(scope="session")
+def lke_cluster_enterprise(test_linode_client):
+    # We use the oldest version here so we can test upgrades
+    version = sorted(
+        v.id for v in test_linode_client.lke.tier("enterprise").versions()
+    )[0]
+
+    region = get_region(
+        test_linode_client, {"Kubernetes Enterprise", "Disk Encryption"}
+    )
+
+    node_pools = test_linode_client.lke.node_pool(
+        "g6-dedicated-2",
+        3,
+        k8s_version=version.id,
+        update_strategy="rolling_update",
+    )
+    label = get_test_label() + "_cluster"
+
+    cluster = test_linode_client.lke.cluster_create(
+        region,
+        label,
+        node_pools,
+        version.id,
+        tier="enterprise",
     )
 
     yield cluster
@@ -396,6 +429,52 @@ def test_lke_cluster_with_apl(lke_cluster_with_apl):
         lke_cluster_with_apl.apl_health_check_url
         == f"https://auth.lke{lke_cluster_with_apl.id}.akamai-apl.net/ready"
     )
+
+
+def test_lke_cluster_enterprise(test_linode_client, lke_cluster_enterprise):
+    lke_cluster_enterprise.invalidate()
+    assert lke_cluster_enterprise.tier == "enterprise"
+
+    pool = lke_cluster_enterprise.pools[0]
+    assert str(pool.k8s_version) == lke_cluster_enterprise.k8s_version.id
+    assert pool.update_strategy == "rolling_update"
+
+    target_version = sorted(
+        v.id for v in test_linode_client.lke.tier("enterprise").versions()
+    )[0]
+    pool.update_strategy = "on_recycle"
+    pool.k8s_version = target_version
+
+    pool.save()
+
+    pool.invalidate()
+
+    assert pool.k8s_version == target_version
+    assert pool.update_strategy == "on_recycle"
+
+
+def test_lke_tiered_versions(test_linode_client):
+    def __assert_version(tier: str, version: TieredKubeVersion):
+        assert version.tier == tier
+        assert len(version.id) > 0
+
+    standard_versions = test_linode_client.lke.tier("standard").versions()
+    assert len(standard_versions) > 0
+
+    standard_version = standard_versions[0]
+    __assert_version("standard", standard_version)
+
+    standard_version.invalidate()
+    __assert_version("standard", standard_version)
+
+    enterprise_versions = test_linode_client.lke.tier("enterprise").versions()
+    assert len(enterprise_versions) > 0
+
+    enterprise_version = enterprise_versions[0]
+    __assert_version("enterprise", enterprise_version)
+
+    enterprise_version.invalidate()
+    __assert_version("enterprise", enterprise_version)
 
 
 def test_lke_types(test_linode_client):
