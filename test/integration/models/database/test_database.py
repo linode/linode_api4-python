@@ -165,6 +165,40 @@ def test_database_instance(test_linode_client, test_create_sql_db):
     assert str(test_create_sql_db.id) in str(dbs.lists)
 
 
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS", "").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
+)
+def test_mysql_suspend_resume(test_linode_client, test_create_sql_db):
+    db = test_linode_client.load(MySQLDatabase, test_create_sql_db.id)
+
+    db.suspend()
+
+    wait_for_condition(
+        10,
+        300,
+        get_sql_db_status,
+        test_linode_client,
+        test_create_sql_db.id,
+        "suspended",
+    )
+
+    assert db.status == "suspended"
+
+    db.resume()
+
+    wait_for_condition(
+        30,
+        600,
+        get_sql_db_status,
+        test_linode_client,
+        test_create_sql_db.id,
+        "active",
+    )
+
+    assert db.status == "active"
+
+
 # ------- POSTGRESQL DB Test cases -------
 @pytest.mark.skipif(
     os.getenv("RUN_DB_TESTS", "").strip().lower() not in {"yes", "true"},
@@ -411,3 +445,37 @@ def test_reset_postgres_credentials(
 
     assert db.credentials.username == "akmadmin"
     assert db.credentials.password != old_pass
+
+
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS", "").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
+)
+def test_postgres_suspend_resume(test_linode_client, test_create_postgres_db):
+    db = test_linode_client.load(PostgreSQLDatabase, test_create_postgres_db.id)
+
+    db.suspend()
+
+    wait_for_condition(
+        10,
+        300,
+        get_postgres_db_status,
+        test_linode_client,
+        test_create_postgres_db.id,
+        "suspended",
+    )
+
+    assert db.status == "suspended"
+
+    db.resume()
+
+    wait_for_condition(
+        30,
+        600,
+        get_postgres_db_status,
+        test_linode_client,
+        test_create_postgres_db.id,
+        "active",
+    )
+
+    assert db.status == "active"

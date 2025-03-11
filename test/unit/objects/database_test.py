@@ -263,6 +263,34 @@ class MySQLDatabaseTest(ClientBaseCase):
                 m.call_url, "/databases/mysql/instances/123/credentials/reset"
             )
 
+    def test_suspend(self):
+        """
+        Test MySQL Database suspend logic.
+        """
+        with self.mock_post("/databases/mysql/instances/123/suspend") as m:
+            db = MySQLDatabase(self.client, 123)
+
+            db.suspend()
+
+            self.assertEqual(m.method, "post")
+            self.assertEqual(
+                m.call_url, "/databases/mysql/instances/123/suspend"
+            )
+
+    def test_resume(self):
+        """
+        Test MySQL Database resume logic.
+        """
+        with self.mock_post("/databases/mysql/instances/123/resume") as m:
+            db = MySQLDatabase(self.client, 123)
+
+            db.resume()
+
+            self.assertEqual(m.method, "post")
+            self.assertEqual(
+                m.call_url, "/databases/mysql/instances/123/resume"
+            )
+
 
 class PostgreSQLDatabaseTest(ClientBaseCase):
     """
@@ -450,4 +478,32 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
             self.assertEqual(
                 m.call_url,
                 "/databases/postgresql/instances/123/credentials/reset",
+            )
+
+    def test_suspend(self):
+        """
+        Test PostgreSQL Database suspend logic.
+        """
+        with self.mock_post("/databases/postgresql/instances/123/suspend") as m:
+            db = PostgreSQLDatabase(self.client, 123)
+
+            db.suspend()
+
+            self.assertEqual(m.method, "post")
+            self.assertEqual(
+                m.call_url, "/databases/postgresql/instances/123/suspend"
+            )
+
+    def test_resume(self):
+        """
+        Test PostgreSQL Database resume logic.
+        """
+        with self.mock_post("/databases/postgresql/instances/123/resume") as m:
+            db = PostgreSQLDatabase(self.client, 123)
+
+            db.resume()
+
+            self.assertEqual(m.method, "post")
+            self.assertEqual(
+                m.call_url, "/databases/postgresql/instances/123/resume"
             )
