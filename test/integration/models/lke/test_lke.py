@@ -151,7 +151,7 @@ def lke_cluster_enterprise(test_linode_client):
     node_pools = test_linode_client.lke.node_pool(
         "g6-dedicated-2",
         3,
-        k8s_version=version.id,
+        k8s_version=version,
         update_strategy="rolling_update",
     )
     label = get_test_label() + "_cluster"
@@ -160,7 +160,7 @@ def lke_cluster_enterprise(test_linode_client):
         region,
         label,
         node_pools,
-        version.id,
+        version,
         tier="enterprise",
     )
 
