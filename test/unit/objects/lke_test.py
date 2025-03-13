@@ -2,7 +2,7 @@ from datetime import datetime
 from test.unit.base import ClientBaseCase
 from unittest.mock import MagicMock
 
-from linode_api4 import InstanceDiskEncryptionType
+from linode_api4 import InstanceDiskEncryptionType, TieredKubeVersion
 from linode_api4.objects import (
     LKECluster,
     LKEClusterControlPlaneACLAddressesOptions,
@@ -536,3 +536,23 @@ class LKETest(ClientBaseCase):
             # Addresses should not be included in the API request if it's null
             # See: TPT-3489
             assert m.call_data == {"acl": {"enabled": True}}
+
+    def test_cluster_enterprise(self):
+        cluster = LKECluster(self.client, 18882)
+
+        assert cluster.tier == "enterprise"
+        assert cluster.k8s_version.id == "1.31.1+lke1"
+
+        pool = LKENodePool(self.client, 789, 18882)
+        assert pool.k8s_version == "1.31.1+lke1"
+        assert pool.update_strategy == "rolling_update"
+
+    def test_lke_tiered_version(self):
+        version = TieredKubeVersion(self.client, "1.32", "standard")
+
+        assert version.id == "1.32"
+
+        # Ensure the version is properly refreshed
+        version.invalidate()
+
+        assert version.id == "1.32"

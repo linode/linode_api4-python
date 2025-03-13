@@ -3,13 +3,12 @@
     "status": "ready", 
     "created": "2021-02-10T23:54:21", 
     "updated": "2021-02-10T23:54:21",
-    "label": "example-cluster",
+    "label": "example-cluster-2",
     "region": "ap-west",
-    "k8s_version": "1.19",
-    "tier": "standard",
+    "k8s_version": "1.31.1+lke1",
+    "tier": "enterprise",
     "tags": [],
     "control_plane": {
         "high_availability": true
-    },
-    "apl_enabled": true
+    }
 }
