@@ -271,11 +271,11 @@ class MySQLDatabase(Base):
 
         API documentation: https://techdocs.akamai.com/linode-api/reference/suspend-databases-mysql-instance
         """
-        self.invalidate()
-
-        return self._client.post(
+        self._client.post(
             "{}/suspend".format(MySQLDatabase.api_endpoint), model=self
         )
+
+        return self.invalidate()
 
     def resume(self):
         """
@@ -283,11 +283,11 @@ class MySQLDatabase(Base):
 
         API documentation: https://techdocs.akamai.com/linode-api/reference/resume-databases-mysql-instance
         """
-        self.invalidate()
-
-        return self._client.post(
+        self._client.post(
             "{}/resume".format(MySQLDatabase.api_endpoint), model=self
         )
+
+        return self.invalidate()
 
 
 class PostgreSQLDatabase(Base):
@@ -435,11 +435,11 @@ class PostgreSQLDatabase(Base):
 
         API documentation: https://techdocs.akamai.com/linode-api/reference/suspend-databases-postgre-sql-instance
         """
-        self.invalidate()
-
-        return self._client.post(
+        self._client.post(
             "{}/suspend".format(PostgreSQLDatabase.api_endpoint), model=self
         )
+
+        return self.invalidate()
 
     def resume(self):
         """
@@ -447,11 +447,11 @@ class PostgreSQLDatabase(Base):
 
         API documentation: https://techdocs.akamai.com/linode-api/reference/resume-databases-postgre-sql-instance
         """
-        self.invalidate()
-
-        return self._client.post(
+        self._client.post(
             "{}/resume".format(PostgreSQLDatabase.api_endpoint), model=self
         )
+
+        return self.invalidate()
 
 
 ENGINE_TYPE_TRANSLATION = {
