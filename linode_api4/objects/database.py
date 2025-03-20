@@ -265,6 +265,30 @@ class MySQLDatabase(Base):
 
         Base.invalidate(self)
 
+    def suspend(self):
+        """
+        Suspend a MySQL Managed Database, releasing idle resources and keeping only necessary data.
+
+        API documentation: https://techdocs.akamai.com/linode-api/reference/suspend-databases-mysql-instance
+        """
+        self._client.post(
+            "{}/suspend".format(MySQLDatabase.api_endpoint), model=self
+        )
+
+        return self.invalidate()
+
+    def resume(self):
+        """
+        Resume a suspended MySQL Managed Database.
+
+        API documentation: https://techdocs.akamai.com/linode-api/reference/resume-databases-mysql-instance
+        """
+        self._client.post(
+            "{}/resume".format(MySQLDatabase.api_endpoint), model=self
+        )
+
+        return self.invalidate()
+
 
 class PostgreSQLDatabase(Base):
     """
@@ -404,6 +428,30 @@ class PostgreSQLDatabase(Base):
                 delattr(self, attr)
 
         Base.invalidate(self)
+
+    def suspend(self):
+        """
+        Suspend a PostgreSQL Managed Database, releasing idle resources and keeping only necessary data.
+
+        API documentation: https://techdocs.akamai.com/linode-api/reference/suspend-databases-postgre-sql-instance
+        """
+        self._client.post(
+            "{}/suspend".format(PostgreSQLDatabase.api_endpoint), model=self
+        )
+
+        return self.invalidate()
+
+    def resume(self):
+        """
+        Resume a suspended PostgreSQL Managed Database.
+
+        API documentation: https://techdocs.akamai.com/linode-api/reference/resume-databases-postgre-sql-instance
+        """
+        self._client.post(
+            "{}/resume".format(PostgreSQLDatabase.api_endpoint), model=self
+        )
+
+        return self.invalidate()
 
 
 ENGINE_TYPE_TRANSLATION = {
