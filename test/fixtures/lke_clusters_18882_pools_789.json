@@ -1,0 +1,18 @@
+{
+    "id": 789,
+    "type": "g6-standard-2",
+    "count": 3,
+    "nodes": [],
+    "disks": [],
+    "autoscaler": {
+        "enabled": false,
+        "min": 3,
+        "max": 3
+    },
+    "labels": {},
+    "taints": [],
+    "tags": [],
+    "disk_encryption": "enabled",
+    "k8s_version": "1.31.1+lke1",
+    "update_strategy": "rolling_update"
+}

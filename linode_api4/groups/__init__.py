@@ -8,6 +8,7 @@ from .domain import *
 from .image import *
 from .linode import *
 from .lke import *
+from .lke_tier import *
 from .longview import *
 from .networking import *
 from .nodebalancer import *

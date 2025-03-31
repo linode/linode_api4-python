@@ -1,0 +1,19 @@
+{
+  "data": [
+    {
+      "id": "1.32",
+      "tier": "standard"
+    },
+    {
+      "id": "1.31",
+      "tier": "standard"
+    },
+    {
+      "id": "1.30",
+      "tier": "standard"
+    }
+  ],
+  "page": 1,
+  "pages": 1,
+  "results": 3
+}
