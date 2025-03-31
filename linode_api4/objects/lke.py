@@ -14,6 +14,7 @@ from linode_api4.objects import (
     Region,
     Type,
 )
+from linode_api4.objects.base import _flatten_request_body_recursive
 from linode_api4.util import drop_null_keys
 
 
@@ -46,6 +47,26 @@ class KubeVersion(Base):
 
     properties = {
         "id": Property(identifier=True),
+    }
+
+
+class TieredKubeVersion(DerivedBase):
+    """
+    A TieredKubeVersion is a version of Kubernetes that is specific to a certain LKE tier.
+
+    NOTE: LKE tiers may not currently be available to all users.
+
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-lke-version
+    """
+
+    api_endpoint = "/lke/tiers/{tier}/versions/{id}"
+    parent_id_name = "tier"
+    id_attribute = "id"
+    derived_url_path = "versions"
+
+    properties = {
+        "id": Property(identifier=True),
+        "tier": Property(identifier=True),
     }
 
 
@@ -154,6 +175,8 @@ class LKENodePool(DerivedBase):
     An LKE Node Pool describes a pool of Linode Instances that exist within an
     LKE Cluster.
 
+    NOTE: The k8s_version and update_strategy fields are only available for LKE Enterprise clusters.
+
     API Documentation: https://techdocs.akamai.com/linode-api/reference/get-lke-node-pool
     """
 
@@ -175,6 +198,12 @@ class LKENodePool(DerivedBase):
         "tags": Property(mutable=True, unordered=True),
         "labels": Property(mutable=True),
         "taints": Property(mutable=True),
+        # Enterprise-specific properties
+        # Ideally we would use slug_relationship=TieredKubeVersion here, but
+        # it isn't possible without an extra request because the tier is not
+        # directly exposed in the node pool response.
+        "k8s_version": Property(mutable=True),
+        "update_strategy": Property(mutable=True),
     }
 
     def _parse_raw_node(
@@ -255,6 +284,7 @@ class LKECluster(Base):
         "pools": Property(derived_class=LKENodePool),
         "control_plane": Property(mutable=True),
         "apl_enabled": Property(),
+        "tier": Property(),
     }
 
     def invalidate(self):
@@ -385,6 +415,10 @@ class LKECluster(Base):
         node_count: int,
         labels: Optional[Dict[str, str]] = None,
         taints: List[Union[LKENodePoolTaint, Dict[str, Any]]] = None,
+        k8s_version: Optional[
+            Union[str, KubeVersion, TieredKubeVersion]
+        ] = None,
+        update_strategy: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -399,7 +433,13 @@ class LKECluster(Base):
         :param labels: A dict mapping labels to their values to apply to this pool.
         :type labels: Dict[str, str]
         :param taints: A list of taints to apply to this pool.
-        :type taints: List of :any:`LKENodePoolTaint` or dict
+        :type taints: List of :any:`LKENodePoolTaint` or dict.
+        :param k8s_version: The Kubernetes version to use for this pool.
+                            NOTE: This field is specific to enterprise clusters.
+        :type k8s_version: str, KubeVersion, or TieredKubeVersion
+        :param update_strategy: The strategy to use when updating this node pool.
+                                NOTE: This field is specific to enterprise clusters.
+        :type update_strategy: str
         :param kwargs: Any other arguments to pass to the API.  See the API docs
                        for possible values.
 
@@ -409,6 +449,10 @@ class LKECluster(Base):
         params = {
             "type": node_type,
             "count": node_count,
+            "labels": labels,
+            "taints": taints,
+            "k8s_version": k8s_version,
+            "update_strategy": update_strategy,
         }
 
         if labels is not None:
@@ -420,7 +464,9 @@ class LKECluster(Base):
         params.update(kwargs)
 
         result = self._client.post(
-            "{}/pools".format(LKECluster.api_endpoint), model=self, data=params
+            "{}/pools".format(LKECluster.api_endpoint),
+            model=self,
+            data=drop_null_keys(_flatten_request_body_recursive(params)),
         )
         self.invalidate()
 
