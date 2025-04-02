@@ -14,6 +14,16 @@
       "gateway": "10.0.0.1",
       "prefix": 24,
       "subnet_mask": "255.255.255.0"
+    },
+    {
+      "ipv6_range": "fd71:1140:a9d0::/52",
+      "ipv6_is_public": true,
+      "ipv6_addresses": [
+        {
+          "slaac_address": "fd71:1140:a9d0::/52"
+        }
+      ],
+      "vpc_id": 123456
     }
   ],
   "page": 1,
