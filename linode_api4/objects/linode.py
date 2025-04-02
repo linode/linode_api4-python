@@ -1,6 +1,6 @@
 import string
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from os import urandom
@@ -291,8 +291,81 @@ class Type(Base):
 
 @dataclass
 class ConfigInterfaceIPv4(JSONObject):
+    """
+    ConfigInterfaceIPv4 represents the IPv4 configuration of a VPC interface.
+    """
+
     vpc: str = ""
     nat_1_1: str = ""
+
+
+@dataclass
+class ConfigInterfaceIPv6SLAACOptions(JSONObject):
+    """
+    ConfigInterfaceIPv6SLAACOptions is used to set a single IPv6 SLAAC configuration of a VPC interface.
+    """
+
+    range: str = ""
+
+
+@dataclass
+class ConfigInterfaceIPv6RangeOptions(JSONObject):
+    """
+    ConfigInterfaceIPv6RangeOptions is used to set a single IPv6 range configuration of a VPC interface.
+    """
+
+    range: str = ""
+
+
+@dataclass
+class ConfigInterfaceIPv6Options(JSONObject):
+    """
+    ConfigInterfaceIPv6Options is used to set the IPv6 configuration of a VPC interface.
+    """
+
+    slaac: List[ConfigInterfaceIPv6SLAACOptions] = field(
+        default_factory=lambda: []
+    )
+    ranges: List[ConfigInterfaceIPv6RangeOptions] = field(
+        default_factory=lambda: []
+    )
+    is_public: bool = False
+
+
+@dataclass
+class ConfigInterfaceIPv6SLAAC(JSONObject):
+    """
+    ConfigInterfaceIPv6SLAAC represents a single SLAAC address under a VPC interface's IPv6 configuration.
+    """
+
+    put_class = ConfigInterfaceIPv6SLAACOptions
+
+    range: str = ""
+    address: str = ""
+
+
+@dataclass
+class ConfigInterfaceIPv6Range(JSONObject):
+    """
+    ConfigInterfaceIPv6Range represents a single IPv6 address under a VPC interface's IPv6 configuration.
+    """
+
+    put_class = ConfigInterfaceIPv6RangeOptions
+
+    range: str = ""
+
+
+@dataclass
+class ConfigInterfaceIPv6(JSONObject):
+    """
+    ConfigInterfaceIPv6 represents the IPv6 configuration of a VPC interface.
+    """
+
+    put_class = ConfigInterfaceIPv6Options
+
+    slaac: List[ConfigInterfaceIPv6SLAAC] = field(default_factory=lambda: [])
+    ranges: List[ConfigInterfaceIPv6Range] = field(default_factory=lambda: [])
+    is_public: bool = False
 
 
 class NetworkInterface(DerivedBase):
@@ -320,6 +393,7 @@ class NetworkInterface(DerivedBase):
         "vpc_id": Property(id_relationship=VPC),
         "subnet_id": Property(),
         "ipv4": Property(mutable=True, json_object=ConfigInterfaceIPv4),
+        "ipv6": Property(mutable=True, json_object=ConfigInterfaceIPv6),
         "ip_ranges": Property(mutable=True),
     }
 
@@ -391,7 +465,10 @@ class ConfigInterface(JSONObject):
     # VPC-specific
     vpc_id: Optional[int] = None
     subnet_id: Optional[int] = None
+
     ipv4: Optional[Union[ConfigInterfaceIPv4, Dict[str, Any]]] = None
+    ipv6: Optional[Union[ConfigInterfaceIPv6, Dict[str, Any]]] = None
+
     ip_ranges: Optional[List[str]] = None
 
     # Computed
@@ -400,7 +477,7 @@ class ConfigInterface(JSONObject):
     def __repr__(self):
         return f"Interface: {self.purpose}"
 
-    def _serialize(self):
+    def _serialize(self, is_put: bool = False):
         purpose_formats = {
             "public": {"purpose": "public", "primary": self.primary},
             "vlan": {
@@ -412,11 +489,8 @@ class ConfigInterface(JSONObject):
                 "purpose": "vpc",
                 "primary": self.primary,
                 "subnet_id": self.subnet_id,
-                "ipv4": (
-                    self.ipv4.dict
-                    if isinstance(self.ipv4, ConfigInterfaceIPv4)
-                    else self.ipv4
-                ),
+                "ipv4": self.ipv4,
+                "ipv6": self.ipv6,
                 "ip_ranges": self.ip_ranges,
             },
         }
@@ -426,11 +500,14 @@ class ConfigInterface(JSONObject):
                 f"Unknown interface purpose: {self.purpose}",
             )
 
-        return {
-            k: v
-            for k, v in purpose_formats[self.purpose].items()
-            if v is not None
-        }
+        return _flatten_request_body_recursive(
+            {
+                k: v
+                for k, v in purpose_formats[self.purpose].items()
+                if v is not None
+            },
+            is_put=is_put,
+        )
 
 
 class Config(DerivedBase):
@@ -510,16 +587,16 @@ class Config(DerivedBase):
 
         self._set("devices", MappedObject(**devices))
 
-    def _serialize(self):
+    def _serialize(self, *args, **kwargs):
         """
         Overrides _serialize to transform interfaces into json
         """
-        partial = DerivedBase._serialize(self)
+        partial = DerivedBase._serialize(self, *args, **kwargs)
         interfaces = []
 
         for c in self.interfaces:
             if isinstance(c, ConfigInterface):
-                interfaces.append(c._serialize())
+                interfaces.append(c._serialize(*args, **kwargs))
             else:
                 interfaces.append(c)
 
@@ -571,6 +648,7 @@ class Config(DerivedBase):
         subnet: Union[int, VPCSubnet],
         primary=False,
         ipv4: Union[Dict[str, Any], ConfigInterfaceIPv4] = None,
+        ipv6: Union[Dict[str, Any], ConfigInterfaceIPv6Options] = None,
         ip_ranges: Optional[List[str]] = None,
     ) -> NetworkInterface:
         """
@@ -584,6 +662,8 @@ class Config(DerivedBase):
         :type primary: bool
         :param ipv4: The IPv4 configuration of the interface for the associated subnet.
         :type ipv4: Dict or ConfigInterfaceIPv4
+        :param ipv6: The IPv6 configuration of the interface for the associated subnet.
+        :type ipv6: Dict or ConfigInterfaceIPv6Options
         :param ip_ranges: A list of IPs or IP ranges in the VPC subnet.
                           Packets to these CIDRs are routed through the
                           VPC network interface.
@@ -594,19 +674,16 @@ class Config(DerivedBase):
         """
         params = {
             "purpose": "vpc",
-            "subnet_id": subnet.id if isinstance(subnet, VPCSubnet) else subnet,
+            "subnet_id": subnet,
             "primary": primary,
+            "ipv4": ipv4,
+            "ipv6": ipv6,
+            "ip_ranges": ip_ranges,
         }
 
-        if ipv4 is not None:
-            params["ipv4"] = (
-                ipv4.dict if isinstance(ipv4, ConfigInterfaceIPv4) else ipv4
-            )
-
-        if ip_ranges is not None:
-            params["ip_ranges"] = ip_ranges
-
-        return self._interface_create(params)
+        return self._interface_create(
+            drop_null_keys(_flatten_request_body_recursive(params))
+        )
 
     def interface_reorder(self, interfaces: List[Union[int, NetworkInterface]]):
         """
@@ -1927,8 +2004,8 @@ class StackScript(Base):
         ndist = [Image(self._client, d) for d in self.images]
         self._set("images", ndist)
 
-    def _serialize(self):
-        dct = Base._serialize(self)
+    def _serialize(self, *args, **kwargs):
+        dct = Base._serialize(self, *args, **kwargs)
         dct["images"] = [d.id for d in self.images]
         return dct
 

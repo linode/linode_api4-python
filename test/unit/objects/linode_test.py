@@ -1,11 +1,21 @@
 from datetime import datetime
 from test.unit.base import ClientBaseCase
 
-from linode_api4 import InstanceDiskEncryptionType, NetworkInterface
+from linode_api4 import (
+    ConfigInterfaceIPv6SLAAC,
+    InstanceDiskEncryptionType,
+    NetworkInterface,
+)
 from linode_api4.objects import (
     Config,
     ConfigInterface,
     ConfigInterfaceIPv4,
+    ConfigInterfaceIPv6,
+    ConfigInterfaceIPv6Options,
+    ConfigInterfaceIPv6Range,
+    ConfigInterfaceIPv6RangeOptions,
+    ConfigInterfaceIPv6SLAAC,
+    ConfigInterfaceIPv6SLAACOptions,
     Disk,
     Image,
     Instance,
@@ -503,15 +513,62 @@ class ConfigTest(ClientBaseCase):
             new_interfaces = [
                 {"purpose": "public", "primary": True},
                 ConfigInterface("vlan", label="cool-vlan"),
+                ConfigInterface(
+                    "vpc",
+                    vpc_id=18881,
+                    subnet_id=123,
+                    ipv4=ConfigInterfaceIPv4(vpc="10.0.0.4", nat_1_1="any"),
+                    ipv6=ConfigInterfaceIPv6(
+                        slaac=[
+                            ConfigInterfaceIPv6SLAAC(
+                                range="1234::5678/64", address="1234::5678"
+                            )
+                        ],
+                        ranges=[
+                            ConfigInterfaceIPv6Range(range="1234::5678/64")
+                        ],
+                        is_public=True,
+                    ),
+                ),
             ]
-            expected_body = [new_interfaces[0], new_interfaces[1]._serialize()]
 
             config.interfaces = new_interfaces
 
             config.save()
 
-            self.assertEqual(m.call_url, "/linode/instances/123/configs/456789")
-            self.assertEqual(m.call_data.get("interfaces"), expected_body)
+            assert m.call_url == "/linode/instances/123/configs/456789"
+            assert m.call_data.get("interfaces") == [
+                {
+                    "purpose": "public",
+                    "primary": True,
+                },
+                {
+                    "purpose": "vlan",
+                    "label": "cool-vlan",
+                },
+                {
+                    "purpose": "vpc",
+                    "subnet_id": 123,
+                    "ipv4": {
+                        "vpc": "10.0.0.4",
+                        "nat_1_1": "any",
+                    },
+                    "ipv6": {
+                        "slaac": [
+                            {
+                                "range": "1234::5678/64",
+                                # NOTE: Address is read-only so it shouldn't be specified here
+                            }
+                        ],
+                        "ranges": [
+                            {
+                                "range": "1234::5678/64",
+                            }
+                        ],
+                        "is_public": True,
+                    },
+                },
+            ]
 
     def test_get_config(self):
         json = self.client.get("/linode/instances/123/configs/456789")
@@ -540,6 +597,24 @@ class ConfigTest(ClientBaseCase):
 
         self.assertEqual(ipv4.vpc, "10.0.0.1")
         self.assertEqual(ipv4.nat_1_1, "any")
+
+    def test_interface_ipv6(self):
+        json = {
+            "slaac": [{"range": "1234::5678/64", "address": "1234::5678"}],
+            "ranges": [{"range": "1234::5678/64"}],
+            "is_public": True,
+        }
+
+        ipv6 = ConfigInterfaceIPv6.from_json(json)
+
+        assert len(ipv6.slaac) == 1
+        assert ipv6.slaac[0].range == "1234::5678/64"
+        assert ipv6.slaac[0].address == "1234::5678"
+
+        assert len(ipv6.ranges) == 1
+        assert ipv6.ranges[0].range == "1234::5678/64"
+
+        assert ipv6.is_public
 
     def test_config_devices_unwrap(self):
         """
@@ -744,6 +819,11 @@ class TestNetworkInterface(ClientBaseCase):
                 subnet=VPCSubnet(self.client, 789, 123456),
                 primary=True,
                 ipv4=ConfigInterfaceIPv4(vpc="10.0.0.4", nat_1_1="any"),
+                ipv6=ConfigInterfaceIPv6Options(
+                    slaac=[ConfigInterfaceIPv6SLAACOptions(range="auto")],
+                    ranges=[ConfigInterfaceIPv6RangeOptions(range="auto")],
+                    is_public=True,
+                ),
                 ip_ranges=["10.0.0.0/24"],
             )
 
@@ -757,6 +837,11 @@ class TestNetworkInterface(ClientBaseCase):
                 "primary": True,
                 "subnet_id": 789,
                 "ipv4": {"vpc": "10.0.0.4", "nat_1_1": "any"},
+                "ipv6": {
+                    "slaac": [{"range": "auto"}],
+                    "ranges": [{"range": "auto"}],
+                    "is_public": True,
+                },
                 "ip_ranges": ["10.0.0.0/24"],
             }
 
@@ -765,8 +850,19 @@ class TestNetworkInterface(ClientBaseCase):
             assert interface.primary
             assert interface.vpc.id == 123456
             assert interface.subnet.id == 789
+
             assert interface.ipv4.vpc == "10.0.0.2"
             assert interface.ipv4.nat_1_1 == "any"
+
+            assert len(interface.ipv6.slaac) == 1
+            assert interface.ipv6.slaac[0].range == "1234::5678/64"
+            assert interface.ipv6.slaac[0].address == "1234::5678"
+
+            assert len(interface.ipv6.ranges) == 1
+            assert interface.ipv6.ranges[0].range == "1234::5678/64"
+
+            assert interface.ipv6.is_public
+
             assert interface.ip_ranges == ["10.0.0.0/24"]
 
     def test_update(self):
@@ -774,6 +870,7 @@ class TestNetworkInterface(ClientBaseCase):
         interface._api_get()
 
         interface.ipv4.vpc = "10.0.0.3"
+        interface.ipv6.is_public = False
         interface.primary = False
         interface.ip_ranges = ["10.0.0.2/32"]
 
@@ -791,6 +888,11 @@ class TestNetworkInterface(ClientBaseCase):
             assert m.call_data == {
                 "primary": False,
                 "ipv4": {"vpc": "10.0.0.3", "nat_1_1": "any"},
+                "ipv6": {
+                    "slaac": [{"range": "1234::5678/64"}],
+                    "ranges": [{"range": "1234::5678/64"}],
+                    "is_public": False,
+                },
                 "ip_ranges": ["10.0.0.2/32"],
             }
 
@@ -811,8 +913,17 @@ class TestNetworkInterface(ClientBaseCase):
         self.assertEqual(interface.purpose, "vpc")
         self.assertEqual(interface.vpc.id, 123456)
         self.assertEqual(interface.subnet.id, 789)
+
         self.assertEqual(interface.ipv4.vpc, "10.0.0.2")
         self.assertEqual(interface.ipv4.nat_1_1, "any")
+
+        self.assertEqual(len(interface.ipv6.slaac), 1)
+        self.assertEqual(interface.ipv6.slaac[0].range, "1234::5678/64")
+        self.assertEqual(interface.ipv6.slaac[0].address, "1234::5678")
+        self.assertEqual(len(interface.ipv6.ranges), 1)
+        self.assertEqual(interface.ipv6.ranges[0].range, "1234::5678/64")
+        self.assertEqual(interface.ipv6.is_public, True)
+
         self.assertEqual(interface.ip_ranges, ["10.0.0.0/24"])
         self.assertEqual(interface.active, True)
 
