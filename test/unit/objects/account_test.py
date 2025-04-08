@@ -3,6 +3,7 @@ from copy import deepcopy
 from datetime import datetime
 from test.unit.base import ClientBaseCase
 
+from linode_api4 import AccountSettingsInterfacesForNewLinodes
 from linode_api4.objects import (
     Account,
     AccountAvailability,
@@ -124,7 +125,7 @@ class InvoiceTest(ClientBaseCase):
         self.assertEqual(settings.backups_enabled, True)
         self.assertEqual(
             settings.interfaces_for_new_linodes,
-            "linode_default_but_legacy_config_allowed",
+            AccountSettingsInterfacesForNewLinodes.linode_default_but_legacy_config_allowed,
         )
 
     def test_post_account_settings(self):
@@ -136,7 +137,9 @@ class InvoiceTest(ClientBaseCase):
 
         settings.network_helper = True
         settings.backups_enabled = False
-        settings.interfaces_for_new_linodes = "linode_only"
+        settings.interfaces_for_new_linodes = (
+            AccountSettingsInterfacesForNewLinodes.linode_only
+        )
 
         with self.mock_put("/account/settings") as m:
             settings.save()
@@ -144,7 +147,7 @@ class InvoiceTest(ClientBaseCase):
             assert m.call_data == {
                 "network_helper": True,
                 "backups_enabled": False,
-                "interfaces_for_new_linodes": "linode_only",
+                "interfaces_for_new_linodes": AccountSettingsInterfacesForNewLinodes.linode_only,
             }
 
     def test_get_event(self):
