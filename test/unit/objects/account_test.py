@@ -97,6 +97,7 @@ class InvoiceTest(ClientBaseCase):
         self.assertEqual(account.balance_uninvoiced, 145)
         self.assertEqual(account.billing_source, "akamai")
         self.assertEqual(account.euuid, "E1AF5EEC-526F-487D-B317EBEB34C87D71")
+        self.assertIn("Linode Interfaces", account.capabilities)
 
     def test_get_login(self):
         """
@@ -121,6 +122,30 @@ class InvoiceTest(ClientBaseCase):
         self.assertEqual(settings.network_helper, False)
         self.assertEqual(settings.object_storage, "active")
         self.assertEqual(settings.backups_enabled, True)
+        self.assertEqual(
+            settings.interfaces_for_new_linodes,
+            "linode_default_but_legacy_config_allowed",
+        )
+
+    def test_post_account_settings(self):
+        """
+        Tests that account settings can be updated successfully
+        """
+        settings = self.client.account.settings()
+        print(settings._raw_json)
+
+        settings.network_helper = True
+        settings.backups_enabled = False
+        settings.interfaces_for_new_linodes = "linode_only"
+
+        with self.mock_put("/account/settings") as m:
+            settings.save()
+
+            assert m.call_data == {
+                "network_helper": True,
+                "backups_enabled": False,
+                "interfaces_for_new_linodes": "linode_only",
+            }
 
     def test_get_event(self):
         """

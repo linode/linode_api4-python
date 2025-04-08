@@ -197,6 +197,7 @@ class AccountSettings(Base):
         ),
         "object_storage": Property(),
         "backups_enabled": Property(mutable=True),
+        "interfaces_for_new_linodes": Property(mutable=True),
     }
 
 
