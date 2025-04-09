@@ -1,9 +1,13 @@
+from typing import Any, Dict, Optional, Union
+
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
     VLAN,
     Base,
     Firewall,
+    FirewallCreateDevicesOptions,
+    FirewallSettings,
     Instance,
     IPAddress,
     IPv6Pool,
@@ -11,6 +15,8 @@ from linode_api4.objects import (
     NetworkTransferPrice,
     Region,
 )
+from linode_api4.objects.base import _flatten_request_body_recursive
+from linode_api4.util import drop_null_keys
 
 
 class NetworkingGroup(Group):
@@ -33,7 +39,15 @@ class NetworkingGroup(Group):
         """
         return self.client._get_and_filter(Firewall, *filters)
 
-    def firewall_create(self, label, rules, **kwargs):
+    def firewall_create(
+        self,
+        label: str,
+        rules: Dict[str, Any],
+        devices: Optional[
+            Union[FirewallCreateDevicesOptions, Dict[str, Any]]
+        ] = None,
+        **kwargs,
+    ):
         """
         Creates a new Firewall, either in the given Region or
         attached to the given Instance.
@@ -44,6 +58,8 @@ class NetworkingGroup(Group):
         :type label: str
         :param rules: The rules to apply to the new Firewall. For more information on Firewall rules, see our `Firewalls Documentation`_.
         :type rules: dict
+        :param devices: Represents devices to create created alongside a Linode Firewall.
+        :type devices: Optional[Union[FirewallCreateDevicesOptions, Dict[str, Any]]]
 
         :returns: The new Firewall.
         :rtype: Firewall
@@ -81,10 +97,14 @@ class NetworkingGroup(Group):
         params = {
             "label": label,
             "rules": rules,
+            "devices": devices,
         }
         params.update(kwargs)
 
-        result = self.client.post("/networking/firewalls", data=params)
+        result = self.client.post(
+            "/networking/firewalls",
+            data=drop_null_keys(_flatten_request_body_recursive(params)),
+        )
 
         if not "id" in result:
             raise UnexpectedResponseError(
@@ -93,6 +113,25 @@ class NetworkingGroup(Group):
 
         f = Firewall(self.client, result["id"], result)
         return f
+
+    def firewall_settings(self) -> FirewallSettings:
+        """
+        Returns an object representing the Linode Firewall settings for the current user.
+
+        API Documentation: Not yet available.
+
+        :returns: An object representing the Linode Firewall settings for the current user.
+        :rtype: FirewallSettings
+        """
+        result = self.client.get("/networking/firewalls/settings")
+
+        if "default_firewall_ids" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when getting firewall settings!",
+                json=result,
+            )
+
+        return FirewallSettings(self.client, None, result)
 
     def ips(self, *filters):
         """

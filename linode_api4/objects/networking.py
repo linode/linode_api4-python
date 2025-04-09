@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import Optional
+from dataclasses import dataclass, field
+from typing import List, Optional
 
 from linode_api4.common import Price, RegionPrice
 from linode_api4.errors import UnexpectedResponseError
@@ -87,6 +87,7 @@ class IPAddress(Base):
         "public": Property(),
         "rdns": Property(mutable=True),
         "linode_id": Property(),
+        "interface_id": Property(),
         "region": Property(slug_relationship=Region),
         "vpc_nat_1_1": Property(json_object=InstanceIPNAT1To1),
     }
@@ -98,6 +99,8 @@ class IPAddress(Base):
         if not hasattr(self, "_linode"):
             self._set("_linode", Instance(self._client, self.linode_id))
         return self._linode
+
+    # TODO (Enhanced Interfaces): Add `interface` property method
 
     def to(self, linode):
         """
@@ -173,6 +176,47 @@ class VLAN(Base):
         "created": Property(is_datetime=True),
         "linodes": Property(unordered=True),
         "region": Property(slug_relationship=Region),
+    }
+
+
+@dataclass
+class FirewallCreateDevicesOptions(JSONObject):
+    """
+    Represents devices to create created alongside a Linode Firewall.
+    """
+
+    linodes: List[int] = field(default_factory=list)
+    nodebalancers: List[int] = field(default_factory=list)
+    interfaces: List[int] = field(default_factory=list)
+
+
+@dataclass
+class FirewallSettingsDefaultFirewallIDs(JSONObject):
+    """
+    Contains the IDs of Linode Firewalls that should be used by default
+    when creating various interface types.
+    """
+
+    vpc_interface: Optional[int] = None
+    public_interface: Optional[int] = None
+    linode: Optional[int] = None
+    nodebalancer: Optional[int] = None
+
+
+class FirewallSettings(Base):
+    """
+    Represents the Firewall settings for the current user.
+
+    API Documentation: Not yet available.
+    """
+
+    api_endpoint = "/networking/firewalls/settings"
+
+    properties = {
+        "default_firewall_ids": Property(
+            json_object=FirewallSettingsDefaultFirewallIDs,
+            mutable=True,
+        ),
     }
 
 
