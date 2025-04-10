@@ -1,3 +1,9 @@
+from typing import Any, Dict, Union
+
+from linode_api4 import (
+    MySQLDatabaseConfigOptions,
+    PostgreSQLDatabaseConfigOptions,
+)
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
@@ -63,6 +69,26 @@ class DatabaseGroup(Group):
         """
         return self.client._get_and_filter(DatabaseEngine, *filters)
 
+    def mysql_config_options(self):
+        """
+        Returns a detailed list of all the configuration options for MySQL Databases.
+
+        API Documentation: TODO
+
+        :returns: The JSON configuration options for MySQL Databases.
+        """
+        return self.client.get("databases/mysql/config", model=self)
+
+    def postgresql_config_options(self):
+        """
+        Returns a detailed list of all the configuration options for PostgreSQL Databases.
+
+        API Documentation: TODO
+
+        :returns: The JSON configuration options for PostgreSQL Databases.
+        """
+        return self.client.get("databases/postgresql/config", model=self)
+
     def instances(self, *filters):
         """
         Returns a list of Managed Databases active on this account.
@@ -93,7 +119,15 @@ class DatabaseGroup(Group):
         """
         return self.client._get_and_filter(MySQLDatabase, *filters)
 
-    def mysql_create(self, label, region, engine, ltype, **kwargs):
+    def mysql_create(
+        self,
+        label,
+        region,
+        engine,
+        ltype,
+        engine_config: Union[MySQLDatabaseConfigOptions, Dict[str, Any]] = None,
+        **kwargs,
+    ):
         """
         Creates an :any:`MySQLDatabase` on this account with
         the given label, region, engine, and node type.  For example::
@@ -123,6 +157,8 @@ class DatabaseGroup(Group):
         :type engine: str or Engine
         :param ltype: The Linode Type to use for this cluster
         :type ltype: str or Type
+        :param engine_config: The configuration options for this MySQL cluster
+        :type engine_config: Dict[str, Any] or MySQLDatabaseConfigOptions
         """
 
         params = {
@@ -130,6 +166,7 @@ class DatabaseGroup(Group):
             "region": region,
             "engine": engine,
             "type": ltype,
+            "engine_config": engine_config,
         }
         params.update(kwargs)
 
@@ -201,6 +238,54 @@ class DatabaseGroup(Group):
         d = MySQLDatabase(self.client, result["id"], result)
         return d
 
+    def mysql_update_config(
+        self,
+        engine_config: Union[MySQLDatabaseConfigOptions, Dict[str, Any]] = None,
+        **kwargs,
+    ):
+        """
+        Updates the config of :any:`MySQLDatabase` on this account with
+        the given engine_config.
+        For example::
+
+           client = LinodeClient(TOKEN)
+
+           db_to_update_config = client.database.mysql_instances()[0]
+
+           new_engine_config = MySQLDatabaseConfigOptions(
+                mysql=MySQLDatabaseConfigMySQLOptions(connect_timeout=20),
+                service_log=True
+            )
+
+           db_with_new_config = client.database.mysql_update_config(
+                new_engine_config
+           )
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-databases-mysql-instances
+
+        :param engine_config: The configuration options for this MySQL cluster
+        :type engine_config: Dict[str, Any] or MySQLDatabaseConfigOptions
+        """
+
+        params = {
+            "engine_config": engine_config,
+        }
+        params.update(kwargs)
+
+        result = self.client.post(
+            "/databases/mysql/instances",
+            data=_flatten_request_body_recursive(drop_null_keys(params)),
+        )
+
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when updating MySQL Database config",
+                json=result,
+            )
+
+        d = MySQLDatabase(self.client, result["id"], result)
+        return d
+
     def postgresql_instances(self, *filters):
         """
         Returns a list of Managed PostgreSQL Databases active on this account.
@@ -216,7 +301,17 @@ class DatabaseGroup(Group):
         """
         return self.client._get_and_filter(PostgreSQLDatabase, *filters)
 
-    def postgresql_create(self, label, region, engine, ltype, **kwargs):
+    def postgresql_create(
+        self,
+        label,
+        region,
+        engine,
+        ltype,
+        engine_config: Union[
+            PostgreSQLDatabaseConfigOptions, Dict[str, Any]
+        ] = None,
+        **kwargs,
+    ):
         """
         Creates an :any:`PostgreSQLDatabase` on this account with
         the given label, region, engine, and node type.  For example::
@@ -246,6 +341,8 @@ class DatabaseGroup(Group):
         :type engine: str or Engine
         :param ltype: The Linode Type to use for this cluster
         :type ltype: str or Type
+        :param engine_config: The configuration options for this PostgreSQL cluster
+        :type engine_config: Dict[str, Any] or PostgreSQLDatabaseConfigOptions
         """
 
         params = {
@@ -253,6 +350,7 @@ class DatabaseGroup(Group):
             "region": region,
             "engine": engine,
             "type": ltype,
+            "engine_config": engine_config,
         }
         params.update(kwargs)
 
@@ -320,6 +418,56 @@ class DatabaseGroup(Group):
         if "id" not in result:
             raise UnexpectedResponseError(
                 "Unexpected response when creating PostgreSQL Database",
+                json=result,
+            )
+
+        d = PostgreSQLDatabase(self.client, result["id"], result)
+        return d
+
+    def postgresql_update_config(
+        self,
+        engine_config: Union[
+            PostgreSQLDatabaseConfigOptions, Dict[str, Any]
+        ] = None,
+        **kwargs,
+    ):
+        """
+        Updates the config of :any:`PostgreSQLDatabase` on this account with
+        the given engine_config.
+        For example::
+
+           client = LinodeClient(TOKEN)
+
+           db_to_update_config = client.database.postgresql_instances()[0]
+
+           new_engine_config = PostgreSQLDatabaseConfigOptions(
+                pg=PostgreSQLDatabaseConfigPGOptions(log_temp_files=200),
+                service_log=True
+            )
+
+           db_with_new_config = client.database.postgresql_update_config(
+                new_engine_config
+           )
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-databases-postgresql-instances
+
+        :param engine_config: The configuration options for this PostgreSQL cluster
+        :type engine_config: Dict[str, Any] or PostgreSQLDatabaseConfigOptions
+        """
+
+        params = {
+            "engine_config": engine_config,
+        }
+        params.update(kwargs)
+
+        result = self.client.post(
+            "/databases/postgresql/instances",
+            data=_flatten_request_body_recursive(drop_null_keys(params)),
+        )
+
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when updating PostgreSQL Database config",
                 json=result,
             )
 
