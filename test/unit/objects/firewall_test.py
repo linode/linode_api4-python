@@ -54,6 +54,21 @@ class FirewallTest(ClientBaseCase):
 
             self.assertEqual(m.call_data, new_rules)
 
+    def test_create_device(self):
+        """
+        Tests that firewall devices can be created successfully
+        """
+
+        firewall = Firewall(self.client, 123)
+
+        with self.mock_post("networking/firewalls/123/devices/123") as m:
+            firewall.device_create(123, "linode")
+            assert m.call_data == {"id": 123, "type": "linode"}
+
+        with self.mock_post("networking/firewalls/123/devices/456") as m:
+            firewall.device_create(123, "interface")
+            assert m.call_data == {"id": 123, "type": "interface"}
+
 
 class FirewallDevicesTest(ClientBaseCase):
     """
@@ -65,7 +80,28 @@ class FirewallDevicesTest(ClientBaseCase):
         Tests that devices can be pulled from a firewall
         """
         firewall = Firewall(self.client, 123)
-        self.assertEqual(len(firewall.devices), 1)
+        assert len(firewall.devices) == 2
+
+        assert firewall.devices[0].created is not None
+        assert firewall.devices[0].id == 123
+        assert firewall.devices[0].updated is not None
+
+        assert firewall.devices[0].entity.id == 123
+        assert firewall.devices[0].entity.label == "my-linode"
+        assert firewall.devices[0].entity.type == "linode"
+        assert firewall.devices[0].entity.url == "/v4/linode/instances/123"
+
+        assert firewall.devices[1].created is not None
+        assert firewall.devices[1].id == 456
+        assert firewall.devices[1].updated is not None
+
+        assert firewall.devices[1].entity.id == 123
+        assert firewall.devices[1].entity.label is None
+        assert firewall.devices[1].entity.type == "interface"
+        assert (
+            firewall.devices[1].entity.url
+            == "/v4/linode/instances/123/interfaces/123"
+        )
 
     def test_get_device(self):
         """
