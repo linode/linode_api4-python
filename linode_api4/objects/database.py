@@ -190,7 +190,7 @@ class MySQLDatabaseConfigOptions(JSONObject):
 
 
 @dataclass
-class PostgreSQLDatabasePGLookoutConfigOptions(JSONObject):
+class PostgreSQLDatabaseConfigPGLookoutOptions(JSONObject):
     """
     PostgreSQLDatabasePGLookoutConfigOptions represents the fields in the pglookout
     field of the PostgreSQLDatabasePGConfigOptions class
@@ -200,7 +200,7 @@ class PostgreSQLDatabasePGLookoutConfigOptions(JSONObject):
 
 
 @dataclass
-class PostgreSQLDatabasePGConfigOptions(JSONObject):
+class PostgreSQLDatabaseConfigPGOptions(JSONObject):
     """
     PostgreSQLDatabasePGConfigOptions represents the fields in the pg
     field of the PostgreSQLDatabasePGConfigOptions class
@@ -265,9 +265,9 @@ class PostgreSQLDatabaseConfigOptions(JSONObject):
     a PostgreSQL Database Cluster's configuration options during its creation.
     """
 
-    pg: Optional[PostgreSQLDatabasePGConfigOptions] = None
+    pg: Optional[PostgreSQLDatabaseConfigPGOptions] = None
     pg_stat_monitor_enable: Optional[bool] = None
-    pglookout: Optional[PostgreSQLDatabasePGLookoutConfigOptions] = None
+    pglookout: Optional[PostgreSQLDatabaseConfigPGLookoutOptions] = None
     service_log: Optional[bool] = None
     shared_buffers_percentage: Optional[float] = None
     synchronous_replication: Optional[str] = None
