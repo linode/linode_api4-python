@@ -287,6 +287,9 @@ class ObjectStorageTest(ClientBaseCase):
             )
 
     def test_quota_get_and_list(self):
+        """
+        Test that you can get and list an Object storage quota and usage information.
+        """
         quota = ObjectStorageQuota(
             self.client,
             "obj-objects-us-ord-1",
