@@ -58,11 +58,3 @@ def test_import(test_linode_client, test_domain):
     )
     domain = test_linode_client.load(Domain, test_domain.id)
 
-
-@pytest.fixture
-def broken_fixture():
-    raise RuntimeError("This setup is intentionally broken.")
-
-
-def test_error(broken_fixture):
-    pass  # The test will never run because the fixture fails first

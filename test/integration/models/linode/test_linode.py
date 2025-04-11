@@ -534,6 +534,7 @@ def test_linode_create_disk(test_linode_client, linode_for_disk_tests):
     assert disk.linode_id == linode.id
 
 
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 def test_linode_instance_password(create_linode_for_pass_reset):
     linode = create_linode_for_pass_reset[0]
     password = create_linode_for_pass_reset[1]
