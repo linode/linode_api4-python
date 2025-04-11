@@ -21,3 +21,4 @@ from .support import *
 from .tag import *
 from .volume import *
 from .vpc import *
+from .monitor import *

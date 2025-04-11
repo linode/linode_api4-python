@@ -21,3 +21,4 @@ from .database import *
 from .vpc import *
 from .beta import *
 from .placement import *
+from .monitor import *
