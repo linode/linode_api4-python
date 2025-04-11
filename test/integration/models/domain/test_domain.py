@@ -57,4 +57,3 @@ def test_import(test_linode_client, test_domain):
         'Currently failing with message: linode_api4.errors.ApiError: 400: An unknown error occured. Please open a ticket for further assistance. Command: domain_import(domain, "google.ca")'
     )
     domain = test_linode_client.load(Domain, test_domain.id)
-
