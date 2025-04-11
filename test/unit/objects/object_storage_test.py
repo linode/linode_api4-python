@@ -6,6 +6,7 @@ from linode_api4.objects import (
     ObjectStorageACL,
     ObjectStorageBucket,
     ObjectStorageCluster,
+    ObjectStorageQuota,
 )
 
 
@@ -284,3 +285,50 @@ class ObjectStorageTest(ClientBaseCase):
                     "name": "example",
                 },
             )
+
+    def test_quota_get_and_list(self):
+        quota = ObjectStorageQuota(
+            self.client,
+            "obj-objects-us-ord-1",
+        )
+
+        self.assertIsNotNone(quota)
+        self.assertEqual(quota.quota_id, "obj-objects-us-ord-1")
+        self.assertEqual(quota.quota_name, "Object Storage Maximum Objects")
+        self.assertEqual(
+            quota.description,
+            "Maximum number of Objects this customer is allowed to have on this endpoint.",
+        )
+        self.assertEqual(quota.endpoint_type, "E1")
+        self.assertEqual(quota.s3_endpoint, "us-iad-1.linodeobjects.com")
+        self.assertEqual(quota.quota_limit, 50)
+        self.assertEqual(quota.resource_metric, "object")
+
+        quota_usage_url = "/object-storage/quotas/obj-objects-us-ord-1/usage"
+        with self.mock_get(quota_usage_url) as m:
+            usage = quota.usage()
+            self.assertIsNotNone(usage)
+            self.assertEqual(m.call_url, quota_usage_url)
+            self.assertEqual(usage.quota_limit, 100)
+            self.assertEqual(usage.usage, 10)
+
+        quota_list_url = "/object-storage/quotas"
+        with self.mock_get(quota_list_url) as m:
+            quotas = self.client.object_storage.quotas()
+            self.assertIsNotNone(quotas)
+            self.assertEqual(m.call_url, quota_list_url)
+            self.assertEqual(len(quotas), 2)
+            self.assertEqual(quotas[0].quota_id, "obj-objects-us-ord-1")
+            self.assertEqual(
+                quotas[0].quota_name, "Object Storage Maximum Objects"
+            )
+            self.assertEqual(
+                quotas[0].description,
+                "Maximum number of Objects this customer is allowed to have on this endpoint.",
+            )
+            self.assertEqual(quotas[0].endpoint_type, "E1")
+            self.assertEqual(
+                quotas[0].s3_endpoint, "us-iad-1.linodeobjects.com"
+            )
+            self.assertEqual(quotas[0].quota_limit, 50)
+            self.assertEqual(quotas[0].resource_metric, "object")
