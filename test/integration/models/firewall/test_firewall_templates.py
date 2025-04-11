@@ -11,7 +11,7 @@ def __assert_firewall_template_rules(rules: MappedObject):
     assert len(rules.outbound_policy) > 0
 
     assert isinstance(rules.outbound, list)
-    assert (rules.inbound, list)
+    assert isinstance(rules.inbound, list)
 
 
 def test_list_firewall_templates(test_linode_client):
