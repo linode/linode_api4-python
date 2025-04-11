@@ -383,7 +383,7 @@ def test_oauth_client(test_linode_client):
 
     yield oauth_client
 
-    # oauth_client.delete()
+    oauth_client.delete()
 
 
 @pytest.fixture(scope="session")

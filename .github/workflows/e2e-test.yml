@@ -172,7 +172,7 @@ jobs:
   process-upload-report:
     runs-on: ubuntu-latest
     needs: [integration-tests]
-    if: always() # && github.repository == 'linode/linode_api4-python' # Run even if integration tests fail and only on main repository
+    if: always() && github.repository == 'linode/linode_api4-python' # Run even if integration tests fail and only on main repository
     outputs:
       summary: ${{ steps.set-test-summary.outputs.summary }}
 
