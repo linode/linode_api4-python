@@ -133,7 +133,6 @@ class InvoiceTest(ClientBaseCase):
         Tests that account settings can be updated successfully
         """
         settings = self.client.account.settings()
-        print(settings._raw_json)
 
         settings.network_helper = True
         settings.backups_enabled = False
