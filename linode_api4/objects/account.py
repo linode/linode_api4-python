@@ -184,6 +184,8 @@ class AccountSettingsInterfacesForNewLinodes(StrEnum):
     """
     A string enum corresponding to valid values
     for the AccountSettings(...).interfaces_for_new_linodes field.
+
+    NOTE: This feature may not currently be available to all users.
     """
 
     legacy_config_only = "legacy_config_only"
