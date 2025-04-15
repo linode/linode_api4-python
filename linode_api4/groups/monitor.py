@@ -12,14 +12,14 @@ from linode_api4.objects import (
 
 class MonitorGroup(Group):
     """
-    Encapsulates LKE-related methods of the :any:`LinodeClient`.  This
+    Encapsulates Monitor-related methods of the :any:`LinodeClient`.  This
     should not be instantiated on its own, but should instead be used through
     an instance of :any:`LinodeClient`::
 
        client = LinodeClient(token)
-       instances = client.lke.clusters() # use the LKEGroup
+       instances = client.monitor.dashboards() # use the LKEGroup
 
-    This group contains all features beneath the `/lke` group in the API v4.
+    This group contains all features beneath the `/monitor` group in the API v4.
     """
 
     def dashboards(self, *filters):
