@@ -101,6 +101,8 @@ class NetworkingGroup(Group):
 
         API Documentation: Not yet available.
 
+        NOTE: This feature may not currently be available to all users.
+
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
                         for more details on filtering.

@@ -312,6 +312,8 @@ class FirewallTemplate(Base):
     Represents a single Linode Firewall template.
 
     API documentation: Not yet available.
+
+    NOTE: This feature may not currently be available to all users.
     """
 
     api_endpoint = "/networking/firewalls/templates/{slug}"
