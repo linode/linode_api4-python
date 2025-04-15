@@ -120,6 +120,8 @@ class NetworkingGroup(Group):
 
         API Documentation: Not yet available.
 
+        NOTE: This feature may not currently be available to all users.
+
         :returns: An object representing the Linode Firewall settings for the current user.
         :rtype: FirewallSettings
         """

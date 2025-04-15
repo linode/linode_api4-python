@@ -195,6 +195,8 @@ class FirewallSettingsDefaultFirewallIDs(JSONObject):
     """
     Contains the IDs of Linode Firewalls that should be used by default
     when creating various interface types.
+
+    NOTE: This feature may not currently be available to all users.
     """
 
     vpc_interface: Optional[int] = None
@@ -208,6 +210,8 @@ class FirewallSettings(Base):
     Represents the Firewall settings for the current user.
 
     API Documentation: Not yet available.
+
+    NOTE: This feature may not currently be available to all users.
     """
 
     api_endpoint = "/networking/firewalls/settings"
