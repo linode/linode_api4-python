@@ -353,12 +353,39 @@ class AccountGroupTest(ClientBaseCase):
         """
         with self.mock_get("/account/maintenance") as m:
             result = self.client.account.maintenance()
+
             self.assertEqual(m.call_url, "/account/maintenance")
             self.assertEqual(len(result), 1)
+
+            maintenance = result[0]
+
             self.assertEqual(
-                result[0].reason,
-                "This maintenance will allow us to update the BIOS on the host's motherboard.",
+                maintenance.body,
+                "Scheduled upgrade to faster NVMe hardware. This will affect Linode #1234.",
             )
+            self.assertEqual(maintenance.entity.id, 1234)
+            self.assertEqual(maintenance.entity.label, "Linode #1234")
+            self.assertEqual(maintenance.entity.type, "linode")
+            self.assertEqual(maintenance.entity.url, "/linodes/1234")
+            self.assertEqual(
+                maintenance.label, "Scheduled Maintenance for Linode #1234"
+            )
+            self.assertEqual(
+                maintenance.message,
+                "Scheduled upgrade to faster NVMe hardware.",
+            )
+            self.assertEqual(maintenance.severity, "major")
+            self.assertEqual(maintenance.type, "maintenance_scheduled")
+            self.assertEqual(maintenance.event_type, "linode_migrate")
+            self.assertEqual(maintenance.maintenance_policy_set, "Power on/off")
+            self.assertEqual(maintenance.description, "Scheduled Maintenance")
+            self.assertEqual(maintenance.source, "platform")
+            self.assertEqual(maintenance.not_before, "2025-03-25T10:00:00")
+            self.assertEqual(maintenance.start_time, "2025-03-25T12:00:00")
+            self.assertEqual(maintenance.complete_time, "2025-03-25T14:00:00")
+            self.assertEqual(maintenance.status, "scheduled")
+            self.assertEqual(maintenance.when, "2025-03-25T12:00:00")
+            self.assertEqual(maintenance.until, "2025-03-25T14:00:00")
 
     def test_notifications(self):
         """

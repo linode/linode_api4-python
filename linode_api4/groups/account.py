@@ -201,7 +201,7 @@ class AccountGroup(Group):
         """
         Returns a collection of Maintenance objects for any entity a user has permissions to view. Cancelled Maintenance objects are not returned.
 
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-account-logins
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-maintenance
 
         :returns: A list of Maintenance objects on this account.
         :rtype: List of Maintenance objects as MappedObjects
