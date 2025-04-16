@@ -51,6 +51,16 @@ class ObjectStorageEndpoint(JSONObject):
     s3_endpoint: Optional[str] = None
 
 
+@dataclass
+class ObjectStorageQuotaUsage(JSONObject):
+    """
+    ObjectStorageQuotaUsage contains the fields of an object storage quota usage information.
+    """
+
+    quota_limit: int = 0
+    usage: int = 0
+
+
 class ObjectStorageType(Base):
     """
     An ObjectStorageType represents the structure of a valid Object Storage type.
@@ -596,7 +606,7 @@ class ObjectStorageQuota(Base):
         API documentation: TBD
 
         :returns: The Object Storage Quota usage.
-        :rtype: MappedObject
+        :rtype: ObjectStorageQuotaUsage
         """
 
         result = self._client.get(
@@ -604,4 +614,4 @@ class ObjectStorageQuota(Base):
             model=self,
         )
 
-        return MappedObject(**result)
+        return ObjectStorageQuotaUsage.from_json(result)
