@@ -91,10 +91,10 @@ class MonitorSupportedServicesTest(ClientBaseCase):
         self.assertEqual(metrics[0].dimensions[0].label, "Node Type")
         self.assertEqual(metrics[0].dimensions[0].values,["primary", "secondary"])
 
-    def test_get_token(self):
+    def create_token(self):
 
         with self.mock_post("/monitor/services/dbaas/token") as m:
-            self.client.monitor.get_token(service_type="dbaas", entity_ids=[189690,188020])
+            self.client.monitor.create_token(service_type="dbaas", entity_ids=[189690,188020])
             self.assertEqual(m.return_dct["token"], "abcdefhjigkfghh")
     
 

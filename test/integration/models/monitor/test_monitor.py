@@ -104,7 +104,7 @@ def test_my_db_functionality(test_linode_client, test_create_and_test_db):
 
 
     # create token for the particular service
-    token = client.monitor.get_token(service_type="dbaas", entity_ids=[entity_id])
+    token = client.monitor.create_token(service_type="dbaas", entity_ids=[entity_id])
     assert isinstance(token, CreateToken)
     assert len(token.token) > 0, "Token should not be empty"
     assert hasattr(token, "token"), "Response object has no 'token' attribute"
