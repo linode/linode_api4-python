@@ -307,6 +307,51 @@ class LinodeClientGeneralTest(ClientBaseCase):
         assert called
 
 
+class MaintenanceGroupTest(ClientBaseCase):
+    """
+    Tests methods of the MaintenanceGroup
+    """
+
+    def test_maintenance(self):
+        """
+        Tests that maintenance can be retrieved
+        """
+        with self.mock_get("/maintenance/policies") as m:
+            result = self.client.maintenance.maintenance_policies()
+
+            self.assertEqual(m.call_url, "/maintenance/policies")
+            self.assertEqual(len(result), 2)
+
+            policy_default_migrate = result[0]
+            policy_default_power_on_off = result[1]
+
+            self.assertEqual(policy_default_migrate.id, "1")
+            self.assertEqual(policy_default_migrate.name, "Default Migrate")
+            self.assertEqual(
+                policy_default_migrate.description,
+                "predefined maintenance policy default for all linodes",
+            )
+            self.assertEqual(policy_default_migrate.type, "migrate")
+            self.assertEqual(
+                policy_default_migrate.notification_period_sec, 3600
+            )
+            self.assertEqual(policy_default_migrate.is_default, True)
+
+            self.assertEqual(policy_default_power_on_off.id, "2")
+            self.assertEqual(
+                policy_default_power_on_off.name, "Default Power On/Off"
+            )
+            self.assertEqual(
+                policy_default_power_on_off.description,
+                "predefined maintenance policy for general use cases",
+            )
+            self.assertEqual(policy_default_power_on_off.type, "power on/off")
+            self.assertEqual(
+                policy_default_power_on_off.notification_period_sec, 1800
+            )
+            self.assertEqual(policy_default_power_on_off.is_default, False)
+
+
 class AccountGroupTest(ClientBaseCase):
     """
     Tests methods of the AccountGroup
