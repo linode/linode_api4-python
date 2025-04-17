@@ -121,6 +121,25 @@ class InvoiceTest(ClientBaseCase):
         self.assertEqual(settings.network_helper, False)
         self.assertEqual(settings.object_storage, "active")
         self.assertEqual(settings.backups_enabled, True)
+        self.assertEqual(settings.maintenance_policy_id, 1)
+
+    def test_update_account_settings(self):
+        """
+        Tests that account settings can be updated
+        """
+        with self.mock_put("account/settings") as m:
+            settings = AccountSettings(self.client, False, {})
+
+            settings.maintenance_policy_id = 1
+            settings.save()
+
+            self.assertEqual(m.call_url, "/account/settings")
+            self.assertEqual(
+                m.call_data,
+                {
+                    "maintenance_policy_id": 1,
+                },
+            )
 
     def test_get_event(self):
         """
@@ -129,19 +148,39 @@ class InvoiceTest(ClientBaseCase):
         event = Event(self.client, 123, {})
 
         self.assertEqual(event.action, "ticket_create")
-        self.assertEqual(event.created, datetime(2018, 1, 1, 0, 1, 1))
+        self.assertEqual(event.created, datetime(2025, 3, 25, 12, 0, 0))
         self.assertEqual(event.duration, 300.56)
+
         self.assertIsNotNone(event.entity)
+        self.assertEqual(event.entity.id, 11111)
+        self.assertEqual(event.entity.label, "Problem booting my Linode")
+        self.assertEqual(event.entity.type, "ticket")
+        self.assertEqual(event.entity.url, "/v4/support/tickets/11111")
+
         self.assertEqual(event.id, 123)
-        self.assertEqual(event.message, "None")
+        self.assertEqual(event.message, "Ticket created for user issue.")
         self.assertIsNone(event.percent_complete)
         self.assertIsNone(event.rate)
         self.assertTrue(event.read)
+
         self.assertIsNotNone(event.secondary_entity)
+        self.assertEqual(event.secondary_entity.id, "linode/debian9")
+        self.assertEqual(event.secondary_entity.label, "linode1234")
+        self.assertEqual(event.secondary_entity.type, "linode")
+        self.assertEqual(
+            event.secondary_entity.url, "/v4/linode/instances/1234"
+        )
+
         self.assertTrue(event.seen)
-        self.assertIsNone(event.status)
-        self.assertIsNone(event.time_remaining)
+        self.assertEqual(event.status, "completed")
         self.assertEqual(event.username, "exampleUser")
+
+        self.assertEqual(event.maintenance_policy_set, "Tentative")
+        self.assertEqual(event.description, "Scheduled maintenance")
+        self.assertEqual(event.source, "user")
+        self.assertEqual(event.not_before, datetime(2025, 3, 25, 12, 0, 0))
+        self.assertEqual(event.start_time, datetime(2025, 3, 25, 12, 30, 0))
+        self.assertEqual(event.complete_time, datetime(2025, 3, 25, 13, 0, 0))
 
     def test_get_invoice(self):
         """

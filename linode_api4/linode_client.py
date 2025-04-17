@@ -19,6 +19,7 @@ from linode_api4.groups import (
     LinodeGroup,
     LKEGroup,
     LongviewGroup,
+    MaintenanceGroup,
     NetworkingGroup,
     NodeBalancerGroup,
     ObjectStorageGroup,
@@ -148,6 +149,10 @@ class LinodeClient:
         #: Access methods related to your account - see :any:`AccountGroup` for
         #: more information
         self.account = AccountGroup(self)
+
+        #: Access methods related to Maintenance Policies - see :any:`MaintenanceGroup` for
+        #: more information
+        self.maintenance = MaintenanceGroup(self)
 
         #: Access methods related to networking on your account - see
         #: :any:`NetworkingGroup` for more information

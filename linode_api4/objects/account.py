@@ -197,6 +197,7 @@ class AccountSettings(Base):
         ),
         "object_storage": Property(),
         "backups_enabled": Property(mutable=True),
+        "maintenance_policy_id": Property(mutable=True),
     }
 
 
@@ -219,12 +220,18 @@ class Event(Base):
         "user_id": Property(),
         "username": Property(),
         "entity": Property(),
-        "time_remaining": Property(),
+        "time_remaining": Property(),  # Deprecated
         "rate": Property(),
         "status": Property(),
         "duration": Property(),
         "secondary_entity": Property(),
         "message": Property(),
+        "maintenance_policy_set": Property(),
+        "description": Property(),
+        "source": Property(),
+        "not_before": Property(is_datetime=True),
+        "start_time": Property(is_datetime=True),
+        "complete_time": Property(is_datetime=True),
     }
 
     @property

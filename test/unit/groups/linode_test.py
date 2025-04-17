@@ -96,6 +96,20 @@ class LinodeTest(ClientBaseCase):
             m.call_data["placement_group"], {"id": 123, "compliant_only": True}
         )
 
+    def test_create_with_mainteance_policy_id(self):
+        """
+        Tests that you can create a Linode with a maintenance policy
+        """
+
+        with self.mock_post("linode/instances/123") as m:
+            self.client.linode.instance_create(
+                "g6-nanode-1",
+                "eu-west",
+                maintenance_policy_id=1,
+            )
+
+        self.assertEqual(m.call_data["maintenance_policy_id"], 1)
+
 
 class TypeTest(ClientBaseCase):
     def test_get_types(self):
