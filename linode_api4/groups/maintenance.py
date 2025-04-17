@@ -1,8 +1,12 @@
-from linode_api4 import MappedObject
 from linode_api4.groups import Group
+from linode_api4.objects import MappedObject
 
 
 class MaintenanceGroup(Group):
+    """
+    Collections related to Maintenance.
+    """
+
     def maintenance_policies(self):
         """
         Returns a collection of MaintenancePolicy objects representing
