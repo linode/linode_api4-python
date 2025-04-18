@@ -307,6 +307,22 @@ class Firewall(Base):
         return c
 
 
+class FirewallTemplate(Base):
+    """
+    Represents a single Linode Firewall template.
+
+    API documentation: Not yet available.
+
+    NOTE: This feature may not currently be available to all users.
+    """
+
+    api_endpoint = "/networking/firewalls/templates/{slug}"
+
+    id_attribute = "slug"
+
+    properties = {"slug": Property(identifier=True), "rules": Property()}
+
+
 class NetworkTransferPrice(Base):
     """
     An NetworkTransferPrice represents the structure of a valid network transfer price.
