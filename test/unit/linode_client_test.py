@@ -44,7 +44,13 @@ class LinodeClientGeneralTest(ClientBaseCase):
         self.assertEqual(a.balance, 0)
         self.assertEqual(
             a.capabilities,
-            ["Linodes", "NodeBalancers", "Block Storage", "Object Storage"],
+            [
+                "Linodes",
+                "NodeBalancers",
+                "Block Storage",
+                "Object Storage",
+                "Linode Interfaces",
+            ],
         )
 
     def test_get_regions(self):
