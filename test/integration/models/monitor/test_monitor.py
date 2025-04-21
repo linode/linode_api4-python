@@ -1,5 +1,3 @@
-import json
-
 from linode_api4.objects import (
     MonitorServiceSupported,
     Dashboard,
@@ -9,9 +7,8 @@ from linode_api4.objects import (
     MetricDefinition,
     CreateToken,
 )
-from linode_api4 import LinodeClient,MySQLDatabase
-import re
-import time
+from linode_api4 import LinodeClient
+
 from test.integration.helpers import (
     get_test_label,
     send_request_when_resource_available,

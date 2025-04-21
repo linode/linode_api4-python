@@ -10,6 +10,9 @@ from linode_api4.objects import (
     DashboardsByID,
 )
 
+__all__ = [
+    "MonitorGroup",
+]
 class MonitorGroup(Group):
     """
     Encapsulates Monitor-related methods of the :any:`LinodeClient`.  This
