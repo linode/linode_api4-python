@@ -1,5 +1,6 @@
 from test.unit.base import ClientBaseCase
 
+from linode_api4 import FirewallTemplate, MappedObject
 from linode_api4.objects import Firewall, FirewallDevice
 
 
@@ -117,3 +118,43 @@ class FirewallDevicesTest(ClientBaseCase):
         self.assertEqual(device.entity.url, "/v4/linode/instances/123")
 
         self.assertEqual(device._populated, True)
+
+
+class FirewallTemplatesTest(ClientBaseCase):
+    @staticmethod
+    def assert_rules(rules: MappedObject):
+        assert rules.outbound_policy == "DROP"
+        assert len(rules.outbound) == 1
+
+        assert rules.inbound_policy == "DROP"
+        assert len(rules.inbound) == 1
+
+        outbound_rule = rules.outbound[0]
+        assert outbound_rule.action == "ACCEPT"
+        assert outbound_rule.addresses.ipv4[0] == "192.0.2.0/24"
+        assert outbound_rule.addresses.ipv4[1] == "198.51.100.2/32"
+        assert outbound_rule.addresses.ipv6[0] == "2001:DB8::/128"
+        assert outbound_rule.description == "test"
+        assert outbound_rule.label == "test-rule"
+        assert outbound_rule.ports == "22-24, 80, 443"
+        assert outbound_rule.protocol == "TCP"
+
+        inbound_rule = rules.outbound[0]
+        assert inbound_rule.action == "ACCEPT"
+        assert inbound_rule.addresses.ipv4[0] == "192.0.2.0/24"
+        assert inbound_rule.addresses.ipv4[1] == "198.51.100.2/32"
+        assert inbound_rule.addresses.ipv6[0] == "2001:DB8::/128"
+        assert inbound_rule.description == "test"
+        assert inbound_rule.label == "test-rule"
+        assert inbound_rule.ports == "22-24, 80, 443"
+        assert inbound_rule.protocol == "TCP"
+
+    def test_get_public(self):
+        template = self.client.load(FirewallTemplate, "public")
+        assert template.slug == "public"
+        self.assert_rules(template.rules)
+
+    def test_get_vpc(self):
+        template = self.client.load(FirewallTemplate, "vpc")
+        assert template.slug == "vpc"
+        self.assert_rules(template.rules)

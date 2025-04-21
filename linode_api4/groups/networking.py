@@ -8,6 +8,7 @@ from linode_api4.objects import (
     Firewall,
     FirewallCreateDevicesOptions,
     FirewallSettings,
+    FirewallTemplate,
     Instance,
     IPAddress,
     IPv6Pool,
@@ -114,14 +115,28 @@ class NetworkingGroup(Group):
         f = Firewall(self.client, result["id"], result)
         return f
 
-    def firewall_settings(self) -> FirewallSettings:
+    def firewall_templates(self, *filters):
         """
-        Returns an object representing the Linode Firewall settings for the current user.
+        Returns a list of Firewall Templates available to the current user.
 
         API Documentation: Not yet available.
 
         NOTE: This feature may not currently be available to all users.
 
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
+
+        :returns: A list of Firewall Templates available to the current user.
+        :rtype: PaginatedList of FirewallTemplate
+        """
+        return self.client._get_and_filter(FirewallTemplate, *filters)
+
+    def firewall_settings(self) -> FirewallSettings:
+        """
+        Returns an object representing the Linode Firewall settings for the current user.
+        API Documentation: Not yet available.
+        NOTE: This feature may not currently be available to all users.
         :returns: An object representing the Linode Firewall settings for the current user.
         :rtype: FirewallSettings
         """
