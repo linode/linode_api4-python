@@ -1,8 +1,6 @@
 from test.unit.base import ClientBaseCase
 import datetime
 
-from linode_api4.objects import CreateToken
-
 class MonitorSupportedServicesTest(ClientBaseCase):
     """
     Tests the methods of MonitorServiceSupported class
