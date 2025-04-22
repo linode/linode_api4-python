@@ -110,7 +110,6 @@ class MySQLDatabaseTest(ClientBaseCase):
         self.assertEqual(dbs[0].updates.duration, 3)
         self.assertEqual(dbs[0].version, "8.0.26")
         self.assertEqual(dbs[0].engine_config.binlog_retention_period, 600)
-        self.assertTrue(dbs[0].engine_config.service_log)
         self.assertEqual(dbs[0].engine_config.mysql.connect_timeout, 10)
         self.assertEqual(dbs[0].engine_config.mysql.default_time_zone, "+03:00")
         self.assertEqual(dbs[0].engine_config.mysql.group_concat_max_len, 1024)
@@ -136,7 +135,6 @@ class MySQLDatabaseTest(ClientBaseCase):
             dbs[0].engine_config.mysql.innodb_online_alter_log_max_size,
             134217728,
         )
-        self.assertTrue(dbs[0].engine_config.mysql.innodb_print_all_deadlocks)
         self.assertEqual(dbs[0].engine_config.mysql.innodb_read_io_threads, 10)
         self.assertTrue(dbs[0].engine_config.mysql.innodb_rollback_on_timeout)
         self.assertEqual(
@@ -148,8 +146,6 @@ class MySQLDatabaseTest(ClientBaseCase):
             dbs[0].engine_config.mysql.internal_tmp_mem_storage_engine,
             "TempTable",
         )
-        self.assertEqual(dbs[0].engine_config.mysql.log_output, "INSIGHTS")
-        self.assertEqual(dbs[0].engine_config.mysql.long_query_time, 10)
         self.assertEqual(
             dbs[0].engine_config.mysql.max_allowed_packet, 67108864
         )
@@ -159,7 +155,6 @@ class MySQLDatabaseTest(ClientBaseCase):
         self.assertEqual(dbs[0].engine_config.mysql.net_buffer_length, 16384)
         self.assertEqual(dbs[0].engine_config.mysql.net_read_timeout, 30)
         self.assertEqual(dbs[0].engine_config.mysql.net_write_timeout, 30)
-        self.assertTrue(dbs[0].engine_config.mysql.slow_query_log)
         self.assertEqual(dbs[0].engine_config.mysql.sort_buffer_size, 262144)
         self.assertEqual(
             dbs[0].engine_config.mysql.sql_mode, "ANSI,TRADITIONAL"
@@ -189,7 +184,7 @@ class MySQLDatabaseTest(ClientBaseCase):
                         mysql=MySQLDatabaseConfigMySQLOptions(
                             connect_timeout=20
                         ),
-                        service_log=True,
+                        binlog_retention_period=200,
                     ),
                 )
             except Exception as e:
@@ -207,7 +202,9 @@ class MySQLDatabaseTest(ClientBaseCase):
             self.assertEqual(
                 m.call_data["engine_config"]["mysql"]["connect_timeout"], 20
             )
-            self.assertTrue(m.call_data["engine_config"]["service_log"])
+            self.assertEqual(
+                m.call_data["engine_config"]["binlog_retention_period"], 200
+            )
 
     def test_update(self):
         """
@@ -224,7 +221,7 @@ class MySQLDatabaseTest(ClientBaseCase):
             db.label = "cool"
             db.engine_config = MySQLDatabaseConfigOptions(
                 mysql=MySQLDatabaseConfigMySQLOptions(connect_timeout=20),
-                service_log=True,
+                binlog_retention_period=200,
             )
 
             db.save()
@@ -237,7 +234,9 @@ class MySQLDatabaseTest(ClientBaseCase):
             self.assertEqual(
                 m.call_data["engine_config"]["mysql"]["connect_timeout"], 20
             )
-            self.assertTrue(m.call_data["engine_config"]["service_log"])
+            self.assertEqual(
+                m.call_data["engine_config"]["binlog_retention_period"], 200
+            )
 
     def test_list_backups(self):
         """
@@ -410,18 +409,13 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
             dbs[0].engine_config.pglookout.max_failover_replication_time_lag,
             1000,
         )
-        self.assertFalse(dbs[0].engine_config.service_log)
         self.assertEqual(dbs[0].engine_config.shared_buffers_percentage, 41.5)
-        self.assertEqual(dbs[0].engine_config.synchronous_replication, "off")
         self.assertEqual(dbs[0].engine_config.work_mem, 4)
         self.assertEqual(
             dbs[0].engine_config.pg.autovacuum_analyze_scale_factor, 0.5
         )
         self.assertEqual(
             dbs[0].engine_config.pg.autovacuum_analyze_threshold, 100
-        )
-        self.assertEqual(
-            dbs[0].engine_config.pg.autovacuum_freeze_max_age, 400000000
         )
         self.assertEqual(dbs[0].engine_config.pg.autovacuum_max_workers, 10)
         self.assertEqual(dbs[0].engine_config.pg.autovacuum_naptime, 100)
@@ -449,18 +443,6 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
             dbs[0].engine_config.pg.idle_in_transaction_session_timeout, 100
         )
         self.assertTrue(dbs[0].engine_config.pg.jit)
-        self.assertEqual(
-            dbs[0].engine_config.pg.log_autovacuum_min_duration, 100
-        )
-        self.assertEqual(dbs[0].engine_config.pg.log_error_verbosity, "DEFAULT")
-        self.assertEqual(
-            dbs[0].engine_config.pg.log_line_prefix,
-            "'pid=%p,user=%u,db=%d,app=%a,client=%h '",
-        )
-        self.assertEqual(
-            dbs[0].engine_config.pg.log_min_duration_statement, 100
-        )
-        self.assertEqual(dbs[0].engine_config.pg.log_temp_files, 100)
         self.assertEqual(dbs[0].engine_config.pg.max_files_per_process, 100)
         self.assertEqual(dbs[0].engine_config.pg.max_locks_per_transaction, 100)
         self.assertEqual(
@@ -472,9 +454,6 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
         )
         self.assertEqual(
             dbs[0].engine_config.pg.max_pred_locks_per_transaction, 1000
-        )
-        self.assertEqual(
-            dbs[0].engine_config.pg.max_prepared_transactions, 5000
         )
         self.assertEqual(dbs[0].engine_config.pg.max_replication_slots, 32)
         self.assertEqual(dbs[0].engine_config.pg.max_slot_wal_keep_size, 100)
@@ -540,9 +519,9 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
                     cluster_size=3,
                     engine_config=PostgreSQLDatabaseConfigOptions(
                         pg=PostgreSQLDatabaseConfigPGOptions(
-                            log_temp_files=200
+                            autovacuum_analyze_scale_factor=0.5
                         ),
-                        service_log=True,
+                        work_mem=4,
                     ),
                 )
             except Exception:
@@ -556,9 +535,12 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
             self.assertEqual(m.call_data["type"], "g6-standard-1")
             self.assertEqual(m.call_data["cluster_size"], 3)
             self.assertEqual(
-                m.call_data["engine_config"]["pg"]["log_temp_files"], 200
+                m.call_data["engine_config"]["pg"][
+                    "autovacuum_analyze_scale_factor"
+                ],
+                0.5,
             )
-            self.assertTrue(m.call_data["engine_config"]["service_log"])
+            self.assertEqual(m.call_data["engine_config"]["work_mem"], 4)
 
     def test_update(self):
         """
@@ -574,8 +556,10 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
             db.allow_list = new_allow_list
             db.label = "cool"
             db.engine_config = PostgreSQLDatabaseConfigOptions(
-                pg=PostgreSQLDatabaseConfigPGOptions(log_temp_files=200),
-                service_log=True,
+                pg=PostgreSQLDatabaseConfigPGOptions(
+                    autovacuum_analyze_scale_factor=0.5
+                ),
+                work_mem=4,
             )
 
             db.save()
@@ -586,9 +570,12 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
             self.assertEqual(m.call_data["updates"]["day_of_week"], 2)
             self.assertEqual(m.call_data["allow_list"], new_allow_list)
             self.assertEqual(
-                m.call_data["engine_config"]["pg"]["log_temp_files"], 200
+                m.call_data["engine_config"]["pg"][
+                    "autovacuum_analyze_scale_factor"
+                ],
+                0.5,
             )
-            self.assertTrue(m.call_data["engine_config"]["service_log"])
+            self.assertEqual(m.call_data["engine_config"]["work_mem"], 4)
 
     def test_list_backups(self):
         """

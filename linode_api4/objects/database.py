@@ -155,21 +155,17 @@ class MySQLDatabaseConfigMySQLOptions(JSONObject):
     innodb_lock_wait_timeout: Optional[int] = None
     innodb_log_buffer_size: Optional[int] = None
     innodb_online_alter_log_max_size: Optional[int] = None
-    innodb_print_all_deadlocks: Optional[bool] = None
     innodb_read_io_threads: Optional[int] = None
     innodb_rollback_on_timeout: Optional[bool] = None
     innodb_thread_concurrency: Optional[int] = None
     innodb_write_io_threads: Optional[int] = None
     interactive_timeout: Optional[int] = None
     internal_tmp_mem_storage_engine: Optional[str] = None
-    log_output: Optional[str] = None
-    long_query_time: Optional[float] = None
     max_allowed_packet: Optional[int] = None
     max_heap_table_size: Optional[int] = None
     net_buffer_length: Optional[int] = None
     net_read_timeout: Optional[int] = None
     net_write_timeout: Optional[int] = None
-    slow_query_log: Optional[bool] = None
     sort_buffer_size: Optional[int] = None
     sql_mode: Optional[str] = None
     sql_require_primary_key: Optional[bool] = None
@@ -186,7 +182,6 @@ class MySQLDatabaseConfigOptions(JSONObject):
 
     mysql: Optional[MySQLDatabaseConfigMySQLOptions] = None
     binlog_retention_period: Optional[int] = None
-    service_log: Optional[bool] = None
 
 
 @dataclass
@@ -208,7 +203,6 @@ class PostgreSQLDatabaseConfigPGOptions(JSONObject):
 
     autovacuum_analyze_scale_factor: Optional[float] = None
     autovacuum_analyze_threshold: Optional[int] = None
-    autovacuum_freeze_max_age: Optional[int] = None
     autovacuum_max_workers: Optional[int] = None
     autovacuum_naptime: Optional[int] = None
     autovacuum_vacuum_cost_delay: Optional[int] = None
@@ -223,18 +217,12 @@ class PostgreSQLDatabaseConfigPGOptions(JSONObject):
     default_toast_compression: Optional[str] = None
     idle_in_transaction_session_timeout: Optional[int] = None
     jit: Optional[bool] = None
-    log_autovacuum_min_duration: Optional[int] = None
-    log_error_verbosity: Optional[str] = None
-    log_line_prefix: Optional[str] = None
-    log_min_duration_statement: Optional[int] = None
-    log_temp_files: Optional[int] = None
     max_files_per_process: Optional[int] = None
     max_locks_per_transaction: Optional[int] = None
     max_logical_replication_workers: Optional[int] = None
     max_parallel_workers: Optional[int] = None
     max_parallel_workers_per_gather: Optional[int] = None
     max_pred_locks_per_transaction: Optional[int] = None
-    max_prepared_transactions: Optional[int] = None
     max_replication_slots: Optional[int] = None
     max_slot_wal_keep_size: Optional[int] = None
     max_stack_depth: Optional[int] = None
@@ -268,9 +256,7 @@ class PostgreSQLDatabaseConfigOptions(JSONObject):
     pg: Optional[PostgreSQLDatabaseConfigPGOptions] = None
     pg_stat_monitor_enable: Optional[bool] = None
     pglookout: Optional[PostgreSQLDatabaseConfigPGLookoutOptions] = None
-    service_log: Optional[bool] = None
     shared_buffers_percentage: Optional[float] = None
-    synchronous_replication: Optional[str] = None
     work_mem: Optional[int] = None
 
 

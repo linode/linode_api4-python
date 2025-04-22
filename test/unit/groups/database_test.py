@@ -363,20 +363,6 @@ class MySQLDatabaseTest(ClientBaseCase):
         )
 
         self.assertEqual(
-            "When enabled, information about all deadlocks in InnoDB user transactions is recorded in the error log. Disabled by default.",
-            config["mysql"]["innodb_print_all_deadlocks"]["description"],
-        )
-        self.assertTrue(
-            config["mysql"]["innodb_print_all_deadlocks"]["example"]
-        )
-        self.assertFalse(
-            config["mysql"]["innodb_print_all_deadlocks"]["requires_restart"]
-        )
-        self.assertEqual(
-            "boolean", config["mysql"]["innodb_print_all_deadlocks"]["type"]
-        )
-
-        self.assertEqual(
             "The number of I/O threads for read operations in InnoDB. Default is 4. Changing this parameter will lead to a restart of the MySQL service.",
             config["mysql"]["innodb_read_io_threads"]["description"],
         )
@@ -490,28 +476,6 @@ class MySQLDatabaseTest(ClientBaseCase):
         )
 
         self.assertEqual(
-            "The slow log output destination when slow_query_log is ON. To enable MySQL AI Insights, choose INSIGHTS. To use MySQL AI Insights and the mysql.slow_log table at the same time, choose INSIGHTS,TABLE. To only use the mysql.slow_log table, choose TABLE. To silence slow logs, choose NONE.",
-            config["mysql"]["log_output"]["description"],
-        )
-        self.assertEqual("INSIGHTS", config["mysql"]["log_output"]["example"])
-        self.assertEqual(
-            ["INSIGHTS", "NONE", "TABLE", "INSIGHTS,TABLE"],
-            config["mysql"]["log_output"]["enum"],
-        )
-        self.assertFalse(config["mysql"]["log_output"]["requires_restart"])
-        self.assertEqual("string", config["mysql"]["log_output"]["type"])
-
-        self.assertEqual(
-            "The slow_query_logs work as SQL statements that take more than long_query_time seconds to execute.",
-            config["mysql"]["long_query_time"]["description"],
-        )
-        self.assertEqual(10, config["mysql"]["long_query_time"]["example"])
-        self.assertEqual(3600, config["mysql"]["long_query_time"]["maximum"])
-        self.assertEqual(0.0, config["mysql"]["long_query_time"]["minimum"])
-        self.assertFalse(config["mysql"]["long_query_time"]["requires_restart"])
-        self.assertEqual("number", config["mysql"]["long_query_time"]["type"])
-
-        self.assertEqual(
             "Size of the largest message in bytes that can be received by the server. Default is 67108864 (64M)",
             config["mysql"]["max_allowed_packet"]["description"],
         )
@@ -594,14 +558,6 @@ class MySQLDatabaseTest(ClientBaseCase):
         )
 
         self.assertEqual(
-            "Slow query log enables capturing of slow queries. Setting slow_query_log to false also truncates the mysql.slow_log table.",
-            config["mysql"]["slow_query_log"]["description"],
-        )
-        self.assertTrue(config["mysql"]["slow_query_log"]["example"])
-        self.assertFalse(config["mysql"]["slow_query_log"]["requires_restart"])
-        self.assertEqual("boolean", config["mysql"]["slow_query_log"]["type"])
-
-        self.assertEqual(
             "Sort buffer size in bytes for ORDER BY optimization. Default is 262144 (256K)",
             config["mysql"]["sort_buffer_size"]["description"],
         )
@@ -673,14 +629,6 @@ class MySQLDatabaseTest(ClientBaseCase):
         self.assertFalse(config["binlog_retention_period"]["requires_restart"])
         self.assertEqual("integer", config["binlog_retention_period"]["type"])
 
-        self.assertEqual(
-            "Store logs for the service so that they are available in the HTTP API and console.",
-            config["service_log"]["description"],
-        )
-        self.assertTrue(config["service_log"]["example"])
-        self.assertFalse(config["service_log"]["requires_restart"])
-        self.assertEqual(["boolean", "null"], config["service_log"]["type"])
-
     def test_postgresql_config_options(self):
         """
         Test that PostgreSQL configuration options can be retrieved
@@ -721,26 +669,6 @@ class MySQLDatabaseTest(ClientBaseCase):
         )
         self.assertEqual(
             "integer", config["pg"]["autovacuum_analyze_threshold"]["type"]
-        )
-
-        self.assertEqual(
-            "Specifies the maximum age (in transactions) that a table's pg_class.relfrozenxid field can attain before a VACUUM operation is forced to prevent transaction ID wraparound within the table. Note that the system will launch autovacuum processes to prevent wraparound even when autovacuum is otherwise disabled. This parameter will cause the server to be restarted.",
-            config["pg"]["autovacuum_freeze_max_age"]["description"],
-        )
-        self.assertEqual(
-            200000000, config["pg"]["autovacuum_freeze_max_age"]["example"]
-        )
-        self.assertEqual(
-            1500000000, config["pg"]["autovacuum_freeze_max_age"]["maximum"]
-        )
-        self.assertEqual(
-            200000000, config["pg"]["autovacuum_freeze_max_age"]["minimum"]
-        )
-        self.assertTrue(
-            config["pg"]["autovacuum_freeze_max_age"]["requires_restart"]
-        )
-        self.assertEqual(
-            "integer", config["pg"]["autovacuum_freeze_max_age"]["type"]
         )
 
         self.assertEqual(
@@ -950,78 +878,6 @@ class MySQLDatabaseTest(ClientBaseCase):
         self.assertEqual("boolean", config["pg"]["jit"]["type"])
 
         self.assertEqual(
-            "Causes each action executed by autovacuum to be logged if it ran for at least the specified number of milliseconds. Setting this to zero logs all autovacuum actions. Minus-one (the default) disables logging autovacuum actions.",
-            config["pg"]["log_autovacuum_min_duration"]["description"],
-        )
-        self.assertEqual(
-            2147483647, config["pg"]["log_autovacuum_min_duration"]["maximum"]
-        )
-        self.assertEqual(
-            -1, config["pg"]["log_autovacuum_min_duration"]["minimum"]
-        )
-        self.assertFalse(
-            config["pg"]["log_autovacuum_min_duration"]["requires_restart"]
-        )
-        self.assertEqual(
-            "integer", config["pg"]["log_autovacuum_min_duration"]["type"]
-        )
-
-        self.assertEqual(
-            "Controls the amount of detail written in the server log for each message that is logged.",
-            config["pg"]["log_error_verbosity"]["description"],
-        )
-        self.assertEqual(
-            ["TERSE", "DEFAULT", "VERBOSE"],
-            config["pg"]["log_error_verbosity"]["enum"],
-        )
-        self.assertFalse(
-            config["pg"]["log_error_verbosity"]["requires_restart"]
-        )
-        self.assertEqual("string", config["pg"]["log_error_verbosity"]["type"])
-
-        self.assertEqual(
-            "Choose from one of the available log formats.",
-            config["pg"]["log_line_prefix"]["description"],
-        )
-        self.assertEqual(
-            [
-                "'pid=%p,user=%u,db=%d,app=%a,client=%h '",
-                "'pid=%p,user=%u,db=%d,app=%a,client=%h,txid=%x,qid=%Q '",
-                "'%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h '",
-                "'%m [%p] %q[user=%u,db=%d,app=%a] '",
-            ],
-            config["pg"]["log_line_prefix"]["enum"],
-        )
-        self.assertFalse(config["pg"]["log_line_prefix"]["requires_restart"])
-        self.assertEqual("string", config["pg"]["log_line_prefix"]["type"])
-
-        self.assertEqual(
-            "Log statements that take more than this number of milliseconds to run, -1 disables",
-            config["pg"]["log_min_duration_statement"]["description"],
-        )
-        self.assertEqual(
-            86400000, config["pg"]["log_min_duration_statement"]["maximum"]
-        )
-        self.assertEqual(
-            -1, config["pg"]["log_min_duration_statement"]["minimum"]
-        )
-        self.assertFalse(
-            config["pg"]["log_min_duration_statement"]["requires_restart"]
-        )
-        self.assertEqual(
-            "integer", config["pg"]["log_min_duration_statement"]["type"]
-        )
-
-        self.assertEqual(
-            "Log statements for each temporary file created larger than this number of kilobytes, -1 disables",
-            config["pg"]["log_temp_files"]["description"],
-        )
-        self.assertEqual(2147483647, config["pg"]["log_temp_files"]["maximum"])
-        self.assertEqual(-1, config["pg"]["log_temp_files"]["minimum"])
-        self.assertFalse(config["pg"]["log_temp_files"]["requires_restart"])
-        self.assertEqual("integer", config["pg"]["log_temp_files"]["type"])
-
-        self.assertEqual(
             "PostgreSQL maximum number of files that can be open per process",
             config["pg"]["max_files_per_process"]["description"],
         )
@@ -1113,23 +969,6 @@ class MySQLDatabaseTest(ClientBaseCase):
         )
         self.assertEqual(
             "integer", config["pg"]["max_pred_locks_per_transaction"]["type"]
-        )
-
-        self.assertEqual(
-            "PostgreSQL maximum prepared transactions",
-            config["pg"]["max_prepared_transactions"]["description"],
-        )
-        self.assertEqual(
-            10000, config["pg"]["max_prepared_transactions"]["maximum"]
-        )
-        self.assertEqual(
-            0, config["pg"]["max_prepared_transactions"]["minimum"]
-        )
-        self.assertFalse(
-            config["pg"]["max_prepared_transactions"]["requires_restart"]
-        )
-        self.assertEqual(
-            "integer", config["pg"]["max_prepared_transactions"]["type"]
         )
 
         self.assertEqual(
@@ -1460,14 +1299,6 @@ class MySQLDatabaseTest(ClientBaseCase):
         )
 
         self.assertEqual(
-            "Store logs for the service so that they are available in the HTTP API and console.",
-            config["service_log"]["description"],
-        )
-        self.assertEqual(True, config["service_log"]["example"])
-        self.assertFalse(config["service_log"]["requires_restart"])
-        self.assertEqual(["boolean", "null"], config["service_log"]["type"])
-
-        self.assertEqual(
             "Percentage of total RAM that the database server uses for shared memory buffers. Valid range is 20-60 (float), which corresponds to 20% - 60%. This setting adjusts the shared_buffers configuration value.",
             config["shared_buffers_percentage"]["description"],
         )
@@ -1478,17 +1309,6 @@ class MySQLDatabaseTest(ClientBaseCase):
             config["shared_buffers_percentage"]["requires_restart"]
         )
         self.assertEqual("number", config["shared_buffers_percentage"]["type"])
-
-        self.assertEqual(
-            "Synchronous replication type. Note that the service plan also needs to support synchronous replication.",
-            config["synchronous_replication"]["description"],
-        )
-        self.assertEqual("off", config["synchronous_replication"]["example"])
-        self.assertEqual(
-            ["quorum", "off"], config["synchronous_replication"]["enum"]
-        )
-        self.assertFalse(config["synchronous_replication"]["requires_restart"])
-        self.assertEqual("string", config["synchronous_replication"]["type"])
 
         self.assertEqual(
             "Sets the maximum amount of memory to be used by a query operation (such as a sort or hash table) before writing to temporary disk files, in MB. Default is 1MB + 0.075% of total RAM (up to 32MB).",
