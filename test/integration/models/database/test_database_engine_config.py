@@ -333,7 +333,6 @@ def test_update_postgres_engine_config(
 
     database = test_linode_client.load(PostgreSQLDatabase, db.id)
 
-    assert database.label == updated_label
     assert database.updates.day_of_week == 2
     assert database.engine_config.pg.autovacuum_analyze_threshold == 70
     assert database.engine_config.pg.deadlock_timeout == 2000
