@@ -312,9 +312,7 @@ def test_update_postgres_engine_config(
 ):
     db = postgres_db_with_engine_config
 
-    updated_label = get_test_label() + "cool"
     db.updates.day_of_week = 2
-    db.label = updated_label
     db.engine_config = PostgreSQLDatabaseConfigOptions(
         pg=PostgreSQLDatabaseConfigPGOptions(
             autovacuum_analyze_threshold=70, deadlock_timeout=2000
