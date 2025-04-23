@@ -363,7 +363,7 @@ def test_create_pg13_with_lz4_error(test_linode_client):
     dbtype = "g6-standard-1"
 
     try:
-        db = client.database.postgresql_create(
+        client.database.postgresql_create(
             label=label,
             region=region,
             engine=engine_id,
