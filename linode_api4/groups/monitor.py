@@ -66,7 +66,7 @@ class MonitorGroup(Group):
         return DashboardsByID(self.client, result["id"], result)
 
     
-    def dashboard_by_service(self, service_type: str,*filters):
+    def dashboards_by_service(self, service_type: str, *filters):
         """
         Returns a dashboards on your account based on the service passed. 
 
