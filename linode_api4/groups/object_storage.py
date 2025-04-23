@@ -21,6 +21,7 @@ from linode_api4.objects import (
     ObjectStorageCluster,
     ObjectStorageKeyPermission,
     ObjectStorageKeys,
+    ObjectStorageQuota,
 )
 from linode_api4.util import drop_null_keys
 
@@ -517,3 +518,18 @@ class ObjectStorageGroup(Group):
             )
 
         return MappedObject(**result)
+
+    def quotas(self, *filters):
+        """
+        Lists the active ObjectStorage-related quotas applied to your account.
+
+        API Documentation: TBD
+
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
+
+        :returns: A list of Object Storage Quotas that matched the query.
+        :rtype: PaginatedList of ObjectStorageQuota
+        """
+        return self.client._get_and_filter(ObjectStorageQuota, *filters)
