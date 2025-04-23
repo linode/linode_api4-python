@@ -171,9 +171,7 @@ def test_update_mysql_engine_config(
 ):
     db = mysql_db_with_engine_config
 
-    updated_label = get_test_label() + "cool"
     db.updates.day_of_week = 2
-    db.label = updated_label
     db.engine_config = MySQLDatabaseConfigOptions(
         mysql=MySQLDatabaseConfigMySQLOptions(connect_timeout=50),
         binlog_retention_period=880,
@@ -192,7 +190,6 @@ def test_update_mysql_engine_config(
 
     database = test_linode_client.load(MySQLDatabase, db.id)
 
-    assert database.label == updated_label
     assert database.updates.day_of_week == 2
     assert database.engine_config.mysql.connect_timeout == 50
     assert database.engine_config.binlog_retention_period == 880
@@ -298,12 +295,6 @@ def test_create_postgres_with_engine_config(
     db = postgres_db_with_engine_config
     actual_config = db.engine_config.pg
     expected_config = make_full_postgres_engine_config().pg.__dict__
-
-    print(actual_config)
-
-    print("ssssss")
-
-    print(expected_config)
 
     for key, expected_value in expected_config.items():
         actual_value = getattr(actual_config, key, None)

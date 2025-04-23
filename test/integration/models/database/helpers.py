@@ -104,6 +104,12 @@ def make_full_postgres_engine_config():
             track_functions="all",
             wal_sender_timeout=60000,
             wal_writer_delay=200,
+            # # not valid
+            # pg_partman_bgw_interval=30,
+            # pg_partman_bgw_role="asdf",
+            # pg_stat_monitor_pgsm_enable_query_plan=True,
+            # pg_stat_monitor_pgsm_max_buckets=2,
+            # pg_stat_statements_track="asdf",
         ),
         pg_stat_monitor_enable=True,
         shared_buffers_percentage=25.0,
