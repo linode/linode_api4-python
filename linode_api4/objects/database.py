@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 from deprecated import deprecated
@@ -231,11 +231,22 @@ class PostgreSQLDatabaseConfigPGOptions(JSONObject):
     max_wal_senders: Optional[int] = None
     max_worker_processes: Optional[int] = None
     password_encryption: Optional[str] = None
-    pg_partman_bgw_interval: Optional[int] = None
-    pg_partman_bgw_role: Optional[str] = None
-    pg_stat_monitor_pgsm_enable_query_plan: Optional[bool] = None
-    pg_stat_monitor_pgsm_max_buckets: Optional[int] = None
-    pg_stat_statements_track: Optional[str] = None
+    pg_partman_bgw_interval: Optional[int] = field(
+        default=None, metadata={"json_key": "pg_partman_bgw.interval"}
+    )
+    pg_partman_bgw_role: Optional[str] = field(
+        default=None, metadata={"json_key": "pg_partman_bgw.role"}
+    )
+    pg_stat_monitor_pgsm_enable_query_plan: Optional[bool] = field(
+        default=None,
+        metadata={"json_key": "pg_stat_monitor.pgsm_enable_query_plan"},
+    )
+    pg_stat_monitor_pgsm_max_buckets: Optional[int] = field(
+        default=None, metadata={"json_key": "pg_stat_monitor.pgsm_max_buckets"}
+    )
+    pg_stat_statements_track: Optional[str] = field(
+        default=None, metadata={"json_key": "pg_stat_statements.track"}
+    )
     temp_file_limit: Optional[int] = None
     timezone: Optional[str] = None
     track_activity_query_size: Optional[int] = None
@@ -290,7 +301,9 @@ class MySQLDatabase(Base):
         "updated": Property(volatile=True, is_datetime=True),
         "updates": Property(mutable=True),
         "version": Property(),
-        "engine_config": Property(mutable=True),
+        "engine_config": Property(
+            mutable=True, json_object=MySQLDatabaseConfigOptions
+        ),
     }
 
     @property
@@ -454,7 +467,9 @@ class PostgreSQLDatabase(Base):
         "updated": Property(volatile=True, is_datetime=True),
         "updates": Property(mutable=True),
         "version": Property(),
-        "engine_config": Property(mutable=True),
+        "engine_config": Property(
+            mutable=True, json_object=PostgreSQLDatabaseConfigOptions
+        ),
     }
 
     @property

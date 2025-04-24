@@ -469,27 +469,18 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
         self.assertEqual(
             dbs[0].engine_config.pg.password_encryption, "scram-sha-256"
         )
+        self.assertEqual(dbs[0].engine_config.pg.pg_partman_bgw_interval, 3600)
         self.assertEqual(
-            getattr(dbs[0].engine_config.pg, "pg_partman_bgw.interval"), 3600
-        )
-        self.assertEqual(
-            getattr(dbs[0].engine_config.pg, "pg_partman_bgw.role"),
-            "myrolename",
+            dbs[0].engine_config.pg.pg_partman_bgw_role, "myrolename"
         )
         self.assertFalse(
-            getattr(
-                dbs[0].engine_config.pg,
-                "pg_stat_monitor.pgsm_enable_query_plan",
-            )
+            dbs[0].engine_config.pg.pg_stat_monitor_pgsm_enable_query_plan
         )
         self.assertEqual(
-            getattr(
-                dbs[0].engine_config.pg, "pg_stat_monitor.pgsm_max_buckets"
-            ),
-            10,
+            dbs[0].engine_config.pg.pg_stat_monitor_pgsm_max_buckets, 10
         )
         self.assertEqual(
-            getattr(dbs[0].engine_config.pg, "pg_stat_statements.track"), "top"
+            dbs[0].engine_config.pg.pg_stat_statements_track, "top"
         )
         self.assertEqual(dbs[0].engine_config.pg.temp_file_limit, 5000000)
         self.assertEqual(dbs[0].engine_config.pg.timezone, "Europe/Helsinki")
@@ -519,7 +510,12 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
                     cluster_size=3,
                     engine_config=PostgreSQLDatabaseConfigOptions(
                         pg=PostgreSQLDatabaseConfigPGOptions(
-                            autovacuum_analyze_scale_factor=0.5
+                            autovacuum_analyze_scale_factor=0.5,
+                            pg_partman_bgw_interval=3600,
+                            pg_partman_bgw_role="myrolename",
+                            pg_stat_monitor_pgsm_enable_query_plan=False,
+                            pg_stat_monitor_pgsm_max_buckets=10,
+                            pg_stat_statements_track="top",
                         ),
                         work_mem=4,
                     ),
@@ -539,6 +535,30 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
                     "autovacuum_analyze_scale_factor"
                 ],
                 0.5,
+            )
+            self.assertEqual(
+                m.call_data["engine_config"]["pg"]["pg_partman_bgw.interval"],
+                3600,
+            )
+            self.assertEqual(
+                m.call_data["engine_config"]["pg"]["pg_partman_bgw.role"],
+                "myrolename",
+            )
+            self.assertEqual(
+                m.call_data["engine_config"]["pg"][
+                    "pg_stat_monitor.pgsm_enable_query_plan"
+                ],
+                False,
+            )
+            self.assertEqual(
+                m.call_data["engine_config"]["pg"][
+                    "pg_stat_monitor.pgsm_max_buckets"
+                ],
+                10,
+            )
+            self.assertEqual(
+                m.call_data["engine_config"]["pg"]["pg_stat_statements.track"],
+                "top",
             )
             self.assertEqual(m.call_data["engine_config"]["work_mem"], 4)
 

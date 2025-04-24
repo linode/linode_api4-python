@@ -1,5 +1,6 @@
 import inspect
 from dataclasses import dataclass
+from dataclasses import fields as dataclass_fields
 from enum import Enum
 from types import SimpleNamespace
 from typing import (
@@ -140,7 +141,7 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
     @classmethod
     def from_json(cls, json: Dict[str, Any]) -> Optional["JSONObject"]:
         """
-        Creates an instance of this class from a JSON dict.
+        Creates an instance of this class from a JSON dict, respecting json_key metadata.
         """
         if json is None:
             return None
@@ -149,8 +150,12 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
 
         type_hints = get_type_hints(cls)
 
-        for k in vars(obj):
-            setattr(obj, k, cls._parse_attr(json.get(k), type_hints.get(k)))
+        for f in dataclass_fields(cls):
+            json_key = f.metadata.get("json_key", f.name)
+            field_type = type_hints.get(f.name)
+            value = json.get(json_key)
+            parsed_value = cls._parse_attr(value, field_type)
+            setattr(obj, f.name, parsed_value)
 
         return obj
 
@@ -193,7 +198,11 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
 
         result = {}
 
-        for k, v in vars(self).items():
+        for f in dataclass_fields(self):
+            k = f.name
+            json_key = f.metadata.get("json_key", k)
+            v = getattr(self, k)
+
             if not should_include(k, v):
                 continue
 
@@ -204,7 +213,7 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
             else:
                 v = attempt_serialize(v)
 
-            result[k] = v
+            result[json_key] = v
 
         return result
 
