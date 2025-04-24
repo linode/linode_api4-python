@@ -195,6 +195,32 @@ def test_update_mysql_engine_config(
     assert database.engine_config.binlog_retention_period == 880
 
 
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS", "").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
+)
+def test_list_mysql_engine_config(
+    test_linode_client, mysql_db_with_engine_config
+):
+    dbs = test_linode_client.database.mysql_instances()
+
+    db_ids = [db.id for db in dbs]
+
+    assert mysql_db_with_engine_config.id in db_ids
+
+
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS", "").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
+)
+def test_get_mysql_engine_config(
+    test_linode_client, mysql_db_with_engine_config
+):
+    db = test_linode_client.load(MySQLDatabase, mysql_db_with_engine_config.id)
+
+    assert isinstance(db, MySQLDatabase)
+
+
 # POSTGRESQL
 @pytest.mark.skipif(
     os.getenv("RUN_DB_TESTS", "").strip().lower() not in {"yes", "true"},
@@ -367,3 +393,31 @@ def test_create_pg13_with_lz4_error(test_linode_client):
     except ApiError as e:
         assert "An error occurred" in str(e.json)
         assert e.status == 500
+
+
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS", "").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
+)
+def test_list_postgres_engine_config(
+    test_linode_client, postgres_db_with_engine_config
+):
+    dbs = test_linode_client.database.postgresql_instances()
+
+    db_ids = [db.id for db in dbs]
+
+    assert postgres_db_with_engine_config.id in db_ids
+
+
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS", "").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
+)
+def test_get_postgres_engine_config(
+    test_linode_client, postgres_db_with_engine_config
+):
+    db = test_linode_client.load(
+        PostgreSQLDatabase, postgres_db_with_engine_config.id
+    )
+
+    assert isinstance(db, PostgreSQLDatabase)
