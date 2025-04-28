@@ -97,6 +97,7 @@ def test_linode_login_client_generate_login_url_with_scope(linode_login_client):
     assert "scopes=linodes%3Aread_write" in url
 
 
+@pytest.mark.skip("Endpoint may be deprecated")
 def test_linode_login_client_expire_token(
     linode_login_client, test_oauth_client
 ):

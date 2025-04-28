@@ -587,16 +587,16 @@ class Config(DerivedBase):
 
         self._set("devices", MappedObject(**devices))
 
-    def _serialize(self, *args, **kwargs):
+    def _serialize(self, is_put: bool = False):
         """
         Overrides _serialize to transform interfaces into json
         """
-        partial = DerivedBase._serialize(self, *args, **kwargs)
+        partial = DerivedBase._serialize(self, is_put=is_put)
         interfaces = []
 
         for c in self.interfaces:
             if isinstance(c, ConfigInterface):
-                interfaces.append(c._serialize(*args, **kwargs))
+                interfaces.append(c._serialize(is_put=is_put))
             else:
                 interfaces.append(c)
 
@@ -2004,8 +2004,8 @@ class StackScript(Base):
         ndist = [Image(self._client, d) for d in self.images]
         self._set("images", ndist)
 
-    def _serialize(self, *args, **kwargs):
-        dct = Base._serialize(self, *args, **kwargs)
+    def _serialize(self, is_put: bool = False):
+        dct = Base._serialize(self, is_put=is_put)
         dct["images"] = [d.id for d in self.images]
         return dct
 
