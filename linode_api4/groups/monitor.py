@@ -7,12 +7,9 @@ from linode_api4.objects import (
     Dashboard,
     MonitorServiceSupported,
     MetricDefinition,
-    DashboardsByID,
 )
 
-__all__ = [
-    "MonitorGroup",
-]
+
 class MonitorGroup(Group):
     """
     Encapsulates Monitor-related methods of the :any:`LinodeClient`.  This
@@ -42,28 +39,6 @@ class MonitorGroup(Group):
         """
         return self.client._get_and_filter(Dashboard, *filters)
 
-    def dashboard_by_ID(self, dashboard_id: int, *filters):
-        """
-        Returns a dashboards on your account based on the ID passed. 
-
-        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
-        
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-dashboards-by-id
-
-        :param filters: Any number of filters to apply to this query.
-                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
-                        for more details on filtering.
-
-        :returns: A Dashboards.
-        :rtype: PaginatedList of the Dashboard
-        """
-        result = self.client.get(f"/monitor/dashboards/{dashboard_id}")
-
-        if not "id" in result:
-            raise UnexpectedResponseError(
-                "Unexpected response when getting Dashboard!", json=result
-            )
-        return DashboardsByID(self.client, result["id"], result)
 
     
     def dashboards_by_service(self, service_type: str, *filters):

@@ -3,13 +3,12 @@ from linode_api4.objects import (
     Property,
 )
 
-__all__ = ['Dashboard', 'DashboardsByID', 'DashboardByService', 'MonitorServiceSupported', 'ServiceDetails', 'MetricDefinition', 'CreateToken']  
 class Dashboard(Base):
     """
     List dashboards: https://techdocs.akamai.com/linode-api/get-dashboards-all
     """
 
-    api_endpoint = "/monitor/dashboards/"
+    api_endpoint = "/monitor/dashboards/{id}"
     properties = {
         "id": Property(identifier=True),
         "created": Property(is_datetime=True),
@@ -21,22 +20,7 @@ class Dashboard(Base):
      
     }
 
-class DashboardsByID(Base):
-    """
-    Get a dashboard: https://techdocs.akamai.com/linode-api/reference/get-dashboards-by-id
-    """
 
-
-    properties = {
-        "id": Property(identifier=True),
-        "created": Property(is_datetime=True),
-        "label": Property(),
-        "service_type": Property(),
-        "type": Property(),
-        "widgets": Property(mutable=True),
-        "updated": Property(is_datetime=True),
-     
-    }
 
 class DashboardByService(Base):
     """
