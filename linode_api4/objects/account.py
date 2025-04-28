@@ -621,7 +621,7 @@ class Grant:
             )
         return self.cls(self._client, self.id)
 
-    def _serialize(self):
+    def _serialize(self, *args, **kwargs):
         """
         Returns this grant in as JSON the api will accept.  This is only relevant
         in the context of UserGrants.save
@@ -688,7 +688,7 @@ class UserGrants:
 
         return grants
 
-    def _serialize(self):
+    def _serialize(self, *args, **kwargs):
         """
         Returns the user grants in as JSON the api will accept.
         This is only relevant in the context of UserGrants.save

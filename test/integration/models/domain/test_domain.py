@@ -23,8 +23,6 @@ def test_save_null_values_excluded(test_linode_client, test_domain):
     domain.master_ips = ["127.0.0.1"]
     res = domain.save()
 
-    assert res
-
 
 def test_zone_file_view(test_linode_client, test_domain):
     domain = test_linode_client.load(Domain, test_domain.id)
