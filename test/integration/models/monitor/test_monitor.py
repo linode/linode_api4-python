@@ -1,7 +1,6 @@
 from linode_api4.objects import (
     MonitorServiceSupported,
     Dashboard,
-    DashboardsByID,
     DashboardByService,
     ServiceDetails,
     MetricDefinition,
@@ -26,17 +25,15 @@ def test_get_all_dashboards(test_linode_client):
     assert isinstance(dashboards[0],Dashboard)
 
     dashboard_get = dashboards[0]
-    dashboard_id = dashboard_get.id
     get_service_type = dashboard_get.service_type
-    print(f"printing svc {get_service_type}")
 
     #Fetch Dashboard by ID
-    dashboard_by_id = client.monitor.dashboard_by_ID(dashboard_id=dashboard_id)
-    assert isinstance(dashboard_by_id, DashboardsByID)
-    assert dashboard_by_id.id == dashboard_id
+    dashboard_by_id = client.load(Dashboard, 1)
+    assert isinstance(dashboard_by_id, Dashboard)
+    assert dashboard_by_id.id == 1
 
-    #Fetch Dashboard by service_type
-    dashboards_by_svc = client.monitor.dashboard_by_service(service_type=get_service_type)
+    # #Fetch Dashboard by service_type
+    dashboards_by_svc = client.monitor.dashboards_by_service(service_type=get_service_type)
     assert isinstance(dashboards_by_svc[0], DashboardByService)
     assert dashboards_by_svc[0].service_type == get_service_type
 

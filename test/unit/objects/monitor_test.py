@@ -1,7 +1,10 @@
 from test.unit.base import ClientBaseCase
+from linode_api4.objects import (
+    Dashboard,
+    )
 import datetime
 
-class MonitorSupportedServicesTest(ClientBaseCase):
+class MonitorTest(ClientBaseCase):
     """
     Tests the methods of MonitorServiceSupported class
     """
@@ -19,7 +22,7 @@ class MonitorSupportedServicesTest(ClientBaseCase):
         """
         Test the dashboard by ID API
         """
-        dashboard = self.client.monitor.dashboard_by_ID(dashboard_id=1)
+        dashboard = self.client.load(Dashboard, 1)
         self.assertEqual(dashboard.type, "standard")
         self.assertEqual(dashboard.created,  datetime.datetime(2024, 10, 10, 5, 1, 58))
         self.assertEqual(dashboard.id, 1)
@@ -37,7 +40,7 @@ class MonitorSupportedServicesTest(ClientBaseCase):
       
 
     def test_dashboard_by_service_type(self):
-        dashboards = self.client.monitor.dashboard_by_service(service_type="dbaas")
+        dashboards = self.client.monitor.dashboards_by_service(service_type="dbaas")
         self.assertEqual(dashboards[0].type, "standard")
         self.assertEqual(dashboards[0].created,  datetime.datetime(2024, 10, 10, 5, 1, 58))
         self.assertEqual(dashboards[0].id, 1)
@@ -89,7 +92,7 @@ class MonitorSupportedServicesTest(ClientBaseCase):
         self.assertEqual(metrics[0].dimensions[0].label, "Node Type")
         self.assertEqual(metrics[0].dimensions[0].values,["primary", "secondary"])
 
-    def create_token(self):
+    def test_create_token(self):
 
         with self.mock_post("/monitor/services/dbaas/token") as m:
             self.client.monitor.create_token(service_type="dbaas", entity_ids=[189690,188020])
