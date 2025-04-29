@@ -1,5 +1,6 @@
 import time
 from test.integration.conftest import get_region
+from test.integration.helpers import send_request_when_resource_available
 
 import pytest
 
@@ -38,7 +39,7 @@ def bucket(
     )
 
     yield bucket
-    bucket.delete()
+    send_request_when_resource_available(timeout=100, func=bucket.delete)
 
 
 @pytest.fixture(scope="session")
@@ -63,7 +64,8 @@ def bucket_with_endpoint(
     )
 
     yield bucket
-    bucket.delete()
+
+    send_request_when_resource_available(timeout=100, func=bucket.delete)
 
 
 @pytest.fixture(scope="session")

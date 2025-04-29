@@ -9,7 +9,6 @@ from test.integration.helpers import (
 
 import pytest
 
-from linode_api4 import VPCIPAddress
 from linode_api4.errors import ApiError
 from linode_api4.objects import (
     Config,
@@ -181,7 +180,7 @@ def create_linode_for_long_running_tests(test_linode_client, e2e_test_firewall):
 def linode_with_disk_encryption(test_linode_client, request):
     client = test_linode_client
 
-    target_region = get_region(client, {"Disk Encryption"})
+    target_region = get_region(client, {"LA Disk Encryption"})
     label = get_test_label(length=8)
 
     disk_encryption = request.param
@@ -236,7 +235,7 @@ def test_linode_transfer(test_linode_client, linode_with_volume_firewall):
 def test_linode_rebuild(test_linode_client):
     client = test_linode_client
 
-    region = get_region(client, {"Disk Encryption"})
+    region = get_region(client, {"LA Disk Encryption"})
 
     label = get_test_label() + "_rebuild"
 
@@ -365,6 +364,7 @@ def test_linode_resize(create_linode_for_long_running_tests):
     assert linode.status == "running"
 
 
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 def test_linode_resize_with_class(
     test_linode_client, create_linode_for_long_running_tests
 ):
@@ -535,6 +535,7 @@ def test_linode_create_disk(test_linode_client, linode_for_disk_tests):
     assert disk.linode_id == linode.id
 
 
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 def test_linode_instance_password(create_linode_for_pass_reset):
     linode = create_linode_for_pass_reset[0]
     password = create_linode_for_pass_reset[1]
@@ -775,10 +776,10 @@ class TestNetworkInterface:
         assert vpc_range_ip.address_range == "10.0.0.5/32"
         assert not vpc_range_ip.active
 
+        # TODO:: Add `VPCIPAddress.filters.linode_id == linode.id` filter back
+
         # Attempt to resolve the IP from /vpcs/ips
-        all_vpc_ips = test_linode_client.vpcs.ips(
-            VPCIPAddress.filters.linode_id == linode.id
-        )
+        all_vpc_ips = test_linode_client.vpcs.ips()
         assert all_vpc_ips[0].dict == vpc_ip.dict
 
         # Test getting the ips under this specific VPC

@@ -400,7 +400,7 @@ class ConfigInterface(JSONObject):
     def __repr__(self):
         return f"Interface: {self.purpose}"
 
-    def _serialize(self):
+    def _serialize(self, *args, **kwargs):
         purpose_formats = {
             "public": {"purpose": "public", "primary": self.primary},
             "vlan": {
@@ -510,16 +510,16 @@ class Config(DerivedBase):
 
         self._set("devices", MappedObject(**devices))
 
-    def _serialize(self):
+    def _serialize(self, is_put: bool = False):
         """
         Overrides _serialize to transform interfaces into json
         """
-        partial = DerivedBase._serialize(self)
+        partial = DerivedBase._serialize(self, is_put=is_put)
         interfaces = []
 
         for c in self.interfaces:
             if isinstance(c, ConfigInterface):
-                interfaces.append(c._serialize())
+                interfaces.append(c._serialize(is_put=is_put))
             else:
                 interfaces.append(c)
 
@@ -1927,8 +1927,8 @@ class StackScript(Base):
         ndist = [Image(self._client, d) for d in self.images]
         self._set("images", ndist)
 
-    def _serialize(self):
-        dct = Base._serialize(self)
+    def _serialize(self, is_put: bool = False):
+        dct = Base._serialize(self, is_put=is_put)
         dct["images"] = [d.id for d in self.images]
         return dct
 
