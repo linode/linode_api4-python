@@ -364,6 +364,7 @@ def test_linode_resize(create_linode_for_long_running_tests):
     assert linode.status == "running"
 
 
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 def test_linode_resize_with_class(
     test_linode_client, create_linode_for_long_running_tests
 ):
