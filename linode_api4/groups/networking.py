@@ -180,6 +180,64 @@ class NetworkingGroup(Group):
         """
         return self.client._get_and_filter(IPv6Range, *filters)
 
+    def ipv6_range_allocate(
+        self,
+        prefix_length: int,
+        route_target: Optional[str] = None,
+        linode: Optional[Union[Instance, int]] = None,
+        **kwargs,
+    ) -> IPv6Range:
+        """
+        Creates an IPv6 Range and assigns it based on the provided Linode or route target IPv6 SLAAC address.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-ipv6-range
+
+        Create an IPv6 range assigned to a Linode by ID::
+
+            range = client.networking.ipv6_range_allocate(64, linode_id=123)
+
+
+        Create an IPv6 range assigned to a Linode by SLAAC::
+
+            range = client.networking.ipv6_range_allocate(
+                64,
+                route_target=instance.ipv6.split("/")[0]
+            )
+
+        :param prefix_length: The prefix length of the IPv6 range.
+        :type prefix_length: int
+        :param route_target: The IPv6 SLAAC address to assign this range to. Required if linode is not specified.
+        :type route_target: str
+        :param linode: The ID of the Linode to assign this range to.
+                       The SLAAC address for the provided Linode is used as the range's route_target.
+                       Required if linode is not specified.
+        :type linode: Instance or int
+
+        :returns: The new IPAddress.
+        :rtype: IPAddress
+        """
+
+        params = {
+            "prefix_length": prefix_length,
+            "route_target": route_target,
+            "linode_id": linode,
+        }
+
+        params.update(**kwargs)
+
+        result = self.client.post(
+            "/networking/ipv6/ranges",
+            data=drop_null_keys(_flatten_request_body_recursive(params)),
+        )
+
+        if not "range" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when allocating IPv6 range!", json=result
+            )
+
+        result = IPv6Range(self.client, result["range"], result)
+        return result
+
     def ipv6_pools(self, *filters):
         """
         Returns a list of IPv6 pools on this account.
