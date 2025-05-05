@@ -101,9 +101,6 @@ class IPAddress(Base):
 
         return self._linode
 
-<<<<<<< Updated upstream
-    # TODO (Enhanced Interfaces): Add `interface` property method
-=======
     @property
     def interface(self) -> Optional["LinodeInterface"]:
         """
@@ -128,7 +125,6 @@ class IPAddress(Base):
             )
 
         return self._interface
->>>>>>> Stashed changes
 
     def to(self, linode):
         """

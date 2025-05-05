@@ -9,13 +9,6 @@ from test.integration.helpers import (
 
 import pytest
 
-<<<<<<< Updated upstream
-=======
-from linode_api4 import (
-    InterfaceGeneration,
-    LinodeInterface,
-)
->>>>>>> Stashed changes
 from linode_api4.errors import ApiError
 from linode_api4.objects import (
     Config,
@@ -23,6 +16,8 @@ from linode_api4.objects import (
     ConfigInterfaceIPv4,
     Disk,
     Instance,
+    InterfaceGeneration,
+    LinodeInterface,
     Type,
 )
 from linode_api4.objects.linode import InstanceDiskEncryptionType, MigrationType
