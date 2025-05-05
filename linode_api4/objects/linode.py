@@ -1902,16 +1902,28 @@ class Instance(Base):
         **kwargs,
     ) -> LinodeInterface:
         """
-         Creates a new interface under this Linode.
+        Creates a new interface under this Linode.
 
-         :param firewall: The firewall this interface should be assigned to.
-         :param default_route: The desired default route configuration of the new interface.
-         :param public: The public-specific configuration of the new interface.
-                        If set, the new instance will be a public interface.
-         :param vlan: The VLAN-specific configuration of the new interface.
-                      If set, the new instance will be a VLAN interface.
-         :param vpc: The VPC-specific configuration of the new interface.
-                        If set, the new instance will be a VPC interface.
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-linode-interface
+
+        Example: Creating a simple public interface for this Linode::
+
+            interface = instance.interface_create(
+                default_route=LinodeInterfaceDefaultRouteOptions(
+                    ipv4=True,
+                    ipv6
+                ),
+                public=LinodeInterfacePublicOptions()
+            )
+
+        :param firewall: The firewall this interface should be assigned to.
+        :param default_route: The desired default route configuration of the new interface.
+        :param public: The public-specific configuration of the new interface.
+                    If set, the new instance will be a public interface.
+        :param vlan: The VLAN-specific configuration of the new interface.
+                  If set, the new instance will be a VLAN interface.
+        :param vpc: The VPC-specific configuration of the new interface.
+                    If set, the new instance will be a VPC interface.
 
         :returns: The newly created Linode Interface.
         """
@@ -1998,6 +2010,7 @@ class Instance(Base):
         self,
         config: Optional[Union[Config, int]] = None,
         dry_run: bool = False,
+        **kwargs,
     ) -> UpgradeInterfacesResult:
         """
         Automatically upgrades all legacy config interfaces of a
@@ -2012,6 +2025,8 @@ class Instance(Base):
         :rtype: UpgradeInterfacesResult
         """
         params = {"config_id": config, "dry_run": dry_run}
+
+        params.update(kwargs)
 
         result = self._client.post(
             "{}/upgrade-interfaces".format(Instance.api_endpoint),
