@@ -1904,6 +1904,8 @@ class Instance(Base):
         """
         Creates a new interface under this Linode.
 
+        NOTE: Linode Interfaces are not interchangeable with Interfaces/Network Interfaces.
+
         API Documentation: https://techdocs.akamai.com/linode-api/reference/post-linode-interface
 
         Example: Creating a simple public interface for this Linode::

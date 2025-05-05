@@ -240,6 +240,30 @@ class LinodeGroup(Group):
                "us-east",
                backup=snapshot)
 
+        **Create an Instance with explicit interfaces:**
+
+        To create a new Instance with explicit interfaces, provide list of
+        LinodeInterfaceOptions objects or dicts to the "interfaces" field::
+
+        linode, password = client.linode.instance_create(
+            "g6-standard-1",
+            "us-mia",
+            image="linode/ubuntu24.04",
+
+            # This can be configured as an account-wide default
+            interface_generation=InterfaceGeneration.LINODE,
+
+            interfaces=[
+                LinodeInterfaceOptions(
+                    default_route=LinodeInterfaceDefaultRouteOptions(
+                        ipv4=True,
+                        ipv6=True
+                    ),
+                    public=LinodeInterfacePublicOptions
+                )
+            ]
+        )
+
         **Create an empty Instance**
 
         If you want to create an empty Instance that you will configure manually,
