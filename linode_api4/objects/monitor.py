@@ -15,9 +15,7 @@ class Dashboard(Base):
         "type": Property(),
         "widgets": Property(mutable=True),
         "updated": Property(is_datetime=True),
-     
     }
-
 
 
 class DashboardByService(Base):
@@ -33,7 +31,6 @@ class DashboardByService(Base):
         "type": Property(),
         "widgets": Property(mutable=True),
         "updated": Property(is_datetime=True),
-     
     }
 
 
@@ -43,20 +40,20 @@ class MonitorServiceSupported(Base):
     id_attribute = "service_type"
     properties = {
         "service_type": Property(),
-        "label": Property(mutable=True), 
-              
+        "label": Property(mutable=True),
     }
+
 
 class ServiceDetails(Base):
     """
     API Documentation: https://techdocs.akamai.com/linode-api/reference/get-monitor-services-for-service-type
     """
+
     id_attribute = "service_type"
     properties = {
-        "label": Property(), 
-        "service_type": Property(),      
+        "label": Property(),
+        "service_type": Property(),
     }
-
 
 
 class MetricDefinition(Base):
@@ -66,9 +63,9 @@ class MetricDefinition(Base):
 
     id_attribute = "metric"
     properties = {
-        "available_aggregate_functions": Property(), 
-        "dimensions": Property(mutable=True),   
-        "label": Property(), 
+        "available_aggregate_functions": Property(),
+        "dimensions": Property(mutable=True),
+        "label": Property(),
         "is_alertable": Property(),
         "metric": Property(),
         "metric_type": Property(),
@@ -76,14 +73,10 @@ class MetricDefinition(Base):
         "unit": Property(),
     }
 
+
 class CreateToken(Base):
     """
     API Documentation: https://techdocs.akamai.com/linode-api/reference/post-get-token
     """
 
-    properties = {
-        "token": Property(mutable=True)
-    }
-
-
-
+    properties = {"token": Property(mutable=True)}
