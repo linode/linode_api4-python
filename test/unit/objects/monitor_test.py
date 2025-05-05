@@ -1,8 +1,8 @@
-from test.unit.base import ClientBaseCase
-from linode_api4.objects import (
-    Dashboard,
-    )
 import datetime
+from test.unit.base import ClientBaseCase
+
+from linode_api4.objects import Dashboard
+
 
 class MonitorTest(ClientBaseCase):
     """

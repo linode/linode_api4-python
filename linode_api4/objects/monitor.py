@@ -1,7 +1,5 @@
-from linode_api4.objects import (
-    Base,
-    Property,
-)
+from linode_api4.objects import Base, Property
+
 
 class Dashboard(Base):
     """

@@ -1,13 +1,3 @@
-from linode_api4.objects import (
-    MonitorServiceSupported,
-    Dashboard,
-    DashboardByService,
-    ServiceDetails,
-    MetricDefinition,
-    CreateToken,
-)
-from linode_api4 import LinodeClient
-
 from test.integration.helpers import (
     get_test_label,
     send_request_when_resource_available,
@@ -16,6 +6,15 @@ from test.integration.helpers import (
 
 import pytest
 
+from linode_api4 import LinodeClient
+from linode_api4.objects import (
+    CreateToken,
+    Dashboard,
+    DashboardByService,
+    MetricDefinition,
+    MonitorServiceSupported,
+    ServiceDetails,
+)
 
 
 # List all dashboards

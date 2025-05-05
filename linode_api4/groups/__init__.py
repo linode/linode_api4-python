@@ -10,6 +10,7 @@ from .linode import *
 from .lke import *
 from .lke_tier import *
 from .longview import *
+from .monitor import *
 from .networking import *
 from .nodebalancer import *
 from .object_storage import *
@@ -21,4 +22,3 @@ from .support import *
 from .tag import *
 from .volume import *
 from .vpc import *
-from .monitor import *
