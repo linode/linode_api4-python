@@ -19,6 +19,7 @@ from linode_api4.groups import (
     LinodeGroup,
     LKEGroup,
     LongviewGroup,
+    MonitorGroup,
     NetworkingGroup,
     NodeBalancerGroup,
     ObjectStorageGroup,
@@ -29,7 +30,6 @@ from linode_api4.groups import (
     TagGroup,
     VolumeGroup,
     VPCGroup,
-    MonitorGroup,
 )
 from linode_api4.objects import Image, and_
 
