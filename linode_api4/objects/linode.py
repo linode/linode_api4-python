@@ -1911,9 +1911,31 @@ class Instance(Base):
             interface = instance.interface_create(
                 default_route=LinodeInterfaceDefaultRouteOptions(
                     ipv4=True,
-                    ipv6
+                    ipv6=True
                 ),
                 public=LinodeInterfacePublicOptions()
+            )
+
+        Example: Creating a simple VPC interface for this Linode::
+
+            interface = instance.interface_create(
+                default_route=LinodeInterfaceDefaultRouteOptions(
+                    ipv4=True
+                ),
+                vpc=LinodeInterfaceVPCOptions(
+                    subnet_id=12345
+                )
+            )
+
+        Example: Creating a simple VLAN interface for this Linode::
+
+            interface = instance.interface_create(
+                default_route=LinodeInterfaceDefaultRouteOptions(
+                    ipv4=True
+                ),
+                vlan=LinodeInterfaceVLANOptions(
+                    vlan_label="my-vlan"
+                )
             )
 
         :param firewall: The firewall this interface should be assigned to.
