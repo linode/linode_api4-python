@@ -2021,6 +2021,14 @@ class Instance(Base):
 
         API Documentation: Not yet available.
 
+        :param config: The configuration profile the legacy interfaces to
+                       upgrade are under.
+        :type config: Config or int
+        :param dry_run: Whether this operation should be a dry run,
+                        which will return the interfaces that would be
+                        created if the operation were completed.
+        :type dry_run: bool
+
         :returns: Information about the newly upgraded interfaces.
         :rtype: UpgradeInterfacesResult
         """
