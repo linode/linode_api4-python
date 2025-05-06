@@ -239,6 +239,7 @@ class Base(object, metaclass=FilterableMetaclass):
         """
         Enforces allowing editing of only Properties defined as mutable
         """
+
         if name in type(self).properties.keys():
             if not type(self).properties[name].mutable:
                 raise AttributeError(

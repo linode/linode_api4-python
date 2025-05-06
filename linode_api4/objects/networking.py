@@ -98,9 +98,35 @@ class IPAddress(Base):
 
         if not hasattr(self, "_linode"):
             self._set("_linode", Instance(self._client, self.linode_id))
+
         return self._linode
 
-    # TODO (Enhanced Interfaces): Add `interface` property method
+    @property
+    def interface(self) -> Optional["LinodeInterface"]:
+        """
+        Returns the Linode Interface associated with this IP address.
+
+        NOTE: This function will only return Linode interfaces, not Config interfaces.
+
+        NOTE: Linode interfaces may not currently be available to all users.
+
+        :returns: The Linode Interface associated with this IP address.
+        :rtype: LinodeInterface
+        """
+
+        from .linode_interfaces import LinodeInterface  # pylint: disable-all
+
+        if self.interface_id in (None, 0):
+            self._set("_interface", None)
+        elif not hasattr(self, "_interface"):
+            self._set(
+                "_interface",
+                LinodeInterface(
+                    self._client, self.linode_id, self.interface_id
+                ),
+            )
+
+        return self._interface
 
     def to(self, linode):
         """
