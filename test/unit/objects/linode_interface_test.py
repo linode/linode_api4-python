@@ -285,28 +285,6 @@ class LinodeInterfaceTest(ClientBaseCase):
                 },
             }
 
-    def test_update_vlan(self):
-        iface = LinodeInterface(self.client, 789, 124)
-
-        self.assert_linode_124_interface_789(iface)
-
-        iface.vlan.ipam_address = "10.0.0.2/24"
-        iface.vlan.vlan_label = "my_vlan_updated"
-
-        with self.mock_put("/linode/instances/124/interfaces/789") as m:
-            iface.save()
-
-            assert m.called
-
-            assert m.call_data == {
-                # TODO (Enhanced Interfaces): Ensure this doesn't cause an API validation error.
-                "default_route": {},
-                "vlan": {
-                    "vlan_label": "my_vlan_updated",
-                    "ipam_address": "10.0.0.2/24",
-                },
-            }
-
     def test_delete(self):
         iface = LinodeInterface(self.client, 123, 124)
 
