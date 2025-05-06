@@ -7,7 +7,11 @@ from test.unit.objects.linode_interface_test import (
     build_interface_options_vpc,
 )
 
-from linode_api4 import InstanceDiskEncryptionType, NetworkInterface
+from linode_api4 import (
+    InstanceDiskEncryptionType,
+    InterfaceGeneration,
+    NetworkInterface,
+)
 from linode_api4.objects import (
     Config,
     ConfigInterface,
@@ -476,6 +480,8 @@ class LinodeTest(ClientBaseCase):
         )
 
         instance = Instance(self.client, 124)
+
+        assert instance.interface_generation == InterfaceGeneration.LINODE
 
         interfaces = instance.interfaces
 

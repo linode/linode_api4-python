@@ -469,7 +469,6 @@ class Config(DerivedBase):
         "virt_mode": Property(mutable=True),
         "memory_limit": Property(mutable=True),
         "interfaces": Property(mutable=True, json_object=ConfigInterface),
-        "interface_generation": Property(),
     }
 
     @property
@@ -723,6 +722,7 @@ class Instance(Base):
         "disk_encryption": Property(),
         "lke_cluster_id": Property(),
         "capabilities": Property(unordered=True),
+        "interface_generation": Property(),
     }
 
     @property
