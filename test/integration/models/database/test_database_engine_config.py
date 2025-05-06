@@ -10,6 +10,8 @@ from test.integration.models.database.helpers import (
     get_sql_db_status,
     make_full_mysql_engine_config,
     make_full_postgres_engine_config,
+    make_mysql_engine_config_w_nullable_field,
+    make_postgres_engine_config_w_password_encryption_null,
 )
 
 import pytest
@@ -221,6 +223,31 @@ def test_get_mysql_engine_config(
     assert isinstance(db, MySQLDatabase)
 
 
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS", "").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
+)
+def test_create_mysql_db_nullable_field(test_linode_client):
+    client = test_linode_client
+    label = get_test_label(5) + "-sqldb"
+    region = "us-ord"
+    engine_id = get_db_engine_id(client, "mysql")
+    dbtype = "g6-standard-1"
+
+    db = client.database.mysql_create(
+        label=label,
+        region=region,
+        engine=engine_id,
+        ltype=dbtype,
+        cluster_size=None,
+        engine_config=make_mysql_engine_config_w_nullable_field(),
+    )
+
+    assert db.engine_config.mysql.innodb_ft_server_stopword_table is None
+
+    send_request_when_resource_available(300, db.delete)
+
+
 # POSTGRESQL
 @pytest.mark.skipif(
     os.getenv("RUN_DB_TESTS", "").strip().lower() not in {"yes", "true"},
@@ -421,3 +448,28 @@ def test_get_postgres_engine_config(
     )
 
     assert isinstance(db, PostgreSQLDatabase)
+
+
+@pytest.mark.skipif(
+    os.getenv("RUN_DB_TESTS", "").strip().lower() not in {"yes", "true"},
+    reason="RUN_DB_TESTS environment variable must be set to 'yes' or 'true' (case insensitive)",
+)
+def test_create_postgres_db_password_encryption_default_md5(test_linode_client):
+    client = test_linode_client
+    label = get_test_label() + "-postgresqldb"
+    region = "us-ord"
+    engine_id = "postgresql/17"
+    dbtype = "g6-standard-1"
+
+    db = client.database.postgresql_create(
+        label=label,
+        region=region,
+        engine=engine_id,
+        ltype=dbtype,
+        cluster_size=None,
+        engine_config=make_postgres_engine_config_w_password_encryption_null(),
+    )
+
+    assert db.engine_config.pg.password_encryption == "md5"
+
+    send_request_when_resource_available(300, db.delete)

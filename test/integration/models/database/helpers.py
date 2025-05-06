@@ -65,6 +65,14 @@ def make_full_mysql_engine_config():
     )
 
 
+def make_mysql_engine_config_w_nullable_field():
+    return MySQLDatabaseConfigOptions(
+        mysql=MySQLDatabaseConfigMySQLOptions(
+            innodb_ft_server_stopword_table=None,
+        ),
+    )
+
+
 def make_full_postgres_engine_config():
     return PostgreSQLDatabaseConfigOptions(
         pg=PostgreSQLDatabaseConfigPGOptions(
@@ -113,4 +121,12 @@ def make_full_postgres_engine_config():
         pg_stat_monitor_enable=True,
         shared_buffers_percentage=25.0,
         work_mem=1024,
+    )
+
+
+def make_postgres_engine_config_w_password_encryption_null():
+    return PostgreSQLDatabaseConfigOptions(
+        pg=PostgreSQLDatabaseConfigPGOptions(
+            password_encryption=None,
+        ),
     )
