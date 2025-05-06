@@ -11,6 +11,8 @@ from linode_api4.objects.serializable import JSONObject
 class LinodeInterfacesSettingsDefaultRouteOptions(JSONObject):
     """
     The options used to configure the default route settings for a Linode's network interfaces.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     ipv4_interface_id: Optional[int] = None
@@ -21,6 +23,8 @@ class LinodeInterfacesSettingsDefaultRouteOptions(JSONObject):
 class LinodeInterfacesSettingsDefaultRoute(JSONObject):
     """
     The default route settings for a Linode's network interfaces.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     put_class = LinodeInterfacesSettingsDefaultRouteOptions
@@ -36,6 +40,8 @@ class LinodeInterfacesSettings(Base):
     The settings related to a Linode's network interfaces.
 
     API Documentation: Not yet available.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     api_endpoint = "/linode/instances/{id}/interfaces/settings"
@@ -54,6 +60,8 @@ class LinodeInterfacesSettings(Base):
 class LinodeInterfaceDefaultRouteOptions(JSONObject):
     """
     Options accepted when creating or updating a Linode Interface's default route settings.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     ipv4: Optional[bool] = None
@@ -64,6 +72,8 @@ class LinodeInterfaceDefaultRouteOptions(JSONObject):
 class LinodeInterfaceVPCIPv4AddressOptions(JSONObject):
     """
     Options accepted for a single address when creating or updating the IPv4 configuration of a VPC Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     address: Optional[str] = None
@@ -75,6 +85,8 @@ class LinodeInterfaceVPCIPv4AddressOptions(JSONObject):
 class LinodeInterfaceVPCIPv4RangeOptions(JSONObject):
     """
     Options accepted for a single range when creating or updating the IPv4 configuration of a VPC Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     range: str = ""
@@ -84,6 +96,8 @@ class LinodeInterfaceVPCIPv4RangeOptions(JSONObject):
 class LinodeInterfaceVPCIPv4Options(JSONObject):
     """
     Options accepted when creating or updating the IPv4 configuration of a VPC Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     addresses: Optional[List[LinodeInterfaceVPCIPv4AddressOptions]] = None
@@ -94,6 +108,8 @@ class LinodeInterfaceVPCIPv4Options(JSONObject):
 class LinodeInterfaceVPCOptions(JSONObject):
     """
     VPC-exclusive options accepted when creating or updating a Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     subnet_id: int = 0
@@ -104,6 +120,8 @@ class LinodeInterfaceVPCOptions(JSONObject):
 class LinodeInterfacePublicIPv4AddressOptions(JSONObject):
     """
     Options accepted for a single address when creating or updating the IPv4 configuration of a public Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     address: str = ""
@@ -114,6 +132,8 @@ class LinodeInterfacePublicIPv4AddressOptions(JSONObject):
 class LinodeInterfacePublicIPv4Options(JSONObject):
     """
     Options accepted when creating or updating the IPv4 configuration of a public Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     addresses: Optional[List[LinodeInterfacePublicIPv4AddressOptions]] = None
@@ -123,6 +143,8 @@ class LinodeInterfacePublicIPv4Options(JSONObject):
 class LinodeInterfacePublicIPv6RangeOptions(JSONObject):
     """
     Options accepted for a single range when creating or updating the IPv6 configuration of a public Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     range: str = ""
@@ -132,6 +154,8 @@ class LinodeInterfacePublicIPv6RangeOptions(JSONObject):
 class LinodeInterfacePublicIPv6Options(JSONObject):
     """
     Options accepted when creating or updating the IPv6 configuration of a public Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     ranges: Optional[List[LinodeInterfacePublicIPv6RangeOptions]] = None
@@ -141,6 +165,8 @@ class LinodeInterfacePublicIPv6Options(JSONObject):
 class LinodeInterfacePublicOptions(JSONObject):
     """
     Public-exclusive options accepted when creating or updating a Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     ipv4: Optional[LinodeInterfacePublicIPv4Options] = None
@@ -151,6 +177,8 @@ class LinodeInterfacePublicOptions(JSONObject):
 class LinodeInterfaceVLANOptions(JSONObject):
     """
     VLAN-exclusive options accepted when creating or updating a Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     vlan_label: str = ""
@@ -161,6 +189,8 @@ class LinodeInterfaceVLANOptions(JSONObject):
 class LinodeInterfaceOptions(JSONObject):
     """
     Options accepted when creating or updating a Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     always_include = {
@@ -183,6 +213,8 @@ class LinodeInterfaceOptions(JSONObject):
 class LinodeInterfaceDefaultRoute(JSONObject):
     """
     The default route configuration of a Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     put_class = LinodeInterfaceDefaultRouteOptions
@@ -195,6 +227,8 @@ class LinodeInterfaceDefaultRoute(JSONObject):
 class LinodeInterfaceVPCIPv4Address(JSONObject):
     """
     A single address under the IPv4 configuration of a VPC Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     put_class = LinodeInterfaceVPCIPv4AddressOptions
@@ -208,6 +242,8 @@ class LinodeInterfaceVPCIPv4Address(JSONObject):
 class LinodeInterfaceVPCIPv4Range(JSONObject):
     """
     A single range under the IPv4 configuration of a VPC Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     put_class = LinodeInterfaceVPCIPv4RangeOptions
@@ -219,6 +255,8 @@ class LinodeInterfaceVPCIPv4Range(JSONObject):
 class LinodeInterfaceVPCIPv4(JSONObject):
     """
     A single address under the IPv4 configuration of a VPC Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     put_class = LinodeInterfaceVPCIPv4Options
@@ -231,6 +269,8 @@ class LinodeInterfaceVPCIPv4(JSONObject):
 class LinodeInterfaceVPC(JSONObject):
     """
     VPC-specific configuration field for a Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     put_class = LinodeInterfaceVPCOptions
@@ -245,6 +285,8 @@ class LinodeInterfaceVPC(JSONObject):
 class LinodeInterfacePublicIPv4Address(JSONObject):
     """
     A single address under the IPv4 configuration of a public Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     put_class = LinodeInterfacePublicIPv4AddressOptions
@@ -257,6 +299,8 @@ class LinodeInterfacePublicIPv4Address(JSONObject):
 class LinodeInterfacePublicIPv4Shared(JSONObject):
     """
     A single shared address under the IPv4 configuration of a public Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     address: str = ""
@@ -267,6 +311,8 @@ class LinodeInterfacePublicIPv4Shared(JSONObject):
 class LinodeInterfacePublicIPv4(JSONObject):
     """
     The IPv4 configuration of a public Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     put_class = LinodeInterfacePublicIPv4Options
@@ -281,6 +327,8 @@ class LinodeInterfacePublicIPv4(JSONObject):
 class LinodeInterfacePublicIPv6SLAAC(JSONObject):
     """
     A single SLAAC entry under the IPv6 configuration of a public Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     address: str = ""
@@ -291,6 +339,8 @@ class LinodeInterfacePublicIPv6SLAAC(JSONObject):
 class LinodeInterfacePublicIPv6Shared(JSONObject):
     """
     A single shared range under the IPv6 configuration of a public Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     range: str = ""
@@ -301,6 +351,8 @@ class LinodeInterfacePublicIPv6Shared(JSONObject):
 class LinodeInterfacePublicIPv6Range(JSONObject):
     """
     A single range under the IPv6 configuration of a public Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     put_class = LinodeInterfacePublicIPv6RangeOptions
@@ -313,6 +365,8 @@ class LinodeInterfacePublicIPv6Range(JSONObject):
 class LinodeInterfacePublicIPv6(JSONObject):
     """
     The IPv6 configuration of a Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     put_class = LinodeInterfacePublicIPv6Options
@@ -326,6 +380,8 @@ class LinodeInterfacePublicIPv6(JSONObject):
 class LinodeInterfacePublic(JSONObject):
     """
     Public-specific configuration fields for a Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     put_class = LinodeInterfacePublicOptions
@@ -338,6 +394,8 @@ class LinodeInterfacePublic(JSONObject):
 class LinodeInterfaceVLAN(JSONObject):
     """
     VLAN-specific configuration fields for a Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
     """
 
     put_class = LinodeInterfaceVLANOptions
@@ -349,6 +407,8 @@ class LinodeInterfaceVLAN(JSONObject):
 class LinodeInterface(DerivedBase):
     """
     A Linode's network interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
 
     NOTE: When using the ``save()`` method, certain local fields with computed values will
           not be refreshed on the local object until after ``invalidate()`` has been called::
@@ -391,6 +451,9 @@ class LinodeInterface(DerivedBase):
     def firewalls(self, *filters) -> List[Firewall]:
         """
         Retrieves a list of Firewalls for this Linode Interface.
+        Linode interfaces are not interchangeable with Config interfaces.
+
+        NOTE: Linode interfaces may not currently be available to all users.
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
