@@ -686,6 +686,7 @@ class Instance(Base):
         "disk_encryption": Property(),
         "lke_cluster_id": Property(),
         "capabilities": Property(unordered=True),
+        "maintenance_policy_id": Property(mutable=True),
     }
 
     @property
