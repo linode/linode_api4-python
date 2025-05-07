@@ -3,6 +3,7 @@ from copy import deepcopy
 from datetime import datetime
 from test.unit.base import ClientBaseCase
 
+from linode_api4 import AccountSettingsInterfacesForNewLinodes
 from linode_api4.objects import (
     Account,
     AccountAvailability,
@@ -97,6 +98,7 @@ class InvoiceTest(ClientBaseCase):
         self.assertEqual(account.balance_uninvoiced, 145)
         self.assertEqual(account.billing_source, "akamai")
         self.assertEqual(account.euuid, "E1AF5EEC-526F-487D-B317EBEB34C87D71")
+        self.assertIn("Linode Interfaces", account.capabilities)
 
     def test_get_login(self):
         """
@@ -121,6 +123,31 @@ class InvoiceTest(ClientBaseCase):
         self.assertEqual(settings.network_helper, False)
         self.assertEqual(settings.object_storage, "active")
         self.assertEqual(settings.backups_enabled, True)
+        self.assertEqual(
+            settings.interfaces_for_new_linodes,
+            AccountSettingsInterfacesForNewLinodes.linode_default_but_legacy_config_allowed,
+        )
+
+    def test_post_account_settings(self):
+        """
+        Tests that account settings can be updated successfully
+        """
+        settings = self.client.account.settings()
+
+        settings.network_helper = True
+        settings.backups_enabled = False
+        settings.interfaces_for_new_linodes = (
+            AccountSettingsInterfacesForNewLinodes.linode_only
+        )
+
+        with self.mock_put("/account/settings") as m:
+            settings.save()
+
+            assert m.call_data == {
+                "network_helper": True,
+                "backups_enabled": False,
+                "interfaces_for_new_linodes": AccountSettingsInterfacesForNewLinodes.linode_only,
+            }
 
     def test_get_event(self):
         """
