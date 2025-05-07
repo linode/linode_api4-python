@@ -19,6 +19,7 @@ from linode_api4.groups import (
     LinodeGroup,
     LKEGroup,
     LongviewGroup,
+    MonitorGroup,
     NetworkingGroup,
     NodeBalancerGroup,
     ObjectStorageGroup,
@@ -200,6 +201,8 @@ class LinodeClient:
 
         #: Access methods related to VM placement - See :any:`PlacementAPIGroup` for more information.
         self.placement = PlacementAPIGroup(self)
+
+        self.monitor = MonitorGroup(self)
 
     @property
     def _user_agent(self):
