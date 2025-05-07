@@ -77,7 +77,7 @@ class DatabaseGroup(Group):
 
         :returns: The JSON configuration options for MySQL Databases.
         """
-        return self.client.get("databases/mysql/config", model=self)
+        return self.client.get("/databases/mysql/config", model=self)
 
     def postgresql_config_options(self):
         """
@@ -87,7 +87,7 @@ class DatabaseGroup(Group):
 
         :returns: The JSON configuration options for PostgreSQL Databases.
         """
-        return self.client.get("databases/postgresql/config", model=self)
+        return self.client.get("/databases/postgresql/config", model=self)
 
     def instances(self, *filters):
         """
