@@ -523,7 +523,7 @@ class ObjectStorageGroup(Group):
         """
         Lists the active ObjectStorage-related quotas applied to your account.
 
-        API Documentation: TBD
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-quotas
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`

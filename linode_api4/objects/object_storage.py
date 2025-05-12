@@ -583,7 +583,7 @@ class ObjectStorageQuota(Base):
     An Object Storage related quota information on your account.
     Object Storage Quota related features are under v4beta and may not currently be available to all users.
 
-    API documentation: TBD
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-quota
     """
 
     api_endpoint = "/object-storage/quotas/{quota_id}"
@@ -603,7 +603,7 @@ class ObjectStorageQuota(Base):
         """
         Gets usage data for a specific ObjectStorage Quota resource you can have on your account and the current usage for that resource.
 
-        API documentation: TBD
+        API documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-quota-usage
 
         :returns: The Object Storage Quota usage.
         :rtype: ObjectStorageQuotaUsage
