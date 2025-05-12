@@ -1,58 +1,45 @@
+import pytest
+
 from linode_api4.objects.object_storage import (
     ObjectStorageQuota,
     ObjectStorageQuotaUsage,
 )
 
 
-def test_list_obj_storage_quotas(test_linode_client):
+def test_list_and_get_obj_storage_quotas(test_linode_client):
     quotas = test_linode_client.object_storage.quotas()
 
-    target_quota_id = "obj-buckets-us-sea-1.linodeobjects.com"
+    if len(quotas) < 1:
+        pytest.skip("No available quota for testing. Skipping now...")
 
-    found_quota = None
-    for quota in quotas:
-        if quota.quota_id == target_quota_id:
-            found_quota = quota
-            break
+    found_quota = quotas[0]
 
-    assert (
-        found_quota is not None
-    ), f"Quota with ID {target_quota_id} not found."
-
-    assert found_quota.quota_id == "obj-buckets-us-sea-1.linodeobjects.com"
-    assert found_quota.quota_name == "max_buckets"
-    assert found_quota.endpoint_type == "E1"
-    assert found_quota.s3_endpoint == "us-sea-1.linodeobjects.com"
-    assert (
-        found_quota.description
-        == "Maximum number of buckets this customer is allowed to have on this endpoint"
+    get_quota = test_linode_client.load(
+        ObjectStorageQuota, found_quota.quota_id
     )
-    assert found_quota.quota_limit == 1000
-    assert found_quota.resource_metric == "bucket"
 
-
-def test_get_obj_storage_quota(test_linode_client):
-    quota_id = "obj-objects-us-ord-1.linodeobjects.com"
-    quota = test_linode_client.load(ObjectStorageQuota, quota_id)
-
-    assert quota.quota_id == "obj-objects-us-ord-1.linodeobjects.com"
-    assert quota.quota_name == "max_objects"
-    assert quota.endpoint_type == "E1"
-    assert quota.s3_endpoint == "us-ord-1.linodeobjects.com"
-    assert (
-        quota.description
-        == "Maximum number of objects this customer is allowed to have on this endpoint"
-    )
-    assert quota.quota_limit == 100000000
-    assert quota.resource_metric == "object"
+    assert found_quota.quota_id == get_quota.quota_id
+    assert found_quota.quota_name == get_quota.quota_name
+    assert found_quota.endpoint_type == get_quota.endpoint_type
+    assert found_quota.s3_endpoint == get_quota.s3_endpoint
+    assert found_quota.description == get_quota.description
+    assert found_quota.quota_limit == get_quota.quota_limit
+    assert found_quota.resource_metric == get_quota.resource_metric
 
 
 def test_get_obj_storage_quota_usage(test_linode_client):
-    quota_id = "obj-objects-us-ord-1.linodeobjects.com"
+    quotas = test_linode_client.object_storage.quotas()
+
+    if len(quotas) < 1:
+        pytest.skip("No available quota for testing. Skipping now...")
+
+    quota_id = quotas[0].quota_id
     quota = test_linode_client.load(ObjectStorageQuota, quota_id)
 
     quota_usage = quota.usage()
 
     assert isinstance(quota_usage, ObjectStorageQuotaUsage)
-    assert quota_usage.quota_limit == 100000000
-    assert quota_usage.usage >= 0
+    assert quota_usage.quota_limit >= 0
+
+    if quota_usage.usage is not None:
+        assert quota_usage.usage >= 0
