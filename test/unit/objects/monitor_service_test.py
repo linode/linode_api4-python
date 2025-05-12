@@ -1,7 +1,7 @@
 import datetime
 from test.unit.base import ClientBaseCase
 
-from linode_api4.objects import Dashboard
+from linode_api4.objects import MonitorDashboard
 
 
 class MonitorTest(ClientBaseCase):
@@ -13,7 +13,7 @@ class MonitorTest(ClientBaseCase):
         """
         Test the services supported by monitor
         """
-        service = self.client.monitor.supported_services()
+        service = self.client.monitor_service.list_supported_services()
         self.assertEqual(len(service), 1)
         self.assertEqual(service[0].label, "Databases")
         self.assertEqual(service[0].service_type, "dbaas")
@@ -22,7 +22,7 @@ class MonitorTest(ClientBaseCase):
         """
         Test the dashboard by ID API
         """
-        dashboard = self.client.load(Dashboard, 1)
+        dashboard = self.client.load(MonitorDashboard, 1)
         self.assertEqual(dashboard.type, "standard")
         self.assertEqual(
             dashboard.created, datetime.datetime(2024, 10, 10, 5, 1, 58)
@@ -43,7 +43,7 @@ class MonitorTest(ClientBaseCase):
         self.assertEqual(dashboard.widgets[0].y_label, "cpu_usage")
 
     def test_dashboard_by_service_type(self):
-        dashboards = self.client.monitor.dashboards_by_service(
+        dashboards = self.client.monitor_service.list_dashboards_by_service(
             service_type="dbaas"
         )
         self.assertEqual(dashboards[0].type, "standard")
@@ -66,7 +66,7 @@ class MonitorTest(ClientBaseCase):
         self.assertEqual(dashboards[0].widgets[0].y_label, "cpu_usage")
 
     def test_get_all_dashboards(self):
-        dashboards = self.client.monitor.dashboards()
+        dashboards = self.client.monitor_service.list_monitor_dashboards()
         self.assertEqual(dashboards[0].type, "standard")
         self.assertEqual(
             dashboards[0].created, datetime.datetime(2024, 10, 10, 5, 1, 58)
@@ -87,13 +87,13 @@ class MonitorTest(ClientBaseCase):
         self.assertEqual(dashboards[0].widgets[0].y_label, "cpu_usage")
 
     def test_specific_service_details(self):
-        data = self.client.monitor.details_by_service(service_type="dbaas")
+        data = self.client.monitor_service.list_service_by_type(service_type="dbaas")
         self.assertEqual(data[0].label, "Databases")
         self.assertEqual(data[0].service_type, "dbaas")
 
     def test_metric_definitions(self):
 
-        metrics = self.client.monitor.metric_definitions(service_type="dbaas")
+        metrics = self.client.monitor_service.list_metric_definitions(service_type="dbaas")
         self.assertEqual(
             metrics[0].available_aggregate_functions,
             ["max", "avg", "min", "sum"],
@@ -113,7 +113,9 @@ class MonitorTest(ClientBaseCase):
     def test_create_token(self):
 
         with self.mock_post("/monitor/services/dbaas/token") as m:
-            self.client.monitor.create_token(
+            self.client.monitor_service.create_token(
                 service_type="dbaas", entity_ids=[189690, 188020]
             )
             self.assertEqual(m.return_dct["token"], "abcdefhjigkfghh")
+
+

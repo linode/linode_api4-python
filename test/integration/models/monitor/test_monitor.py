@@ -8,57 +8,55 @@ import pytest
 
 from linode_api4 import LinodeClient
 from linode_api4.objects import (
-    CreateToken,
-    Dashboard,
-    DashboardByService,
-    MetricDefinition,
-    MonitorServiceSupported,
-    ServiceDetails,
+    MonitorDashboard,
+    MonitorMetricsDefinition,
+    MonitorService,
+    MonitorServiceToken,
 )
 
 
 # List all dashboards
 def test_get_all_dashboards(test_linode_client):
     client = test_linode_client
-    dashboards = client.monitor.dashboards()
-    assert isinstance(dashboards[0], Dashboard)
+    dashboards = client.monitor_service.list_monitor_dashboards()
+    assert isinstance(dashboards[0], MonitorDashboard)
 
     dashboard_get = dashboards[0]
     get_service_type = dashboard_get.service_type
 
     # Fetch Dashboard by ID
-    dashboard_by_id = client.load(Dashboard, 1)
-    assert isinstance(dashboard_by_id, Dashboard)
+    dashboard_by_id = client.load(MonitorDashboard, 1)
+    assert isinstance(dashboard_by_id, MonitorDashboard)
     assert dashboard_by_id.id == 1
 
     # #Fetch Dashboard by service_type
-    dashboards_by_svc = client.monitor.dashboards_by_service(
+    dashboards_by_svc = client.monitor_service.list_dashboards_by_service(
         service_type=get_service_type
     )
-    assert isinstance(dashboards_by_svc[0], DashboardByService)
+    assert isinstance(dashboards_by_svc[0], MonitorDashboard)
     assert dashboards_by_svc[0].service_type == get_service_type
 
 
 # List supported services
 def test_get_supported_services(test_linode_client):
     client = test_linode_client
-    supported_services = client.monitor.supported_services()
-    assert isinstance(supported_services[0], MonitorServiceSupported)
+    supported_services = client.monitor_service.list_supported_services()
+    assert isinstance(supported_services[0], MonitorService)
 
     get_supported_service = supported_services[0].service_type
 
     # Get details for a particular service
-    service_details = client.monitor.details_by_service(
+    service_details = client.monitor_service.list_service_by_type(
         service_type=get_supported_service
     )
-    assert isinstance(service_details[0], ServiceDetails)
+    assert isinstance(service_details[0], MonitorService)
     assert service_details[0].service_type == get_supported_service
 
     # Get Metric definition details for that particular service
-    metric_definitions = client.monitor.metric_definitions(
+    metric_definitions = client.monitor_service.list_metric_definitions(
         service_type=get_supported_service
     )
-    assert isinstance(metric_definitions[0], MetricDefinition)
+    assert isinstance(metric_definitions[0], MonitorMetricsDefinition)
 
 
 # Test Helpers
@@ -105,9 +103,9 @@ def test_my_db_functionality(test_linode_client, test_create_and_test_db):
     entity_id = test_create_and_test_db.id
 
     # create token for the particular service
-    token = client.monitor.create_token(
+    token = client.monitor_service.create_token(
         service_type="dbaas", entity_ids=[entity_id]
     )
-    assert isinstance(token, CreateToken)
+    assert isinstance(token, MonitorServiceToken)
     assert len(token.token) > 0, "Token should not be empty"
     assert hasattr(token, "token"), "Response object has no 'token' attribute"
