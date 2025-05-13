@@ -87,13 +87,17 @@ class MonitorTest(ClientBaseCase):
         self.assertEqual(dashboards[0].widgets[0].y_label, "cpu_usage")
 
     def test_specific_service_details(self):
-        data = self.client.monitor_service.list_service_by_type(service_type="dbaas")
+        data = self.client.monitor_service.list_service_by_type(
+            service_type="dbaas"
+        )
         self.assertEqual(data[0].label, "Databases")
         self.assertEqual(data[0].service_type, "dbaas")
 
     def test_metric_definitions(self):
 
-        metrics = self.client.monitor_service.list_metric_definitions(service_type="dbaas")
+        metrics = self.client.monitor_service.list_metric_definitions(
+            service_type="dbaas"
+        )
         self.assertEqual(
             metrics[0].available_aggregate_functions,
             ["max", "avg", "min", "sum"],
@@ -117,5 +121,3 @@ class MonitorTest(ClientBaseCase):
                 service_type="dbaas", entity_ids=[189690, 188020]
             )
             self.assertEqual(m.return_dct["token"], "abcdefhjigkfghh")
-
-
