@@ -20,7 +20,7 @@ class MonitorGroup(Group):
         Returns a list of dashboards.
 
             dashboards = client.monitor_service.list_monitor_dashboards()
-            dashboard = client.load(Dashboard, 1)
+            dashboard = client.load(MonitorDashboard, 1)
 
         .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
 
