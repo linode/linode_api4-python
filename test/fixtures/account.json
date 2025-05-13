@@ -16,7 +16,8 @@
     "Linodes",
     "NodeBalancers",
     "Block Storage",
-    "Object Storage"
+    "Object Storage",
+    "Linode Interfaces"
   ],
   "active_promotions": [
     {
