@@ -1,5 +1,5 @@
 import inspect
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from enum import Enum
 from types import SimpleNamespace
 from typing import (
@@ -9,6 +9,7 @@ from typing import (
     List,
     Optional,
     Set,
+    Type,
     Union,
     get_args,
     get_origin,
@@ -69,6 +70,13 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
     A set of keys corresponding to fields that should always be
     included in the generated output regardless of whether their values
     are None.
+    """
+
+    put_class: ClassVar[Optional[Type["JSONObject"]]] = None
+    """
+    An alternative JSONObject class to use as the schema for PUT requests.
+    This prevents read-only fields from being included in PUT request bodies,
+    which in theory will result in validation errors from the API.
     """
 
     def __init__(self):
@@ -154,11 +162,17 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
 
         return obj
 
-    def _serialize(self) -> Dict[str, Any]:
+    def _serialize(self, is_put: bool = False) -> Dict[str, Any]:
         """
         Serializes this object into a JSON dict.
         """
         cls = type(self)
+
+        if is_put and cls.put_class is not None:
+            cls = cls.put_class
+
+        cls_field_keys = {field.name for field in fields(cls)}
+
         type_hints = get_type_hints(cls)
 
         def attempt_serialize(value: Any) -> Any:
@@ -166,7 +180,7 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
             Attempts to serialize the given value, else returns the value unchanged.
             """
             if issubclass(type(value), JSONObject):
-                return value._serialize()
+                return value._serialize(is_put=is_put)
 
             return value
 
@@ -174,6 +188,10 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
             """
             Returns whether the given key/value pair should be included in the resulting dict.
             """
+
+            # During PUT operations, keys not present in the put_class should be excluded
+            if key not in cls_field_keys:
+                return False
 
             if cls.include_none_values or key in cls.always_include:
                 return True

@@ -51,6 +51,16 @@ class ObjectStorageEndpoint(JSONObject):
     s3_endpoint: Optional[str] = None
 
 
+@dataclass
+class ObjectStorageQuotaUsage(JSONObject):
+    """
+    ObjectStorageQuotaUsage contains the fields of an object storage quota usage information.
+    """
+
+    quota_limit: int = 0
+    usage: int = 0
+
+
 class ObjectStorageType(Base):
     """
     An ObjectStorageType represents the structure of a valid Object Storage type.
@@ -566,3 +576,42 @@ class ObjectStorageKeys(Base):
         "limited": Property(),
         "regions": Property(unordered=True),
     }
+
+
+class ObjectStorageQuota(Base):
+    """
+    An Object Storage related quota information on your account.
+    Object Storage Quota related features are under v4beta and may not currently be available to all users.
+
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-quota
+    """
+
+    api_endpoint = "/object-storage/quotas/{quota_id}"
+    id_attribute = "quota_id"
+
+    properties = {
+        "quota_id": Property(identifier=True),
+        "quota_name": Property(),
+        "endpoint_type": Property(),
+        "s3_endpoint": Property(),
+        "description": Property(),
+        "quota_limit": Property(),
+        "resource_metric": Property(),
+    }
+
+    def usage(self):
+        """
+        Gets usage data for a specific ObjectStorage Quota resource you can have on your account and the current usage for that resource.
+
+        API documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-quota-usage
+
+        :returns: The Object Storage Quota usage.
+        :rtype: ObjectStorageQuotaUsage
+        """
+
+        result = self._client.get(
+            f"{type(self).api_endpoint}/usage",
+            model=self,
+        )
+
+        return ObjectStorageQuotaUsage.from_json(result)
