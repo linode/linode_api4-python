@@ -1951,6 +1951,7 @@ class Instance(Base):
                     If set, the new instance will be a VPC interface.
 
         :returns: The newly created Linode Interface.
+        :rtype: LinodeInterface
         """
 
         params = {
@@ -1984,6 +1985,7 @@ class Instance(Base):
         NOTE: Linode interfaces may not currently be available to all users.
 
         :returns: The settings for instance-level interface settings for this Linode.
+        :rtype: LinodeInterfacesSettings
         """
 
         # NOTE: We do not implement this as a Property because Property does
