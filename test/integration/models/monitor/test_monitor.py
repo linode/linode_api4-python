@@ -18,7 +18,7 @@ from linode_api4.objects import (
 # List all dashboards
 def test_get_all_dashboards(test_linode_client):
     client = test_linode_client
-    dashboards = client.monitor_service.list_monitor_dashboards()
+    dashboards = client.monitor_service.dashboards()
     assert isinstance(dashboards[0], MonitorDashboard)
 
     dashboard_get = dashboards[0]
@@ -30,7 +30,7 @@ def test_get_all_dashboards(test_linode_client):
     assert dashboard_by_id.id == 1
 
     # #Fetch Dashboard by service_type
-    dashboards_by_svc = client.monitor_service.list_dashboards_by_service(
+    dashboards_by_svc = client.monitor_service.dashboards_by_service(
         service_type=get_service_type
     )
     assert isinstance(dashboards_by_svc[0], MonitorDashboard)
@@ -40,20 +40,20 @@ def test_get_all_dashboards(test_linode_client):
 # List supported services
 def test_get_supported_services(test_linode_client):
     client = test_linode_client
-    supported_services = client.monitor_service.list_supported_services()
+    supported_services = client.monitor_service.services()
     assert isinstance(supported_services[0], MonitorService)
 
     get_supported_service = supported_services[0].service_type
 
     # Get details for a particular service
-    service_details = client.monitor_service.list_service_by_type(
+    service_details = client.monitor_service.service_by_type(
         service_type=get_supported_service
     )
     assert isinstance(service_details[0], MonitorService)
     assert service_details[0].service_type == get_supported_service
 
     # Get Metric definition details for that particular service
-    metric_definitions = client.monitor_service.list_metric_definitions(
+    metric_definitions = client.monitor_service.metric_definitions(
         service_type=get_supported_service
     )
     assert isinstance(metric_definitions[0], MonitorMetricsDefinition)

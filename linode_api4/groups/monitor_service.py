@@ -15,7 +15,7 @@ class MonitorGroup(Group):
     This group contains all features beneath the `/monitor` group in the API v4.
     """
 
-    def list_monitor_dashboards(self, *filters) -> list[MonitorDashboard]:
+    def dashboards(self, *filters) -> list[MonitorDashboard]:
         """
         Returns a list of dashboards.
 
@@ -36,7 +36,7 @@ class MonitorGroup(Group):
 
         return self.client._get_and_filter(MonitorDashboard, *filters)
 
-    def list_dashboards_by_service(
+    def dashboards_by_service(
         self, service_type: str, *filters
     ) -> list[MonitorDashboard]:
         """
@@ -64,7 +64,7 @@ class MonitorGroup(Group):
             endpoint=f"/monitor/services/{service_type}/dashboards",
         )
 
-    def list_supported_services(self, *filters) -> list[MonitorService]:
+    def services(self, *filters) -> list[MonitorService]:
         """
         Returns a list of services supported by ACLP.
 
@@ -84,7 +84,7 @@ class MonitorGroup(Group):
 
         return self.client._get_and_filter(MonitorService, *filters)
 
-    def list_service_by_type(
+    def service_by_type(
         self, service_type: str, *filters
     ) -> list[MonitorService]:
         """
@@ -111,7 +111,7 @@ class MonitorGroup(Group):
             endpoint=f"/monitor/services/{service_type}",
         )
 
-    def list_metric_definitions(
+    def metric_definitions(
         self, service_type: str, *filters
     ) -> list[MonitorMetricsDefinition]:
         """

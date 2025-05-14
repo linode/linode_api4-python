@@ -13,7 +13,7 @@ class MonitorTest(ClientBaseCase):
         """
         Test the services supported by monitor
         """
-        service = self.client.monitor_service.list_supported_services()
+        service = self.client.monitor_service.services()
         self.assertEqual(len(service), 1)
         self.assertEqual(service[0].label, "Databases")
         self.assertEqual(service[0].service_type, "dbaas")
@@ -43,7 +43,7 @@ class MonitorTest(ClientBaseCase):
         self.assertEqual(dashboard.widgets[0].y_label, "cpu_usage")
 
     def test_dashboard_by_service_type(self):
-        dashboards = self.client.monitor_service.list_dashboards_by_service(
+        dashboards = self.client.monitor_service.dashboards_by_service(
             service_type="dbaas"
         )
         self.assertEqual(dashboards[0].type, "standard")
@@ -66,7 +66,7 @@ class MonitorTest(ClientBaseCase):
         self.assertEqual(dashboards[0].widgets[0].y_label, "cpu_usage")
 
     def test_get_all_dashboards(self):
-        dashboards = self.client.monitor_service.list_monitor_dashboards()
+        dashboards = self.client.monitor_service.dashboards()
         self.assertEqual(dashboards[0].type, "standard")
         self.assertEqual(
             dashboards[0].created, datetime.datetime(2024, 10, 10, 5, 1, 58)
@@ -87,7 +87,7 @@ class MonitorTest(ClientBaseCase):
         self.assertEqual(dashboards[0].widgets[0].y_label, "cpu_usage")
 
     def test_specific_service_details(self):
-        data = self.client.monitor_service.list_service_by_type(
+        data = self.client.monitor_service.service_by_type(
             service_type="dbaas"
         )
         self.assertEqual(data[0].label, "Databases")
@@ -95,7 +95,7 @@ class MonitorTest(ClientBaseCase):
 
     def test_metric_definitions(self):
 
-        metrics = self.client.monitor_service.list_metric_definitions(
+        metrics = self.client.monitor_service.metric_definitions(
             service_type="dbaas"
         )
         self.assertEqual(
