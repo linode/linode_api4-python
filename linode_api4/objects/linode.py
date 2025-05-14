@@ -679,7 +679,7 @@ class UpgradeInterfacesResult(JSONObject):
     NOTE: If dry_run is True, each returned interface will be of type Dict[str, Any].
           Otherwise, each returned interface will be of type LinodeInterface.
 
-    API Documentation: Not yet available.
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/post-upgrade-linode-interfaces
     """
 
     dry_run: bool = False
@@ -2048,7 +2048,7 @@ class Instance(Base):
 
         NOTE: Linode interfaces may not currently be available to all users.
 
-        API Documentation: Not yet available.
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-upgrade-linode-interfaces
 
         :param config: The configuration profile the legacy interfaces to
                        upgrade are under.

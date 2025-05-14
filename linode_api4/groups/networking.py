@@ -119,7 +119,7 @@ class NetworkingGroup(Group):
         """
         Returns a list of Firewall Templates available to the current user.
 
-        API Documentation: Not yet available.
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-firewall-templates
 
         NOTE: This feature may not currently be available to all users.
 
@@ -135,7 +135,9 @@ class NetworkingGroup(Group):
     def firewall_settings(self) -> FirewallSettings:
         """
         Returns an object representing the Linode Firewall settings for the current user.
-        API Documentation: Not yet available.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-firewall-settings
+
         NOTE: This feature may not currently be available to all users.
         :returns: An object representing the Linode Firewall settings for the current user.
         :rtype: FirewallSettings

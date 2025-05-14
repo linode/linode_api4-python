@@ -235,7 +235,7 @@ class FirewallSettings(Base):
     """
     Represents the Firewall settings for the current user.
 
-    API Documentation: Not yet available.
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-firewall-settings
 
     NOTE: This feature may not currently be available to all users.
     """
@@ -385,7 +385,7 @@ class FirewallTemplate(Base):
     """
     Represents a single Linode Firewall template.
 
-    API documentation: Not yet available.
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-firewall-template
 
     NOTE: This feature may not currently be available to all users.
     """

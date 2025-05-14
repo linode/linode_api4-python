@@ -39,7 +39,7 @@ class LinodeInterfacesSettings(Base):
     """
     The settings related to a Linode's network interfaces.
 
-    API Documentation: Not yet available.
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-interface-settings
 
     NOTE: Linode interfaces may not currently be available to all users.
     """
@@ -465,7 +465,7 @@ class LinodeInterface(DerivedBase):
         NOTE: Caching is disabled on this method and each call will make
         an additional Linode API request.
 
-        API Documentation: Not yet available.
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-interface-firewalls
         """
 
         return self._client._get_and_filter(
