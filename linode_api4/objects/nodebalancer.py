@@ -123,12 +123,8 @@ class NodeBalancerConfig(DerivedBase):
 
         data = self._serialize()
 
-        print(data)
-
         if data.get("protocol") == "udp" and "cipher_suite" in data:
             data.pop("cipher_suite")
-
-        print(data)
 
         result = self._client.put(
             NodeBalancerConfig.api_endpoint, model=self, data=data
