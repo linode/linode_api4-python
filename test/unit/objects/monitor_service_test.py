@@ -43,7 +43,7 @@ class MonitorTest(ClientBaseCase):
         self.assertEqual(dashboard.widgets[0].y_label, "cpu_usage")
 
     def test_dashboard_by_service_type(self):
-        dashboards = self.client.monitor_service.dashboards_by_service(
+        dashboards = self.client.monitor_service.dashboards(
             service_type="dbaas"
         )
         self.assertEqual(dashboards[0].type, "standard")
@@ -87,9 +87,7 @@ class MonitorTest(ClientBaseCase):
         self.assertEqual(dashboards[0].widgets[0].y_label, "cpu_usage")
 
     def test_specific_service_details(self):
-        data = self.client.monitor_service.service_by_type(
-            service_type="dbaas"
-        )
+        data = self.client.monitor_service.services(service_type="dbaas")
         self.assertEqual(data[0].label, "Databases")
         self.assertEqual(data[0].service_type, "dbaas")
 

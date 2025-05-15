@@ -30,7 +30,7 @@ def test_get_all_dashboards(test_linode_client):
     assert dashboard_by_id.id == 1
 
     # #Fetch Dashboard by service_type
-    dashboards_by_svc = client.monitor_service.dashboards_by_service(
+    dashboards_by_svc = client.monitor_service.dashboards(
         service_type=get_service_type
     )
     assert isinstance(dashboards_by_svc[0], MonitorDashboard)
@@ -46,7 +46,7 @@ def test_get_supported_services(test_linode_client):
     get_supported_service = supported_services[0].service_type
 
     # Get details for a particular service
-    service_details = client.monitor_service.service_by_type(
+    service_details = client.monitor_service.services(
         service_type=get_supported_service
     )
     assert isinstance(service_details[0], MonitorService)
