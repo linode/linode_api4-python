@@ -1,8 +1,10 @@
+from dataclasses import dataclass
 from typing import Optional
 from urllib import parse
 
 from deprecated import deprecated
 
+from linode_api4.common import Price, RegionPrice
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import (
     Base,
@@ -11,7 +13,7 @@ from linode_api4.objects import (
     Property,
     Region,
 )
-from linode_api4.objects.serializable import StrEnum
+from linode_api4.objects.serializable import JSONObject, StrEnum
 from linode_api4.util import drop_null_keys
 
 
@@ -26,6 +28,55 @@ class ObjectStorageACL(StrEnum):
 class ObjectStorageKeyPermission(StrEnum):
     READ_ONLY = "read_only"
     READ_WRITE = "read_write"
+
+
+class ObjectStorageEndpointType(StrEnum):
+    E0 = "E0"
+    E1 = "E1"
+    E2 = "E2"
+    E3 = "E3"
+
+
+@dataclass
+class ObjectStorageEndpoint(JSONObject):
+    """
+    ObjectStorageEndpoint contains the core fields of an object storage endpoint object.
+
+    NOTE: This is not implemented as a typical API object (Base) because Object Storage Endpoints
+    cannot be refreshed, as there is no singular GET endpoint.
+    """
+
+    region: str = ""
+    endpoint_type: ObjectStorageEndpointType = ""
+    s3_endpoint: Optional[str] = None
+
+
+@dataclass
+class ObjectStorageQuotaUsage(JSONObject):
+    """
+    ObjectStorageQuotaUsage contains the fields of an object storage quota usage information.
+    """
+
+    quota_limit: int = 0
+    usage: int = 0
+
+
+class ObjectStorageType(Base):
+    """
+    An ObjectStorageType represents the structure of a valid Object Storage type.
+    Currently, the ObjectStorageType can only be retrieved by listing, i.e.:
+        types = client.object_storage.types()
+
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-types
+    """
+
+    properties = {
+        "id": Property(identifier=True),
+        "label": Property(),
+        "price": Property(json_object=Price),
+        "region_prices": Property(json_object=RegionPrice),
+        "transfer": Property(),
+    }
 
 
 class ObjectStorageBucket(DerivedBase):
@@ -47,6 +98,8 @@ class ObjectStorageBucket(DerivedBase):
         "label": Property(identifier=True),
         "objects": Property(),
         "size": Property(),
+        "endpoint_type": Property(),
+        "s3_endpoint": Property(),
     }
 
     @classmethod
@@ -63,13 +116,8 @@ class ObjectStorageBucket(DerivedBase):
         Override this method to pass in the parent_id from the _raw_json object
         when it's available.
         """
-        if json is None:
-            return None
-
-        cluster_or_region = json.get("region") or json.get("cluster")
-
-        if parent_id is None and cluster_or_region:
-            parent_id = cluster_or_region
+        if json is not None:
+            parent_id = parent_id or json.get("region") or json.get("cluster")
 
         if parent_id:
             return super().make(id, client, cls, parent_id=parent_id, json=json)
@@ -77,6 +125,31 @@ class ObjectStorageBucket(DerivedBase):
             raise UnexpectedResponseError(
                 "Unexpected json response when making a new Object Storage Bucket instance."
             )
+
+    def access_get(self):
+        """
+        Returns a result object which wraps the current access config for this ObjectStorageBucket.
+
+        API Documentation: TODO
+
+        :returns: A result object which wraps the access that this ObjectStorageBucket is currently configured with.
+        :rtype: MappedObject
+        """
+        result = self._client.get(
+            "{}/access".format(self.api_endpoint),
+            model=self,
+        )
+
+        if not any(
+            key in result
+            for key in ["acl", "acl_xml", "cors_enabled", "cors_xml"]
+        ):
+            raise UnexpectedResponseError(
+                "Unexpected response when getting the bucket access config of a bucket!",
+                json=result,
+            )
+
+        return MappedObject(**result)
 
     def access_modify(
         self,
@@ -503,3 +576,42 @@ class ObjectStorageKeys(Base):
         "limited": Property(),
         "regions": Property(unordered=True),
     }
+
+
+class ObjectStorageQuota(Base):
+    """
+    An Object Storage related quota information on your account.
+    Object Storage Quota related features are under v4beta and may not currently be available to all users.
+
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-quota
+    """
+
+    api_endpoint = "/object-storage/quotas/{quota_id}"
+    id_attribute = "quota_id"
+
+    properties = {
+        "quota_id": Property(identifier=True),
+        "quota_name": Property(),
+        "endpoint_type": Property(),
+        "s3_endpoint": Property(),
+        "description": Property(),
+        "quota_limit": Property(),
+        "resource_metric": Property(),
+    }
+
+    def usage(self):
+        """
+        Gets usage data for a specific ObjectStorage Quota resource you can have on your account and the current usage for that resource.
+
+        API documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-quota-usage
+
+        :returns: The Object Storage Quota usage.
+        :rtype: ObjectStorageQuotaUsage
+        """
+
+        result = self._client.get(
+            f"{type(self).api_endpoint}/usage",
+            model=self,
+        )
+
+        return ObjectStorageQuotaUsage.from_json(result)

@@ -1,28 +1,8 @@
 PYTHON ?= python3
 
-TEST_CASE_COMMAND :=
-TEST_SUITE :=
-TEST_ARGS :=
-
 LINODE_SDK_VERSION ?= "0.0.0.dev"
 VERSION_MODULE_DOCSTRING ?= \"\"\"\nThe version of this linode_api4 package.\n\"\"\"\n\n
 VERSION_FILE := ./linode_api4/version.py
-
-ifdef TEST_CASE
-    TEST_CASE_COMMAND = -k $(TEST_CASE)
-endif
-
-ifdef TEST_SUITE
-    ifneq ($(TEST_SUITE),linode_client)
-        ifneq ($(TEST_SUITE),login_client)
-            TEST_COMMAND = models/$(TEST_SUITE)
-        else
-            TEST_COMMAND = login_client
-        endif
-    else
-        TEST_COMMAND = linode_client
-    endif
-endif
 
 .PHONY: clean
 clean:
@@ -73,14 +53,21 @@ lint: build
 	$(PYTHON) -m pylint linode_api4
 	$(PYTHON) -m twine check dist/*
 
-.PHONY: testint
-testint:
-	$(PYTHON) -m pytest test/integration/${TEST_COMMAND} ${TEST_CASE_COMMAND} ${TEST_ARGS}
+# Integration Test Arguments
+# TEST_SUITE: Optional, specify a test suite (e.g. domain), Default to run everything if not set
+# TEST_CASE: Optional, specify a test case (e.g. 'test_image_replication')
+# TEST_ARGS: Optional, additional arguments for pytest (e.g. '-v' for verbose mode)
 
-.PHONY: testunit
-testunit:
+TEST_COMMAND = $(if $(TEST_SUITE),$(if $(filter $(TEST_SUITE),linode_client login_client),$(TEST_SUITE),models/$(TEST_SUITE)))
+
+.PHONY: test-int
+test-int:
+	$(PYTHON) -m pytest test/integration/${TEST_COMMAND} $(if $(TEST_CASE),-k $(TEST_CASE)) ${TEST_ARGS}
+
+.PHONY: test-unit
+test-unit:
 	$(PYTHON) -m pytest test/unit
 
-.PHONY: smoketest
-smoketest:
+.PHONY: test-smoke
+test-smoke:
 	$(PYTHON) -m pytest -m smoke test/integration

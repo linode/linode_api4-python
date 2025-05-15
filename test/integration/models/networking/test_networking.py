@@ -1,14 +1,19 @@
+import time
 from test.integration.conftest import (
     get_api_ca_file,
     get_api_url,
     get_region,
     get_token,
 )
-from test.integration.helpers import get_test_label
+from test.integration.helpers import (
+    get_test_label,
+    retry_sending_request,
+    wait_for_condition,
+)
 
 import pytest
 
-from linode_api4 import LinodeClient
+from linode_api4 import Instance, LinodeClient
 from linode_api4.objects import Config, ConfigInterfaceIPv4, Firewall, IPAddress
 from linode_api4.objects.networking import NetworkTransferPrice, Price
 
@@ -66,6 +71,59 @@ def test_get_networking_rules(test_linode_client, test_firewall):
     assert "inbound_policy" in str(rules)
     assert "outbound" in str(rules)
     assert "outbound_policy" in str(rules)
+
+
+def test_get_networking_rule_versions(test_linode_client, test_firewall):
+    firewall = test_linode_client.load(Firewall, test_firewall.id)
+
+    # Update the firewall's rules
+    new_rules = {
+        "inbound": [
+            {
+                "action": "ACCEPT",
+                "addresses": {
+                    "ipv4": ["0.0.0.0/0"],
+                    "ipv6": ["ff00::/8"],
+                },
+                "description": "A really cool firewall rule.",
+                "label": "really-cool-firewall-rule",
+                "ports": "80",
+                "protocol": "TCP",
+            }
+        ],
+        "inbound_policy": "ACCEPT",
+        "outbound": [],
+        "outbound_policy": "DROP",
+    }
+    firewall.update_rules(new_rules)
+    time.sleep(1)
+
+    rule_versions = firewall.rule_versions
+
+    # Original firewall rules
+    old_rule_version = firewall.get_rule_version(1)
+
+    # Updated firewall rules
+    new_rule_version = firewall.get_rule_version(2)
+
+    assert "rules" in str(rule_versions)
+    assert "version" in str(rule_versions)
+    assert rule_versions["results"] == 2
+
+    assert old_rule_version["inbound"] == []
+    assert old_rule_version["inbound_policy"] == "ACCEPT"
+    assert old_rule_version["outbound"] == []
+    assert old_rule_version["outbound_policy"] == "DROP"
+    assert old_rule_version["version"] == 1
+
+    assert (
+        new_rule_version["inbound"][0]["description"]
+        == "A really cool firewall rule."
+    )
+    assert new_rule_version["inbound_policy"] == "ACCEPT"
+    assert new_rule_version["outbound"] == []
+    assert new_rule_version["outbound_policy"] == "DROP"
+    assert new_rule_version["version"] == 2
 
 
 @pytest.mark.smoke
@@ -150,3 +208,58 @@ def test_network_transfer_prices(test_linode_client):
             transfer_prices[0].price is None
             or transfer_prices[0].price.hourly >= 0
         )
+
+
+def test_allocate_and_delete_ip(test_linode_client, create_linode):
+    linode = create_linode
+    ip = test_linode_client.networking.ip_allocate(linode.id)
+    linode.invalidate()
+
+    assert ip.linode_id == linode.id
+    assert ip.address in linode.ipv4
+
+    is_deleted = ip.delete()
+
+    assert is_deleted is True
+
+
+def get_status(linode: Instance, status: str):
+    return linode.status == status
+
+
+def test_create_and_delete_vlan(test_linode_client, linode_for_vlan_tests):
+    linode = linode_for_vlan_tests
+
+    config: Config = linode.configs[0]
+
+    config.interfaces = []
+    config.save()
+
+    vlan_label = "testvlan"
+    interface = config.interface_create_vlan(
+        label=vlan_label, ipam_address="10.0.0.2/32"
+    )
+
+    config.invalidate()
+
+    assert interface.id == config.interfaces[0].id
+    assert interface.purpose == "vlan"
+    assert interface.label == vlan_label
+
+    # Remove the VLAN interface and reboot Linode
+    config.interfaces = []
+    config.save()
+
+    wait_for_condition(3, 100, get_status, linode, "running")
+
+    retry_sending_request(3, linode.reboot)
+
+    wait_for_condition(3, 100, get_status, linode, "rebooting")
+    assert linode.status == "rebooting"
+
+    # Delete the VLAN
+    is_deleted = test_linode_client.networking.delete_vlan(
+        vlan_label, linode.region
+    )
+
+    assert is_deleted is True

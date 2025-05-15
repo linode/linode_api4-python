@@ -2,7 +2,7 @@ from datetime import datetime
 from test.unit.base import ClientBaseCase
 from unittest.mock import MagicMock
 
-from linode_api4 import InstanceDiskEncryptionType
+from linode_api4 import InstanceDiskEncryptionType, TieredKubeVersion
 from linode_api4.objects import (
     LKECluster,
     LKEClusterControlPlaneACLAddressesOptions,
@@ -39,6 +39,7 @@ class LKETest(ClientBaseCase):
         self.assertEqual(cluster.region.id, "ap-west")
         self.assertEqual(cluster.k8s_version.id, "1.19")
         self.assertTrue(cluster.control_plane.high_availability)
+        self.assertTrue(cluster.apl_enabled)
 
     def test_get_pool(self):
         """
@@ -165,36 +166,6 @@ class LKETest(ClientBaseCase):
         self.assertIsNotNone(pool.nodes)
         self.assertIsNotNone(pool.autoscaler)
         self.assertIsNotNone(pool.tags)
-
-    def test_cluster_create_with_acl(self):
-        """
-        Tests that an LKE cluster can be created with a control plane ACL configuration.
-        """
-
-        with self.mock_post("lke/clusters") as m:
-            self.client.lke.cluster_create(
-                "us-mia",
-                "test-acl-cluster",
-                [self.client.lke.node_pool("g6-nanode-1", 3)],
-                "1.29",
-                control_plane=LKEClusterControlPlaneOptions(
-                    acl=LKEClusterControlPlaneACLOptions(
-                        enabled=True,
-                        addresses=LKEClusterControlPlaneACLAddressesOptions(
-                            ipv4=["10.0.0.1/32"], ipv6=["1234::5678"]
-                        ),
-                    )
-                ),
-            )
-
-            assert "high_availability" not in m.call_data["control_plane"]
-            assert m.call_data["control_plane"]["acl"]["enabled"]
-            assert m.call_data["control_plane"]["acl"]["addresses"]["ipv4"] == [
-                "10.0.0.1/32"
-            ]
-            assert m.call_data["control_plane"]["acl"]["addresses"]["ipv6"] == [
-                "1234::5678"
-            ]
 
     def test_cluster_get_acl(self):
         """
@@ -352,6 +323,40 @@ class LKETest(ClientBaseCase):
                 ],
             }
 
+    def test_cluster_create_with_apl(self):
+        """
+        Tests that an LKE cluster can be created with APL enabled.
+        """
+
+        with self.mock_post("lke/clusters") as m:
+            cluster = self.client.lke.cluster_create(
+                "us-mia",
+                "test-aapl-cluster",
+                [
+                    self.client.lke.node_pool(
+                        "g6-dedicated-4",
+                        3,
+                    )
+                ],
+                "1.29",
+                apl_enabled=True,
+                control_plane=LKEClusterControlPlaneOptions(
+                    high_availability=True,
+                ),
+            )
+
+            assert m.call_data["apl_enabled"] == True
+            assert m.call_data["control_plane"]["high_availability"] == True
+
+        assert (
+            cluster.apl_console_url == "https://console.lke18881.akamai-apl.net"
+        )
+
+        assert (
+            cluster.apl_health_check_url
+            == "https://auth.lke18881.akamai-apl.net/ready"
+        )
+
     def test_populate_with_taints(self):
         """
         Tests that LKENodePool correctly handles a list of LKENodePoolTaint and Dict objects.
@@ -493,3 +498,61 @@ class LKETest(ClientBaseCase):
         assert self.pool.nodes[0].id == "node7"
         assert self.pool.nodes[1].id == "node8"
         assert self.pool.nodes[2].id == "node9"
+
+    def test_cluster_create_acl_null_addresses(self):
+        with self.mock_post("lke/clusters") as m:
+            self.client.lke.cluster_create(
+                region="us-mia",
+                label="foobar",
+                kube_version="1.32",
+                node_pools=[self.client.lke.node_pool("g6-standard-1", 3)],
+                control_plane={
+                    "acl": {
+                        "enabled": False,
+                        "addresses": None,
+                    }
+                },
+            )
+
+            # Addresses should not be included in the API request if it's null
+            # See: TPT-3489
+            assert m.call_data["control_plane"] == {
+                "acl": {
+                    "enabled": False,
+                }
+            }
+
+    def test_cluster_update_acl_null_addresses(self):
+        cluster = LKECluster(self.client, 18881)
+
+        with self.mock_put("lke/clusters/18881/control_plane_acl") as m:
+            cluster.control_plane_acl_update(
+                {
+                    "enabled": True,
+                    "addresses": None,
+                }
+            )
+
+            # Addresses should not be included in the API request if it's null
+            # See: TPT-3489
+            assert m.call_data == {"acl": {"enabled": True}}
+
+    def test_cluster_enterprise(self):
+        cluster = LKECluster(self.client, 18882)
+
+        assert cluster.tier == "enterprise"
+        assert cluster.k8s_version.id == "1.31.1+lke1"
+
+        pool = LKENodePool(self.client, 789, 18882)
+        assert pool.k8s_version == "1.31.1+lke1"
+        assert pool.update_strategy == "rolling_update"
+
+    def test_lke_tiered_version(self):
+        version = TieredKubeVersion(self.client, "1.32", "standard")
+
+        assert version.id == "1.32"
+
+        # Ensure the version is properly refreshed
+        version.invalidate()
+
+        assert version.id == "1.32"

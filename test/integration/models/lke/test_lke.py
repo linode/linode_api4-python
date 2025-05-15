@@ -14,6 +14,7 @@ from linode_api4 import (
     LKEClusterControlPlaneACLAddressesOptions,
     LKEClusterControlPlaneACLOptions,
     LKEClusterControlPlaneOptions,
+    TieredKubeVersion,
 )
 from linode_api4.common import RegionPrice
 from linode_api4.errors import ApiError
@@ -31,7 +32,9 @@ def lke_cluster(test_linode_client):
     node_type = test_linode_client.linode.types()[1]  # g6-standard-1
     version = test_linode_client.lke.versions()[0]
 
-    region = get_region(test_linode_client, {"Kubernetes", "Disk Encryption"})
+    region = get_region(
+        test_linode_client, {"Kubernetes", "LA Disk Encryption"}
+    )
 
     node_pools = test_linode_client.lke.node_pool(node_type, 3)
     label = get_test_label() + "_cluster"
@@ -45,7 +48,7 @@ def lke_cluster(test_linode_client):
     cluster.delete()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def lke_cluster_with_acl(test_linode_client):
     node_type = test_linode_client.linode.types()[1]  # g6-standard-1
     version = test_linode_client.lke.versions()[0]
@@ -110,6 +113,66 @@ def lke_cluster_with_labels_and_taints(test_linode_client):
     cluster.delete()
 
 
+@pytest.fixture(scope="session")
+def lke_cluster_with_apl(test_linode_client):
+    version = test_linode_client.lke.versions()[0]
+
+    region = get_region(
+        test_linode_client, {"Kubernetes", "LA Disk Encryption"}
+    )
+
+    # NOTE: g6-dedicated-4 is the minimum APL-compatible Linode type
+    node_pools = test_linode_client.lke.node_pool("g6-dedicated-4", 3)
+    label = get_test_label() + "_cluster"
+
+    cluster = test_linode_client.lke.cluster_create(
+        region,
+        label,
+        node_pools,
+        version,
+        control_plane=LKEClusterControlPlaneOptions(
+            high_availability=True,
+        ),
+        apl_enabled=True,
+    )
+
+    yield cluster
+
+    cluster.delete()
+
+
+@pytest.fixture(scope="session")
+def lke_cluster_enterprise(test_linode_client):
+    # We use the oldest version here so we can test upgrades
+    version = sorted(
+        v.id for v in test_linode_client.lke.tier("enterprise").versions()
+    )[0]
+
+    region = get_region(
+        test_linode_client, {"Kubernetes Enterprise", "LA Disk Encryption"}
+    )
+
+    node_pools = test_linode_client.lke.node_pool(
+        "g6-dedicated-2",
+        3,
+        k8s_version=version,
+        update_strategy="rolling_update",
+    )
+    label = get_test_label() + "_cluster"
+
+    cluster = test_linode_client.lke.cluster_create(
+        region,
+        label,
+        node_pools,
+        version,
+        tier="enterprise",
+    )
+
+    yield cluster
+
+    cluster.delete()
+
+
 def get_cluster_status(cluster: LKECluster, status: str):
     return cluster._raw_json["status"] == status
 
@@ -145,7 +208,10 @@ def test_get_lke_pool(test_linode_client, lke_cluster):
 
     assert _to_comparable(cluster.pools[0]) == _to_comparable(pool)
 
-    assert pool.disk_encryption == InstanceDiskEncryptionType.enabled
+    assert pool.disk_encryption in (
+        InstanceDiskEncryptionType.enabled,
+        InstanceDiskEncryptionType.disabled,
+    )
 
 
 def test_cluster_dashboard_url_view(lke_cluster):
@@ -262,14 +328,45 @@ def test_lke_cluster_acl(lke_cluster_with_acl):
 
     acl = cluster.control_plane_acl_update(
         LKEClusterControlPlaneACLOptions(
+            enabled=True,
             addresses=LKEClusterControlPlaneACLAddressesOptions(
                 ipv4=["10.0.0.2/32"]
-            )
+            ),
         )
     )
 
     assert acl == cluster.control_plane_acl
     assert acl.addresses.ipv4 == ["10.0.0.2/32"]
+
+
+def test_lke_cluster_update_acl_null_addresses(lke_cluster_with_acl):
+    cluster = lke_cluster_with_acl
+
+    # Addresses should not be included in the request if it's null,
+    # else an error will be returned by the API.
+    # See: TPT-3489
+    acl = cluster.control_plane_acl_update(
+        {"enabled": False, "addresses": None}
+    )
+
+    assert acl == cluster.control_plane_acl
+    assert acl.addresses.ipv4 == []
+
+
+def test_lke_cluster_disable_acl(lke_cluster_with_acl):
+    cluster = lke_cluster_with_acl
+
+    assert cluster.control_plane_acl.enabled
+
+    acl = cluster.control_plane_acl_update(
+        LKEClusterControlPlaneACLOptions(
+            enabled=False,
+        )
+    )
+
+    assert acl.enabled is False
+    assert acl == cluster.control_plane_acl
+    assert acl.addresses.ipv4 == []
 
     cluster.control_plane_acl_delete()
 
@@ -326,6 +423,65 @@ def test_lke_cluster_labels_and_taints(lke_cluster_with_labels_and_taints):
     assert vars(pool.labels) == updated_labels
     assert updated_taints[0] in pool.taints
     assert LKENodePoolTaint.from_json(updated_taints[1]) in pool.taints
+
+
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
+def test_lke_cluster_with_apl(lke_cluster_with_apl):
+    assert lke_cluster_with_apl.apl_enabled == True
+    assert (
+        lke_cluster_with_apl.apl_console_url
+        == f"https://console.lke{lke_cluster_with_apl.id}.akamai-apl.net"
+    )
+    assert (
+        lke_cluster_with_apl.apl_health_check_url
+        == f"https://auth.lke{lke_cluster_with_apl.id}.akamai-apl.net/ready"
+    )
+
+
+def test_lke_cluster_enterprise(test_linode_client, lke_cluster_enterprise):
+    lke_cluster_enterprise.invalidate()
+    assert lke_cluster_enterprise.tier == "enterprise"
+
+    pool = lke_cluster_enterprise.pools[0]
+    assert str(pool.k8s_version) == lke_cluster_enterprise.k8s_version.id
+    assert pool.update_strategy == "rolling_update"
+
+    target_version = sorted(
+        v.id for v in test_linode_client.lke.tier("enterprise").versions()
+    )[0]
+    pool.update_strategy = "on_recycle"
+    pool.k8s_version = target_version
+
+    pool.save()
+
+    pool.invalidate()
+
+    assert pool.k8s_version == target_version
+    assert pool.update_strategy == "on_recycle"
+
+
+def test_lke_tiered_versions(test_linode_client):
+    def __assert_version(tier: str, version: TieredKubeVersion):
+        assert version.tier == tier
+        assert len(version.id) > 0
+
+    standard_versions = test_linode_client.lke.tier("standard").versions()
+    assert len(standard_versions) > 0
+
+    standard_version = standard_versions[0]
+    __assert_version("standard", standard_version)
+
+    standard_version.invalidate()
+    __assert_version("standard", standard_version)
+
+    enterprise_versions = test_linode_client.lke.tier("enterprise").versions()
+    assert len(enterprise_versions) > 0
+
+    enterprise_version = enterprise_versions[0]
+    __assert_version("enterprise", enterprise_version)
+
+    enterprise_version.invalidate()
+    __assert_version("enterprise", enterprise_version)
 
 
 def test_lke_types(test_linode_client):

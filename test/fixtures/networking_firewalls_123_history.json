@@ -1,0 +1,21 @@
+{
+  "data": [
+    {
+      "updated": "2025-03-07T17:06:36",
+      "status": "enabled",
+      "rules": {
+        "version": 1
+      }
+    },
+    {
+      "updated": "2025-03-07T17:06:36",
+      "status": "enabled",
+      "rules": {
+        "version": 2
+      }
+    }
+  ],
+  "page": 1,
+  "pages": 1,
+  "results": 2
+}

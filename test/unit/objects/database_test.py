@@ -1,7 +1,10 @@
+import logging
 from test.unit.base import ClientBaseCase
 
 from linode_api4 import PostgreSQLDatabase
 from linode_api4.objects import MySQLDatabase
+
+logger = logging.getLogger(__name__)
 
 
 class DatabaseTest(ClientBaseCase):
@@ -106,6 +109,8 @@ class MySQLDatabaseTest(ClientBaseCase):
         Test that MySQL databases can be created
         """
 
+        logger = logging.getLogger(__name__)
+
         with self.mock_post("/databases/mysql/instances") as m:
             # We don't care about errors here; we just want to
             # validate the request.
@@ -117,8 +122,10 @@ class MySQLDatabaseTest(ClientBaseCase):
                     "g6-standard-1",
                     cluster_size=3,
                 )
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(
+                    "An error occurred while validating the request: %s", e
+                )
 
             self.assertEqual(m.method, "post")
             self.assertEqual(m.call_url, "/databases/mysql/instances")
@@ -178,8 +185,10 @@ class MySQLDatabaseTest(ClientBaseCase):
             # validate the request.
             try:
                 db.backup_create("mybackup", target="secondary")
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(
+                    "An error occurred while validating the request: %s", e
+                )
 
             self.assertEqual(m.method, "post")
             self.assertEqual(
@@ -252,6 +261,34 @@ class MySQLDatabaseTest(ClientBaseCase):
             self.assertEqual(m.method, "post")
             self.assertEqual(
                 m.call_url, "/databases/mysql/instances/123/credentials/reset"
+            )
+
+    def test_suspend(self):
+        """
+        Test MySQL Database suspend logic.
+        """
+        with self.mock_post("/databases/mysql/instances/123/suspend") as m:
+            db = MySQLDatabase(self.client, 123)
+
+            db.suspend()
+
+            self.assertEqual(m.method, "post")
+            self.assertEqual(
+                m.call_url, "/databases/mysql/instances/123/suspend"
+            )
+
+    def test_resume(self):
+        """
+        Test MySQL Database resume logic.
+        """
+        with self.mock_post("/databases/mysql/instances/123/resume") as m:
+            db = MySQLDatabase(self.client, 123)
+
+            db.resume()
+
+            self.assertEqual(m.method, "post")
+            self.assertEqual(
+                m.call_url, "/databases/mysql/instances/123/resume"
             )
 
 
@@ -361,8 +398,10 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
             # validate the request.
             try:
                 db.backup_create("mybackup", target="secondary")
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(
+                    "An error occurred while validating the request: %s", e
+                )
 
             self.assertEqual(m.method, "post")
             self.assertEqual(
@@ -439,4 +478,32 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
             self.assertEqual(
                 m.call_url,
                 "/databases/postgresql/instances/123/credentials/reset",
+            )
+
+    def test_suspend(self):
+        """
+        Test PostgreSQL Database suspend logic.
+        """
+        with self.mock_post("/databases/postgresql/instances/123/suspend") as m:
+            db = PostgreSQLDatabase(self.client, 123)
+
+            db.suspend()
+
+            self.assertEqual(m.method, "post")
+            self.assertEqual(
+                m.call_url, "/databases/postgresql/instances/123/suspend"
+            )
+
+    def test_resume(self):
+        """
+        Test PostgreSQL Database resume logic.
+        """
+        with self.mock_post("/databases/postgresql/instances/123/resume") as m:
+            db = PostgreSQLDatabase(self.client, 123)
+
+            db.resume()
+
+            self.assertEqual(m.method, "post")
+            self.assertEqual(
+                m.call_url, "/databases/postgresql/instances/123/resume"
             )

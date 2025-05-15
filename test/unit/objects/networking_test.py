@@ -1,6 +1,6 @@
 from test.unit.base import ClientBaseCase
 
-from linode_api4 import ExplicitNullValue
+from linode_api4 import VLAN, ExplicitNullValue, Instance, Region
 from linode_api4.objects import Firewall, IPAddress, IPv6Range
 
 
@@ -47,6 +47,54 @@ class NetworkingTest(ClientBaseCase):
             self.assertEqual(result["inbound_policy"], "DROP")
             self.assertEqual(result["outbound_policy"], "DROP")
 
+    def test_get_rule_versions(self):
+        """
+        Tests that you can submit a correct firewall rule versions view api request.
+        """
+
+        firewall = Firewall(self.client, 123)
+
+        with self.mock_get("/networking/firewalls/123/history") as m:
+            result = firewall.rule_versions
+            self.assertEqual(m.call_url, "/networking/firewalls/123/history")
+            self.assertEqual(result["data"][0]["status"], "enabled")
+            self.assertEqual(result["data"][0]["rules"]["version"], 1)
+            self.assertEqual(result["data"][0]["status"], "enabled")
+            self.assertEqual(result["data"][1]["rules"]["version"], 2)
+
+    def test_get_rule_version(self):
+        """
+        Tests that you can submit a correct firewall rule version view api request.
+        """
+
+        firewall = Firewall(self.client, 123)
+
+        with self.mock_get("/networking/firewalls/123/history/rules/2") as m:
+            result = firewall.get_rule_version(2)
+            self.assertEqual(
+                m.call_url, "/networking/firewalls/123/history/rules/2"
+            )
+            self.assertEqual(result["inbound"][0]["action"], "ACCEPT")
+            self.assertEqual(
+                result["inbound"][0]["addresses"]["ipv4"][0], "0.0.0.0/0"
+            )
+            self.assertEqual(
+                result["inbound"][0]["addresses"]["ipv6"][0], "ff00::/8"
+            )
+            self.assertEqual(
+                result["inbound"][0]["description"],
+                "A really cool firewall rule.",
+            )
+            self.assertEqual(
+                result["inbound"][0]["label"], "really-cool-firewall-rule"
+            )
+            self.assertEqual(result["inbound"][0]["ports"], "80")
+            self.assertEqual(result["inbound"][0]["protocol"], "TCP")
+            self.assertEqual(result["outbound"], [])
+            self.assertEqual(result["inbound_policy"], "ACCEPT")
+            self.assertEqual(result["outbound_policy"], "DROP")
+            self.assertEqual(result["version"], 2)
+
     def test_rdns_reset(self):
         """
         Tests that the RDNS of an IP and be reset using an explicit null value.
@@ -83,3 +131,28 @@ class NetworkingTest(ClientBaseCase):
         self.assertEqual(ip.vpc_nat_1_1.vpc_id, 242)
         self.assertEqual(ip.vpc_nat_1_1.subnet_id, 194)
         self.assertEqual(ip.vpc_nat_1_1.address, "139.144.244.36")
+
+    def test_delete_ip(self):
+        """
+        Tests that deleting an IP creates the correct api request
+        """
+        with self.mock_delete() as m:
+            ip = IPAddress(self.client, "127.0.0.1")
+            ip.to(Instance(self.client, 123))
+            ip.delete()
+
+            self.assertEqual(m.call_url, "/linode/instances/123/ips/127.0.0.1")
+
+    def test_delete_vlan(self):
+        """
+        Tests that deleting a VLAN creates the correct api request
+        """
+        with self.mock_delete() as m:
+            self.client.networking.delete_vlan(
+                VLAN(self.client, "vlan-test"),
+                Region(self.client, "us-southeast"),
+            )
+
+            self.assertEqual(
+                m.call_url, "/networking/vlans/us-southeast/vlan-test"
+            )

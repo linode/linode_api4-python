@@ -1,7 +1,8 @@
-from typing import Any, Dict, Union
+from typing import Any, Dict, Optional, Union
 
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
+from linode_api4.groups.lke_tier import LKETierGroup
 from linode_api4.objects import (
     KubeVersion,
     LKECluster,
@@ -66,6 +67,8 @@ class LKEGroup(Group):
         control_plane: Union[
             LKEClusterControlPlaneOptions, Dict[str, Any]
         ] = None,
+        apl_enabled: bool = False,
+        tier: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -100,8 +103,16 @@ class LKEGroup(Group):
                           formatted dicts.
         :param kube_version: The version of Kubernetes to use
         :type kube_version: KubeVersion or str
-        :param control_plane: Dict[str, Any] or LKEClusterControlPlaneRequest
-        :type control_plane: The control plane configuration of this LKE cluster.
+        :param control_plane: The control plane configuration of this LKE cluster.
+        :type control_plane: Dict[str, Any] or LKEClusterControlPlaneRequest
+        :param apl_enabled: Whether this cluster should use APL.
+                            NOTE: This field is in beta and may only
+                            function if base_url is set to `https://api.linode.com/v4beta`.
+        :type apl_enabled: bool
+        :param tier: The tier of LKE cluster to create.
+                     NOTE: This field is in beta and may only
+                     function if base_url is set to `https://api.linode.com/v4beta`.
+        :type tier: str
         :param kwargs: Any other arguments to pass along to the API.  See the API
                        docs for possible values.
 
@@ -117,12 +128,17 @@ class LKEGroup(Group):
                 node_pools if isinstance(node_pools, list) else [node_pools]
             ),
             "control_plane": control_plane,
+            "tier": tier,
         }
         params.update(kwargs)
 
+        # Prevent errors for users without access to APL
+        if apl_enabled:
+            params["apl_enabled"] = apl_enabled
+
         result = self.client.post(
             "/lke/clusters",
-            data=_flatten_request_body_recursive(drop_null_keys(params)),
+            data=drop_null_keys(_flatten_request_body_recursive(params)),
         )
 
         if "id" not in result:
@@ -174,3 +190,18 @@ class LKEGroup(Group):
         return self.client._get_and_filter(
             LKEType, *filters, endpoint="/lke/types"
         )
+
+    def tier(self, id: str) -> LKETierGroup:
+        """
+        Returns an object representing the LKE tier API path.
+
+        NOTE: LKE tiers may not currently be available to all users.
+
+        :param id: The ID of the tier.
+        :type id: str
+
+        :returns: An object representing the LKE tier API path.
+        :rtype: LKETier
+        """
+
+        return LKETierGroup(self.client, id)

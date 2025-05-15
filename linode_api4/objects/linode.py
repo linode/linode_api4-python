@@ -400,7 +400,7 @@ class ConfigInterface(JSONObject):
     def __repr__(self):
         return f"Interface: {self.purpose}"
 
-    def _serialize(self):
+    def _serialize(self, *args, **kwargs):
         purpose_formats = {
             "public": {"purpose": "public", "primary": self.primary},
             "vlan": {
@@ -510,16 +510,16 @@ class Config(DerivedBase):
 
         self._set("devices", MappedObject(**devices))
 
-    def _serialize(self):
+    def _serialize(self, is_put: bool = False):
         """
         Overrides _serialize to transform interfaces into json
         """
-        partial = DerivedBase._serialize(self)
+        partial = DerivedBase._serialize(self, is_put=is_put)
         interfaces = []
 
         for c in self.interfaces:
             if isinstance(c, ConfigInterface):
-                interfaces.append(c._serialize())
+                interfaces.append(c._serialize(is_put=is_put))
             else:
                 interfaces.append(c)
 
@@ -1639,6 +1639,22 @@ class Instance(Base):
             for firewall in result["data"]
         ]
 
+    def apply_firewalls(self):
+        """
+        Reapply assigned firewalls to a Linode in case they were not applied successfully.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-apply-firewalls
+
+        :returns: Returns True if the operation was successful
+        :rtype: bool
+        """
+
+        self._client.post(
+            "{}/firewalls/apply".format(Instance.api_endpoint), model=self
+        )
+
+        return True
+
     def nodebalancers(self):
         """
         View a list of NodeBalancers that are assigned to this Linode and readable by the requesting User.
@@ -1911,8 +1927,8 @@ class StackScript(Base):
         ndist = [Image(self._client, d) for d in self.images]
         self._set("images", ndist)
 
-    def _serialize(self):
-        dct = Base._serialize(self)
+    def _serialize(self, is_put: bool = False):
+        dct = Base._serialize(self, is_put=is_put)
         dct["images"] = [d.id for d in self.images]
         return dct
 
@@ -1920,7 +1936,7 @@ class StackScript(Base):
 def _expand_placement_group_assignment(
     pg: Union[
         InstancePlacementGroupAssignment, "PlacementGroup", Dict[str, Any], int
-    ]
+    ],
 ) -> Optional[Dict[str, Any]]:
     """
     Expands the placement group argument into a dict for use in an API request body.

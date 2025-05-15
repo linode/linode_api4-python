@@ -6,8 +6,10 @@
     "label": "example-cluster",
     "region": "ap-west",
     "k8s_version": "1.19",
+    "tier": "standard",
     "tags": [],
     "control_plane": {
         "high_availability": true
-    }
+    },
+    "apl_enabled": true
 }

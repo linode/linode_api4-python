@@ -112,6 +112,20 @@ class IPAddress(Base):
 
         return {"address": self.address, "linode_id": linode.id}
 
+    def delete(self):
+        """
+        Override the delete() function from Base to use the correct endpoint.
+        """
+        resp = self._client.delete(
+            "/linode/instances/{}/ips/{}".format(self.linode_id, self.address),
+            model=self,
+        )
+
+        if "error" in resp:
+            return False
+        self.invalidate()
+        return True
+
 
 @dataclass
 class VPCIPAddress(JSONObject):
@@ -228,6 +242,37 @@ class Firewall(Base):
         """
         return self._client.get(
             "{}/rules".format(self.api_endpoint), model=self
+        )
+
+    @property
+    def rule_versions(self):
+        """
+        Gets the JSON rule versions for this Firewall.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-firewall-rule-versions
+
+        :returns: Lists the current and historical rules of the firewall (that is not deleted),
+                using version. Whenever the rules update, the version increments from 1.
+        :rtype: dict
+        """
+        return self._client.get(
+            "{}/history".format(self.api_endpoint), model=self
+        )
+
+    def get_rule_version(self, version):
+        """
+        Gets the JSON for a specific rule version for this Firewall.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-firewall-rule-version
+
+        :param version: The firewall rule version to view.
+        :type version: int
+
+        :returns: Gets a specific firewall rule version for an enabled or disabled firewall.
+        :rtype: dict
+        """
+        return self._client.get(
+            "{}/history/rules/{}".format(self.api_endpoint, version), model=self
         )
 
     def device_create(self, id, type="linode", **kwargs):

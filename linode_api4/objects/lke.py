@@ -14,6 +14,8 @@ from linode_api4.objects import (
     Region,
     Type,
 )
+from linode_api4.objects.base import _flatten_request_body_recursive
+from linode_api4.util import drop_null_keys
 
 
 class LKEType(Base):
@@ -48,6 +50,26 @@ class KubeVersion(Base):
     }
 
 
+class TieredKubeVersion(DerivedBase):
+    """
+    A TieredKubeVersion is a version of Kubernetes that is specific to a certain LKE tier.
+
+    NOTE: LKE tiers may not currently be available to all users.
+
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-lke-version
+    """
+
+    api_endpoint = "/lke/tiers/{tier}/versions/{id}"
+    parent_id_name = "tier"
+    id_attribute = "id"
+    derived_url_path = "versions"
+
+    properties = {
+        "id": Property(identifier=True),
+        "tier": Property(identifier=True),
+    }
+
+
 @dataclass
 class LKENodePoolTaint(JSONObject):
     """
@@ -79,8 +101,6 @@ class LKEClusterControlPlaneACLOptions(JSONObject):
     """
     LKEClusterControlPlaneACLOptions is used to set
     the ACL configuration of an LKE cluster's control plane.
-
-    NOTE: Control Plane ACLs may not currently be available to all users.
     """
 
     enabled: Optional[bool] = None
@@ -116,8 +136,6 @@ class LKEClusterControlPlaneACL(JSONObject):
     """
     LKEClusterControlPlaneACL describes the ACL configuration of an LKE cluster's
     control plane.
-
-    NOTE: Control Plane ACLs may not currently be available to all users.
     """
 
     include_none_values = True
@@ -157,6 +175,8 @@ class LKENodePool(DerivedBase):
     An LKE Node Pool describes a pool of Linode Instances that exist within an
     LKE Cluster.
 
+    NOTE: The k8s_version and update_strategy fields are only available for LKE Enterprise clusters.
+
     API Documentation: https://techdocs.akamai.com/linode-api/reference/get-lke-node-pool
     """
 
@@ -178,6 +198,12 @@ class LKENodePool(DerivedBase):
         "tags": Property(mutable=True, unordered=True),
         "labels": Property(mutable=True),
         "taints": Property(mutable=True),
+        # Enterprise-specific properties
+        # Ideally we would use slug_relationship=TieredKubeVersion here, but
+        # it isn't possible without an extra request because the tier is not
+        # directly exposed in the node pool response.
+        "k8s_version": Property(mutable=True),
+        "update_strategy": Property(mutable=True),
     }
 
     def _parse_raw_node(
@@ -257,6 +283,8 @@ class LKECluster(Base):
         "k8s_version": Property(slug_relationship=KubeVersion, mutable=True),
         "pools": Property(derived_class=LKENodePool),
         "control_plane": Property(mutable=True),
+        "apl_enabled": Property(),
+        "tier": Property(),
     }
 
     def invalidate(self):
@@ -336,8 +364,6 @@ class LKECluster(Base):
         """
         Gets the ACL configuration of this cluster's control plane.
 
-        NOTE: Control Plane ACLs may not currently be available to all users.
-
         API Documentation: https://techdocs.akamai.com/linode-api/reference/get-lke-cluster-acl
 
         :returns: The cluster's control plane ACL configuration.
@@ -353,12 +379,46 @@ class LKECluster(Base):
 
         return LKEClusterControlPlaneACL.from_json(self._control_plane_acl)
 
+    @property
+    def apl_console_url(self) -> Optional[str]:
+        """
+        Returns the URL of this cluster's APL installation if this cluster
+        is APL-enabled, else None.
+
+        :returns: The URL of the APL console for this cluster.
+        :rtype: str or None
+        """
+
+        if not self.apl_enabled:
+            return None
+
+        return f"https://console.lke{self.id}.akamai-apl.net"
+
+    @property
+    def apl_health_check_url(self) -> Optional[str]:
+        """
+        Returns the URL of this cluster's APL health check endpoint if this cluster
+        is APL-enabled, else None.
+
+        :returns: The URL of the APL console for this cluster.
+        :rtype: str or None
+        """
+
+        if not self.apl_enabled:
+            return None
+
+        return f"https://auth.lke{self.id}.akamai-apl.net/ready"
+
     def node_pool_create(
         self,
         node_type: Union[Type, str],
         node_count: int,
         labels: Optional[Dict[str, str]] = None,
         taints: List[Union[LKENodePoolTaint, Dict[str, Any]]] = None,
+        k8s_version: Optional[
+            Union[str, KubeVersion, TieredKubeVersion]
+        ] = None,
+        update_strategy: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -373,7 +433,13 @@ class LKECluster(Base):
         :param labels: A dict mapping labels to their values to apply to this pool.
         :type labels: Dict[str, str]
         :param taints: A list of taints to apply to this pool.
-        :type taints: List of :any:`LKENodePoolTaint` or dict
+        :type taints: List of :any:`LKENodePoolTaint` or dict.
+        :param k8s_version: The Kubernetes version to use for this pool.
+                            NOTE: This field is specific to enterprise clusters.
+        :type k8s_version: str, KubeVersion, or TieredKubeVersion
+        :param update_strategy: The strategy to use when updating this node pool.
+                                NOTE: This field is specific to enterprise clusters.
+        :type update_strategy: str
         :param kwargs: Any other arguments to pass to the API.  See the API docs
                        for possible values.
 
@@ -383,6 +449,10 @@ class LKECluster(Base):
         params = {
             "type": node_type,
             "count": node_count,
+            "labels": labels,
+            "taints": taints,
+            "k8s_version": k8s_version,
+            "update_strategy": update_strategy,
         }
 
         if labels is not None:
@@ -394,7 +464,9 @@ class LKECluster(Base):
         params.update(kwargs)
 
         result = self._client.post(
-            "{}/pools".format(LKECluster.api_endpoint), model=self, data=params
+            "{}/pools".format(LKECluster.api_endpoint),
+            model=self,
+            data=drop_null_keys(_flatten_request_body_recursive(params)),
         )
         self.invalidate()
 
@@ -527,8 +599,6 @@ class LKECluster(Base):
         """
         Updates the ACL configuration for this cluster's control plane.
 
-        NOTE: Control Plane ACLs may not currently be available to all users.
-
         API Documentation: https://techdocs.akamai.com/linode-api/reference/put-lke-cluster-acl
 
         :param acl: The ACL configuration to apply to this cluster.
@@ -543,7 +613,7 @@ class LKECluster(Base):
         result = self._client.put(
             f"{LKECluster.api_endpoint}/control_plane_acl",
             model=self,
-            data={"acl": acl},
+            data={"acl": drop_null_keys(acl)},
         )
 
         acl = result.get("acl")
@@ -557,8 +627,6 @@ class LKECluster(Base):
         Deletes the ACL configuration for this cluster's control plane.
         This has the same effect as calling control_plane_acl_update with the `enabled` field
         set to False. Access controls are disabled and all rules are deleted.
-
-        NOTE: Control Plane ACLs may not currently be available to all users.
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/delete-lke-cluster-acl
         """

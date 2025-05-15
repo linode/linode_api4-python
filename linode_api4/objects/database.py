@@ -1,3 +1,5 @@
+from deprecated import deprecated
+
 from linode_api4.objects import Base, DerivedBase, MappedObject, Property
 
 
@@ -63,6 +65,9 @@ class DatabaseEngine(Base):
         Base.invalidate(self)
 
 
+@deprecated(
+    reason="Backups are not supported for non-legacy database clusters."
+)
 class DatabaseBackup(DerivedBase):
     """
     A generic Managed Database backup.
@@ -97,6 +102,9 @@ class DatabaseBackup(DerivedBase):
         )
 
 
+@deprecated(
+    reason="Backups are not supported for non-legacy database clusters."
+)
 class MySQLDatabaseBackup(DatabaseBackup):
     """
     A backup for an accessible Managed MySQL Database.
@@ -107,6 +115,9 @@ class MySQLDatabaseBackup(DatabaseBackup):
     api_endpoint = "/databases/mysql/instances/{database_id}/backups/{id}"
 
 
+@deprecated(
+    reason="Backups are not supported for non-legacy database clusters."
+)
 class PostgreSQLDatabaseBackup(DatabaseBackup):
     """
     A backup for an accessible Managed PostgreSQL Database.
@@ -131,7 +142,7 @@ class MySQLDatabase(Base):
         "label": Property(mutable=True),
         "allow_list": Property(mutable=True, unordered=True),
         "backups": Property(derived_class=MySQLDatabaseBackup),
-        "cluster_size": Property(),
+        "cluster_size": Property(mutable=True),
         "created": Property(is_datetime=True),
         "encrypted": Property(),
         "engine": Property(),
@@ -141,7 +152,9 @@ class MySQLDatabase(Base):
         "replication_type": Property(),
         "ssl_connection": Property(),
         "status": Property(volatile=True),
-        "type": Property(),
+        "type": Property(mutable=True),
+        "fork": Property(),
+        "oldest_restore_time": Property(is_datetime=True),
         "updated": Property(volatile=True, is_datetime=True),
         "updates": Property(mutable=True),
         "version": Property(),
@@ -219,6 +232,9 @@ class MySQLDatabase(Base):
             "{}/patch".format(MySQLDatabase.api_endpoint), model=self
         )
 
+    @deprecated(
+        reason="Backups are not supported for non-legacy database clusters."
+    )
     def backup_create(self, label, **kwargs):
         """
         Creates a snapshot backup of a Managed MySQL Database.
@@ -249,6 +265,30 @@ class MySQLDatabase(Base):
 
         Base.invalidate(self)
 
+    def suspend(self):
+        """
+        Suspend a MySQL Managed Database, releasing idle resources and keeping only necessary data.
+
+        API documentation: https://techdocs.akamai.com/linode-api/reference/suspend-databases-mysql-instance
+        """
+        self._client.post(
+            "{}/suspend".format(MySQLDatabase.api_endpoint), model=self
+        )
+
+        return self.invalidate()
+
+    def resume(self):
+        """
+        Resume a suspended MySQL Managed Database.
+
+        API documentation: https://techdocs.akamai.com/linode-api/reference/resume-databases-mysql-instance
+        """
+        self._client.post(
+            "{}/resume".format(MySQLDatabase.api_endpoint), model=self
+        )
+
+        return self.invalidate()
+
 
 class PostgreSQLDatabase(Base):
     """
@@ -264,7 +304,7 @@ class PostgreSQLDatabase(Base):
         "label": Property(mutable=True),
         "allow_list": Property(mutable=True, unordered=True),
         "backups": Property(derived_class=PostgreSQLDatabaseBackup),
-        "cluster_size": Property(),
+        "cluster_size": Property(mutable=True),
         "created": Property(is_datetime=True),
         "encrypted": Property(),
         "engine": Property(),
@@ -275,7 +315,9 @@ class PostgreSQLDatabase(Base):
         "replication_type": Property(),
         "ssl_connection": Property(),
         "status": Property(volatile=True),
-        "type": Property(),
+        "type": Property(mutable=True),
+        "fork": Property(),
+        "oldest_restore_time": Property(is_datetime=True),
         "updated": Property(volatile=True, is_datetime=True),
         "updates": Property(mutable=True),
         "version": Property(),
@@ -354,6 +396,9 @@ class PostgreSQLDatabase(Base):
             "{}/patch".format(PostgreSQLDatabase.api_endpoint), model=self
         )
 
+    @deprecated(
+        reason="Backups are not supported for non-legacy database clusters."
+    )
     def backup_create(self, label, **kwargs):
         """
         Creates a snapshot backup of a Managed PostgreSQL Database.
@@ -383,6 +428,30 @@ class PostgreSQLDatabase(Base):
                 delattr(self, attr)
 
         Base.invalidate(self)
+
+    def suspend(self):
+        """
+        Suspend a PostgreSQL Managed Database, releasing idle resources and keeping only necessary data.
+
+        API documentation: https://techdocs.akamai.com/linode-api/reference/suspend-databases-postgre-sql-instance
+        """
+        self._client.post(
+            "{}/suspend".format(PostgreSQLDatabase.api_endpoint), model=self
+        )
+
+        return self.invalidate()
+
+    def resume(self):
+        """
+        Resume a suspended PostgreSQL Managed Database.
+
+        API documentation: https://techdocs.akamai.com/linode-api/reference/resume-databases-postgre-sql-instance
+        """
+        self._client.post(
+            "{}/resume".format(PostgreSQLDatabase.api_endpoint), model=self
+        )
+
+        return self.invalidate()
 
 
 ENGINE_TYPE_TRANSLATION = {
@@ -414,6 +483,7 @@ class Database(Base):
         "region": Property(),
         "status": Property(),
         "type": Property(),
+        "fork": Property(),
         "updated": Property(),
         "updates": Property(),
         "version": Property(),
