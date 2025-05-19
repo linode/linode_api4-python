@@ -18,7 +18,7 @@ from linode_api4.objects import (
 # List all dashboards
 def test_get_all_dashboards(test_linode_client):
     client = test_linode_client
-    dashboards = client.monitor_service.dashboards()
+    dashboards = client.monitor.dashboards()
     assert isinstance(dashboards[0], MonitorDashboard)
 
     dashboard_get = dashboards[0]
@@ -30,9 +30,7 @@ def test_get_all_dashboards(test_linode_client):
     assert dashboard_by_id.id == 1
 
     # #Fetch Dashboard by service_type
-    dashboards_by_svc = client.monitor_service.dashboards(
-        service_type=get_service_type
-    )
+    dashboards_by_svc = client.monitor.dashboards(service_type=get_service_type)
     assert isinstance(dashboards_by_svc[0], MonitorDashboard)
     assert dashboards_by_svc[0].service_type == get_service_type
 
@@ -40,20 +38,20 @@ def test_get_all_dashboards(test_linode_client):
 # List supported services
 def test_get_supported_services(test_linode_client):
     client = test_linode_client
-    supported_services = client.monitor_service.services()
+    supported_services = client.monitor.services()
     assert isinstance(supported_services[0], MonitorService)
 
     get_supported_service = supported_services[0].service_type
 
     # Get details for a particular service
-    service_details = client.monitor_service.services(
+    service_details = client.monitor.services(
         service_type=get_supported_service
     )
     assert isinstance(service_details[0], MonitorService)
     assert service_details[0].service_type == get_supported_service
 
     # Get Metric definition details for that particular service
-    metric_definitions = client.monitor_service.metric_definitions(
+    metric_definitions = client.monitor.metric_definitions(
         service_type=get_supported_service
     )
     assert isinstance(metric_definitions[0], MonitorMetricsDefinition)
@@ -103,7 +101,7 @@ def test_my_db_functionality(test_linode_client, test_create_and_test_db):
     entity_id = test_create_and_test_db.id
 
     # create token for the particular service
-    token = client.monitor_service.create_token(
+    token = client.monitor.create_token(
         service_type="dbaas", entity_ids=[entity_id]
     )
     assert isinstance(token, MonitorServiceToken)

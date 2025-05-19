@@ -151,19 +151,16 @@ class MonitorDashboard(Base):
     }
 
 
-class MonitorService(Base):
+@dataclass
+class MonitorService(JSONObject):
     """
     Represents a single service type.
     API Documentation: https://techdocs.akamai.com/linode-api/reference/get-monitor-services
 
     """
 
-    api_endpoint = "/monitor/services/{service_type}"
-    id_attribute = "service_type"
-    properties = {
-        "service_type": Property(ServiceType, identifier=True),
-        "label": Property(),
-    }
+    service_type: ServiceType = ""
+    label: str = ""
 
 
 @dataclass

@@ -21,15 +21,15 @@ class MonitorGroup(Group):
     """
 
     def dashboards(
-        self, service_type: Optional[str] = None, *filters
+        self, *filters, service_type: Optional[str] = None
     ) -> PaginatedList:
         """
         Returns a list of dashboards. If `service_type` is provided, it fetches dashboards
         for the specific service type. If None, it fetches all dashboards.
 
-            dashboards = client.monitor_service.dashboards()
+            dashboards = client.monitor_serv.dashboards()
             dashboard = client.load(MonitorDashboard, 1)
-            dashboards_by_service = client.monitor_service.dashboards(service_type="dbaas")
+            dashboards_by_service = client.monitor.dashboards(service_type="dbaas")
 
         .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
 
@@ -59,12 +59,12 @@ class MonitorGroup(Group):
         )
 
     def services(
-        self, service_type: Optional[str] = None, *filters
+        self, *filters, service_type: Optional[str] = None
     ) -> list[MonitorService]:
         """
         Lists services supported by ACLP.
-            supported_services = client.monitor_service.services()
-            service_details = client.monitor_service.services(service_type="dbaas")
+            supported_services = client.monitor.services()
+            service_details = client.monitor.services(service_type="dbaas")
 
         .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
 
@@ -97,7 +97,7 @@ class MonitorGroup(Group):
         """
         Returns metrics for a specific service type.
 
-            metrics = client.monitor_service.list_metric_definitions(service_type="dbaas")
+            metrics = client.monitor.list_metric_definitions(service_type="dbaas")
         .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/get-monitor-information
@@ -122,7 +122,7 @@ class MonitorGroup(Group):
     ) -> MonitorServiceToken:
         """
         Returns a JWE Token for a specific service type.
-            token = client.monitor_service.create_token(service_type="dbaas", entity_ids=[1234])
+            token = client.monitor.create_token(service_type="dbaas", entity_ids=[1234])
 
         .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
 

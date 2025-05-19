@@ -202,7 +202,7 @@ class LinodeClient:
         #: Access methods related to VM placement - See :any:`PlacementAPIGroup` for more information.
         self.placement = PlacementAPIGroup(self)
 
-        self.monitor_service = MonitorGroup(self)
+        self.monitor = MonitorGroup(self)
 
     @property
     def _user_agent(self):
