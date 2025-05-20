@@ -1,3 +1,6 @@
+__all__ = [
+    "MonitorGroup",
+]
 from typing import Optional
 
 from linode_api4 import (
