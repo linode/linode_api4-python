@@ -581,7 +581,6 @@ class ObjectStorageKeys(Base):
 class ObjectStorageQuota(Base):
     """
     An Object Storage related quota information on your account.
-    Object Storage Quota related features are under v4beta and may not currently be available to all users.
 
     API documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-quota
     """
