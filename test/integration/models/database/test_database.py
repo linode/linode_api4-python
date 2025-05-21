@@ -5,32 +5,15 @@ from test.integration.helpers import (
     send_request_when_resource_available,
     wait_for_condition,
 )
+from test.integration.models.database.helpers import (
+    get_db_engine_id,
+    get_postgres_db_status,
+    get_sql_db_status,
+)
 
 import pytest
 
-from linode_api4 import LinodeClient
 from linode_api4.objects import MySQLDatabase, PostgreSQLDatabase
-
-
-# Test Helpers
-def get_db_engine_id(client: LinodeClient, engine: str):
-    engines = client.database.engines()
-    engine_id = ""
-    for e in engines:
-        if e.engine == engine:
-            engine_id = e.id
-
-    return str(engine_id)
-
-
-def get_sql_db_status(client: LinodeClient, db_id, status: str):
-    db = client.load(MySQLDatabase, db_id)
-    return db.status == status
-
-
-def get_postgres_db_status(client: LinodeClient, db_id, status: str):
-    db = client.load(PostgreSQLDatabase, db_id)
-    return db.status == status
 
 
 @pytest.fixture(scope="session")
