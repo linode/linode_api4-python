@@ -4,6 +4,7 @@ from .dbase import DerivedBase
 from .serializable import JSONObject
 from .filtering import and_, or_
 from .region import Region
+from .iam import *
 from .image import Image
 from .linode import *
 from .volume import *
