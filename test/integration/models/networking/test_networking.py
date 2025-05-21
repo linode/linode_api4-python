@@ -15,7 +15,11 @@ import pytest
 
 from linode_api4 import Instance, LinodeClient
 from linode_api4.objects import Config, ConfigInterfaceIPv4, Firewall, IPAddress
-from linode_api4.objects.networking import NetworkTransferPrice, Price
+from linode_api4.objects.networking import (
+    FirewallCreateDevicesOptions,
+    NetworkTransferPrice,
+    Price,
+)
 
 TEST_REGION = get_region(
     LinodeClient(
@@ -71,6 +75,47 @@ def test_get_networking_rules(test_linode_client, test_firewall):
     assert "inbound_policy" in str(rules)
     assert "outbound" in str(rules)
     assert "outbound_policy" in str(rules)
+
+
+@pytest.fixture
+def create_linode_without_firewall(test_linode_client):
+    """
+    WARNING: This is specifically reserved for Firewall testing.
+             Don't use this if the Linode will not be assigned to a firewall.
+    """
+
+    client = test_linode_client
+    region = get_region(client, {"Cloud Firewall"}, "core").id
+
+    label = get_test_label()
+
+    instance = client.linode.instance_create(
+        "g6-nanode-1",
+        region,
+        label=label,
+    )
+
+    yield client, instance
+
+    instance.delete()
+
+
+@pytest.fixture
+def create_firewall_with_device(create_linode_without_firewall):
+    client, target_instance = create_linode_without_firewall
+
+    firewall = client.networking.firewall_create(
+        get_test_label(),
+        rules={
+            "inbound_policy": "DROP",
+            "outbound_policy": "DROP",
+        },
+        devices=FirewallCreateDevicesOptions(linodes=[target_instance.id]),
+    )
+
+    yield firewall, target_instance
+
+    firewall.delete()
 
 
 def test_get_networking_rule_versions(test_linode_client, test_firewall):
@@ -263,3 +308,43 @@ def test_create_and_delete_vlan(test_linode_client, linode_for_vlan_tests):
     )
 
     assert is_deleted is True
+
+
+def test_create_firewall_with_linode_device(create_firewall_with_device):
+    firewall, target_instance = create_firewall_with_device
+
+    devices = firewall.devices
+
+    assert len(devices) == 1
+    assert devices[0].entity.id == target_instance.id
+
+
+# TODO (Enhanced Interfaces): Add test for interface device
+
+
+def test_get_global_firewall_settings(test_linode_client):
+    settings = test_linode_client.networking.firewall_settings()
+
+    assert settings.default_firewall_ids is not None
+    assert all(
+        k in {"vpc_interface", "public_interface", "linode", "nodebalancer"}
+        for k in vars(settings.default_firewall_ids).keys()
+    )
+
+
+def test_ip_info(test_linode_client, create_linode):
+    linode = create_linode
+
+    ip_info = test_linode_client.load(IPAddress, linode.ipv4[0])
+
+    assert ip_info.address == linode.ipv4[0]
+    assert ip_info.gateway is not None
+    assert ip_info.linode_id == linode.id
+    assert ip_info.interface_id is None
+    assert ip_info.prefix == 24
+    assert ip_info.public
+    assert ip_info.rdns is not None
+    assert ip_info.region.id == linode.region.id
+    assert ip_info.subnet_mask is not None
+    assert ip_info.type == "ipv4"
+    assert ip_info.vpc_nat_1_1 is None
