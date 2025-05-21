@@ -115,3 +115,9 @@ class MonitorTest(ClientBaseCase):
                 service_type="dbaas", entity_ids=[189690, 188020]
             )
             self.assertEqual(m.return_dct["token"], "abcdefhjigkfghh")
+
+        with self.mock_post("/monitor/services/linode/token") as m:
+            self.client.monitor.create_token(
+                service_type="linode", entity_ids=["compute-instance-1"]
+            )
+            self.assertEqual(m.return_dct["token"], "abcdefhjigkfghh")

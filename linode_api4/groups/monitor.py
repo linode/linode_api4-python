@@ -1,7 +1,7 @@
 __all__ = [
     "MonitorGroup",
 ]
-from typing import Optional
+from typing import Any, Optional
 
 from linode_api4 import (
     PaginatedList,
@@ -30,7 +30,7 @@ class MonitorGroup(Group):
         Returns a list of dashboards. If `service_type` is provided, it fetches dashboards
         for the specific service type. If None, it fetches all dashboards.
 
-            dashboards = client.monitor_serv.dashboards()
+            dashboards = client.monitor.dashboards()
             dashboard = client.load(MonitorDashboard, 1)
             dashboards_by_service = client.monitor.dashboards(service_type="dbaas")
 
@@ -121,7 +121,7 @@ class MonitorGroup(Group):
         )
 
     def create_token(
-        self, service_type: str, entity_ids: list
+        self, service_type: str, entity_ids: list[Any]
     ) -> MonitorServiceToken:
         """
         Returns a JWE Token for a specific service type.
@@ -134,7 +134,7 @@ class MonitorGroup(Group):
         :param service_type: The service type to create token for.
         :type service_type: str
         :param entity_ids: The list of entity IDs for which the token is valid.
-        :type entity_ids: list of int
+        :type entity_ids: any
 
         :returns: Returns a token for a service
         :rtype: str
