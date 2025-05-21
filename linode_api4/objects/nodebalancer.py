@@ -108,34 +108,19 @@ class NodeBalancerConfig(DerivedBase):
         "proxy_protocol": Property(mutable=True),
     }
 
-    def save(self, force=True) -> bool:
+    def _serialize(self, is_put: bool = False):
         """
-        Send this NodeBalancerConfig's mutable values to the server in a PUT request.
-        :param force: If true, this method will always send a PUT request regardless of
-                      whether the field has been explicitly updated. For optimization
-                      purposes, this field should be set to false for typical update
-                      operations. (Defaults to True)
-        :type force: bool
+        This override removes the `cipher_suite` field from the PUT request
+        body on calls to save(...) for UDP configs, which is rejected by
+        the API.
         """
 
-        if not force and not self._changed:
-            return False
+        result = super()._serialize(is_put)
 
-        data = self._serialize()
+        if is_put and result["protocol"] == "udp" and "cipher_suite" in result:
+            del result["cipher_suite"]
 
-        if data.get("protocol") == "udp" and "cipher_suite" in data:
-            data.pop("cipher_suite")
-
-        result = self._client.put(
-            NodeBalancerConfig.api_endpoint, model=self, data=data
-        )
-
-        if "error" in result:
-            return False
-
-        self._populate(result)
-
-        return True
+        return result
 
     @property
     def nodes(self):
