@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 
 import requests
+from deprecated import deprecated
 
 from linode_api4.errors import ApiError, UnexpectedResponseError
 from linode_api4.objects import DATE_FORMAT, Volume
@@ -305,6 +306,12 @@ class Event(Base):
             return Volume(self._client, self.entity.id)
         return None
 
+    @deprecated(
+        reason="`mark_read` API is deprecated. Use the 'mark_seen' "
+        "API instead. Please note that the `mark_seen` API functions "
+        "differently and will mark all events up to and including the "
+        "referenced event-id as 'seen' rather than individual events.",
+    )
     def mark_read(self):
         """
         Marks a single Event as read.
