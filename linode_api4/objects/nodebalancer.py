@@ -77,6 +77,8 @@ class NodeBalancerConfig(DerivedBase):
     The configuration information for a single port of this NodeBalancer.
 
     API documentation: https://techdocs.akamai.com/linode-api/reference/get-node-balancer-config
+
+    NOTE: UDP NodeBalancer Configs may not currently be available to all users.
     """
 
     api_endpoint = "/nodebalancers/{nodebalancer_id}/configs/{id}"
