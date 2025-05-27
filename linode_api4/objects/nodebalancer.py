@@ -77,6 +77,8 @@ class NodeBalancerConfig(DerivedBase):
     The configuration information for a single port of this NodeBalancer.
 
     API documentation: https://techdocs.akamai.com/linode-api/reference/get-node-balancer-config
+
+    NOTE: UDP NodeBalancer Configs may not currently be available to all users.
     """
 
     api_endpoint = "/nodebalancers/{nodebalancer_id}/configs/{id}"
@@ -97,6 +99,8 @@ class NodeBalancerConfig(DerivedBase):
         "check_path": Property(mutable=True),
         "check_body": Property(mutable=True),
         "check_passive": Property(mutable=True),
+        "udp_check_port": Property(mutable=True),
+        "udp_session_timeout": Property(),
         "ssl_cert": Property(mutable=True),
         "ssl_key": Property(mutable=True),
         "ssl_commonname": Property(),
@@ -105,6 +109,20 @@ class NodeBalancerConfig(DerivedBase):
         "nodes_status": Property(),
         "proxy_protocol": Property(mutable=True),
     }
+
+    def _serialize(self, is_put: bool = False):
+        """
+        This override removes the `cipher_suite` field from the PUT request
+        body on calls to save(...) for UDP configs, which is rejected by
+        the API.
+        """
+
+        result = super()._serialize(is_put)
+
+        if is_put and result["protocol"] == "udp" and "cipher_suite" in result:
+            del result["cipher_suite"]
+
+        return result
 
     @property
     def nodes(self):
@@ -233,6 +251,7 @@ class NodeBalancer(Base):
         "configs": Property(derived_class=NodeBalancerConfig),
         "transfer": Property(),
         "tags": Property(mutable=True, unordered=True),
+        "client_udp_sess_throttle": Property(mutable=True),
     }
 
     # create derived objects
