@@ -73,7 +73,7 @@ class DatabaseGroup(Group):
         """
         Returns a detailed list of all the configuration options for MySQL Databases.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-databases-mysql-config
 
         :returns: The JSON configuration options for MySQL Databases.
         """
@@ -83,7 +83,7 @@ class DatabaseGroup(Group):
         """
         Returns a detailed list of all the configuration options for PostgreSQL Databases.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-databases-postgresql-config
 
         :returns: The JSON configuration options for PostgreSQL Databases.
         """
