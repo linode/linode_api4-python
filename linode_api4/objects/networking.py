@@ -225,6 +225,8 @@ class FirewallSettingsDefaultFirewallIDs(JSONObject):
     NOTE: This feature may not currently be available to all users.
     """
 
+    include_none_values = True
+
     vpc_interface: Optional[int] = None
     public_interface: Optional[int] = None
     linode: Optional[int] = None
