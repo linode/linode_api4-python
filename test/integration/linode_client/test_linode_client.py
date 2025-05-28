@@ -6,7 +6,11 @@ from test.integration.helpers import get_test_label
 import pytest
 
 from linode_api4 import ApiError
-from linode_api4.objects import ConfigInterface, ObjectStorageKeys, Region
+from linode_api4.objects import (
+    ConfigInterface,
+    ObjectStorageKeys,
+    Region,
+)
 
 
 @pytest.fixture(scope="session")
