@@ -54,6 +54,7 @@ class VPCSubnetIPv6Range(JSONObject):
 @dataclass
 class VPCSubnetLinodeInterface(JSONObject):
     id: int = 0
+    config_id: Optional[int] = None
     active: bool = False
 
 

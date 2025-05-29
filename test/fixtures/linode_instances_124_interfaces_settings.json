@@ -1,0 +1,16 @@
+{
+  "network_helper": true,
+  "default_route": {
+    "ipv4_interface_id": 123,
+    "ipv4_eligible_interface_ids": [
+      123,
+      456,
+      789
+    ],
+    "ipv6_interface_id": 456,
+    "ipv6_eligible_interface_ids": [
+      123,
+      456
+    ]
+  }
+}

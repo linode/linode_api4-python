@@ -1,13 +1,11 @@
 import base64
 import os
-from collections.abc import Iterable
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from linode_api4.common import load_and_validate_keys
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
-    ConfigInterface,
     Firewall,
     Instance,
     InstanceDiskEncryptionType,
@@ -21,7 +19,12 @@ from linode_api4.objects.filtering import Filter
 from linode_api4.objects.linode import (
     Backup,
     InstancePlacementGroupAssignment,
+    InterfaceGeneration,
+    NetworkInterface,
     _expand_placement_group_assignment,
+)
+from linode_api4.objects.linode_interfaces import (
+    LinodeInterfaceOptions,
 )
 from linode_api4.util import drop_null_keys
 
@@ -153,6 +156,13 @@ class LinodeGroup(Group):
                 int,
             ]
         ] = None,
+        interfaces: Optional[
+            List[
+                Union[LinodeInterfaceOptions, NetworkInterface, Dict[str, Any]],
+            ]
+        ] = None,
+        interface_generation: Optional[Union[InterfaceGeneration, str]] = None,
+        network_helper: Optional[bool] = None,
         **kwargs,
     ):
         """
@@ -230,6 +240,30 @@ class LinodeGroup(Group):
                "us-east",
                backup=snapshot)
 
+        **Create an Instance with explicit interfaces:**
+
+        To create a new Instance with explicit interfaces, provide list of
+        LinodeInterfaceOptions objects or dicts to the "interfaces" field::
+
+        linode, password = client.linode.instance_create(
+            "g6-standard-1",
+            "us-mia",
+            image="linode/ubuntu24.04",
+
+            # This can be configured as an account-wide default
+            interface_generation=InterfaceGeneration.LINODE,
+
+            interfaces=[
+                LinodeInterfaceOptions(
+                    default_route=LinodeInterfaceDefaultRouteOptions(
+                        ipv4=True,
+                        ipv6=True
+                    ),
+                    public=LinodeInterfacePublicOptions
+                )
+            ]
+        )
+
         **Create an empty Instance**
 
         If you want to create an empty Instance that you will configure manually,
@@ -293,9 +327,13 @@ class LinodeGroup(Group):
         :type disk_encryption: InstanceDiskEncryptionType or str
         :param interfaces: An array of Network Interfaces to add to this Linode’s Configuration Profile.
                            At least one and up to three Interface objects can exist in this array.
-        :type interfaces: list[ConfigInterface] or list[dict[str, Any]]
+        :type interfaces: List[LinodeInterfaceOptions], List[NetworkInterface], or List[dict[str, Any]]
         :param placement_group: A Placement Group to create this Linode under.
         :type placement_group: Union[InstancePlacementGroupAssignment, PlacementGroup, Dict[str, Any], int]
+        :param interface_generation: The generation of network interfaces this Linode uses.
+        :type interface_generation: InterfaceGeneration or str
+        :param network_helper: Whether this instance should have Network Helper enabled.
+        :type network_helper: bool
 
         :returns: A new Instance object, or a tuple containing the new Instance and
                   the generated password.
@@ -310,13 +348,6 @@ class LinodeGroup(Group):
         if image and not "root_pass" in kwargs:
             ret_pass = Instance.generate_root_password()
             kwargs["root_pass"] = ret_pass
-
-        interfaces = kwargs.get("interfaces", None)
-        if interfaces is not None and isinstance(interfaces, Iterable):
-            kwargs["interfaces"] = [
-                i._serialize() if isinstance(i, ConfigInterface) else i
-                for i in interfaces
-            ]
 
         params = {
             "type": ltype,
@@ -336,6 +367,9 @@ class LinodeGroup(Group):
                 if placement_group
                 else None
             ),
+            "interfaces": interfaces,
+            "interface_generation": interface_generation,
+            "network_helper": network_helper,
         }
 
         params.update(kwargs)

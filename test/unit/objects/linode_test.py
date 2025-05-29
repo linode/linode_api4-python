@@ -1,9 +1,15 @@
 from datetime import datetime
 from test.unit.base import ClientBaseCase
+from test.unit.objects.linode_interface_test import (
+    LinodeInterfaceTest,
+    build_interface_options_public,
+    build_interface_options_vlan,
+    build_interface_options_vpc,
+)
 
 from linode_api4 import (
-    ConfigInterfaceIPv6SLAAC,
     InstanceDiskEncryptionType,
+    InterfaceGeneration,
     NetworkInterface,
 )
 from linode_api4.objects import (
@@ -472,6 +478,169 @@ class LinodeTest(ClientBaseCase):
         assert pg.id == 123
         assert pg.label == "test"
         assert pg.placement_group_type == "anti_affinity:local"
+
+    def test_get_interfaces(self):
+        # Local import to avoid circular dependency
+        from linode_interface_test import (  # pylint: disable=import-outside-toplevel
+            LinodeInterfaceTest,
+        )
+
+        instance = Instance(self.client, 124)
+
+        assert instance.interface_generation == InterfaceGeneration.LINODE
+
+        interfaces = instance.interfaces
+
+        LinodeInterfaceTest.assert_linode_124_interface_123(
+            next(iface for iface in interfaces if iface.id == 123)
+        )
+
+        LinodeInterfaceTest.assert_linode_124_interface_456(
+            next(iface for iface in interfaces if iface.id == 456)
+        )
+
+        LinodeInterfaceTest.assert_linode_124_interface_789(
+            next(iface for iface in interfaces if iface.id == 789)
+        )
+
+    def test_get_interfaces_settings(self):
+        instance = Instance(self.client, 124)
+        iface_settings = instance.interfaces_settings
+
+        assert iface_settings.network_helper
+
+        assert iface_settings.default_route.ipv4_interface_id == 123
+        assert iface_settings.default_route.ipv4_eligible_interface_ids == [
+            123,
+            456,
+            789,
+        ]
+
+        assert iface_settings.default_route.ipv6_interface_id == 456
+        assert iface_settings.default_route.ipv6_eligible_interface_ids == [
+            123,
+            456,
+        ]
+
+    def test_update_interfaces_settings(self):
+        instance = Instance(self.client, 124)
+        iface_settings = instance.interfaces_settings
+
+        iface_settings.network_helper = False
+        iface_settings.default_route.ipv4_interface_id = 456
+        iface_settings.default_route.ipv6_interface_id = 123
+
+        print(vars(iface_settings))
+
+        with self.mock_put("/linode/instances/124/interfaces/settings") as m:
+            iface_settings.save()
+
+            assert m.call_data == {
+                "network_helper": False,
+                "default_route": {
+                    "ipv4_interface_id": 456,
+                    "ipv6_interface_id": 123,
+                },
+            }
+
+    def test_upgrade_interfaces(self):
+        # Local import to avoid circular dependency
+        from linode_interface_test import (  # pylint: disable=import-outside-toplevel
+            LinodeInterfaceTest,
+        )
+
+        instance = Instance(self.client, 124)
+
+        with self.mock_post("/linode/instances/124/upgrade-interfaces") as m:
+            result = instance.upgrade_interfaces(123)
+
+            assert m.called
+            assert m.call_data == {"config_id": 123, "dry_run": False}
+
+        assert result.config_id == 123
+        assert result.dry_run
+
+        # We don't use the assertion helpers here because dry runs return
+        # a MappedObject.
+        LinodeInterfaceTest.assert_linode_124_interface_123(
+            result.interfaces[0]
+        )
+        LinodeInterfaceTest.assert_linode_124_interface_456(
+            result.interfaces[1]
+        )
+        LinodeInterfaceTest.assert_linode_124_interface_789(
+            result.interfaces[2]
+        )
+
+    def test_upgrade_interfaces_dry(self):
+        instance = Instance(self.client, 124)
+
+        with self.mock_post("/linode/instances/124/upgrade-interfaces") as m:
+            result = instance.upgrade_interfaces(123, dry_run=True)
+
+            assert m.called
+            assert m.call_data == {
+                "config_id": 123,
+                "dry_run": True,
+            }
+
+        assert result.config_id == 123
+        assert result.dry_run
+
+        # We don't use the assertion helpers here because dry runs return
+        # a MappedObject.
+        assert result.interfaces[0].id == 123
+        assert result.interfaces[0].public is not None
+
+        assert result.interfaces[1].id == 456
+        assert result.interfaces[1].vpc is not None
+
+        assert result.interfaces[2].id == 789
+        assert result.interfaces[2].vlan is not None
+
+    def test_create_interface_public(self):
+        instance = Instance(self.client, 124)
+
+        iface = build_interface_options_public()
+
+        with self.mock_post("/linode/instances/124/interfaces/123") as m:
+            result = instance.interface_create(**vars(iface))
+
+            assert m.call_data == {
+                "firewall_id": iface.firewall_id,
+                "default_route": iface.default_route._serialize(),
+                "public": iface.public._serialize(),
+            }
+
+        LinodeInterfaceTest.assert_linode_124_interface_123(result)
+
+    def test_create_interface_vpc(self):
+        instance = Instance(self.client, 124)
+
+        iface = build_interface_options_vpc()
+
+        with self.mock_post("/linode/instances/124/interfaces/456") as m:
+            result = instance.interface_create(**vars(iface))
+
+            assert m.call_data == {
+                "firewall_id": iface.firewall_id,
+                "default_route": iface.default_route._serialize(),
+                "vpc": iface.vpc._serialize(),
+            }
+
+        LinodeInterfaceTest.assert_linode_124_interface_456(result)
+
+    def test_create_interface_vlan(self):
+        instance = Instance(self.client, 124)
+
+        iface = build_interface_options_vlan()
+
+        with self.mock_post("/linode/instances/124/interfaces/789") as m:
+            result = instance.interface_create(**vars(iface))
+
+            assert m.call_data == {"vlan": iface.vlan._serialize()}
+
+        LinodeInterfaceTest.assert_linode_124_interface_789(result)
 
 
 class DiskTest(ClientBaseCase):

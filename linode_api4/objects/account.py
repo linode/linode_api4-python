@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 
 import requests
+from deprecated import deprecated
 
 from linode_api4.errors import ApiError, UnexpectedResponseError
 from linode_api4.objects import DATE_FORMAT, Volume
@@ -16,6 +17,7 @@ from linode_api4.objects.longview import LongviewClient, LongviewSubscription
 from linode_api4.objects.networking import Firewall
 from linode_api4.objects.nodebalancer import NodeBalancer
 from linode_api4.objects.profile import PersonalAccessToken
+from linode_api4.objects.serializable import StrEnum
 from linode_api4.objects.support import SupportTicket
 from linode_api4.objects.volume import Volume
 from linode_api4.objects.vpc import VPC
@@ -179,6 +181,24 @@ class Login(Base):
     }
 
 
+class AccountSettingsInterfacesForNewLinodes(StrEnum):
+    """
+    A string enum corresponding to valid values
+    for the AccountSettings(...).interfaces_for_new_linodes field.
+
+    NOTE: This feature may not currently be available to all users.
+    """
+
+    legacy_config_only = "legacy_config_only"
+    legacy_config_default_but_linode_allowed = (
+        "legacy_config_default_but_linode_allowed"
+    )
+    linode_default_but_legacy_config_allowed = (
+        "linode_default_but_legacy_config_allowed"
+    )
+    linode_only = "linode_only"
+
+
 class AccountSettings(Base):
     """
     Information related to your Account settings.
@@ -197,6 +217,7 @@ class AccountSettings(Base):
         ),
         "object_storage": Property(),
         "backups_enabled": Property(mutable=True),
+        "interfaces_for_new_linodes": Property(mutable=True),
     }
 
 
@@ -305,6 +326,12 @@ class Event(Base):
             return Volume(self._client, self.entity.id)
         return None
 
+    @deprecated(
+        reason="`mark_read` API is deprecated. Use the 'mark_seen' "
+        "API instead. Please note that the `mark_seen` API functions "
+        "differently and will mark all events up to and including the "
+        "referenced event-id as 'seen' rather than individual events.",
+    )
     def mark_read(self):
         """
         Marks a single Event as read.
