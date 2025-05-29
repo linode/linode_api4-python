@@ -105,41 +105,6 @@ class LinodeInterfaceVPCIPv4Options(JSONObject):
 
 
 @dataclass
-class LinodeInterfaceVPCOptions(JSONObject):
-    """
-    VPC-exclusive options accepted when creating or updating a Linode Interface.
-
-    NOTE: Linode interfaces may not currently be available to all users.
-    """
-
-    subnet_id: int = 0
-    ipv4: Optional[LinodeInterfaceVPCIPv4Options] = None
-
-
-@dataclass
-class LinodeInterfacePublicIPv4AddressOptions(JSONObject):
-    """
-    Options accepted for a single address when creating or updating the IPv4 configuration of a public Linode Interface.
-
-    NOTE: Linode interfaces may not currently be available to all users.
-    """
-
-    address: str = ""
-    primary: Optional[bool] = None
-
-
-@dataclass
-class LinodeInterfacePublicIPv4Options(JSONObject):
-    """
-    Options accepted when creating or updating the IPv4 configuration of a public Linode Interface.
-
-    NOTE: Linode interfaces may not currently be available to all users.
-    """
-
-    addresses: Optional[List[LinodeInterfacePublicIPv4AddressOptions]] = None
-
-
-@dataclass
 class LinodeInterfaceVPCIPv6SLAACOptions(JSONObject):
     """
     Options accepted for a single SLAAC when creating or updating the IPv6 configuration of a VPC Linode Interface.
@@ -172,6 +137,42 @@ class LinodeInterfaceVPCIPv6Options(JSONObject):
     is_public: Optional[bool] = None
     slaac: Optional[List[LinodeInterfaceVPCIPv6SLAACOptions]] = None
     ranges: Optional[List[LinodeInterfaceVPCIPv6RangeOptions]] = None
+
+
+@dataclass
+class LinodeInterfaceVPCOptions(JSONObject):
+    """
+    VPC-exclusive options accepted when creating or updating a Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
+    """
+
+    subnet_id: int = 0
+    ipv4: Optional[LinodeInterfaceVPCIPv4Options] = None
+    ipv6: Optional[LinodeInterfaceVPCIPv6Options] = None
+
+
+@dataclass
+class LinodeInterfacePublicIPv4AddressOptions(JSONObject):
+    """
+    Options accepted for a single address when creating or updating the IPv4 configuration of a public Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
+    """
+
+    address: str = ""
+    primary: Optional[bool] = None
+
+
+@dataclass
+class LinodeInterfacePublicIPv4Options(JSONObject):
+    """
+    Options accepted when creating or updating the IPv4 configuration of a public Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
+    """
+
+    addresses: Optional[List[LinodeInterfacePublicIPv4AddressOptions]] = None
 
 
 @dataclass
@@ -352,6 +353,7 @@ class LinodeInterfaceVPC(JSONObject):
     subnet_id: int = 0
 
     ipv4: Optional[LinodeInterfaceVPCIPv4] = None
+    ipv6: Optional[LinodeInterfaceVPCIPv6] = None
 
 
 @dataclass
