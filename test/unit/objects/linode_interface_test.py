@@ -14,6 +14,7 @@ from linode_api4 import (
     LinodeInterfaceVPCIPv4AddressOptions,
     LinodeInterfaceVPCIPv4Options,
     LinodeInterfaceVPCIPv4RangeOptions,
+    LinodeInterfaceVPCIPv6SLAACOptions,
     LinodeInterfaceVPCOptions,
 )
 
@@ -149,6 +150,13 @@ class LinodeInterfaceTest(ClientBaseCase):
         assert iface.vpc.ipv4.ranges[0].range == "192.168.22.16/28"
         assert iface.vpc.ipv4.ranges[1].range == "192.168.22.32/28"
 
+        assert iface.vpc.ipv6.is_public
+
+        assert iface.vpc.ipv6.slaac[0].range == "1234::/64"
+        assert iface.vpc.ipv6.slaac[0].address == "1234::5678"
+
+        assert iface.vpc.ipv6.ranges[0].range == "4321::/64"
+
     @staticmethod
     def assert_linode_124_interface_789(iface: LinodeInterface):
         assert iface.id == 789
@@ -261,6 +269,18 @@ class LinodeInterfaceTest(ClientBaseCase):
             )
         ]
 
+        iface.vpc.ipv6.is_public = False
+
+        iface.vpc.ipv6.slaac = [
+            LinodeInterfaceVPCIPv6SLAACOptions(
+                range="1233::/64",
+            )
+        ]
+
+        iface.vpc.ipv6.ranges = [
+            LinodeInterfacePublicIPv6RangeOptions(range="9876::/64")
+        ]
+
         with self.mock_put("/linode/instances/124/interfaces/456") as m:
             iface.save()
 
@@ -281,6 +301,11 @@ class LinodeInterfaceTest(ClientBaseCase):
                             },
                         ],
                         "ranges": [{"range": "192.168.22.17/28"}],
+                    },
+                    "ipv6": {
+                        "is_public": False,
+                        "slaac": [{"range": "1233::/64"}],
+                        "ranges": [{"range": "9876::/64"}],
                     },
                 },
             }
