@@ -1,0 +1,11 @@
+{
+  "created": "2018-01-01T00:01:01",
+  "entity": {
+    "id": 123,
+    "label": null,
+    "type": "interface",
+    "url": "/v4/linode/instances/123/interfaces/123"
+  },
+  "id": 456,
+  "updated": "2018-01-02T00:01:01"
+}
