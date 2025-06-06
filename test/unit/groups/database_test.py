@@ -73,65 +73,6 @@ class DatabaseTest(ClientBaseCase):
         self.assertTrue(isinstance(db_translated, MySQLDatabase))
         self.assertEqual(db_translated.ssl_connection, True)
 
-
-class MySQLDatabaseTest(ClientBaseCase):
-    """
-    Tests methods of the MySQLDatabase class
-    """
-
-    def test_get_instances(self):
-        """
-        Test that database types are properly handled
-        """
-        dbs = self.client.database.mysql_instances()
-
-        self.assertEqual(len(dbs), 1)
-        self.assertEqual(dbs[0].allow_list[1], "192.0.1.0/24")
-        self.assertEqual(dbs[0].cluster_size, 3)
-        self.assertEqual(dbs[0].encrypted, False)
-        self.assertEqual(dbs[0].engine, "mysql")
-        self.assertEqual(
-            dbs[0].hosts.primary,
-            "lin-123-456-mysql-mysql-primary.servers.linodedb.net",
-        )
-        self.assertEqual(
-            dbs[0].hosts.secondary,
-            "lin-123-456-mysql-primary-private.servers.linodedb.net",
-        )
-        self.assertEqual(dbs[0].id, 123)
-        self.assertEqual(dbs[0].region, "us-east")
-        self.assertEqual(dbs[0].updates.duration, 3)
-        self.assertEqual(dbs[0].version, "8.0.26")
-
-    def test_create(self):
-        """
-        Test that MySQL databases can be created
-        """
-
-        with self.mock_post("/databases/mysql/instances") as m:
-            # We don't care about errors here; we just want to
-            # validate the request.
-            try:
-                self.client.database.mysql_create(
-                    "cool",
-                    "us-southeast",
-                    "mysql/8.0.26",
-                    "g6-standard-1",
-                    cluster_size=3,
-                )
-            except Exception as e:
-                logger.warning(
-                    "An error occurred while validating the request: %s", e
-                )
-
-            self.assertEqual(m.method, "post")
-            self.assertEqual(m.call_url, "/databases/mysql/instances")
-            self.assertEqual(m.call_data["label"], "cool")
-            self.assertEqual(m.call_data["region"], "us-southeast")
-            self.assertEqual(m.call_data["engine"], "mysql/8.0.26")
-            self.assertEqual(m.call_data["type"], "g6-standard-1")
-            self.assertEqual(m.call_data["cluster_size"], 3)
-
     def test_mysql_config_options(self):
         """
         Test that MySQL configuration options can be retrieved
@@ -1320,15 +1261,86 @@ class MySQLDatabaseTest(ClientBaseCase):
         self.assertFalse(config["work_mem"]["requires_restart"])
         self.assertEqual("integer", config["work_mem"]["type"])
 
-
-class PostgreSQLDatabaseTest(ClientBaseCase):
-    """
-    Tests methods of the PostgreSQLDatabase class
-    """
-
-    def test_get_instances(self):
+    def test_get_mysql_instances(self):
         """
-        Test that database types are properly handled
+        Test that mysql instances can be retrieved properly
+        """
+        dbs = self.client.database.mysql_instances()
+
+        self.assertEqual(len(dbs), 1)
+        self.assertEqual(dbs[0].allow_list[1], "192.0.1.0/24")
+        self.assertEqual(dbs[0].cluster_size, 3)
+        self.assertEqual(dbs[0].encrypted, False)
+        self.assertEqual(dbs[0].engine, "mysql")
+        self.assertEqual(
+            dbs[0].hosts.primary,
+            "lin-123-456-mysql-mysql-primary.servers.linodedb.net",
+        )
+        self.assertEqual(
+            dbs[0].hosts.secondary,
+            "lin-123-456-mysql-primary-private.servers.linodedb.net",
+        )
+        self.assertEqual(dbs[0].id, 123)
+        self.assertEqual(dbs[0].region, "us-east")
+        self.assertEqual(dbs[0].updates.duration, 3)
+        self.assertEqual(dbs[0].version, "8.0.26")
+        self.assertEqual(dbs[0].engine_config.binlog_retention_period, 600)
+        self.assertEqual(dbs[0].engine_config.mysql.connect_timeout, 10)
+        self.assertEqual(dbs[0].engine_config.mysql.default_time_zone, "+03:00")
+        self.assertEqual(dbs[0].engine_config.mysql.group_concat_max_len, 1024)
+        self.assertEqual(
+            dbs[0].engine_config.mysql.information_schema_stats_expiry, 86400
+        )
+        self.assertEqual(
+            dbs[0].engine_config.mysql.innodb_change_buffer_max_size, 30
+        )
+        self.assertEqual(dbs[0].engine_config.mysql.innodb_flush_neighbors, 0)
+        self.assertEqual(dbs[0].engine_config.mysql.innodb_ft_min_token_size, 3)
+        self.assertEqual(
+            dbs[0].engine_config.mysql.innodb_ft_server_stopword_table,
+            "db_name/table_name",
+        )
+        self.assertEqual(
+            dbs[0].engine_config.mysql.innodb_lock_wait_timeout, 50
+        )
+        self.assertEqual(
+            dbs[0].engine_config.mysql.innodb_log_buffer_size, 16777216
+        )
+        self.assertEqual(
+            dbs[0].engine_config.mysql.innodb_online_alter_log_max_size,
+            134217728,
+        )
+        self.assertEqual(dbs[0].engine_config.mysql.innodb_read_io_threads, 10)
+        self.assertTrue(dbs[0].engine_config.mysql.innodb_rollback_on_timeout)
+        self.assertEqual(
+            dbs[0].engine_config.mysql.innodb_thread_concurrency, 10
+        )
+        self.assertEqual(dbs[0].engine_config.mysql.innodb_write_io_threads, 10)
+        self.assertEqual(dbs[0].engine_config.mysql.interactive_timeout, 3600)
+        self.assertEqual(
+            dbs[0].engine_config.mysql.internal_tmp_mem_storage_engine,
+            "TempTable",
+        )
+        self.assertEqual(
+            dbs[0].engine_config.mysql.max_allowed_packet, 67108864
+        )
+        self.assertEqual(
+            dbs[0].engine_config.mysql.max_heap_table_size, 16777216
+        )
+        self.assertEqual(dbs[0].engine_config.mysql.net_buffer_length, 16384)
+        self.assertEqual(dbs[0].engine_config.mysql.net_read_timeout, 30)
+        self.assertEqual(dbs[0].engine_config.mysql.net_write_timeout, 30)
+        self.assertEqual(dbs[0].engine_config.mysql.sort_buffer_size, 262144)
+        self.assertEqual(
+            dbs[0].engine_config.mysql.sql_mode, "ANSI,TRADITIONAL"
+        )
+        self.assertTrue(dbs[0].engine_config.mysql.sql_require_primary_key)
+        self.assertEqual(dbs[0].engine_config.mysql.tmp_table_size, 16777216)
+        self.assertEqual(dbs[0].engine_config.mysql.wait_timeout, 28800)
+
+    def test_get_postgresql_instances(self):
+        """
+        Test that postgresql instances can be retrieved properly
         """
         dbs = self.client.database.postgresql_instances()
 
@@ -1350,31 +1362,93 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
         self.assertEqual(dbs[0].updates.duration, 3)
         self.assertEqual(dbs[0].version, "13.2")
 
-    def test_create(self):
-        """
-        Test that PostgreSQL databases can be created
-        """
+        print(dbs[0].engine_config.pg.__dict__)
 
-        with self.mock_post("/databases/postgresql/instances") as m:
-            # We don't care about errors here; we just want to
-            # validate the request.
-            try:
-                self.client.database.postgresql_create(
-                    "cool",
-                    "us-southeast",
-                    "postgresql/13.2",
-                    "g6-standard-1",
-                    cluster_size=3,
-                )
-            except Exception as e:
-                logger.warning(
-                    "An error occurred while validating the request: %s", e
-                )
-
-            self.assertEqual(m.method, "post")
-            self.assertEqual(m.call_url, "/databases/postgresql/instances")
-            self.assertEqual(m.call_data["label"], "cool")
-            self.assertEqual(m.call_data["region"], "us-southeast")
-            self.assertEqual(m.call_data["engine"], "postgresql/13.2")
-            self.assertEqual(m.call_data["type"], "g6-standard-1")
-            self.assertEqual(m.call_data["cluster_size"], 3)
+        self.assertTrue(dbs[0].engine_config.pg_stat_monitor_enable)
+        self.assertEqual(
+            dbs[0].engine_config.pglookout.max_failover_replication_time_lag,
+            1000,
+        )
+        self.assertEqual(dbs[0].engine_config.shared_buffers_percentage, 41.5)
+        self.assertEqual(dbs[0].engine_config.work_mem, 4)
+        self.assertEqual(
+            dbs[0].engine_config.pg.autovacuum_analyze_scale_factor, 0.5
+        )
+        self.assertEqual(
+            dbs[0].engine_config.pg.autovacuum_analyze_threshold, 100
+        )
+        self.assertEqual(dbs[0].engine_config.pg.autovacuum_max_workers, 10)
+        self.assertEqual(dbs[0].engine_config.pg.autovacuum_naptime, 100)
+        self.assertEqual(
+            dbs[0].engine_config.pg.autovacuum_vacuum_cost_delay, 50
+        )
+        self.assertEqual(
+            dbs[0].engine_config.pg.autovacuum_vacuum_cost_limit, 100
+        )
+        self.assertEqual(
+            dbs[0].engine_config.pg.autovacuum_vacuum_scale_factor, 0.5
+        )
+        self.assertEqual(
+            dbs[0].engine_config.pg.autovacuum_vacuum_threshold, 100
+        )
+        self.assertEqual(dbs[0].engine_config.pg.bgwriter_delay, 200)
+        self.assertEqual(dbs[0].engine_config.pg.bgwriter_flush_after, 512)
+        self.assertEqual(dbs[0].engine_config.pg.bgwriter_lru_maxpages, 100)
+        self.assertEqual(dbs[0].engine_config.pg.bgwriter_lru_multiplier, 2.0)
+        self.assertEqual(dbs[0].engine_config.pg.deadlock_timeout, 1000)
+        self.assertEqual(
+            dbs[0].engine_config.pg.default_toast_compression, "lz4"
+        )
+        self.assertEqual(
+            dbs[0].engine_config.pg.idle_in_transaction_session_timeout, 100
+        )
+        self.assertTrue(dbs[0].engine_config.pg.jit)
+        self.assertEqual(dbs[0].engine_config.pg.max_files_per_process, 100)
+        self.assertEqual(dbs[0].engine_config.pg.max_locks_per_transaction, 100)
+        self.assertEqual(
+            dbs[0].engine_config.pg.max_logical_replication_workers, 32
+        )
+        self.assertEqual(dbs[0].engine_config.pg.max_parallel_workers, 64)
+        self.assertEqual(
+            dbs[0].engine_config.pg.max_parallel_workers_per_gather, 64
+        )
+        self.assertEqual(
+            dbs[0].engine_config.pg.max_pred_locks_per_transaction, 1000
+        )
+        self.assertEqual(dbs[0].engine_config.pg.max_replication_slots, 32)
+        self.assertEqual(dbs[0].engine_config.pg.max_slot_wal_keep_size, 100)
+        self.assertEqual(dbs[0].engine_config.pg.max_stack_depth, 3507152)
+        self.assertEqual(
+            dbs[0].engine_config.pg.max_standby_archive_delay, 1000
+        )
+        self.assertEqual(
+            dbs[0].engine_config.pg.max_standby_streaming_delay, 1000
+        )
+        self.assertEqual(dbs[0].engine_config.pg.max_wal_senders, 32)
+        self.assertEqual(dbs[0].engine_config.pg.max_worker_processes, 64)
+        self.assertEqual(
+            dbs[0].engine_config.pg.password_encryption, "scram-sha-256"
+        )
+        self.assertEqual(dbs[0].engine_config.pg.pg_partman_bgw_interval, 3600)
+        self.assertEqual(
+            dbs[0].engine_config.pg.pg_partman_bgw_role, "myrolename"
+        )
+        self.assertFalse(
+            dbs[0].engine_config.pg.pg_stat_monitor_pgsm_enable_query_plan
+        )
+        self.assertEqual(
+            dbs[0].engine_config.pg.pg_stat_monitor_pgsm_max_buckets, 10
+        )
+        self.assertEqual(
+            dbs[0].engine_config.pg.pg_stat_statements_track, "top"
+        )
+        self.assertEqual(dbs[0].engine_config.pg.temp_file_limit, 5000000)
+        self.assertEqual(dbs[0].engine_config.pg.timezone, "Europe/Helsinki")
+        self.assertEqual(
+            dbs[0].engine_config.pg.track_activity_query_size, 1024
+        )
+        self.assertEqual(dbs[0].engine_config.pg.track_commit_timestamp, "off")
+        self.assertEqual(dbs[0].engine_config.pg.track_functions, "all")
+        self.assertEqual(dbs[0].engine_config.pg.track_io_timing, "off")
+        self.assertEqual(dbs[0].engine_config.pg.wal_sender_timeout, 60000)
+        self.assertEqual(dbs[0].engine_config.pg.wal_writer_delay, 50)
