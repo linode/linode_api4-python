@@ -2,6 +2,7 @@ import logging
 from test.unit.base import ClientBaseCase
 
 from linode_api4 import (
+    DatabasePrivateNetwork,
     MySQLDatabaseConfigMySQLOptions,
     MySQLDatabaseConfigOptions,
     PostgreSQLDatabase,
@@ -41,6 +42,11 @@ class MySQLDatabaseTest(ClientBaseCase):
                         ),
                         binlog_retention_period=200,
                     ),
+                    private_network=DatabasePrivateNetwork(
+                        vpc_id=1234,
+                        subnet_id=5678,
+                        public_access=True,
+                    ),
                 )
             except Exception as e:
                 logger.warning(
@@ -61,6 +67,12 @@ class MySQLDatabaseTest(ClientBaseCase):
                 m.call_data["engine_config"]["binlog_retention_period"], 200
             )
 
+            self.assertEqual(m.call_data["private_network"]["vpc_id"], 1234)
+            self.assertEqual(m.call_data["private_network"]["subnet_id"], 5678)
+            self.assertEqual(
+                m.call_data["private_network"]["public_access"], True
+            )
+
     def test_update(self):
         """
         Test that the MySQL database can be updated
@@ -78,6 +90,11 @@ class MySQLDatabaseTest(ClientBaseCase):
                 mysql=MySQLDatabaseConfigMySQLOptions(connect_timeout=20),
                 binlog_retention_period=200,
             )
+            db.private_network = DatabasePrivateNetwork(
+                vpc_id=1234,
+                subnet_id=5678,
+                public_access=True,
+            )
 
             db.save()
 
@@ -91,6 +108,12 @@ class MySQLDatabaseTest(ClientBaseCase):
             )
             self.assertEqual(
                 m.call_data["engine_config"]["binlog_retention_period"], 200
+            )
+
+            self.assertEqual(m.call_data["private_network"]["vpc_id"], 1234)
+            self.assertEqual(m.call_data["private_network"]["subnet_id"], 5678)
+            self.assertEqual(
+                m.call_data["private_network"]["public_access"], True
             )
 
     def test_list_backups(self):
@@ -259,6 +282,11 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
                         ),
                         work_mem=4,
                     ),
+                    private_network=DatabasePrivateNetwork(
+                        vpc_id=1234,
+                        subnet_id=5678,
+                        public_access=True,
+                    ),
                 )
             except Exception:
                 pass
@@ -302,6 +330,12 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
             )
             self.assertEqual(m.call_data["engine_config"]["work_mem"], 4)
 
+            self.assertEqual(m.call_data["private_network"]["vpc_id"], 1234)
+            self.assertEqual(m.call_data["private_network"]["subnet_id"], 5678)
+            self.assertEqual(
+                m.call_data["private_network"]["public_access"], True
+            )
+
     def test_update(self):
         """
         Test that the PostgreSQL database can be updated
@@ -322,6 +356,12 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
                 work_mem=4,
             )
 
+            db.private_network = DatabasePrivateNetwork(
+                vpc_id=1234,
+                subnet_id=5678,
+                public_access=True,
+            )
+
             db.save()
 
             self.assertEqual(m.method, "put")
@@ -336,6 +376,12 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
                 0.5,
             )
             self.assertEqual(m.call_data["engine_config"]["work_mem"], 4)
+
+            self.assertEqual(m.call_data["private_network"]["vpc_id"], 1234)
+            self.assertEqual(m.call_data["private_network"]["subnet_id"], 5678)
+            self.assertEqual(
+                m.call_data["private_network"]["public_access"], True
+            )
 
     def test_list_backups(self):
         """
