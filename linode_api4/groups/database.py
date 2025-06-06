@@ -9,8 +9,8 @@ from linode_api4.groups import Group
 from linode_api4.objects import (
     Database,
     DatabaseEngine,
-    DatabaseType,
     DatabasePrivateNetwork,
+    DatabaseType,
     MySQLDatabase,
     PostgreSQLDatabase,
     drop_null_keys,

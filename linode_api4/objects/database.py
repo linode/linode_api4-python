@@ -73,15 +73,18 @@ class DatabaseEngine(Base):
 
         Base.invalidate(self)
 
+
 @dataclass
 class DatabasePrivateNetwork(JSONObject):
     """
     DatabasePrivateNetwork is used to specify
     a Database Cluster's private network settings during its creation.
     """
-    vpc_id: int
-    subnet_id: int
-    public_access: bool
+
+    vpc_id: Optional[int] = None
+    subnet_id: Optional[int] = None
+    public_access: Optional[bool] = None
+
 
 @deprecated(
     reason="Backups are not supported for non-legacy database clusters."
@@ -313,7 +316,9 @@ class MySQLDatabase(Base):
         "engine_config": Property(
             mutable=True, json_object=MySQLDatabaseConfigOptions
         ),
-        "private_network": Property(mutable=True, json_object=DatabasePrivateNetwork),
+        "private_network": Property(
+            mutable=True, json_object=DatabasePrivateNetwork, nullable=True
+        ),
     }
 
     @property
@@ -480,7 +485,9 @@ class PostgreSQLDatabase(Base):
         "engine_config": Property(
             mutable=True, json_object=PostgreSQLDatabaseConfigOptions
         ),
-        "private_network": Property(mutable=True, json_object=DatabasePrivateNetwork),
+        "private_network": Property(
+            mutable=True, json_object=DatabasePrivateNetwork, nullable=True
+        ),
     }
 
     @property
@@ -647,7 +654,9 @@ class Database(Base):
         "updated": Property(),
         "updates": Property(),
         "version": Property(),
-        "private_network": Property(json_object=DatabasePrivateNetwork),
+        "private_network": Property(
+            json_object=DatabasePrivateNetwork, nullable=True
+        ),
     }
 
     @property
