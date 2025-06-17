@@ -105,6 +105,41 @@ class LinodeInterfaceVPCIPv4Options(JSONObject):
 
 
 @dataclass
+class LinodeInterfaceVPCIPv6SLAACOptions(JSONObject):
+    """
+    Options accepted for a single SLAAC when creating or updating the IPv6 configuration of a VPC Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
+    """
+
+    range: Optional[str] = None
+
+
+@dataclass
+class LinodeInterfaceVPCIPv6RangeOptions(JSONObject):
+    """
+    Options accepted for a single range when creating or updating the IPv6 configuration of a VPC Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
+    """
+
+    range: Optional[str] = None
+
+
+@dataclass
+class LinodeInterfaceVPCIPv6Options(JSONObject):
+    """
+    Options accepted when creating or updating the IPv6 configuration of a VPC Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
+    """
+
+    is_public: Optional[bool] = None
+    slaac: Optional[List[LinodeInterfaceVPCIPv6SLAACOptions]] = None
+    ranges: Optional[List[LinodeInterfaceVPCIPv6RangeOptions]] = None
+
+
+@dataclass
 class LinodeInterfaceVPCOptions(JSONObject):
     """
     VPC-exclusive options accepted when creating or updating a Linode Interface.
@@ -114,6 +149,7 @@ class LinodeInterfaceVPCOptions(JSONObject):
 
     subnet_id: int = 0
     ipv4: Optional[LinodeInterfaceVPCIPv4Options] = None
+    ipv6: Optional[LinodeInterfaceVPCIPv6Options] = None
 
 
 @dataclass
@@ -266,6 +302,44 @@ class LinodeInterfaceVPCIPv4(JSONObject):
 
 
 @dataclass
+class LinodeInterfaceVPCIPv6SLAAC(JSONObject):
+    """
+    A single SLAAC entry under the IPv6 configuration of a VPC Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
+    """
+
+    range: str = ""
+    address: str = ""
+
+
+@dataclass
+class LinodeInterfaceVPCIPv6Range(JSONObject):
+    """
+    A single range under the IPv6 configuration of a VPC Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
+    """
+
+    range: str = ""
+
+
+@dataclass
+class LinodeInterfaceVPCIPv6(JSONObject):
+    """
+    A single address under the IPv6 configuration of a VPC Linode Interface.
+
+    NOTE: Linode interfaces may not currently be available to all users.
+    """
+
+    put_class = LinodeInterfaceVPCIPv6Options
+
+    is_public: bool = False
+    slaac: List[LinodeInterfaceVPCIPv6SLAAC] = field(default_factory=list)
+    ranges: List[LinodeInterfaceVPCIPv6Range] = field(default_factory=list)
+
+
+@dataclass
 class LinodeInterfaceVPC(JSONObject):
     """
     VPC-specific configuration field for a Linode Interface.
@@ -279,6 +353,7 @@ class LinodeInterfaceVPC(JSONObject):
     subnet_id: int = 0
 
     ipv4: Optional[LinodeInterfaceVPCIPv4] = None
+    ipv6: Optional[LinodeInterfaceVPCIPv6] = None
 
 
 @dataclass
