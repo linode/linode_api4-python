@@ -121,7 +121,7 @@ class InvoiceTest(ClientBaseCase):
         self.assertEqual(settings.network_helper, False)
         self.assertEqual(settings.object_storage, "active")
         self.assertEqual(settings.backups_enabled, True)
-        self.assertEqual(settings.maintenance_policy_id, 1)
+        self.assertEqual(settings.maintenance_policy, "linode/migrate")
 
     def test_update_account_settings(self):
         """
@@ -130,14 +130,14 @@ class InvoiceTest(ClientBaseCase):
         with self.mock_put("account/settings") as m:
             settings = AccountSettings(self.client, False, {})
 
-            settings.maintenance_policy_id = 1
+            settings.maintenance_policy = "linode/migrate"
             settings.save()
 
             self.assertEqual(m.call_url, "/account/settings")
             self.assertEqual(
                 m.call_data,
                 {
-                    "maintenance_policy_id": 1,
+                    "maintenance_policy": "linode/migrate",
                 },
             )
 

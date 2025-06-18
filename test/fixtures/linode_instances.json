@@ -49,7 +49,7 @@
         "placement_group_type": "anti_affinity:local",
         "placement_group_policy": "strict"
       },
-      "maintenance_policy_id" : 1
+      "maintenance_policy" : "linode/migrate"
     },
     {
       "group": "test",
@@ -92,7 +92,7 @@
       "disk_encryption": "enabled",
       "lke_cluster_id": 18881,
       "placement_group": null,
-      "maintenance_policy_id" : 2
+      "maintenance_policy" : "linode/power_off_on"
     }
   ]
 }
