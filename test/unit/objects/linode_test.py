@@ -40,7 +40,7 @@ class LinodeTest(ClientBaseCase):
             linode.disk_encryption, InstanceDiskEncryptionType.disabled
         )
         self.assertEqual(linode.lke_cluster_id, None)
-        self.assertEqual(linode.maintenance_policy_id, 1)
+        self.assertEqual(linode.maintenance_policy, "linode/migrate")
 
         json = linode._raw_json
         self.assertIsNotNone(json)
@@ -154,7 +154,7 @@ class LinodeTest(ClientBaseCase):
 
             linode.label = "NewLinodeLabel"
             linode.group = "new_group"
-            linode.maintenance_policy_id = 2
+            linode.maintenance_policy = "linode/power_off_on"
             linode.save()
 
             self.assertEqual(m.call_url, "/linode/instances/123")
@@ -176,7 +176,7 @@ class LinodeTest(ClientBaseCase):
                     "group": "new_group",
                     "tags": ["something"],
                     "watchdog_enabled": True,
-                    "maintenance_policy_id": 2,
+                    "maintenance_policy": "linode/power_off_on",
                 },
             )
 

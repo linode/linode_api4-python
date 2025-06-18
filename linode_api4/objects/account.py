@@ -197,7 +197,7 @@ class AccountSettings(Base):
         ),
         "object_storage": Property(),
         "backups_enabled": Property(mutable=True),
-        "maintenance_policy_id": Property(mutable=True),
+        "maintenance_policy": Property(mutable=True),
     }
 
 

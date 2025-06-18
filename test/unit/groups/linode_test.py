@@ -96,7 +96,7 @@ class LinodeTest(ClientBaseCase):
             m.call_data["placement_group"], {"id": 123, "compliant_only": True}
         )
 
-    def test_create_with_mainteance_policy_id(self):
+    def test_create_with_maintenance_policy(self):
         """
         Tests that you can create a Linode with a maintenance policy
         """
@@ -105,10 +105,10 @@ class LinodeTest(ClientBaseCase):
             self.client.linode.instance_create(
                 "g6-nanode-1",
                 "eu-west",
-                maintenance_policy_id=1,
+                maintenance_policy="linode/migrate",
             )
 
-        self.assertEqual(m.call_data["maintenance_policy_id"], 1)
+        self.assertEqual(m.call_data["maintenance_policy"], "linode/migrate")
 
 
 class TypeTest(ClientBaseCase):
