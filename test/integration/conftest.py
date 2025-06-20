@@ -13,6 +13,7 @@ import requests
 from requests.exceptions import ConnectionError, RequestException
 
 from linode_api4 import (
+    ExplicitNullValue,
     InterfaceGeneration,
     LinodeInterfaceDefaultRouteOptions,
     LinodeInterfaceOptions,
@@ -585,6 +586,7 @@ def linode_with_linode_interfaces(
                 public=LinodeInterfacePublicOptions(),
             ),
             LinodeInterfaceOptions(
+                firewall_id=ExplicitNullValue,
                 vpc=LinodeInterfaceVPCOptions(
                     subnet_id=subnet.id,
                 ),
