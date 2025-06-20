@@ -14,6 +14,7 @@ from linode_api4 import (
     LinodeInterfacePublicIPv6RangeOptions,
     LinodeInterfacePublicOptions,
     LinodeInterfaceVLANOptions,
+    LinodeInterfaceVPCIPv4AddressOptions,
     LinodeInterfaceVPCIPv4Options,
     LinodeInterfaceVPCIPv4RangeOptions,
     LinodeInterfaceVPCOptions,
@@ -145,19 +146,18 @@ def linode_interface_vpc(
         vpc=LinodeInterfaceVPCOptions(
             subnet_id=subnet.id,
             ipv4=LinodeInterfaceVPCIPv4Options(
-                # TODO (Enhanced Interfaces): Not currently working as expected
-                # addresses=[
-                #     LinodeInterfaceVPCIPv4AddressOptions(
-                #         address="auto",
-                #         primary=True,
-                #         nat_1_1_address="any",
-                #     )
-                # ],
+                addresses=[
+                    LinodeInterfaceVPCIPv4AddressOptions(
+                        address="auto",
+                        primary=True,
+                        nat_1_1_address="auto",
+                    )
+                ],
                 ranges=[
                     LinodeInterfaceVPCIPv4RangeOptions(
-                        range="/29",
+                        range="/32",
                     )
-                ]
+                ],
             ),
         ),
     ), instance, vpc, subnet
@@ -263,9 +263,9 @@ def test_linode_interface_create_vpc(linode_interface_vpc):
 
     assert len(iface.vpc.ipv4.addresses[0].address) > 0
     assert iface.vpc.ipv4.addresses[0].primary
-    assert iface.vpc.ipv4.addresses[0].nat_1_1_address is None
+    assert iface.vpc.ipv4.addresses[0].nat_1_1_address is not None
 
-    assert iface.vpc.ipv4.ranges[0].range.split("/")[1] == "29"
+    assert iface.vpc.ipv4.ranges[0].range.split("/")[1] == "32"
 
 
 def test_linode_interface_update_vpc(linode_interface_vpc):
