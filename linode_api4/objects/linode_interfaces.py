@@ -195,6 +195,9 @@ class LinodeInterfaceOptions(JSONObject):
 
     # If a default firewall_id isn't configured, the API requires that
     # firewall_id is defined in the LinodeInterface POST body.
+    #
+    # To create a Linode Interface without a firewall, this field should
+    # be set to `ExplicitNullValue()`.
     firewall_id: Union[int, ExplicitNullValue, None] = None
 
     default_route: Optional[LinodeInterfaceDefaultRouteOptions] = None
