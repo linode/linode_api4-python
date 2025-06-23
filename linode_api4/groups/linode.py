@@ -153,7 +153,7 @@ class LinodeGroup(Group):
                 int,
             ]
         ] = None,
-        maintenance_policy_id: Optional[int] = None,
+        maintenance_policy: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -297,9 +297,9 @@ class LinodeGroup(Group):
         :type interfaces: list[ConfigInterface] or list[dict[str, Any]]
         :param placement_group: A Placement Group to create this Linode under.
         :type placement_group: Union[InstancePlacementGroupAssignment, PlacementGroup, Dict[str, Any], int]
-        :param maintenance_policy_id: The ID of the maintenance policy to apply during maintenance.
-                                      If not provided, the default policy (migrate) will be applied.
-        :type maintenance_policy_id: int
+        :param maintenance_policy: The slug of the maintenance policy to apply during maintenance.
+                                      If not provided, the default policy (linode/migrate) will be applied.
+        :type maintenance_policy: str
 
         :returns: A new Instance object, or a tuple containing the new Instance and
                   the generated password.
@@ -331,7 +331,7 @@ class LinodeGroup(Group):
             "firewall_id": firewall,
             "backup_id": backup,
             "stackscript_id": stackscript,
-            "maintenance_policy_id": maintenance_policy_id,
+            "maintenance_policy": maintenance_policy,
             # Special cases
             "disk_encryption": (
                 str(disk_encryption) if disk_encryption else None
