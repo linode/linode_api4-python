@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, Union
 
-from linode_api4.objects.base import Base, Property
+from linode_api4.objects.base import Base, ExplicitNullValue, Property
 from linode_api4.objects.dbase import DerivedBase
 from linode_api4.objects.networking import Firewall
 from linode_api4.objects.serializable import JSONObject
@@ -193,13 +193,13 @@ class LinodeInterfaceOptions(JSONObject):
     NOTE: Linode interfaces may not currently be available to all users.
     """
 
-    always_include = {
-        # If a default firewall_id isn't configured, the API requires that
-        # firewall_id is defined in the LinodeInterface POST body.
-        "firewall_id"
-    }
+    # If a default firewall_id isn't configured, the API requires that
+    # firewall_id is defined in the LinodeInterface POST body.
+    #
+    # To create a Linode Interface without a firewall, this field should
+    # be set to `ExplicitNullValue()`.
+    firewall_id: Union[int, ExplicitNullValue, None] = None
 
-    firewall_id: Optional[int] = None
     default_route: Optional[LinodeInterfaceDefaultRouteOptions] = None
     vpc: Optional[LinodeInterfaceVPCOptions] = None
     public: Optional[LinodeInterfacePublicOptions] = None
