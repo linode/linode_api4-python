@@ -43,7 +43,7 @@ def send_request_when_resource_available(
     timeout: int, func: Callable, *args, **kwargs
 ) -> object:
     start_time = time.time()
-    retry_statuses = {400, 500}
+    retry_statuses = {400, 500, 503}
 
     while True:
         try:
