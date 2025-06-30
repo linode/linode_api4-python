@@ -8,11 +8,13 @@
       "interfaces": [
         {
           "id": 678,
-          "active": true
+          "active": true,
+          "config_id": null
         },
         {
           "id": 543,
-          "active": false
+          "active": false,
+          "config_id": null
         }
       ]
     }
