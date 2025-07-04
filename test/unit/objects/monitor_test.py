@@ -1,7 +1,7 @@
 import datetime
 from test.unit.base import ClientBaseCase
 
-from linode_api4.objects import MonitorDashboard
+from linode_api4.objects import MonitorDashboard, MonitorService
 
 
 class MonitorTest(ClientBaseCase):
@@ -85,9 +85,9 @@ class MonitorTest(ClientBaseCase):
         self.assertEqual(dashboards[0].widgets[0].y_label, "cpu_usage")
 
     def test_specific_service_details(self):
-        data = self.client.monitor.services(service_type="dbaas")
-        self.assertEqual(data[0].label, "Databases")
-        self.assertEqual(data[0].service_type, "dbaas")
+        data = self.client.load(MonitorService, "dbaas")
+        self.assertEqual(data.label, "Databases")
+        self.assertEqual(data.service_type, "dbaas")
 
     def test_metric_definitions(self):
 
