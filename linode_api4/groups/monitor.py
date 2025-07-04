@@ -62,32 +62,28 @@ class MonitorGroup(Group):
         )
 
     def services(
-        self, *filters, service_type: Optional[str] = None
-    ) -> list[MonitorService]:
+        self,
+        *filters,
+    ) -> PaginatedList:
         """
         Lists services supported by ACLP.
             supported_services = client.monitor.services()
-            service_details = client.monitor.services(service_type="dbaas")
+            service_details = client.monitor.load(MonitorService, "dbaas")
 
         .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/get-monitor-services
         API Documentation: https://techdocs.akamai.com/linode-api/reference/get-monitor-services-for-service-type
 
-        :param service_type: The service type to get details for.
-        :type service_type: Optional[str]
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
                         for more details on filtering.
 
-        :returns: Lists monitor services by a given service_type
+        :returns: Lists monitor services 
         :rtype: PaginatedList of the Services
         """
-        endpoint = (
-            f"/monitor/services/{service_type}"
-            if service_type
-            else "/monitor/services"
-        )
+        endpoint = "/monitor/services"
+
         return self.client._get_and_filter(
             MonitorService,
             *filters,
