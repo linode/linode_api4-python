@@ -79,7 +79,7 @@ class MonitorGroup(Group):
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
                         for more details on filtering.
 
-        :returns: Lists monitor services 
+        :returns: Lists monitor services
         :rtype: PaginatedList of the Services
         """
         endpoint = "/monitor/services"
