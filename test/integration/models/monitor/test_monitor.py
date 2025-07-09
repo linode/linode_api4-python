@@ -44,11 +44,9 @@ def test_get_supported_services(test_linode_client):
     get_supported_service = supported_services[0].service_type
 
     # Get details for a particular service
-    service_details = client.monitor.services(
-        service_type=get_supported_service
-    )
-    assert isinstance(service_details[0], MonitorService)
-    assert service_details[0].service_type == get_supported_service
+    service_details = client.load(MonitorService, get_supported_service)
+    assert isinstance(service_details, MonitorService)
+    assert service_details.service_type == get_supported_service
 
     # Get Metric definition details for that particular service
     metric_definitions = client.monitor.metric_definitions(
