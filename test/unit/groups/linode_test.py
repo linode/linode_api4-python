@@ -1,6 +1,14 @@
 from test.unit.base import ClientBaseCase
+from test.unit.objects.linode_interface_test import (
+    build_interface_options_public,
+    build_interface_options_vlan,
+    build_interface_options_vpc,
+)
 
-from linode_api4 import InstancePlacementGroupAssignment
+from linode_api4 import (
+    InstancePlacementGroupAssignment,
+    InterfaceGeneration,
+)
 from linode_api4.objects import ConfigInterface
 
 
@@ -32,7 +40,7 @@ class LinodeTest(ClientBaseCase):
                 },
             )
 
-    def test_instance_create_with_interfaces(self):
+    def test_instance_create_with_interfaces_legacy(self):
         """
         Tests that user can pass a list of interfaces on Linode create.
         """
@@ -46,6 +54,7 @@ class LinodeTest(ClientBaseCase):
             self.client.linode.instance_create(
                 "us-southeast",
                 "g6-nanode-1",
+                interface_generation=InterfaceGeneration.LEGACY_CONFIG,
                 interfaces=interfaces,
             )
 
@@ -95,6 +104,32 @@ class LinodeTest(ClientBaseCase):
         self.assertEqual(
             m.call_data["placement_group"], {"id": 123, "compliant_only": True}
         )
+
+    def test_instance_create_with_interfaces_linode(self):
+        """
+        Tests that a Linode can be created alongside multiple LinodeInterfaces.
+        """
+
+        interfaces = [
+            build_interface_options_public(),
+            build_interface_options_vpc(),
+            build_interface_options_vlan(),
+        ]
+
+        with self.mock_post("linode/instances/124") as m:
+            self.client.linode.instance_create(
+                "g6-nanode-1",
+                "us-mia",
+                interface_generation=InterfaceGeneration.LINODE,
+                interfaces=interfaces,
+            )
+
+            assert m.call_data == {
+                "region": "us-mia",
+                "type": "g6-nanode-1",
+                "interface_generation": "linode",
+                "interfaces": [iface._serialize() for iface in interfaces],
+            }
 
 
 class TypeTest(ClientBaseCase):

@@ -1,0 +1,43 @@
+{
+  "slug": "public",
+  "rules": {
+    "outbound": [
+      {
+        "action": "ACCEPT",
+        "addresses": {
+          "ipv4": [
+            "192.0.2.0/24",
+            "198.51.100.2/32"
+          ],
+          "ipv6": [
+            "2001:DB8::/128"
+          ]
+        },
+        "description": "test",
+        "label": "test-rule",
+        "ports": "22-24, 80, 443",
+        "protocol": "TCP"
+      }
+    ],
+    "outbound_policy": "DROP",
+    "inbound": [
+      {
+        "action": "ACCEPT",
+        "addresses": {
+          "ipv4": [
+            "192.0.2.0/24",
+            "198.51.100.2/32"
+          ],
+          "ipv6": [
+            "2001:DB8::/128"
+          ]
+        },
+        "description": "test",
+        "label": "test-rule",
+        "ports": "22-24, 80, 443",
+        "protocol": "TCP"
+      }
+    ],
+    "inbound_policy": "DROP"
+  }
+}

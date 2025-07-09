@@ -1,9 +1,14 @@
+from typing import Any, Dict, Optional, Union
+
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
     VLAN,
     Base,
     Firewall,
+    FirewallCreateDevicesOptions,
+    FirewallSettings,
+    FirewallTemplate,
     Instance,
     IPAddress,
     IPv6Pool,
@@ -11,6 +16,8 @@ from linode_api4.objects import (
     NetworkTransferPrice,
     Region,
 )
+from linode_api4.objects.base import _flatten_request_body_recursive
+from linode_api4.util import drop_null_keys
 
 
 class NetworkingGroup(Group):
@@ -33,7 +40,15 @@ class NetworkingGroup(Group):
         """
         return self.client._get_and_filter(Firewall, *filters)
 
-    def firewall_create(self, label, rules, **kwargs):
+    def firewall_create(
+        self,
+        label: str,
+        rules: Dict[str, Any],
+        devices: Optional[
+            Union[FirewallCreateDevicesOptions, Dict[str, Any]]
+        ] = None,
+        **kwargs,
+    ):
         """
         Creates a new Firewall, either in the given Region or
         attached to the given Instance.
@@ -44,6 +59,8 @@ class NetworkingGroup(Group):
         :type label: str
         :param rules: The rules to apply to the new Firewall. For more information on Firewall rules, see our `Firewalls Documentation`_.
         :type rules: dict
+        :param devices: Represents devices to create created alongside a Linode Firewall.
+        :type devices: Optional[Union[FirewallCreateDevicesOptions, Dict[str, Any]]]
 
         :returns: The new Firewall.
         :rtype: Firewall
@@ -81,10 +98,14 @@ class NetworkingGroup(Group):
         params = {
             "label": label,
             "rules": rules,
+            "devices": devices,
         }
         params.update(kwargs)
 
-        result = self.client.post("/networking/firewalls", data=params)
+        result = self.client.post(
+            "/networking/firewalls",
+            data=drop_null_keys(_flatten_request_body_recursive(params)),
+        )
 
         if not "id" in result:
             raise UnexpectedResponseError(
@@ -93,6 +114,43 @@ class NetworkingGroup(Group):
 
         f = Firewall(self.client, result["id"], result)
         return f
+
+    def firewall_templates(self, *filters):
+        """
+        Returns a list of Firewall Templates available to the current user.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-firewall-templates
+
+        NOTE: This feature may not currently be available to all users.
+
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
+
+        :returns: A list of Firewall Templates available to the current user.
+        :rtype: PaginatedList of FirewallTemplate
+        """
+        return self.client._get_and_filter(FirewallTemplate, *filters)
+
+    def firewall_settings(self) -> FirewallSettings:
+        """
+        Returns an object representing the Linode Firewall settings for the current user.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-firewall-settings
+
+        NOTE: This feature may not currently be available to all users.
+        :returns: An object representing the Linode Firewall settings for the current user.
+        :rtype: FirewallSettings
+        """
+        result = self.client.get("/networking/firewalls/settings")
+
+        if "default_firewall_ids" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when getting firewall settings!",
+                json=result,
+            )
+
+        return FirewallSettings(self.client, None, result)
 
     def ips(self, *filters):
         """
@@ -123,6 +181,64 @@ class NetworkingGroup(Group):
         :rtype: PaginatedList of IPv6Range
         """
         return self.client._get_and_filter(IPv6Range, *filters)
+
+    def ipv6_range_allocate(
+        self,
+        prefix_length: int,
+        route_target: Optional[str] = None,
+        linode: Optional[Union[Instance, int]] = None,
+        **kwargs,
+    ) -> IPv6Range:
+        """
+        Creates an IPv6 Range and assigns it based on the provided Linode or route target IPv6 SLAAC address.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-ipv6-range
+
+        Create an IPv6 range assigned to a Linode by ID::
+
+            range = client.networking.ipv6_range_allocate(64, linode_id=123)
+
+
+        Create an IPv6 range assigned to a Linode by SLAAC::
+
+            range = client.networking.ipv6_range_allocate(
+                64,
+                route_target=instance.ipv6.split("/")[0]
+            )
+
+        :param prefix_length: The prefix length of the IPv6 range.
+        :type prefix_length: int
+        :param route_target: The IPv6 SLAAC address to assign this range to. Required if linode is not specified.
+        :type route_target: str
+        :param linode: The ID of the Linode to assign this range to.
+                       The SLAAC address for the provided Linode is used as the range's route_target.
+                       Required if linode is not specified.
+        :type linode: Instance or int
+
+        :returns: The new IPAddress.
+        :rtype: IPAddress
+        """
+
+        params = {
+            "prefix_length": prefix_length,
+            "route_target": route_target,
+            "linode_id": linode,
+        }
+
+        params.update(**kwargs)
+
+        result = self.client.post(
+            "/networking/ipv6/ranges",
+            data=drop_null_keys(_flatten_request_body_recursive(params)),
+        )
+
+        if not "range" in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when allocating IPv6 range!", json=result
+            )
+
+        result = IPv6Range(self.client, result["range"], result)
+        return result
 
     def ipv6_pools(self, *filters):
         """
