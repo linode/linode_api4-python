@@ -58,7 +58,7 @@ lint: build
 # TEST_CASE: Optional, specify a test case (e.g. 'test_image_replication')
 # TEST_ARGS: Optional, additional arguments for pytest (e.g. '-v' for verbose mode)
 
-TEST_COMMAND = $(if $(TEST_SUITE),$(if $(filter $(TEST_SUITE),linode_client login_client),$(TEST_SUITE),models/$(TEST_SUITE)))
+TEST_COMMAND = $(if $(TEST_SUITE),$(if $(filter $(TEST_SUITE),linode_client login_client filters),$(TEST_SUITE),models/$(TEST_SUITE)))
 
 .PHONY: test-int
 test-int:
