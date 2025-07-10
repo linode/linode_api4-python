@@ -4,7 +4,7 @@ from unittest import TestCase
 
 from mock import patch
 
-from linode_api4 import LinodeClient
+from linode_api4 import LinodeClient, MonitorClient
 
 FIXTURES = TestFixtures()
 
@@ -202,3 +202,29 @@ class ClientBaseCase(TestCase):
             mocked requests
         """
         return MethodMock("delete", {})
+
+
+class MonitorClientBaseCase(TestCase):
+    def setUp(self):
+        self.client = MonitorClient("testing", base_url="/")
+
+        self.get_patch = patch(
+            "linode_api4.linode_client.requests.Session.get",
+            side_effect=mock_get,
+        )
+        self.get_patch.start()
+
+    def tearDown(self):
+        self.get_patch.stop()
+
+    def mock_post(self, return_dct):
+        """
+        Returns a MethodMock mocking a POST.  This should be used in a with
+        statement.
+
+        :param return_dct: The JSON that should be returned from this POST
+
+        :returns: A MethodMock object who will capture the parameters of the
+            mocked requests
+        """
+        return MethodMock("post", return_dct)
