@@ -3,9 +3,7 @@ __all__ = [
 ]
 from typing import Any, Optional
 
-from linode_api4 import (
-    PaginatedList,
-)
+from linode_api4 import PaginatedList
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (

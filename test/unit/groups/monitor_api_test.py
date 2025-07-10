@@ -14,39 +14,21 @@ class MonitorAPITest(MonitorClientBaseCase):
                 service_type,
                 entity_ids=[13217, 13316],
                 metrics=[
-                    {
-                        "name": "avg_read_iops",
-                        "aggregate": "avg"
-                    },
-                    {
-                        "name": "avg_cpu_usage",
-                        "aggregate": "avg"
-                    }
+                    {"name": "avg_read_iops", "aggregate": "avg"},
+                    {"name": "avg_cpu_usage", "aggregate": "avg"},
                 ],
-                relative_time_duration={
-                    "unit": "hr",
-                    "value": 1
-                }
+                relative_time_duration={"unit": "hr", "value": 1},
             )
 
             # assert call data
             assert m.call_url == url
             assert m.call_data == {
-              "entity_ids": [13217, 13316],
-              "metrics": [
-                {
-                  "name": "avg_read_iops",
-                  "aggregate": "avg"
-                },
-                {
-                  "name": "avg_cpu_usage",
-                  "aggregate": "avg"
-                }
-              ],
-              "relative_time_duration": {
-                "unit": "hr",
-                "value": 1
-              }
+                "entity_ids": [13217, 13316],
+                "metrics": [
+                    {"name": "avg_read_iops", "aggregate": "avg"},
+                    {"name": "avg_cpu_usage", "aggregate": "avg"},
+                ],
+                "relative_time_duration": {"unit": "hr", "value": 1},
             }
 
             # assert the metrics data

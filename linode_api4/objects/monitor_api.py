@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-from linode_api4 import JSONObject, Base, Property
+from linode_api4 import Base, JSONObject, Property
 
 
 @dataclass
@@ -12,12 +12,8 @@ class EntityMetricsStats(JSONObject):
 
 @dataclass
 class EntityMetricsDataResult(JSONObject):
-    metric: dict = field(
-        default_factory=dict
-    )
-    values: list = field(
-        default_factory=list
-    )
+    metric: dict = field(default_factory=dict)
+    values: list = field(default_factory=list)
 
 
 @dataclass

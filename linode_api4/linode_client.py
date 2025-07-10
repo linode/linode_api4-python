@@ -54,16 +54,16 @@ class LinearRetry(Retry):
 
 class BaseClient:
     def __init__(
-            self,
-            token,
-            base_url,
-            user_agent=None,
-            page_size=None,
-            retry=True,
-            retry_rate_limit_interval=1.0,
-            retry_max=5,
-            retry_statuses=None,
-            ca_path=None,
+        self,
+        token,
+        base_url,
+        user_agent=None,
+        page_size=None,
+        retry=True,
+        retry_rate_limit_interval=1.0,
+        retry_max=5,
+        retry_statuses=None,
+        ca_path=None,
     ):
         self.base_url = base_url
         self._add_user_agent = user_agent
@@ -147,7 +147,7 @@ class BaseClient:
         return result
 
     def _api_call(
-            self, endpoint, model=None, method=None, data=None, filters=None
+        self, endpoint, model=None, method=None, data=None, filters=None
     ):
         """
         Makes a call to the linode api.  Data should only be given if the method is
@@ -201,7 +201,7 @@ class BaseClient:
         return j
 
     def _get_objects(
-            self, endpoint, cls, model=None, parent_id=None, filters=None
+        self, endpoint, cls, model=None, parent_id=None, filters=None
     ):
         # handle non-default page sizes
         call_endpoint = endpoint
@@ -268,11 +268,11 @@ class BaseClient:
 
     # helper functions
     def _get_and_filter(
-            self,
-            obj_type,
-            *filters,
-            endpoint=None,
-            parent_id=None,
+        self,
+        obj_type,
+        *filters,
+        endpoint=None,
+        parent_id=None,
     ):
         parsed_filters = None
         if filters:
@@ -299,16 +299,16 @@ class BaseClient:
 
 class LinodeClient(BaseClient):
     def __init__(
-            self,
-            token,
-            base_url="https://api.linode.com/v4",
-            user_agent=None,
-            page_size=None,
-            retry=True,
-            retry_rate_limit_interval=1.0,
-            retry_max=5,
-            retry_statuses=None,
-            ca_path=None,
+        self,
+        token,
+        base_url="https://api.linode.com/v4",
+        user_agent=None,
+        page_size=None,
+        retry=True,
+        retry_rate_limit_interval=1.0,
+        retry_max=5,
+        retry_statuses=None,
+        ca_path=None,
     ):
         """
         The main interface to the Linode API.
@@ -346,38 +346,6 @@ class LinodeClient(BaseClient):
         :param ca_path: The path to a CA file to use for API requests in this client.
         :type ca_path: str
         """
-        # retry_forcelist = [408, 429, 502]
-        #
-        # if retry_statuses is not None:
-        #     retry_forcelist.extend(retry_statuses)
-        #
-        # # Ensure the max retries value is valid
-        # if not isinstance(retry_max, int):
-        #     raise ValueError("retry_max must be an int")
-        #
-        # self.retry = retry
-        # self.retry_rate_limit_interval = float(retry_rate_limit_interval)
-        # self.retry_max = retry_max
-        # self.retry_statuses = retry_forcelist
-        #
-        # # Initialize the HTTP client session
-        # self.session = requests.Session()
-        #
-        # self._retry_config = LinearRetry(
-        #     total=retry_max if retry else 0,
-        #     status_forcelist=self.retry_statuses,
-        #     respect_retry_after_header=True,
-        #     backoff_factor=self.retry_rate_limit_interval,
-        #     raise_on_status=False,
-        #     # By default, POST is not an allowed method.
-        #     # We should explicitly include it.
-        #     allowed_methods={"DELETE", "GET", "POST", "PUT"},
-        # )
-        # retry_adapter = HTTPAdapter(max_retries=self._retry_config)
-        #
-        # self.session.mount("http://", retry_adapter)
-        # self.session.mount("https://", retry_adapter)
-
         #: Access methods related to Linodes - see :any:`LinodeGroup` for
         #: more information
         self.linode = LinodeGroup(self)
@@ -466,11 +434,11 @@ class LinodeClient(BaseClient):
         )
 
     def image_create_upload(
-            self,
-            label: str,
-            region: str,
-            description: Optional[str] = None,
-            tags: Optional[List[str]] = None,
+        self,
+        label: str,
+        region: str,
+        description: Optional[str] = None,
+        tags: Optional[List[str]] = None,
     ) -> Tuple[Image, str]:
         """
         .. note:: This method is an alias to maintain backwards compatibility.
@@ -483,12 +451,12 @@ class LinodeClient(BaseClient):
         )
 
     def image_upload(
-            self,
-            label: str,
-            region: str,
-            file: BinaryIO,
-            description: Optional[str] = None,
-            tags: Optional[List[str]] = None,
+        self,
+        label: str,
+        region: str,
+        file: BinaryIO,
+        description: Optional[str] = None,
+        tags: Optional[List[str]] = None,
     ) -> Image:
         """
         .. note:: This method is an alias to maintain backwards compatibility.
@@ -516,13 +484,13 @@ class LinodeClient(BaseClient):
         return self.domains.create(domain, master=master, **kwargs)
 
     def tag_create(
-            self,
-            label,
-            instances=None,
-            domains=None,
-            nodebalancers=None,
-            volumes=None,
-            entities=[],
+        self,
+        label,
+        instances=None,
+        domains=None,
+        nodebalancers=None,
+        volumes=None,
+        entities=[],
     ):
         """
         .. note:: This method is an alias to maintain backwards compatibility.
@@ -576,20 +544,19 @@ class MonitorClient(BaseClient):
     """
 
     def __init__(
-            self,
-            token,
-            base_url="https://monitor-api.linode.com/v2beta",
-            user_agent=None,
-            page_size=None,
-            ca_path=None,
-            retry=True,
-            retry_rate_limit_interval=1.0,
-            retry_max=5,
-            retry_statuses=None,
+        self,
+        token,
+        base_url="https://monitor-api.linode.com/v2beta",
+        user_agent=None,
+        page_size=None,
+        ca_path=None,
+        retry=True,
+        retry_rate_limit_interval=1.0,
+        retry_max=5,
+        retry_statuses=None,
     ):
-        # define properties and modules
-
-        # define a metric group and add access to it through MonitorClient
+        #: Access methods related to your monitor metrics - see :any:`MetricsGroup` for
+        #: more information
         self.metrics = MetricsGroup(self)
 
         super(MonitorClient, self).__init__(
@@ -601,5 +568,5 @@ class MonitorClient(BaseClient):
             retry_rate_limit_interval=retry_rate_limit_interval,
             retry_max=retry_max,
             retry_statuses=retry_statuses,
-            ca_path=ca_path
+            ca_path=ca_path,
         )
