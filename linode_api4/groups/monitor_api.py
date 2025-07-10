@@ -14,6 +14,7 @@ class MetricsGroup(Group):
 
     This group contains all features related to metrics in the API monitor-api.
     """
+
     def fetch_metrics(
         self,
         service_type: str,
@@ -38,9 +39,7 @@ class MetricsGroup(Group):
         :rtype: EntityMetrics or None
         """
 
-        params = {
-            "entity_ids": entity_ids
-        }
+        params = {"entity_ids": entity_ids}
 
         params.update(kwargs)
 

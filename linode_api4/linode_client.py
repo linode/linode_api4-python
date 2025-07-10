@@ -412,7 +412,7 @@ class LinodeClient(BaseClient):
 
         self.monitor = MonitorGroup(self)
 
-        super(LinodeClient, self).__init__(
+        super().__init__(
             token=token,
             base_url=base_url,
             user_agent=user_agent,
@@ -559,7 +559,7 @@ class MonitorClient(BaseClient):
         #: more information
         self.metrics = MetricsGroup(self)
 
-        super(MonitorClient, self).__init__(
+        super().__init__(
             token=token,
             base_url=base_url,
             user_agent=user_agent,
