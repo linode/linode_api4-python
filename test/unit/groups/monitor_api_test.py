@@ -1,4 +1,4 @@
-from test.unit.base import MonitorClientBaseCase, load_json
+from test.unit.base import MonitorClientBaseCase
 
 
 class MonitorAPITest(MonitorClientBaseCase):

@@ -1,3 +1,7 @@
+__all__ = [
+    "MetricsGroup",
+]
+
 from typing import Optional
 
 from linode_api4.groups import Group
