@@ -22,3 +22,4 @@ from .vpc import *
 from .beta import *
 from .placement import *
 from .monitor import *
+from .monitor_api import *

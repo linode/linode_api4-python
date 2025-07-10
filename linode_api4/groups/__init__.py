@@ -11,6 +11,7 @@ from .lke import *
 from .lke_tier import *
 from .longview import *
 from .monitor import *
+from .monitor_api import *
 from .networking import *
 from .nodebalancer import *
 from .object_storage import *
