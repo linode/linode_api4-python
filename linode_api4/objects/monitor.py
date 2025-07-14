@@ -7,7 +7,8 @@ __all__ = [
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-from linode_api4.objects import Base, JSONObject, Property, StrEnum
+from linode_api4.objects.base import Base, Property
+from linode_api4.objects.serializable import JSONObject, StrEnum
 
 
 class AggregateFunction(StrEnum):
