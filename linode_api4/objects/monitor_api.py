@@ -7,7 +7,7 @@ __all__ = [
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-from linode_api4 import JSONObject
+from linode_api4.objects.serializable import JSONObject
 
 
 @dataclass
