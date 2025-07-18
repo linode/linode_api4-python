@@ -114,6 +114,9 @@ class MappedObject:
 
     @property
     def dict(self):
+        return self._serialize()
+
+    def _serialize(self, is_put: bool = False) -> Dict[str, Any]:
         result = vars(self).copy()
         cls = type(self)
 
@@ -123,7 +126,7 @@ class MappedObject:
             elif isinstance(v, list):
                 result[k] = [
                     (
-                        item.dict
+                        item._serialize(is_put=is_put)
                         if isinstance(item, (cls, JSONObject))
                         else (
                             self._flatten_base_subclass(item)
@@ -136,7 +139,7 @@ class MappedObject:
             elif isinstance(v, Base):
                 result[k] = self._flatten_base_subclass(v)
             elif isinstance(v, JSONObject):
-                result[k] = v.dict
+                result[k] = v._serialize(is_put=is_put)
 
         return result
 
@@ -278,9 +281,9 @@ class Base(object, metaclass=FilterableMetaclass):
                     data[key] = None
 
             # Ensure we serialize any values that may not be already serialized
-            data = _flatten_request_body_recursive(data)
+            data = _flatten_request_body_recursive(data, is_put=True)
         else:
-            data = self._serialize()
+            data = self._serialize(is_put=True)
 
         resp = self._client.put(type(self).api_endpoint, model=self, data=data)
 
@@ -316,7 +319,7 @@ class Base(object, metaclass=FilterableMetaclass):
 
         self._set("_populated", False)
 
-    def _serialize(self):
+    def _serialize(self, is_put: bool = False):
         """
         A helper method to build a dict of all mutable Properties of
         this object
@@ -345,7 +348,7 @@ class Base(object, metaclass=FilterableMetaclass):
 
         # Resolve the underlying IDs of results
         for k, v in result.items():
-            result[k] = _flatten_request_body_recursive(v)
+            result[k] = _flatten_request_body_recursive(v, is_put=is_put)
 
         return result
 
@@ -503,7 +506,7 @@ class Base(object, metaclass=FilterableMetaclass):
         return Base.make(id, client, cls, parent_id=parent_id, json=json)
 
 
-def _flatten_request_body_recursive(data: Any) -> Any:
+def _flatten_request_body_recursive(data: Any, is_put: bool = False) -> Any:
     """
     This is a helper recursively flatten the given data for use in an API request body.
 
@@ -515,15 +518,18 @@ def _flatten_request_body_recursive(data: Any) -> Any:
     """
 
     if isinstance(data, dict):
-        return {k: _flatten_request_body_recursive(v) for k, v in data.items()}
+        return {
+            k: _flatten_request_body_recursive(v, is_put=is_put)
+            for k, v in data.items()
+        }
 
     if isinstance(data, list):
-        return [_flatten_request_body_recursive(v) for v in data]
+        return [_flatten_request_body_recursive(v, is_put=is_put) for v in data]
 
     if isinstance(data, Base):
         return data.id
 
     if isinstance(data, MappedObject) or issubclass(type(data), JSONObject):
-        return data.dict
+        return data._serialize(is_put=is_put)
 
     return data

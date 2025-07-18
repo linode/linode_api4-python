@@ -1,6 +1,15 @@
+from dataclasses import dataclass, field
+from typing import Optional
+
 from deprecated import deprecated
 
-from linode_api4.objects import Base, DerivedBase, MappedObject, Property
+from linode_api4.objects import (
+    Base,
+    DerivedBase,
+    JSONObject,
+    MappedObject,
+    Property,
+)
 
 
 class DatabaseType(Base):
@@ -128,6 +137,140 @@ class PostgreSQLDatabaseBackup(DatabaseBackup):
     api_endpoint = "/databases/postgresql/instances/{database_id}/backups/{id}"
 
 
+@dataclass
+class MySQLDatabaseConfigMySQLOptions(JSONObject):
+    """
+    MySQLDatabaseConfigMySQLOptions represents the fields in the mysql
+    field of the MySQLDatabaseConfigOptions class
+    """
+
+    connect_timeout: Optional[int] = None
+    default_time_zone: Optional[str] = None
+    group_concat_max_len: Optional[float] = None
+    information_schema_stats_expiry: Optional[int] = None
+    innodb_change_buffer_max_size: Optional[int] = None
+    innodb_flush_neighbors: Optional[int] = None
+    innodb_ft_min_token_size: Optional[int] = None
+    innodb_ft_server_stopword_table: Optional[str] = None
+    innodb_lock_wait_timeout: Optional[int] = None
+    innodb_log_buffer_size: Optional[int] = None
+    innodb_online_alter_log_max_size: Optional[int] = None
+    innodb_read_io_threads: Optional[int] = None
+    innodb_rollback_on_timeout: Optional[bool] = None
+    innodb_thread_concurrency: Optional[int] = None
+    innodb_write_io_threads: Optional[int] = None
+    interactive_timeout: Optional[int] = None
+    internal_tmp_mem_storage_engine: Optional[str] = None
+    max_allowed_packet: Optional[int] = None
+    max_heap_table_size: Optional[int] = None
+    net_buffer_length: Optional[int] = None
+    net_read_timeout: Optional[int] = None
+    net_write_timeout: Optional[int] = None
+    sort_buffer_size: Optional[int] = None
+    sql_mode: Optional[str] = None
+    sql_require_primary_key: Optional[bool] = None
+    tmp_table_size: Optional[int] = None
+    wait_timeout: Optional[int] = None
+
+
+@dataclass
+class MySQLDatabaseConfigOptions(JSONObject):
+    """
+    MySQLDatabaseConfigOptions is used to specify
+    a MySQL Database Cluster's configuration options during its creation.
+    """
+
+    mysql: Optional[MySQLDatabaseConfigMySQLOptions] = None
+    binlog_retention_period: Optional[int] = None
+
+
+@dataclass
+class PostgreSQLDatabaseConfigPGLookoutOptions(JSONObject):
+    """
+    PostgreSQLDatabasePGLookoutConfigOptions represents the fields in the pglookout
+    field of the PostgreSQLDatabasePGConfigOptions class
+    """
+
+    max_failover_replication_time_lag: Optional[int] = None
+
+
+@dataclass
+class PostgreSQLDatabaseConfigPGOptions(JSONObject):
+    """
+    PostgreSQLDatabasePGConfigOptions represents the fields in the pg
+    field of the PostgreSQLDatabasePGConfigOptions class
+    """
+
+    autovacuum_analyze_scale_factor: Optional[float] = None
+    autovacuum_analyze_threshold: Optional[int] = None
+    autovacuum_max_workers: Optional[int] = None
+    autovacuum_naptime: Optional[int] = None
+    autovacuum_vacuum_cost_delay: Optional[int] = None
+    autovacuum_vacuum_cost_limit: Optional[int] = None
+    autovacuum_vacuum_scale_factor: Optional[float] = None
+    autovacuum_vacuum_threshold: Optional[int] = None
+    bgwriter_delay: Optional[int] = None
+    bgwriter_flush_after: Optional[int] = None
+    bgwriter_lru_maxpages: Optional[int] = None
+    bgwriter_lru_multiplier: Optional[float] = None
+    deadlock_timeout: Optional[int] = None
+    default_toast_compression: Optional[str] = None
+    idle_in_transaction_session_timeout: Optional[int] = None
+    jit: Optional[bool] = None
+    max_files_per_process: Optional[int] = None
+    max_locks_per_transaction: Optional[int] = None
+    max_logical_replication_workers: Optional[int] = None
+    max_parallel_workers: Optional[int] = None
+    max_parallel_workers_per_gather: Optional[int] = None
+    max_pred_locks_per_transaction: Optional[int] = None
+    max_replication_slots: Optional[int] = None
+    max_slot_wal_keep_size: Optional[int] = None
+    max_stack_depth: Optional[int] = None
+    max_standby_archive_delay: Optional[int] = None
+    max_standby_streaming_delay: Optional[int] = None
+    max_wal_senders: Optional[int] = None
+    max_worker_processes: Optional[int] = None
+    password_encryption: Optional[str] = None
+    pg_partman_bgw_interval: Optional[int] = field(
+        default=None, metadata={"json_key": "pg_partman_bgw.interval"}
+    )
+    pg_partman_bgw_role: Optional[str] = field(
+        default=None, metadata={"json_key": "pg_partman_bgw.role"}
+    )
+    pg_stat_monitor_pgsm_enable_query_plan: Optional[bool] = field(
+        default=None,
+        metadata={"json_key": "pg_stat_monitor.pgsm_enable_query_plan"},
+    )
+    pg_stat_monitor_pgsm_max_buckets: Optional[int] = field(
+        default=None, metadata={"json_key": "pg_stat_monitor.pgsm_max_buckets"}
+    )
+    pg_stat_statements_track: Optional[str] = field(
+        default=None, metadata={"json_key": "pg_stat_statements.track"}
+    )
+    temp_file_limit: Optional[int] = None
+    timezone: Optional[str] = None
+    track_activity_query_size: Optional[int] = None
+    track_commit_timestamp: Optional[str] = None
+    track_functions: Optional[str] = None
+    track_io_timing: Optional[str] = None
+    wal_sender_timeout: Optional[int] = None
+    wal_writer_delay: Optional[int] = None
+
+
+@dataclass
+class PostgreSQLDatabaseConfigOptions(JSONObject):
+    """
+    PostgreSQLDatabaseConfigOptions is used to specify
+    a PostgreSQL Database Cluster's configuration options during its creation.
+    """
+
+    pg: Optional[PostgreSQLDatabaseConfigPGOptions] = None
+    pg_stat_monitor_enable: Optional[bool] = None
+    pglookout: Optional[PostgreSQLDatabaseConfigPGLookoutOptions] = None
+    shared_buffers_percentage: Optional[float] = None
+    work_mem: Optional[int] = None
+
+
 class MySQLDatabase(Base):
     """
     An accessible Managed MySQL Database.
@@ -158,6 +301,9 @@ class MySQLDatabase(Base):
         "updated": Property(volatile=True, is_datetime=True),
         "updates": Property(mutable=True),
         "version": Property(),
+        "engine_config": Property(
+            mutable=True, json_object=MySQLDatabaseConfigOptions
+        ),
     }
 
     @property
@@ -321,6 +467,9 @@ class PostgreSQLDatabase(Base):
         "updated": Property(volatile=True, is_datetime=True),
         "updates": Property(mutable=True),
         "version": Property(),
+        "engine_config": Property(
+            mutable=True, json_object=PostgreSQLDatabaseConfigOptions
+        ),
     }
 
     @property

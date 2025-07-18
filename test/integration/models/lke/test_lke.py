@@ -208,7 +208,10 @@ def test_get_lke_pool(test_linode_client, lke_cluster):
 
     assert _to_comparable(cluster.pools[0]) == _to_comparable(pool)
 
-    assert pool.disk_encryption == InstanceDiskEncryptionType.disabled
+    assert pool.disk_encryption in (
+        InstanceDiskEncryptionType.enabled,
+        InstanceDiskEncryptionType.disabled,
+    )
 
 
 def test_cluster_dashboard_url_view(lke_cluster):

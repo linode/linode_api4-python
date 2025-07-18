@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 
 import requests
+from deprecated import deprecated
 
 from linode_api4.errors import ApiError, UnexpectedResponseError
 from linode_api4.objects import DATE_FORMAT, Volume
@@ -312,6 +313,12 @@ class Event(Base):
             return Volume(self._client, self.entity.id)
         return None
 
+    @deprecated(
+        reason="`mark_read` API is deprecated. Use the 'mark_seen' "
+        "API instead. Please note that the `mark_seen` API functions "
+        "differently and will mark all events up to and including the "
+        "referenced event-id as 'seen' rather than individual events.",
+    )
     def mark_read(self):
         """
         Marks a single Event as read.
@@ -608,7 +615,7 @@ class Grant:
             )
         return self.cls(self._client, self.id)
 
-    def _serialize(self):
+    def _serialize(self, *args, **kwargs):
         """
         Returns this grant in as JSON the api will accept.  This is only relevant
         in the context of UserGrants.save
@@ -675,7 +682,7 @@ class UserGrants:
 
         return grants
 
-    def _serialize(self):
+    def _serialize(self, *args, **kwargs):
         """
         Returns the user grants in as JSON the api will accept.
         This is only relevant in the context of UserGrants.save

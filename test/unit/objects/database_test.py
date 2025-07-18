@@ -1,108 +1,22 @@
 import logging
 from test.unit.base import ClientBaseCase
 
-from linode_api4 import PostgreSQLDatabase
+from linode_api4 import (
+    MySQLDatabaseConfigMySQLOptions,
+    MySQLDatabaseConfigOptions,
+    PostgreSQLDatabase,
+    PostgreSQLDatabaseConfigOptions,
+    PostgreSQLDatabaseConfigPGOptions,
+)
 from linode_api4.objects import MySQLDatabase
 
 logger = logging.getLogger(__name__)
-
-
-class DatabaseTest(ClientBaseCase):
-    """
-    Tests methods of the DatabaseGroup class
-    """
-
-    def test_get_types(self):
-        """
-        Test that database types are properly handled
-        """
-        types = self.client.database.types()
-
-        self.assertEqual(len(types), 1)
-        self.assertEqual(types[0].type_class, "nanode")
-        self.assertEqual(types[0].id, "g6-nanode-1")
-        self.assertEqual(types[0].engines.mysql[0].price.monthly, 20)
-
-    def test_get_engines(self):
-        """
-        Test that database engines are properly handled
-        """
-        engines = self.client.database.engines()
-
-        self.assertEqual(len(engines), 2)
-
-        self.assertEqual(engines[0].engine, "mysql")
-        self.assertEqual(engines[0].id, "mysql/8.0.26")
-        self.assertEqual(engines[0].version, "8.0.26")
-
-        self.assertEqual(engines[1].engine, "postgresql")
-        self.assertEqual(engines[1].id, "postgresql/10.14")
-        self.assertEqual(engines[1].version, "10.14")
-
-    def test_get_databases(self):
-        """
-        Test that databases are properly handled
-        """
-        dbs = self.client.database.instances()
-
-        self.assertEqual(len(dbs), 1)
-        self.assertEqual(dbs[0].allow_list[1], "192.0.1.0/24")
-        self.assertEqual(dbs[0].cluster_size, 3)
-        self.assertEqual(dbs[0].encrypted, False)
-        self.assertEqual(dbs[0].engine, "mysql")
-        self.assertEqual(
-            dbs[0].hosts.primary,
-            "lin-123-456-mysql-mysql-primary.servers.linodedb.net",
-        )
-        self.assertEqual(
-            dbs[0].hosts.secondary,
-            "lin-123-456-mysql-primary-private.servers.linodedb.net",
-        )
-        self.assertEqual(dbs[0].id, 123)
-        self.assertEqual(dbs[0].region, "us-east")
-        self.assertEqual(dbs[0].updates.duration, 3)
-        self.assertEqual(dbs[0].version, "8.0.26")
-
-    def test_database_instance(self):
-        """
-        Ensures that the .instance attribute properly translates database types
-        """
-
-        dbs = self.client.database.instances()
-        db_translated = dbs[0].instance
-
-        self.assertTrue(isinstance(db_translated, MySQLDatabase))
-        self.assertEqual(db_translated.ssl_connection, True)
 
 
 class MySQLDatabaseTest(ClientBaseCase):
     """
     Tests methods of the MySQLDatabase class
     """
-
-    def test_get_instances(self):
-        """
-        Test that database types are properly handled
-        """
-        dbs = self.client.database.mysql_instances()
-
-        self.assertEqual(len(dbs), 1)
-        self.assertEqual(dbs[0].allow_list[1], "192.0.1.0/24")
-        self.assertEqual(dbs[0].cluster_size, 3)
-        self.assertEqual(dbs[0].encrypted, False)
-        self.assertEqual(dbs[0].engine, "mysql")
-        self.assertEqual(
-            dbs[0].hosts.primary,
-            "lin-123-456-mysql-mysql-primary.servers.linodedb.net",
-        )
-        self.assertEqual(
-            dbs[0].hosts.secondary,
-            "lin-123-456-mysql-primary-private.servers.linodedb.net",
-        )
-        self.assertEqual(dbs[0].id, 123)
-        self.assertEqual(dbs[0].region, "us-east")
-        self.assertEqual(dbs[0].updates.duration, 3)
-        self.assertEqual(dbs[0].version, "8.0.26")
 
     def test_create(self):
         """
@@ -121,6 +35,12 @@ class MySQLDatabaseTest(ClientBaseCase):
                     "mysql/8.0.26",
                     "g6-standard-1",
                     cluster_size=3,
+                    engine_config=MySQLDatabaseConfigOptions(
+                        mysql=MySQLDatabaseConfigMySQLOptions(
+                            connect_timeout=20
+                        ),
+                        binlog_retention_period=200,
+                    ),
                 )
             except Exception as e:
                 logger.warning(
@@ -134,6 +54,12 @@ class MySQLDatabaseTest(ClientBaseCase):
             self.assertEqual(m.call_data["engine"], "mysql/8.0.26")
             self.assertEqual(m.call_data["type"], "g6-standard-1")
             self.assertEqual(m.call_data["cluster_size"], 3)
+            self.assertEqual(
+                m.call_data["engine_config"]["mysql"]["connect_timeout"], 20
+            )
+            self.assertEqual(
+                m.call_data["engine_config"]["binlog_retention_period"], 200
+            )
 
     def test_update(self):
         """
@@ -148,6 +74,10 @@ class MySQLDatabaseTest(ClientBaseCase):
             db.updates.day_of_week = 2
             db.allow_list = new_allow_list
             db.label = "cool"
+            db.engine_config = MySQLDatabaseConfigOptions(
+                mysql=MySQLDatabaseConfigMySQLOptions(connect_timeout=20),
+                binlog_retention_period=200,
+            )
 
             db.save()
 
@@ -156,6 +86,12 @@ class MySQLDatabaseTest(ClientBaseCase):
             self.assertEqual(m.call_data["label"], "cool")
             self.assertEqual(m.call_data["updates"]["day_of_week"], 2)
             self.assertEqual(m.call_data["allow_list"], new_allow_list)
+            self.assertEqual(
+                m.call_data["engine_config"]["mysql"]["connect_timeout"], 20
+            )
+            self.assertEqual(
+                m.call_data["engine_config"]["binlog_retention_period"], 200
+            )
 
     def test_list_backups(self):
         """
@@ -297,30 +233,6 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
     Tests methods of the PostgreSQLDatabase class
     """
 
-    def test_get_instances(self):
-        """
-        Test that database types are properly handled
-        """
-        dbs = self.client.database.postgresql_instances()
-
-        self.assertEqual(len(dbs), 1)
-        self.assertEqual(dbs[0].allow_list[1], "192.0.1.0/24")
-        self.assertEqual(dbs[0].cluster_size, 3)
-        self.assertEqual(dbs[0].encrypted, False)
-        self.assertEqual(dbs[0].engine, "postgresql")
-        self.assertEqual(
-            dbs[0].hosts.primary,
-            "lin-0000-000-pgsql-primary.servers.linodedb.net",
-        )
-        self.assertEqual(
-            dbs[0].hosts.secondary,
-            "lin-0000-000-pgsql-primary-private.servers.linodedb.net",
-        )
-        self.assertEqual(dbs[0].id, 123)
-        self.assertEqual(dbs[0].region, "us-east")
-        self.assertEqual(dbs[0].updates.duration, 3)
-        self.assertEqual(dbs[0].version, "13.2")
-
     def test_create(self):
         """
         Test that PostgreSQL databases can be created
@@ -336,6 +248,17 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
                     "postgresql/13.2",
                     "g6-standard-1",
                     cluster_size=3,
+                    engine_config=PostgreSQLDatabaseConfigOptions(
+                        pg=PostgreSQLDatabaseConfigPGOptions(
+                            autovacuum_analyze_scale_factor=0.5,
+                            pg_partman_bgw_interval=3600,
+                            pg_partman_bgw_role="myrolename",
+                            pg_stat_monitor_pgsm_enable_query_plan=False,
+                            pg_stat_monitor_pgsm_max_buckets=10,
+                            pg_stat_statements_track="top",
+                        ),
+                        work_mem=4,
+                    ),
                 )
             except Exception:
                 pass
@@ -347,6 +270,37 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
             self.assertEqual(m.call_data["engine"], "postgresql/13.2")
             self.assertEqual(m.call_data["type"], "g6-standard-1")
             self.assertEqual(m.call_data["cluster_size"], 3)
+            self.assertEqual(
+                m.call_data["engine_config"]["pg"][
+                    "autovacuum_analyze_scale_factor"
+                ],
+                0.5,
+            )
+            self.assertEqual(
+                m.call_data["engine_config"]["pg"]["pg_partman_bgw.interval"],
+                3600,
+            )
+            self.assertEqual(
+                m.call_data["engine_config"]["pg"]["pg_partman_bgw.role"],
+                "myrolename",
+            )
+            self.assertEqual(
+                m.call_data["engine_config"]["pg"][
+                    "pg_stat_monitor.pgsm_enable_query_plan"
+                ],
+                False,
+            )
+            self.assertEqual(
+                m.call_data["engine_config"]["pg"][
+                    "pg_stat_monitor.pgsm_max_buckets"
+                ],
+                10,
+            )
+            self.assertEqual(
+                m.call_data["engine_config"]["pg"]["pg_stat_statements.track"],
+                "top",
+            )
+            self.assertEqual(m.call_data["engine_config"]["work_mem"], 4)
 
     def test_update(self):
         """
@@ -361,6 +315,12 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
             db.updates.day_of_week = 2
             db.allow_list = new_allow_list
             db.label = "cool"
+            db.engine_config = PostgreSQLDatabaseConfigOptions(
+                pg=PostgreSQLDatabaseConfigPGOptions(
+                    autovacuum_analyze_scale_factor=0.5
+                ),
+                work_mem=4,
+            )
 
             db.save()
 
@@ -369,6 +329,13 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
             self.assertEqual(m.call_data["label"], "cool")
             self.assertEqual(m.call_data["updates"]["day_of_week"], 2)
             self.assertEqual(m.call_data["allow_list"], new_allow_list)
+            self.assertEqual(
+                m.call_data["engine_config"]["pg"][
+                    "autovacuum_analyze_scale_factor"
+                ],
+                0.5,
+            )
+            self.assertEqual(m.call_data["engine_config"]["work_mem"], 4)
 
     def test_list_backups(self):
         """
