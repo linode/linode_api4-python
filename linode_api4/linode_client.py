@@ -203,6 +203,12 @@ class LinodeClient:
         #: Access methods related to VM placement - See :any:`PlacementAPIGroup` for more information.
         self.placement = PlacementAPIGroup(self)
 
+        #: Access methods related to Maintenance - See :any:`MaintenanceGroup` for more information.
+        self.maintenance = MaintenanceGroup(self)
+
+        #: Access methods related to Monitor - See :any:`MonitorGroup` for more information.
+        self.monitor = MonitorGroup(self)
+
     @property
     def _user_agent(self):
         return "{}python-linode_api4/{} {}".format(
