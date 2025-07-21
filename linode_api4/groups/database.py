@@ -1,3 +1,9 @@
+from typing import Any, Dict, Union
+
+from linode_api4 import (
+    MySQLDatabaseConfigOptions,
+    PostgreSQLDatabaseConfigOptions,
+)
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
@@ -63,6 +69,26 @@ class DatabaseGroup(Group):
         """
         return self.client._get_and_filter(DatabaseEngine, *filters)
 
+    def mysql_config_options(self):
+        """
+        Returns a detailed list of all the configuration options for MySQL Databases.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-databases-mysql-config
+
+        :returns: The JSON configuration options for MySQL Databases.
+        """
+        return self.client.get("/databases/mysql/config", model=self)
+
+    def postgresql_config_options(self):
+        """
+        Returns a detailed list of all the configuration options for PostgreSQL Databases.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-databases-postgresql-config
+
+        :returns: The JSON configuration options for PostgreSQL Databases.
+        """
+        return self.client.get("/databases/postgresql/config", model=self)
+
     def instances(self, *filters):
         """
         Returns a list of Managed Databases active on this account.
@@ -93,7 +119,15 @@ class DatabaseGroup(Group):
         """
         return self.client._get_and_filter(MySQLDatabase, *filters)
 
-    def mysql_create(self, label, region, engine, ltype, **kwargs):
+    def mysql_create(
+        self,
+        label,
+        region,
+        engine,
+        ltype,
+        engine_config: Union[MySQLDatabaseConfigOptions, Dict[str, Any]] = None,
+        **kwargs,
+    ):
         """
         Creates an :any:`MySQLDatabase` on this account with
         the given label, region, engine, and node type.  For example::
@@ -123,6 +157,8 @@ class DatabaseGroup(Group):
         :type engine: str or Engine
         :param ltype: The Linode Type to use for this cluster
         :type ltype: str or Type
+        :param engine_config: The configuration options for this MySQL cluster
+        :type engine_config: Dict[str, Any] or MySQLDatabaseConfigOptions
         """
 
         params = {
@@ -130,6 +166,7 @@ class DatabaseGroup(Group):
             "region": region,
             "engine": engine,
             "type": ltype,
+            "engine_config": engine_config,
         }
         params.update(kwargs)
 
@@ -216,7 +253,17 @@ class DatabaseGroup(Group):
         """
         return self.client._get_and_filter(PostgreSQLDatabase, *filters)
 
-    def postgresql_create(self, label, region, engine, ltype, **kwargs):
+    def postgresql_create(
+        self,
+        label,
+        region,
+        engine,
+        ltype,
+        engine_config: Union[
+            PostgreSQLDatabaseConfigOptions, Dict[str, Any]
+        ] = None,
+        **kwargs,
+    ):
         """
         Creates an :any:`PostgreSQLDatabase` on this account with
         the given label, region, engine, and node type.  For example::
@@ -246,6 +293,8 @@ class DatabaseGroup(Group):
         :type engine: str or Engine
         :param ltype: The Linode Type to use for this cluster
         :type ltype: str or Type
+        :param engine_config: The configuration options for this PostgreSQL cluster
+        :type engine_config: Dict[str, Any] or PostgreSQLDatabaseConfigOptions
         """
 
         params = {
@@ -253,6 +302,7 @@ class DatabaseGroup(Group):
             "region": region,
             "engine": engine,
             "type": ltype,
+            "engine_config": engine_config,
         }
         params.update(kwargs)
 
