@@ -20,4 +20,4 @@ class MaintenanceGroup(Group):
 
         result = self.client.get("/maintenance/policies", model=self)
 
-        return [MappedObject(**r) for r in result]
+        return [MappedObject(**r) for r in result["data"]]
