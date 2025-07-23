@@ -31,11 +31,11 @@ def retry_sending_request(
     for attempt in range(1, retries + 1):
         try:
             return condition(*args, **kwargs)
-        except ApiError:
+        except ApiError as e:
             if attempt == retries:
-                raise ApiError(
+                raise Exception(
                     "Api Error: Failed after all retry attempts"
-                ) from None
+                ) from e
             time.sleep(backoff)
 
 
