@@ -53,6 +53,43 @@ class LinearRetry(Retry):
 
 
 class BaseClient:
+    """
+    The base class for a client.
+
+    :param token: The authentication token to use for communication with the
+                  API.  Can be either a Personal Access Token or an OAuth Token.
+    :type token: str
+    :param base_url: The base URL for API requests.  Generally, you shouldn't
+                     change this.
+    :type base_url: str
+    :param user_agent: What to append to the User Agent of all requests made
+                       by this client.  Setting this allows Linode's internal
+                       monitoring applications to track the usage of your
+                       application.  Setting this is not necessary, but some
+                       applications may desire this behavior.
+    :type user_agent: str
+    :param page_size: The default size to request pages at.  If not given,
+                              the API's default page size is used.  Valid values
+                              can be found in the API docs, but at time of writing
+                              are between 25 and 500.
+    :type page_size: int
+    :param retry: Whether API requests should automatically be retries on known
+                  intermittent responses.
+    :type retry: bool
+    :param retry_rate_limit_interval: The amount of time to wait between HTTP request
+                                      retries.
+    :type retry_rate_limit_interval: Union[float, int]
+    :param retry_max: The number of request retries that should be attempted before
+                      raising an API error.
+    :type retry_max: int
+    :type retry_statuses: List of int
+    :param retry_statuses: Additional HTTP response statuses to retry on.
+                           By default, the client will retry on 408, 429, and 502
+                           responses.
+    :param ca_path: The path to a CA file to use for API requests in this client.
+    :type ca_path: str
+    """
+
     def __init__(
         self,
         token,

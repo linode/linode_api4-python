@@ -3,6 +3,7 @@ __all__ = [
     "MonitorMetricsDefinition",
     "MonitorService",
     "MonitorServiceToken",
+    "AggregateFunction",
 ]
 from dataclasses import dataclass, field
 from typing import List, Optional

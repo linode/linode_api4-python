@@ -3,10 +3,12 @@ __all__ = [
     "EntityMetricsData",
     "EntityMetricsDataResult",
     "EntityMetricsStats",
+    "EntityMetricOptions",
 ]
 from dataclasses import dataclass, field
 from typing import List, Optional
 
+from linode_api4.objects.monitor import AggregateFunction
 from linode_api4.objects.serializable import JSONObject
 
 
@@ -34,3 +36,9 @@ class EntityMetrics(JSONObject):
     isPartial: bool = False
     stats: Optional[EntityMetricsStats] = None
     status: str = ""
+
+
+@dataclass
+class EntityMetricOptions(JSONObject):
+    name: str = ""
+    aggregate_function: AggregateFunction = ""

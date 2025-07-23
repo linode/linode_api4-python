@@ -1,5 +1,7 @@
 from test.unit.base import MonitorClientBaseCase
 
+from linode_api4.objects import AggregateFunction, EntityMetricOptions
+
 
 class MonitorAPITest(MonitorClientBaseCase):
     """
@@ -14,8 +16,11 @@ class MonitorAPITest(MonitorClientBaseCase):
                 service_type,
                 entity_ids=[13217, 13316],
                 metrics=[
-                    {"name": "avg_read_iops", "aggregate": "avg"},
-                    {"name": "avg_cpu_usage", "aggregate": "avg"},
+                    EntityMetricOptions(
+                        name="avg_read_iops",
+                        aggregate_function=AggregateFunction("avg"),
+                    ),
+                    {"name": "avg_cpu_usage", "aggregate_function": "avg"},
                 ],
                 relative_time_duration={"unit": "hr", "value": 1},
             )
@@ -25,8 +30,8 @@ class MonitorAPITest(MonitorClientBaseCase):
             assert m.call_data == {
                 "entity_ids": [13217, 13316],
                 "metrics": [
-                    {"name": "avg_read_iops", "aggregate": "avg"},
-                    {"name": "avg_cpu_usage", "aggregate": "avg"},
+                    {"name": "avg_read_iops", "aggregate_function": "avg"},
+                    {"name": "avg_cpu_usage", "aggregate_function": "avg"},
                 ],
                 "relative_time_duration": {"unit": "hr", "value": 1},
             }
