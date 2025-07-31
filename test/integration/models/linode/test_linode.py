@@ -877,3 +877,47 @@ class TestNetworkInterface:
 
         # returns true when delete successful
         assert result
+
+
+def test_create_linode_with_maintenance_policy(test_linode_client):
+    client = test_linode_client
+    region = get_region(client, {"Linodes"}, site_type="core")
+    label = get_test_label()
+
+    policies = client.maintenance.maintenance_policies()
+    assert policies, "No maintenance policies returned from API"
+
+    non_default_policy = next((p for p in policies if not p.is_default), None)
+    assert non_default_policy, "No non-default maintenance policy available"
+
+    linode_instance, password = client.linode.instance_create(
+        "g6-nanode-1",
+        region,
+        image="linode/debian12",
+        label=label + "_with_policy",
+        maintenance_policy_id=non_default_policy.slug,
+    )
+
+    assert linode_instance.id is not None
+    assert linode_instance.label.startswith(label)
+    assert linode_instance.maintenance_policy == non_default_policy.slug
+
+    linode_instance.delete()
+
+
+def test_update_linode_maintenance_policy(create_linode, test_linode_client):
+    client = test_linode_client
+    linode = create_linode
+
+    policies = client.maintenance.maintenance_policies()
+    assert policies, "No maintenance policies returned from API"
+
+    non_default_policy = next((p for p in policies if not p.is_default), None)
+    assert non_default_policy, "No non-default maintenance policy found"
+
+    linode.maintenance_policy_id = non_default_policy.slug
+    result = linode.save()
+
+    linode.invalidate()
+    assert result
+    assert linode.maintenance_policy_id == non_default_policy.slug
