@@ -299,6 +299,8 @@ class LinodeGroup(Group):
         :type placement_group: Union[InstancePlacementGroupAssignment, PlacementGroup, Dict[str, Any], int]
         :param maintenance_policy: The slug of the maintenance policy to apply during maintenance.
                                       If not provided, the default policy (linode/migrate) will be applied.
+                                      NOTE: This field is in beta and may only
+                            function if base_url is set to `https://api.linode.com/v4beta`.
         :type maintenance_policy: str
 
         :returns: A new Instance object, or a tuple containing the new Instance and

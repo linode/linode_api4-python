@@ -9,6 +9,8 @@ class MaintenanceGroup(Group):
 
     def maintenance_policies(self):
         """
+        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+
         Returns a collection of MaintenancePolicy objects representing
         available maintenance policies that can be applied to Linodes
 
