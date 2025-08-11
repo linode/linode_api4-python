@@ -14,6 +14,7 @@ from linode_api4 import (
     LinodeInterfacePublicIPv6RangeOptions,
     LinodeInterfacePublicOptions,
     LinodeInterfaceVLANOptions,
+    LinodeInterfaceVPCIPv4AddressOptions,
     LinodeInterfaceVPCIPv4Options,
     LinodeInterfaceVPCIPv4RangeOptions,
     LinodeInterfaceVPCOptions,
@@ -68,6 +69,13 @@ def test_linode_create_with_linode_interfaces(
         assert iface.vpc.ipv4.addresses[0].nat_1_1_address is None
 
         assert len(iface.vpc.ipv4.ranges) == 0
+
+        slaac_entry = iface.vpc.ipv6.slaac[0]
+        assert ipaddress.ip_address(
+            slaac_entry.address
+        ) in ipaddress.ip_network(slaac_entry.range)
+        assert not iface.vpc.ipv6.is_public
+        assert len(iface.vpc.ipv6.ranges) == 0
 
     def __assert_vlan(iface: LinodeInterface):
         __assert_base(iface)
@@ -145,19 +153,18 @@ def linode_interface_vpc(
         vpc=LinodeInterfaceVPCOptions(
             subnet_id=subnet.id,
             ipv4=LinodeInterfaceVPCIPv4Options(
-                # TODO (Enhanced Interfaces): Not currently working as expected
-                # addresses=[
-                #     LinodeInterfaceVPCIPv4AddressOptions(
-                #         address="auto",
-                #         primary=True,
-                #         nat_1_1_address="any",
-                #     )
-                # ],
+                addresses=[
+                    LinodeInterfaceVPCIPv4AddressOptions(
+                        address="auto",
+                        primary=True,
+                        nat_1_1_address=None,
+                    )
+                ],
                 ranges=[
                     LinodeInterfaceVPCIPv4RangeOptions(
                         range="/29",
                     )
-                ]
+                ],
             ),
         ),
     ), instance, vpc, subnet
@@ -256,7 +263,7 @@ def test_linode_interface_create_vpc(linode_interface_vpc):
     assert iface.version
 
     assert iface.default_route.ipv4
-    assert not iface.default_route.ipv6
+    assert iface.default_route.ipv6
 
     assert iface.vpc.vpc_id == vpc.id
     assert iface.vpc.subnet_id == subnet.id
@@ -266,6 +273,16 @@ def test_linode_interface_create_vpc(linode_interface_vpc):
     assert iface.vpc.ipv4.addresses[0].nat_1_1_address is None
 
     assert iface.vpc.ipv4.ranges[0].range.split("/")[1] == "29"
+
+    assert iface.default_route.ipv6
+    ipv6 = iface.vpc.ipv6
+    assert ipv6 and ipv6.is_public is False
+
+    if ipv6.slaac:
+        assert ipv6.ranges == [] and len(ipv6.slaac) == 1
+        assert ipv6.slaac[0].range and ipv6.slaac[0].address
+    elif ipv6.ranges:
+        assert ipv6.slaac == [] and len(ipv6.ranges) > 0
 
 
 def test_linode_interface_update_vpc(linode_interface_vpc):
