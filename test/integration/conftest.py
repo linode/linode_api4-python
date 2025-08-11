@@ -5,15 +5,21 @@ import time
 from test.integration.helpers import (
     get_test_label,
     send_request_when_resource_available,
+    wait_for_condition,
 )
+from test.integration.models.database.helpers import get_db_engine_id
 from typing import Optional, Set
 
 import pytest
 import requests
 from requests.exceptions import ConnectionError, RequestException
 
-from linode_api4 import PlacementGroupPolicy, PlacementGroupType
-from linode_api4.linode_client import LinodeClient
+from linode_api4 import (
+    PlacementGroupPolicy,
+    PlacementGroupType,
+    PostgreSQLDatabase,
+)
+from linode_api4.linode_client import LinodeClient, MonitorClient
 from linode_api4.objects import Region
 
 ENV_TOKEN_NAME = "LINODE_TOKEN"
@@ -521,3 +527,68 @@ def linode_for_vlan_tests(test_linode_client, e2e_test_firewall):
     yield linode_instance
 
     linode_instance.delete()
+
+
+@pytest.fixture(scope="session")
+def test_create_postgres_db(test_linode_client):
+    client = test_linode_client
+    label = get_test_label() + "-postgresqldb"
+    region = "us-ord"
+    engine_id = get_db_engine_id(client, "postgresql")
+    dbtype = "g6-standard-1"
+
+    db = client.database.postgresql_create(
+        label=label,
+        region=region,
+        engine=engine_id,
+        ltype=dbtype,
+        cluster_size=None,
+    )
+
+    def get_db_status():
+        return db.status == "active"
+
+    # TAKES 15-30 MINUTES TO FULLY PROVISION DB
+    wait_for_condition(60, 2000, get_db_status)
+
+    yield db
+
+    send_request_when_resource_available(300, db.delete)
+
+
+@pytest.fixture(scope="session")
+def get_monitor_token_for_db_entities(test_linode_client):
+    client = test_linode_client
+
+    dbs = client.database.postgresql_instances()
+
+    if len(dbs) < 1:
+        db_id = test_create_postgres_db.id
+    else:
+        db_id = dbs[0].id
+
+    region = client.load(PostgreSQLDatabase, db_id).region
+    dbs = client.database.instances()
+
+    # only collect entity_ids in the same region
+    entity_ids = [db.id for db in dbs if db.region == region]
+
+    # create token for the particular service
+    token = client.monitor.create_token(
+        service_type="dbaas", entity_ids=entity_ids
+    )
+
+    yield token, entity_ids
+
+
+@pytest.fixture(scope="session")
+def test_monitor_client(get_monitor_token_for_db_entities):
+    api_ca_file = get_api_ca_file()
+    token, entity_ids = get_monitor_token_for_db_entities
+
+    client = MonitorClient(
+        token.token,
+        ca_path=api_ca_file,
+    )
+
+    return client, entity_ids
