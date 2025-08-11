@@ -690,8 +690,6 @@ def test_linode_upgrade_interfaces(
 
     def __assert_vlan(iface: LinodeInterface):
         __assert_base(iface)
-        print(iface.__dict__)
-        print(vars(iface.default_route))
 
         assert not iface.default_route.ipv4
         assert not iface.default_route.ipv6
