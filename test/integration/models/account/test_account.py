@@ -79,6 +79,12 @@ def test_update_maintenance_policy(test_linode_client):
     updated = client.load(AccountSettings(client, ""), "")
     assert updated.maintenance_policy == new_policy
 
+    settings.maintenance_policy = original_policy
+    settings.save()
+
+    updated = client.load(AccountSettings(client, ""), "")
+    assert updated.maintenance_policy == original_policy
+
 
 @pytest.mark.smoke
 def test_latest_get_event(test_linode_client, e2e_test_firewall):
