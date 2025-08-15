@@ -59,6 +59,31 @@ def test_get_account_settings(test_linode_client):
     assert "longview_subscription" in str(account_settings._raw_json)
     assert "backups_enabled" in str(account_settings._raw_json)
     assert "object_storage" in str(account_settings._raw_json)
+    assert "maintenance_policy" in str(account_settings._raw_json)
+
+
+def test_update_maintenance_policy(test_linode_client):
+    client = test_linode_client
+    settings = client.load(AccountSettings(client, ""), "")
+
+    original_policy = settings.maintenance_policy
+    new_policy = (
+        "linode/power_off_on"
+        if original_policy == "linode/migrate"
+        else "linode/migrate"
+    )
+
+    settings.maintenance_policy = new_policy
+    settings.save()
+
+    updated = client.load(AccountSettings(client, ""), "")
+    assert updated.maintenance_policy == new_policy
+
+    settings.maintenance_policy = original_policy
+    settings.save()
+
+    updated = client.load(AccountSettings(client, ""), "")
+    assert updated.maintenance_policy == original_policy
 
 
 @pytest.mark.smoke
