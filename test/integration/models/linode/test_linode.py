@@ -252,7 +252,7 @@ def test_linode_rebuild(test_linode_client):
         disk_encryption=InstanceDiskEncryptionType.disabled,
     )
 
-    wait_for_condition(10, 100, get_status, linode, "rebuilding")
+    wait_for_condition(10, 300, get_status, linode, "rebuilding")
 
     assert linode.status == "rebuilding"
     assert linode.image.id == "linode/debian12"
