@@ -881,6 +881,7 @@ class TestNetworkInterface:
 
 def test_create_linode_with_maintenance_policy(test_linode_client):
     client = test_linode_client
+    # TODO: Replace with random region after GA
     region = "eu-central"
     label = get_test_label()
 
