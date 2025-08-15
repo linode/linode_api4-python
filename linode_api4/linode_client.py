@@ -400,6 +400,10 @@ class LinodeClient(BaseClient):
         #: :any:`NetworkingGroup` for more information
         self.networking = NetworkingGroup(self)
 
+        #: Access methods related to maintenance on your account - see
+        #: :any:`MaintenanceGroup` for more information
+        self.maintenance = MaintenanceGroup(self)
+
         #: Access methods related to support - see :any:`SupportGroup` for more
         #: information
         self.support = SupportGroup(self)
