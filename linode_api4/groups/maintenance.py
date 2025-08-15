@@ -14,7 +14,7 @@ class MaintenanceGroup(Group):
         Returns a collection of MaintenancePolicy objects representing
         available maintenance policies that can be applied to Linodes
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-policies
 
         :returns: A list of Maintenance Policies that can be applied to Linodes
         :rtype: List of MaintenancePolicy objects as MappedObjects
