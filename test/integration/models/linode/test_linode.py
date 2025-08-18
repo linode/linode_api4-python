@@ -882,7 +882,7 @@ class TestNetworkInterface:
 def test_create_linode_with_maintenance_policy(test_linode_client):
     client = test_linode_client
     # TODO: Replace with random region after GA
-    region = "eu-central"
+    region = "ap-south"
     label = get_test_label()
 
     policies = client.maintenance.maintenance_policies()
@@ -896,7 +896,7 @@ def test_create_linode_with_maintenance_policy(test_linode_client):
         region,
         image="linode/debian12",
         label=label + "_with_policy",
-        maintenance_policy_id=non_default_policy.slug,
+        maintenance_policy=non_default_policy.slug,
     )
 
     assert linode_instance.id is not None
