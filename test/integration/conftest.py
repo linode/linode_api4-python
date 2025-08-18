@@ -557,7 +557,9 @@ def test_create_postgres_db(test_linode_client):
 
 
 @pytest.fixture(scope="session")
-def get_monitor_token_for_db_entities(test_linode_client, test_create_postgres_db):
+def get_monitor_token_for_db_entities(
+    test_linode_client, test_create_postgres_db
+):
     client = test_linode_client
 
     dbs = client.database.postgresql_instances()
