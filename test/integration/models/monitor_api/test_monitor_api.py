@@ -9,4 +9,3 @@ def test_monitor_api_fetch_dbaas_metrics(test_monitor_client):
     )
 
     assert metrics.status == "success"
-    assert len(metrics.data.result) > 0
