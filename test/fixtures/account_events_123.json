@@ -1,27 +1,31 @@
 {
-    "action": "ticket_create",
-    "created": "2018-01-01T00:01:01",
-    "duration": 300.56,
-    "entity": {
-      "id": 11111,
-      "label": "Problem booting my Linode",
-      "type": "ticket",
-      "url": "/v4/support/tickets/11111"
-    },
-    "id": 123,
-    "message": "None",
-    "percent_complete": null,
-    "rate": null,
-    "read": true,
-    "secondary_entity": {
-      "id": "linode/debian9",
-      "label": "linode1234",
-      "type": "linode",
-      "url": "/v4/linode/instances/1234"
-    },
-    "seen": true,
-    "status": null,
-    "time_remaining": null,
-    "username": "exampleUser"
-  }
-  
+  "action": "ticket_create",
+  "created": "2025-03-25T12:00:00",
+  "duration": 300.56,
+  "entity": {
+    "id": 11111,
+    "label": "Problem booting my Linode",
+    "type": "ticket",
+    "url": "/v4/support/tickets/11111"
+  },
+  "id": 123,
+  "message": "Ticket created for user issue.",
+  "percent_complete": null,
+  "rate": null,
+  "read": true,
+  "secondary_entity": {
+    "id": "linode/debian9",
+    "label": "linode1234",
+    "type": "linode",
+    "url": "/v4/linode/instances/1234"
+  },
+  "seen": true,
+  "status": "completed",
+  "username": "exampleUser",
+  "maintenance_policy_set": "Tentative",
+  "description": "Scheduled maintenance",
+  "source": "user",
+  "not_before": "2025-03-25T12:00:00",
+  "start_time": "2025-03-25T12:30:00",
+  "complete_time": "2025-03-25T13:00:00"
+}
