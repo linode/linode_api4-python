@@ -51,6 +51,7 @@ class LKETest(ClientBaseCase):
         assert pool.id == 456
         assert pool.cluster_id == 18881
         assert pool.type.id == "g6-standard-4"
+        assert pool.label == "example-node-pool"
         assert pool.disk_encryption == InstanceDiskEncryptionType.enabled
 
         assert pool.disks is not None
@@ -162,6 +163,7 @@ class LKETest(ClientBaseCase):
         self.assertEqual(pool.id, 456)
         self.assertEqual(pool.cluster_id, 18881)
         self.assertEqual(pool.type.id, "g6-standard-4")
+        self.assertEqual(pool.label, "example-node-pool")
         self.assertIsNotNone(pool.disks)
         self.assertIsNotNone(pool.nodes)
         self.assertIsNotNone(pool.autoscaler)
@@ -251,6 +253,7 @@ class LKETest(ClientBaseCase):
 
         pool.tags = ["foobar"]
         pool.count = 5
+        pool.label = "testing-label"
         pool.autoscaler = {
             "enabled": True,
             "min": 2,
@@ -266,6 +269,8 @@ class LKETest(ClientBaseCase):
         with self.mock_put("lke/clusters/18881/pools/456") as m:
             pool.save()
 
+            print(m.call_data)
+
             assert m.call_data == {
                 "tags": ["foobar"],
                 "count": 5,
@@ -274,6 +279,7 @@ class LKETest(ClientBaseCase):
                     "min": 2,
                     "max": 10,
                 },
+                "label": "testing-label",
                 "labels": {
                     "updated-key": "updated-value",
                 },
@@ -546,6 +552,7 @@ class LKETest(ClientBaseCase):
         pool = LKENodePool(self.client, 789, 18882)
         assert pool.k8s_version == "1.31.1+lke1"
         assert pool.update_strategy == "rolling_update"
+        assert pool.label == "enterprise-node-pool"
 
     def test_lke_tiered_version(self):
         version = TieredKubeVersion(self.client, "1.32", "standard")
