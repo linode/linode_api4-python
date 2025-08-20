@@ -49,6 +49,7 @@ class ServiceType(StrEnum):
     firewall = "firewall"
     object_storage = "object_storage"
     aclb = "aclb"
+    netloadbalancer = "netloadbalancer"
 
 
 class MetricType(StrEnum):
@@ -82,6 +83,10 @@ class MetricUnit(StrEnum):
     RATIO = "ratio"
     OPS_PER_SECOND = "ops_per_second"
     IOPS = "iops"
+    KILO_BYTES_PER_SECOND = "kilo_bytes_per_second"
+    SESSIONS_PER_SECOND = "sessions_per_second"
+    PACKETS_PER_SECOND = "packets_per_second"
+    KILO_BITS_PER_SECOND = "kilo_bits_per_second"
 
 
 class DashboardType(StrEnum):
@@ -91,6 +96,17 @@ class DashboardType(StrEnum):
 
     standard = "standard"
     custom = "custom"
+
+
+@dataclass
+class Filter(JSONObject):
+    """
+    Represents a filter in the filters list of a dashboard widget.
+    """
+
+    dimension_label: str = ""
+    operator: str = ""
+    value: str = ""
 
 
 @dataclass
@@ -107,6 +123,19 @@ class DashboardWidget(JSONObject):
     chart_type: ChartType = ""
     y_label: str = ""
     aggregate_function: AggregateFunction = ""
+    group_by: List[str] = field(default_factory=list)
+    filters: Optional[List[Filter]] = None
+
+
+@dataclass
+class ServiceAlert(JSONObject):
+    """
+    Represents alert configuration options for a monitor service.
+    """
+
+    polling_interval_seconds: List[int] = field(default_factory=list)
+    evaluation_period_seconds: List[int] = field(default_factory=list)
+    scope: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -154,7 +183,7 @@ class MonitorDashboard(Base):
         "label": Property(),
         "service_type": Property(ServiceType),
         "type": Property(DashboardType),
-        "widgets": Property(List[DashboardWidget]),
+        "widgets": Property(json_object=DashboardWidget),
         "updated": Property(is_datetime=True),
     }
 
@@ -171,6 +200,7 @@ class MonitorService(Base):
     properties = {
         "service_type": Property(ServiceType),
         "label": Property(),
+        "alert": Property(json_object=ServiceAlert),
     }
 
 

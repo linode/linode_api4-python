@@ -16,6 +16,24 @@ class RegionPlacementGroupLimits(JSONObject):
     maximum_linodes_per_pg: int = 0
 
 
+@dataclass
+class RegionMonitors(JSONObject):
+    """
+    Represents the monitor services available in a region.
+    Lists the services in this region that support metrics and alerts
+    use with Akamai Cloud Pulse (ACLP).
+    """
+
+    alerts: list[str] | None = None
+    metrics: list[str] | None = None
+
+    def __post_init__(self):
+        if self.alerts is None:
+            self.alerts = []
+        if self.metrics is None:
+            self.metrics = []
+
+
 class Region(Base):
     """
     A Region. Regions correspond to individual data centers, each located in a different geographical area.
@@ -35,6 +53,7 @@ class Region(Base):
         "placement_group_limits": Property(
             json_object=RegionPlacementGroupLimits
         ),
+        "monitors": Property(json_object=RegionMonitors),
     }
 
     @property

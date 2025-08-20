@@ -41,6 +41,8 @@ class MonitorTest(ClientBaseCase):
         self.assertEqual(dashboard.widgets[0].size, 12)
         self.assertEqual(dashboard.widgets[0].unit, "%")
         self.assertEqual(dashboard.widgets[0].y_label, "cpu_usage")
+        self.assertEqual(dashboard.widgets[0].group_by, ["entity_id"])
+        self.assertIsNone(dashboard.widgets[0].filters)
 
     def test_dashboard_by_service_type(self):
         dashboards = self.client.monitor.dashboards(service_type="dbaas")
@@ -62,6 +64,21 @@ class MonitorTest(ClientBaseCase):
         self.assertEqual(dashboards[0].widgets[0].size, 12)
         self.assertEqual(dashboards[0].widgets[0].unit, "%")
         self.assertEqual(dashboards[0].widgets[0].y_label, "cpu_usage")
+        self.assertEqual(dashboards[0].widgets[0].group_by, ["entity_id"])
+        self.assertIsNone(dashboards[0].widgets[0].filters)
+
+        # Test the second widget which has filters
+        self.assertEqual(dashboards[0].widgets[1].label, "Memory Usage")
+        self.assertEqual(dashboards[0].widgets[1].group_by, ["entity_id"])
+        self.assertIsNotNone(dashboards[0].widgets[1].filters)
+        self.assertEqual(len(dashboards[0].widgets[1].filters), 1)
+        self.assertEqual(
+            dashboards[0].widgets[1].filters[0].dimension_label, "pattern"
+        )
+        self.assertEqual(dashboards[0].widgets[1].filters[0].operator, "in")
+        self.assertEqual(
+            dashboards[0].widgets[1].filters[0].value, "publicout,privateout"
+        )
 
     def test_get_all_dashboards(self):
         dashboards = self.client.monitor.dashboards()
@@ -83,11 +100,19 @@ class MonitorTest(ClientBaseCase):
         self.assertEqual(dashboards[0].widgets[0].size, 12)
         self.assertEqual(dashboards[0].widgets[0].unit, "%")
         self.assertEqual(dashboards[0].widgets[0].y_label, "cpu_usage")
+        self.assertEqual(dashboards[0].widgets[0].group_by, ["entity_id"])
+        self.assertIsNone(dashboards[0].widgets[0].filters)
 
     def test_specific_service_details(self):
         data = self.client.load(MonitorService, "dbaas")
         self.assertEqual(data.label, "Databases")
         self.assertEqual(data.service_type, "dbaas")
+
+        # Test alert configuration
+        self.assertIsNotNone(data.alert)
+        self.assertEqual(data.alert.polling_interval_seconds, [300])
+        self.assertEqual(data.alert.evaluation_period_seconds, [300])
+        self.assertEqual(data.alert.scope, ["entity"])
 
     def test_metric_definitions(self):
 
@@ -96,16 +121,16 @@ class MonitorTest(ClientBaseCase):
             metrics[0].available_aggregate_functions,
             ["max", "avg", "min", "sum"],
         )
-        self.assertEqual(metrics[0].is_alertable, True)
+        self.assertTrue(metrics[0].is_alertable)
         self.assertEqual(metrics[0].label, "CPU Usage")
         self.assertEqual(metrics[0].metric, "cpu_usage")
         self.assertEqual(metrics[0].metric_type, "gauge")
         self.assertEqual(metrics[0].scrape_interval, "60s")
         self.assertEqual(metrics[0].unit, "percent")
-        self.assertEqual(metrics[0].dimensions[0].dimension_label, "node_type")
-        self.assertEqual(metrics[0].dimensions[0].label, "Node Type")
+        self.assertEqual(metrics[0].dimensions[0]["dimension_label"], "node_type")
+        self.assertEqual(metrics[0].dimensions[0]["label"], "Node Type")
         self.assertEqual(
-            metrics[0].dimensions[0].values, ["primary", "secondary"]
+            metrics[0].dimensions[0]["values"], ["primary", "secondary"]
         )
 
     def test_create_token(self):

@@ -125,6 +125,14 @@
         "Block Storage",
         "Object Storage"
       ],
+      "monitors": {
+          "alerts": [
+              "Managed Databases"
+          ],
+          "metrics": [
+              "Managed Databases"
+          ]
+      },
       "status": "ok",
       "resolvers": {
         "ipv4": "66.228.42.5,96.126.106.5,50.116.53.5,50.116.58.5,50.116.61.5,50.116.62.5,66.175.211.5,97.107.133.4,207.192.69.4,207.192.69.5",
