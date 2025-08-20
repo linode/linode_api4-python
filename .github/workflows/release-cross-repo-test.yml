@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout linode_api4 repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           submodules: 'recursive'
@@ -30,7 +30,7 @@ jobs:
           python-version: '3.10'
 
       - name: Checkout ansible repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: linode/ansible_linode
           path: .ansible/collections/ansible_collections/linode/cloud
