@@ -13,7 +13,7 @@ from linode_api4.objects import (
     Property,
     Region,
     Type,
-) 
+)
 from linode_api4.objects.base import _flatten_request_body_recursive
 from linode_api4.util import drop_null_keys
 
@@ -460,11 +460,6 @@ class LKECluster(Base):
             "update_strategy": update_strategy,
         }
         params.update(kwargs)
-
-        print(params)
-        print("-----")
-        print(drop_null_keys(_flatten_request_body_recursive(params)))
-        # exit(0)
 
         result = self._client.post(
             "{}/pools".format(LKECluster.api_endpoint),

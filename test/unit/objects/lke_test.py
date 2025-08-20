@@ -269,8 +269,6 @@ class LKETest(ClientBaseCase):
         with self.mock_put("lke/clusters/18881/pools/456") as m:
             pool.save()
 
-            print(m.call_data)
-
             assert m.call_data == {
                 "tags": ["foobar"],
                 "count": 5,
