@@ -10,6 +10,7 @@ def test_get_vpc(test_linode_client, create_vpc):
     vpc = test_linode_client.load(VPC, create_vpc.id)
     test_linode_client.vpcs()
     assert vpc.id == create_vpc.id
+    assert isinstance(vpc.ipv6[0].range, str)
 
 
 @pytest.mark.smoke
@@ -31,7 +32,11 @@ def test_update_vpc(test_linode_client, create_vpc):
 def test_get_subnet(test_linode_client, create_vpc_with_subnet):
     vpc, subnet = create_vpc_with_subnet
     loaded_subnet = test_linode_client.load(VPCSubnet, subnet.id, vpc.id)
-
+    assert loaded_subnet.ipv4 == subnet.ipv4
+    assert loaded_subnet.ipv6 is not None
+    assert loaded_subnet.ipv6[0].range.startswith(
+        vpc.ipv6[0].range.split("::")[0]
+    )
     assert loaded_subnet.id == subnet.id
 
 
@@ -88,7 +93,9 @@ def test_fails_create_subnet_invalid_data(create_vpc):
         create_vpc.subnet_create("test-subnet", ipv4=invalid_ipv4)
 
     assert excinfo.value.status == 400
-    assert "ipv4 must be an IPv4 network" in str(excinfo.value.json)
+    error_msg = str(excinfo.value.json)
+
+    assert "Must be an IPv4 network" in error_msg
 
 
 def test_fails_update_subnet_invalid_data(create_vpc_with_subnet):
@@ -101,3 +108,35 @@ def test_fails_update_subnet_invalid_data(create_vpc_with_subnet):
 
     assert excinfo.value.status == 400
     assert "Label must include only ASCII" in str(excinfo.value.json)
+
+
+def test_fails_create_subnet_with_invalid_ipv6_range(create_vpc):
+    valid_ipv4 = "10.0.0.0/24"
+    invalid_ipv6 = [{"range": "2600:3c11:e5b9::/5a"}]
+
+    with pytest.raises(ApiError) as excinfo:
+        create_vpc.subnet_create(
+            label="bad-ipv6-subnet",
+            ipv4=valid_ipv4,
+            ipv6=invalid_ipv6,
+        )
+
+    assert excinfo.value.status == 400
+    error = excinfo.value.json["errors"]
+
+    assert any(
+        e["field"] == "ipv6[0].range"
+        and "Must be an IPv6 network" in e["reason"]
+        for e in error
+    )
+
+
+def test_get_vpc_ipv6s(test_linode_client):
+    ipv6s = test_linode_client.get("/vpcs/ipv6s")["data"]
+
+    assert isinstance(ipv6s, list)
+
+    for ipv6 in ipv6s:
+        assert "vpc_id" in ipv6
+        assert isinstance(ipv6["ipv6_range"], str)
+        assert isinstance(ipv6["ipv6_addresses"], list)
