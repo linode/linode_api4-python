@@ -723,6 +723,9 @@ class Instance(Base):
         "lke_cluster_id": Property(),
         "capabilities": Property(unordered=True),
         "interface_generation": Property(),
+        "maintenance_policy": Property(
+            mutable=True
+        ),  # Note: This field is only available when using v4beta.
     }
 
     @property

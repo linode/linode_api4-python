@@ -163,6 +163,7 @@ class LinodeGroup(Group):
         ] = None,
         interface_generation: Optional[Union[InterfaceGeneration, str]] = None,
         network_helper: Optional[bool] = None,
+        maintenance_policy: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -334,6 +335,11 @@ class LinodeGroup(Group):
         :type interface_generation: InterfaceGeneration or str
         :param network_helper: Whether this instance should have Network Helper enabled.
         :type network_helper: bool
+        :param maintenance_policy: The slug of the maintenance policy to apply during maintenance.
+                                      If not provided, the default policy (linode/migrate) will be applied.
+                                      NOTE: This field is in beta and may only
+                            function if base_url is set to `https://api.linode.com/v4beta`.
+        :type maintenance_policy: str
 
         :returns: A new Instance object, or a tuple containing the new Instance and
                   the generated password.
@@ -358,6 +364,7 @@ class LinodeGroup(Group):
             "firewall_id": firewall,
             "backup_id": backup,
             "stackscript_id": stackscript,
+            "maintenance_policy": maintenance_policy,
             # Special cases
             "disk_encryption": (
                 str(disk_encryption) if disk_encryption else None

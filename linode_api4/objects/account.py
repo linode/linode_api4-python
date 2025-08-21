@@ -218,6 +218,9 @@ class AccountSettings(Base):
         "object_storage": Property(),
         "backups_enabled": Property(mutable=True),
         "interfaces_for_new_linodes": Property(mutable=True),
+        "maintenance_policy": Property(
+            mutable=True
+        ),  # Note: This field is only available when using v4beta.
     }
 
 
@@ -240,12 +243,18 @@ class Event(Base):
         "user_id": Property(),
         "username": Property(),
         "entity": Property(),
-        "time_remaining": Property(),
+        "time_remaining": Property(),  # Deprecated
         "rate": Property(),
         "status": Property(),
         "duration": Property(),
         "secondary_entity": Property(),
         "message": Property(),
+        "maintenance_policy_set": Property(),  # Note: This field is only available when using v4beta.
+        "description": Property(),
+        "source": Property(),
+        "not_before": Property(is_datetime=True),
+        "start_time": Property(is_datetime=True),
+        "complete_time": Property(is_datetime=True),
     }
 
     @property

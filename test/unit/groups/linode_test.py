@@ -131,6 +131,20 @@ class LinodeTest(ClientBaseCase):
                 "interfaces": [iface._serialize() for iface in interfaces],
             }
 
+def test_create_with_maintenance_policy(self):
+        """
+        Tests that you can create a Linode with a maintenance policy
+        """
+
+        with self.mock_post("linode/instances/123") as m:
+            self.client.linode.instance_create(
+                "g6-nanode-1",
+                "eu-west",
+                maintenance_policy="linode/migrate",
+            )
+
+        self.assertEqual(m.call_data["maintenance_policy"], "linode/migrate")
+
 
 class TypeTest(ClientBaseCase):
     def test_get_types(self):

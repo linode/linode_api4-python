@@ -5,4 +5,5 @@
   "object_storage": "active",
   "backups_enabled": true,
   "interfaces_for_new_linodes": "linode_default_but_legacy_config_allowed"
+  "maintenance_policy": "linode/migrate"
 }

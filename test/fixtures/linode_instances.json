@@ -50,7 +50,8 @@
         "label": "test",
         "placement_group_type": "anti_affinity:local",
         "placement_group_policy": "strict"
-      }
+      },
+      "maintenance_policy" : "linode/migrate"
     },
     {
       "group": "test",
@@ -138,6 +139,8 @@
       "lke_cluster_id": null,
       "placement_group": null,
       "interface_generation": "linode"
+      "placement_group": null,
+      "maintenance_policy" : "linode/power_off_on"
     }
   ]
 }
