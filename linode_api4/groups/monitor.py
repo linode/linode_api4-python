@@ -1,7 +1,7 @@
 __all__ = [
     "MonitorGroup",
 ]
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from linode_api4 import PaginatedList
 from linode_api4.errors import UnexpectedResponseError
@@ -11,8 +11,10 @@ from linode_api4.objects import (
     MonitorMetricsDefinition,
     MonitorService,
     MonitorServiceToken,
-    AlertDefinition
+    AlertDefinition,
+    AlertChannel,
 )
+
 
 class MonitorGroup(Group):
     """
@@ -115,41 +117,202 @@ class MonitorGroup(Group):
         )
     
     def alert_definitions(
-        self, service_type: Optional[str]=None, alert_id:Optional[str]= None, *filters, 
-    ) -> list[AlertDefinition]:
+        self,
+        service_type: Optional[str] = None,
+        alert_id: Optional[int] = None,
+        *filters,
+    ) -> Union["PaginatedList", "AlertDefinition"]:
         """
-        Returns all alert definitions for a service type in a paginated form.
+        Returns one or more alert definitions.
             alert_definitions = client.monitor.alert_definitions()
-            alert_definition = client.monitor.alert_definitions(service_type:"dbaas",alert_id="1234")
-            alert_definitions_for_service_type = client.monitor.alert_definitions(service_type:"dbaas")
+            alert_definition = client.monitor.alert_definitions(service_type="dbaas", alert_id=1234)
+            alert_definitions_for_service_type = client.monitor.alert_definitions(service_type="dbaas")
         .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
 
-        API Documentation: 
+        API Documentation:
             https://techdocs.akamai.com/linode-api/reference/get-alert-definition
             https://techdocs.akamai.com/linode-api/reference/get-alert-definitions
             https://techdocs.akamai.com/linode-api/reference/get-alert-definitions-for-service-type
 
         :param service_type: The service type to get alert defintions for.
         :type service_type: str
-        :param alert_id:  alert_id of the to get alert definitions, should be provided with service_type
-        :type alert_id: str
+        :param alert_id:  The ID of the alert definition to look up.
+        :type alert_id: int
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
                         for more details on filtering.
 
-        :returns: Returns a alert definition(s) based on the input
-        :rtype: PaginatedList of definitions
+        :returns: An alert definition or a list of alert definitions.
+        :rtype: Union[AlertDefinition, PaginatedList[AlertDefinition]]
         """
 
         if alert_id is not None and service_type is None:
-            raise ValueError("service_type must be provided when alert_id is specified")
-        
+            raise ValueError(
+                "service_type must be provided when alert_id is specified"
+            )
+
+        endpoint = "/monitor/alert-definitions"
+        if service_type:
+            endpoint = f"/monitor/services/{service_type}/alert-definitions"
+            if alert_id:
+                endpoint = f"{endpoint}/{alert_id}"
+                # Requesting a single object
+                result = self.client.get(endpoint)
+                return AlertDefinition(self.client, alert_id, result)
+
+        # Requesting a list
         return self.client._get_and_filter(
-            AlertDefinition,
-            *filters,
-            endpoint=f"/monitor/services/{service_type}/alert-definitions/{alert_id}",
+            AlertDefinition, *filters, endpoint=endpoint
         )
-    
+
+    def alert_channels(self, *filters) -> PaginatedList:
+        """
+        Returns a list of alert channels.
+
+        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-alert-channels
+
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
+
+        :returns: A list of AlertChannels.
+        :rtype: PaginatedList of AlertChannel
+        """
+        return self.client._get_and_filter(AlertChannel, *filters)
+
+    def create_alert_definition(
+        self,
+        service_type: str,
+        label: str,
+        severity: str,
+        type: str,
+        description: Optional[str] = None,
+        conditions: Optional[list] = None,
+        notification_groups: Optional[list[int]] = None,
+    ) -> "AlertDefinition":
+        """
+        Creates a new alert definition for a specific service type.
+
+        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-alert-definition-for-service-type
+
+        :param service_type: The service type for which to create the alert definition.
+        :type service_type: str
+        :param label: The label for the new alert definition.
+        :type label: str
+        :param severity: The severity of the alert.
+        :type severity: str
+        :param type: The type of alert.
+        :type type: str
+        :param description: A description for the new alert definition.
+        :type description: Optional[str]
+        :param conditions: The conditions for the alert.
+        :type conditions: Optional[list]
+        :param notification_groups: A list of notification group IDs.
+        :type notification_groups: Optional[list[int]]
+
+        :returns: The newly created AlertDefinition.
+        :rtype: AlertDefinition
+        """
+        params = {
+            "label": label,
+            "severity": severity,
+            "type": type,
+        }
+        if description is not None:
+            params["description"] = description
+        if conditions is not None:
+            params["conditions"] = conditions
+        if notification_groups is not None:
+            params["notification_groups"] = notification_groups
+
+        result = self.client.post(
+            f"/monitor/services/{service_type}/alert-definitions", data=params
+        )
+
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating alert definition!",
+                json=result,
+            )
+
+        return AlertDefinition(self.client, result["id"], result)
+
+    def update_alert_definition(
+        self,
+        service_type: str,
+        alert_id: int,
+        label: Optional[str] = None,
+        severity: Optional[str] = None,
+        description: Optional[str] = None,
+        conditions: Optional[list] = None,
+        notification_groups: Optional[list[int]] = None,
+    ) -> "AlertDefinition":
+        """
+        Updates an existing alert definition.
+
+        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/put-alert-definition
+
+        :param service_type: The service type of the alert definition to update.
+        :type service_type: str
+        :param alert_id: The ID of the alert definition to update.
+        :type alert_id: int
+        :param label: The new label for the alert definition.
+        :type label: Optional[str]
+        :param severity: The new severity of the alert.
+        :type severity: Optional[str]
+        :param description: The new description for the alert definition.
+        :type description: Optional[str]
+        :param conditions: The new conditions for the alert.
+        :type conditions: Optional[list]
+        :param notification_groups: The new list of notification group IDs.
+        :type notification_groups: Optional[list[int]]
+
+        :returns: The updated AlertDefinition.
+        :rtype: AlertDefinition
+        """
+        params = {}
+        if label is not None:
+            params["label"] = label
+        if severity is not None:
+            params["severity"] = severity
+        if description is not None:
+            params["description"] = description
+        if conditions is not None:
+            params["conditions"] = conditions
+        if notification_groups is not None:
+            params["notification_groups"] = notification_groups
+
+        result = self.client.put(
+            f"/monitor/services/{service_type}/alert-definitions/{alert_id}",
+            data=params,
+        )
+
+        return AlertDefinition(self.client, result["id"], result)
+
+    def delete_alert_definition(
+        self, service_type: str, alert_id: int
+    ) -> None:
+        """
+        Deletes an alert definition.
+
+        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/delete-alert-definition
+
+        :param service_type: The service type of the alert definition to delete.
+        :type service_type: str
+        :param alert_id: The ID of the alert definition to delete.
+        :type alert_id: int
+        """
+        self.client.delete(
+            f"/monitor/services/{service_type}/alert-definitions/{alert_id}"
+        )
 
     def create_token(
         self, service_type: str, entity_ids: list[Any]

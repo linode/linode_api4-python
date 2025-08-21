@@ -1,145 +1,121 @@
-__all__ = [
-    "MonitorDashboard",
-    "MonitorMetricsDefinition",
-    "MonitorService",
-    "MonitorServiceToken",
-    "AggregateFunction",
-    "AlertDefinition"
-]
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import List, Optional, Literal
 
 from linode_api4.objects.base import Base, Property
-from linode_api4.objects.serializable import JSONObject, StrEnum
-
-
-class AggregateFunction(StrEnum):
-    """
-    Enum for supported aggregate functions.
-    """
-
-    min = "min"
-    max = "max"
-    avg = "avg"
-    sum = "sum"
-    count = "count"
-    rate = "rate"
-    increase = "increase"
-    last = "last"
-
-
-class ChartType(StrEnum):
-    """
-    Enum for supported chart types.
-    """
-
-    line = "line"
-    area = "area"
-
-
-class ServiceType(StrEnum):
-    """
-    Enum for supported service types.
-    """
-
-    dbaas = "dbaas"
-    linode = "linode"
-    lke = "lke"
-    vpc = "vpc"
-    nodebalancer = "nodebalancer"
-    firewall = "firewall"
-    object_storage = "object_storage"
-    aclb = "aclb"
-
-
-class MetricType(StrEnum):
-    """
-    Enum for supported metric type
-    """
-
-    gauge = "gauge"
-    counter = "counter"
-    histogram = "histogram"
-    summary = "summary"
-
-
-class MetricUnit(StrEnum):
-    """
-    Enum for supported metric units.
-    """
-
-    COUNT = "count"
-    PERCENT = "percent"
-    BYTE = "byte"
-    SECOND = "second"
-    BITS_PER_SECOND = "bits_per_second"
-    MILLISECOND = "millisecond"
-    KB = "KB"
-    MB = "MB"
-    GB = "GB"
-    RATE = "rate"
-    BYTES_PER_SECOND = "bytes_per_second"
-    PERCENTILE = "percentile"
-    RATIO = "ratio"
-    OPS_PER_SECOND = "ops_per_second"
-    IOPS = "iops"
-
-
-class DashboardType(StrEnum):
-    """
-    Enum for supported dashboard types.
-    """
-
-    standard = "standard"
-    custom = "custom"
-
-
-@dataclass
-class DashboardWidget(JSONObject):
-    """
-    Represents a single widget in the widgets list.
-    """
-
-    metric: str = ""
-    unit: MetricUnit = ""
-    label: str = ""
-    color: str = ""
-    size: int = 0
-    chart_type: ChartType = ""
-    y_label: str = ""
-    aggregate_function: AggregateFunction = ""
+from linode_api4.objects.serializable import JSONObject
 
 
 @dataclass
 class Dimension(JSONObject):
     """
-    Represents a single dimension in the dimensions list.
+    A dimension of a metric.
     """
 
-    dimension_label: Optional[str] = None
-    label: Optional[str] = None
-    values: Optional[List[str]] = None
+    name: str
+    allowed_values: List[str]
 
-@dataclass
-class DimensionFilter:
-    dimension_label: str
-    label: str
-    operator: str  # e.g., "eq"
-    value: str
 
 @dataclass
 class Rule:
-    aggregate_function: str  # e.g., "avg"
-    dimension_filters: List[DimensionFilter]
+    pass
+
+
+class ServiceType(Enum):
+    LINODE = "linode"
+    DBAAS = "dbaas"
+
+
+class DashboardType(Enum):
+    OVERVIEW = "overview"
+    DETAIL = "detail"
+
+
+class MetricType(Enum):
+    GAUGE = "gauge"
+    COUNTER = "counter"
+
+
+class MetricUnit(Enum):
+    PERCENT = "%"
+    BYTES = "bytes"
+    BITS_PER_SECOND = "bps"
+    REQUESTS_PER_SECOND = "rps"
+
+
+class ChartType(Enum):
+    LINE = "line"
+    BAR = "bar"
+    PIE = "pie"
+
+
+class AggregateFunction(Enum):
+    AVG = "avg"
+    SUM = "sum"
+    MIN = "min"
+    MAX = "max"
+    COUNT = "count"
+
+
+@dataclass
+class AlertDefinition(Base):
+    """
+    An alert definition for a monitor service.
+
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-alert-definition
+    """
+
+    id: int
+    label: str
+    severity: str
+    type: str
+    description: Optional[str] = None
+    conditions: Optional[list] = None
+    notification_groups: Optional[list[int]] = None
+    service_type: Optional[str] = None
+    status: Optional[str] = None
+    created: Optional[str] = None
+    updated: Optional[str] = None
+
+    def __init__(self, client, id, json=None):
+        super().__init__(client, id, json)
+
+    @property
+    def type(self):
+        return self._type
+
+    @type.setter
+    def type(self, value):
+        self._type = value
+
+    def _populate(self, json):
+        """
+        Populates this object with data from a JSON dictionary.
+        """
+        for key, value in json.items():
+            setattr(self, key, value)
+
+
+@dataclass
+class DashboardWidget(JSONObject):
+    """
+    A widget on a dashboard.
+    """
+
     label: str
     metric: str
-    operator: str  # e.g., "gt"
-    threshold: float
-    unit: str  # e.g., "percent"
+    unit: MetricUnit = ""
+    data: Optional[dict] = None
+    chart_type: ChartType = ""
+    order: Optional[int] = None
+    aggregate_function: AggregateFunction = ""
+    dimensions: Optional[List[Dimension]] = None
+
 
 @dataclass
 class RuleCriteria:
-    rules: List[Rule]
+    pass
+
 
 @dataclass
 class TriggerConditions:
@@ -147,6 +123,7 @@ class TriggerConditions:
     evaluation_period_seconds: int
     polling_interval_seconds: int
     trigger_occurrences: int
+
 
 @dataclass
 class AlertChannel:
@@ -175,34 +152,6 @@ class MonitorMetricsDefinition(JSONObject):
         default_factory=list
     )
 
-
-@dataclass
-class AlertDefinition(JSONObject):
-    """
-    Represents a single alert definition.
-
-    API Documentation: 
-        https://techdocs.akamai.com/linode-api/reference/get-alert-definition
-        https://techdocs.akamai.com/linode-api/reference/get-alert-definitions
-        https://techdocs.akamai.com/linode-api/reference/get-alert-definitions-for-service-type
-
-    """
-    alert_channels: List[AlertChannel] = field(default_factory=list)
-    alert_class: Optional[str] = None  # Use alert_class instead of 'class' to avoid reserved keyword
-    created: str = ""
-    created_by: str = ""
-    description: str = ""
-    entity_ids: List[str] = field(default_factory=list)
-    has_more_resources: Optional[bool] = None
-    id: Optional[int] = None
-    label: str = ""
-    rule_criteria: Optional[RuleCriteria] = None
-    service_type: str = ""
-    severity: Optional[int] = None
-    status: str = ""
-    trigger_conditions: Optional[TriggerConditions] = None
-    updated: str = ""
-    updated_by: str = ""
 
 class MonitorDashboard(Base):
     """
@@ -247,3 +196,29 @@ class MonitorServiceToken(JSONObject):
     """
 
     token: str = ""
+
+class AlertType(Enum):
+    CPU = "cpu"
+    DISK = "disk"
+    NETWORK_IN = "network_in"
+    NETWORK_OUT = "network_out"
+    TRANSFER = "transfer"
+
+
+__all__ = [
+    "ServiceType",
+    "DashboardType",
+    "MetricType",
+    "MetricUnit",
+    "ChartType",
+    "AggregateFunction",
+    "RuleCriteria",
+    "TriggerConditions",
+    "AlertChannel",
+    "MonitorMetricsDefinition",
+    "AlertDefinition",
+    "MonitorDashboard",
+    "MonitorService",
+    "MonitorServiceToken",
+    "AlertType",
+]
