@@ -11,8 +11,8 @@ from linode_api4.objects import (
     MonitorMetricsDefinition,
     MonitorService,
     MonitorServiceToken,
+    AlertDefinition
 )
-
 
 class MonitorGroup(Group):
     """
@@ -113,6 +113,43 @@ class MonitorGroup(Group):
             *filters,
             endpoint=f"/monitor/services/{service_type}/metric-definitions",
         )
+    
+    def alert_definitions(
+        self, service_type: Optional[str]=None, alert_id:Optional[str]= None, *filters, 
+    ) -> list[AlertDefinition]:
+        """
+        Returns all alert definitions for a service type in a paginated form.
+            alert_definitions = client.monitor.alert_definitions()
+            alert_definition = client.monitor.alert_definitions(service_type:"dbaas",alert_id="1234")
+            alert_definitions_for_service_type = client.monitor.alert_definitions(service_type:"dbaas")
+        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+
+        API Documentation: 
+            https://techdocs.akamai.com/linode-api/reference/get-alert-definition
+            https://techdocs.akamai.com/linode-api/reference/get-alert-definitions
+            https://techdocs.akamai.com/linode-api/reference/get-alert-definitions-for-service-type
+
+        :param service_type: The service type to get alert defintions for.
+        :type service_type: str
+        :param alert_id:  alert_id of the to get alert definitions, should be provided with service_type
+        :type alert_id: str
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
+
+        :returns: Returns a alert definition(s) based on the input
+        :rtype: PaginatedList of definitions
+        """
+
+        if alert_id is not None and service_type is None:
+            raise ValueError("service_type must be provided when alert_id is specified")
+        
+        return self.client._get_and_filter(
+            AlertDefinition,
+            *filters,
+            endpoint=f"/monitor/services/{service_type}/alert-definitions/{alert_id}",
+        )
+    
 
     def create_token(
         self, service_type: str, entity_ids: list[Any]

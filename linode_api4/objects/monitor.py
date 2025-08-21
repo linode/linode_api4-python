@@ -4,9 +4,10 @@ __all__ = [
     "MonitorService",
     "MonitorServiceToken",
     "AggregateFunction",
+    "AlertDefinition"
 ]
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, Literal
 
 from linode_api4.objects.base import Base, Property
 from linode_api4.objects.serializable import JSONObject, StrEnum
@@ -119,6 +120,41 @@ class Dimension(JSONObject):
     label: Optional[str] = None
     values: Optional[List[str]] = None
 
+@dataclass
+class DimensionFilter:
+    dimension_label: str
+    label: str
+    operator: str  # e.g., "eq"
+    value: str
+
+@dataclass
+class Rule:
+    aggregate_function: str  # e.g., "avg"
+    dimension_filters: List[DimensionFilter]
+    label: str
+    metric: str
+    operator: str  # e.g., "gt"
+    threshold: float
+    unit: str  # e.g., "percent"
+
+@dataclass
+class RuleCriteria:
+    rules: List[Rule]
+
+@dataclass
+class TriggerConditions:
+    criteria_condition: Literal["ALL", "ANY"]
+    evaluation_period_seconds: int
+    polling_interval_seconds: int
+    trigger_occurrences: int
+
+@dataclass
+class AlertChannel:
+    id: int
+    label: str
+    type: str
+    url: str
+
 
 @dataclass
 class MonitorMetricsDefinition(JSONObject):
@@ -139,6 +175,34 @@ class MonitorMetricsDefinition(JSONObject):
         default_factory=list
     )
 
+
+@dataclass
+class AlertDefinition(JSONObject):
+    """
+    Represents a single alert definition.
+
+    API Documentation: 
+        https://techdocs.akamai.com/linode-api/reference/get-alert-definition
+        https://techdocs.akamai.com/linode-api/reference/get-alert-definitions
+        https://techdocs.akamai.com/linode-api/reference/get-alert-definitions-for-service-type
+
+    """
+    alert_channels: List[AlertChannel] = field(default_factory=list)
+    alert_class: Optional[str] = None  # Use alert_class instead of 'class' to avoid reserved keyword
+    created: str = ""
+    created_by: str = ""
+    description: str = ""
+    entity_ids: List[str] = field(default_factory=list)
+    has_more_resources: Optional[bool] = None
+    id: Optional[int] = None
+    label: str = ""
+    rule_criteria: Optional[RuleCriteria] = None
+    service_type: str = ""
+    severity: Optional[int] = None
+    status: str = ""
+    trigger_conditions: Optional[TriggerConditions] = None
+    updated: str = ""
+    updated_by: str = ""
 
 class MonitorDashboard(Base):
     """
