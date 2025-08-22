@@ -187,6 +187,7 @@ class LKENodePool(DerivedBase):
     properties = {
         "id": Property(identifier=True),
         "cluster_id": Property(identifier=True),
+        "label": Property(mutable=True),
         "type": Property(slug_relationship=Type),
         "disks": Property(),
         "disk_encryption": Property(),
@@ -419,6 +420,7 @@ class LKECluster(Base):
             Union[str, KubeVersion, TieredKubeVersion]
         ] = None,
         update_strategy: Optional[str] = None,
+        label: str = None,
         **kwargs,
     ):
         """
@@ -444,23 +446,19 @@ class LKECluster(Base):
                        for possible values.
 
         :returns: The new Node Pool
+        :param label: The name of the node pool.
+        :type label: str
         :rtype: LKENodePool
         """
         params = {
             "type": node_type,
+            "label": label,
             "count": node_count,
             "labels": labels,
             "taints": taints,
             "k8s_version": k8s_version,
             "update_strategy": update_strategy,
         }
-
-        if labels is not None:
-            params["labels"] = labels
-
-        if taints is not None:
-            params["taints"] = taints
-
         params.update(kwargs)
 
         result = self._client.post(
