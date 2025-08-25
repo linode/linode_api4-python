@@ -115,13 +115,45 @@ class MonitorGroup(Group):
             *filters,
             endpoint=f"/monitor/services/{service_type}/metric-definitions",
         )
-    
+        
+    def create_token(
+        self, service_type: str, entity_ids: list[Any]
+    ) -> MonitorServiceToken:
+        """
+        Returns a JWE Token for a specific service type.
+            token = client.monitor.create_token(service_type="dbaas", entity_ids=[1234])
+
+        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-get-token
+
+        :param service_type: The service type to create token for.
+        :type service_type: str
+        :param entity_ids: The list of entity IDs for which the token is valid.
+        :type entity_ids: any
+
+        :returns: Returns a token for a service
+        :rtype: str
+        """
+
+        params = {"entity_ids": entity_ids}
+
+        result = self.client.post(
+            f"/monitor/services/{service_type}/token", data=params
+        )
+
+        if "token" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating token!", json=result
+            )
+        return MonitorServiceToken(token=result["token"])
+
     def alert_definitions(
         self,
         service_type: Optional[str] = None,
         alert_id: Optional[int] = None,
         *filters,
-    ) -> Union["PaginatedList", "AlertDefinition"]:
+    ) -> Union[PaginatedList, AlertDefinition]:
         """
         Returns one or more alert definitions.
             alert_definitions = client.monitor.alert_definitions()
@@ -191,7 +223,7 @@ class MonitorGroup(Group):
         description: Optional[str] = None,
         conditions: Optional[list] = None,
         notification_groups: Optional[list[int]] = None,
-    ) -> "AlertDefinition":
+    ) -> AlertDefinition:
         """
         Creates a new alert definition for a specific service type.
 
@@ -250,7 +282,7 @@ class MonitorGroup(Group):
         description: Optional[str] = None,
         conditions: Optional[list] = None,
         notification_groups: Optional[list[int]] = None,
-    ) -> "AlertDefinition":
+    ) -> AlertDefinition:
         """
         Updates an existing alert definition.
 
@@ -313,35 +345,3 @@ class MonitorGroup(Group):
         self.client.delete(
             f"/monitor/services/{service_type}/alert-definitions/{alert_id}"
         )
-
-    def create_token(
-        self, service_type: str, entity_ids: list[Any]
-    ) -> MonitorServiceToken:
-        """
-        Returns a JWE Token for a specific service type.
-            token = client.monitor.create_token(service_type="dbaas", entity_ids=[1234])
-
-        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
-
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-get-token
-
-        :param service_type: The service type to create token for.
-        :type service_type: str
-        :param entity_ids: The list of entity IDs for which the token is valid.
-        :type entity_ids: any
-
-        :returns: Returns a token for a service
-        :rtype: str
-        """
-
-        params = {"entity_ids": entity_ids}
-
-        result = self.client.post(
-            f"/monitor/services/{service_type}/token", data=params
-        )
-
-        if "token" not in result:
-            raise UnexpectedResponseError(
-                "Unexpected response when creating token!", json=result
-            )
-        return MonitorServiceToken(token=result["token"])
