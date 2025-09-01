@@ -1,0 +1,20 @@
+{
+  "id": 12345,
+  "label": "Test Alert for DBAAS",
+  "service_type": "dbaas",
+  "severity": "warning",
+  "type": "cpu",
+  "description": "A test alert for dbaas service",
+  "conditions": [],
+  "entity_ids": [13217],
+  "alert_channels": [],
+  "has_more_resources": false,
+  "rule_criteria": null,
+  "trigger_conditions": null,
+  "class": "alert",
+  "notification_groups": [],
+  "status": "active",
+  "created": "2024-01-01T00:00:00",
+  "updated": "2024-01-01T00:00:00",
+  "updated_by": "tester"
+}

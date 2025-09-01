@@ -1,0 +1,27 @@
+{
+  "data": [
+    {
+      "id": 12345,
+      "label": "Test Alert Global",
+      "service_type": "dbaas",
+      "severity": "critical",
+      "type": "cpu",
+      "description": "A test global alert definition",
+      "conditions": [],
+      "entity_ids": [13217],
+      "alert_channels": [],
+      "has_more_resources": false,
+      "rule_criteria": null,
+      "trigger_conditions": null,
+      "class": "alert",
+      "notification_groups": [],
+      "status": "active",
+      "created": "2024-01-01T00:00:00",
+      "updated": "2024-01-01T00:00:00",
+      "updated_by": "tester"
+    }
+  ],
+  "page": 1,
+  "pages": 1,
+  "results": 1
+}
