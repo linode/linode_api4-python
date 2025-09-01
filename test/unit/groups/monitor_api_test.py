@@ -11,10 +11,10 @@ class MonitorAPITest(MonitorClientBaseCase):
     def test_fetch_metrics(self):
         service_type = "dbaas"
         url = f"/monitor/services/{service_type}/metrics"
-        with self.mock_post(url) as mock_post:
+        with self.mock_post(url) as m:
             metrics = self.client.metrics.fetch_metrics(
                 service_type,
-                entity_ids=[13217, 13316],   
+                entity_ids=[13217, 13316],
                 metrics=[
                     EntityMetricOptions(
                         name="avg_read_iops",
@@ -26,8 +26,8 @@ class MonitorAPITest(MonitorClientBaseCase):
             )
 
             # assert call data
-            assert mock_post.call_url == url
-            assert mock_post.call_data == {
+            assert m.call_url == url
+            assert m.call_data == {
                 "entity_ids": [13217, 13316],
                 "metrics": [
                     {"name": "avg_read_iops", "aggregate_function": "avg"},
@@ -85,7 +85,6 @@ class MonitorAlertDefinitionsTest(MonitorClientBaseCase):
 
             # inspect the returned iterable
             alerts_list = list(alerts)
-            print(alerts_list)
             assert isinstance(alerts_list, list)
 
     def test_alert_definition_single_returns_object(self):

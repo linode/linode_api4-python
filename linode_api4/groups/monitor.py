@@ -115,7 +115,7 @@ class MonitorGroup(Group):
             *filters,
             endpoint=f"/monitor/services/{service_type}/metric-definitions",
         )
-
+        
     def create_token(
         self, service_type: str, entity_ids: list[Any]
     ) -> MonitorServiceToken:
@@ -189,8 +189,8 @@ class MonitorGroup(Group):
             if alert_id:
                 endpoint = f"{endpoint}/{alert_id}"
                 # Requesting a single object
-                alert_json = self.client.get(endpoint)
-                return AlertDefinition(self.client, alert_id, alert_json)
+                result = self.client.get(endpoint)
+                return AlertDefinition(self.client, alert_id, result)
 
         # Requesting a list
         return self.client._get_and_filter(
@@ -223,11 +223,6 @@ class MonitorGroup(Group):
         description: Optional[str] = None,
         conditions: Optional[list] = None,
         notification_groups: Optional[list[int]] = None,
-        # The API expects these top-level fields when creating an alert
-        # definition. Accept them here and send them as top-level keys.
-        channel_ids: Optional[list[int]] = None,
-        trigger_conditions: Optional[list] = None,
-        rule_criteria: Optional[list] = None,
     ) -> AlertDefinition:
         """
         Creates a new alert definition for a specific service type.
@@ -265,13 +260,6 @@ class MonitorGroup(Group):
             params["conditions"] = conditions
         if notification_groups is not None:
             params["notification_groups"] = notification_groups
-        # include top-level channel/trigger/rule fields if provided
-        if channel_ids is not None:
-            params["channel_ids"] = channel_ids
-        if trigger_conditions is not None:
-            params["trigger_conditions"] = trigger_conditions
-        if rule_criteria is not None:
-            params["rule_criteria"] = rule_criteria
 
         result = self.client.post(
             f"/monitor/services/{service_type}/alert-definitions", data=params
@@ -331,12 +319,6 @@ class MonitorGroup(Group):
             params["conditions"] = conditions
         if notification_groups is not None:
             params["notification_groups"] = notification_groups
-
-        # Allow updating channel/trigger/rule fields as well
-        # (keeps backward compatibility if callers don't provide them)
-        if hasattr(self, 'channel_ids'):
-            # no-op; preserve attribute check to avoid lint errors
-            pass
 
         result = self.client.put(
             f"/monitor/services/{service_type}/alert-definitions/{alert_id}",
