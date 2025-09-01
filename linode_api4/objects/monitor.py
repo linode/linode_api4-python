@@ -234,15 +234,20 @@ class TriggerConditions:
     trigger_occurrences: int
 
 
-@dataclass
-class AlertChannel:
+class AlertChannel(Base):
     """
     An alert channel through which notifications can be sent.
+
+    This is a top-level API resource and must inherit from Base so that
+    `api_list()` and pagination work correctly.
     """
-    id: int
-    label: str
-    type: str
-    url: str
+    api_endpoint = "/monitor/alert-channels/{id}"
+    properties = {
+        "id": Property(identifier=True),
+        "label": Property(),
+        "type": Property(),
+        "url": Property(),
+    }
 
 
 @dataclass
