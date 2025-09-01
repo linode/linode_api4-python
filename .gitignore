@@ -13,4 +13,3 @@ venv
 baked_version
 .vscode
 .DS_Store
-.venv/
