@@ -228,3 +228,29 @@ class MonitorClientBaseCase(TestCase):
             mocked requests
         """
         return MethodMock("post", return_dct)
+
+    def mock_get(self, return_dct):
+        """
+        Returns a MethodMock mocking a GET.  This should be used in a with
+        statement.
+
+        :param return_dct: The JSON that should be returned from this GET
+
+        :returns: A MethodMock object who will capture the parameters of the
+            mocked requests
+        """
+        return MethodMock("get", return_dct)
+
+    def mock_put(self, return_dct):
+        """
+        Returns a MethodMock mocking a PUT.  This should be used in a with
+        statement.
+        """
+        return MethodMock("put", return_dct)
+
+    def mock_delete(self):
+        """
+        Returns a MethodMock mocking a DELETE.  This should be used in a with
+        statement.
+        """
+        return MethodMock("delete", {})
