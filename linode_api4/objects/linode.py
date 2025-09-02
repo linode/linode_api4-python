@@ -686,6 +686,9 @@ class Instance(Base):
         "disk_encryption": Property(),
         "lke_cluster_id": Property(),
         "capabilities": Property(unordered=True),
+        "maintenance_policy": Property(
+            mutable=True
+        ),  # Note: This field is only available when using v4beta.
     }
 
     @property
