@@ -58,11 +58,10 @@ class MonitorAlertDefinitionsTest(MonitorClientBaseCase):
 
     def test_alert_definitions_list_all_calls_endpoint(self):
         url = "/monitor/alert-definitions"
-        with self.mock_get(url) as m:
+        with self.mock_get(url) as mock_get:
             alerts = self.client.monitor.alert_definitions()
-
             # assert the correct endpoint was called
-            assert m.call_url == url
+            assert mock_get.call_url == url
 
             # force evaluation of the paginated list (if applicable)
             alerts_list = list(alerts)
@@ -77,11 +76,11 @@ class MonitorAlertDefinitionsTest(MonitorClientBaseCase):
     def test_alert_definitions_for_service_calls_endpoint(self):
         service_type = "dbaas"
         url = f"/monitor/services/{service_type}/alert-definitions"
-        with self.mock_get(url) as m:
+        with self.mock_get(url) as mock_get:
             alerts = self.client.monitor.alert_definitions(service_type=service_type)
 
             # assert the correct endpoint was called
-            assert m.call_url == url
+            assert mock_get.call_url == url
 
             # inspect the returned iterable
             alerts_list = list(alerts)
@@ -92,7 +91,7 @@ class MonitorAlertDefinitionsTest(MonitorClientBaseCase):
         service_type = "dbaas"
         alert_id = 12345
         url = f"/monitor/services/{service_type}/alert-definitions/{alert_id}"
-        with self.mock_get(url) as m:
+        with self.mock_get(url) as mock_get:
             single = self.client.monitor.alert_definitions(
                 service_type=service_type, alert_id=alert_id
             )

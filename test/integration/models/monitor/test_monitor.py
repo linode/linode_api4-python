@@ -109,7 +109,9 @@ def test_my_db_functionality(test_linode_client, test_create_and_test_db):
     assert hasattr(token, "token"), "Response object has no 'token' attribute"
 
 
-def test_integration_create_get_update_delete_alert_definition(test_linode_client):
+def test_integration_create_get_update_delete_alert_definition(
+    test_linode_client,
+):
     """E2E: create an alert definition, fetch it, update it, then delete it.
 
     This test attempts to be resilient: it cleans up the created definition
@@ -142,8 +144,8 @@ def test_integration_create_get_update_delete_alert_definition(test_linode_clien
         },
         "trigger_conditions": {
             "criteria_condition": "ALL",
-            "evaluation_period_seconds": 60,
-            "polling_interval_seconds": 10,
+            "evaluation_period_seconds": 300,
+            "polling_interval_seconds": 300,
             "trigger_occurrences": 1,
         },
     }

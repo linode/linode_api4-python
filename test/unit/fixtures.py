@@ -3,7 +3,8 @@ import os
 import re
 import sys
 
-FIXTURES_DIR = sys.path[0] + "/test/fixtures"
+# Determine fixtures directory relative to this file to avoid relying on sys.path[0]
+FIXTURES_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "fixtures")
 
 # This regex is useful for finding individual underscore characters,
 # which is necessary to allow us to use underscores in URL paths.
@@ -21,6 +22,12 @@ class TestFixtures:
         """
         Returns the test fixture data loaded at the given URL
         """
+        # If the fixture isn't found, attempt to reload fixtures. This is
+        # helpful in test runs where fixtures may be added after the
+        # TestFixtures singleton was constructed.
+        if url not in self.fixtures:
+            self._load_fixtures()
+
         return self.fixtures[url]
 
     def _load_fixtures(self):

@@ -29,8 +29,11 @@ class Dimension(JSONObject):
     A dimension of a metric.
     """
 
-    name: str
-    allowed_values: List[str]
+    # Provide defaults so JSONObject.from_json can construct instances without
+    # requiring positional args.
+    dimension_label: str = ""
+    label: str = ""
+    values: List[str] = field(default_factory=list)
 
 @dataclass
 class AggregateFunction(Enum):
@@ -222,16 +225,6 @@ class DashboardWidget(JSONObject):
     order: Optional[int] = None
     aggregate_function: AggregateFunction = ""
     dimensions: Optional[List[Dimension]] = None
-
-@dataclass
-class TriggerConditions:
-    """
-    Represents the trigger/evaluation configuration for an alert.
-    """
-    criteria_condition: Literal["ALL", "ANY"]
-    evaluation_period_seconds: int
-    polling_interval_seconds: int
-    trigger_occurrences: int
 
 
 class AlertChannel(Base):
