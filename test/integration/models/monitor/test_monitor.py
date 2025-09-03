@@ -213,10 +213,13 @@ def test_integration_create_get_update_delete_alert_definition(
     finally:
         if created:
             # Best-effort cleanup; allow transient errors.
+            alert_update_interval = 120 #max time alert should take to update
             try:
+                time.sleep(alert_update_interval) 
                 client.monitor.delete_alert_definition(service_type, created.id)
             except Exception:
                 pass
+
             # confirm it's gone (if API returns 404 or raises)
             try:
                 client.monitor.alert_definitions(service_type=service_type, alert_id=created.id)

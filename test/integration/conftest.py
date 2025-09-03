@@ -27,6 +27,7 @@ ENV_API_URL_NAME = "LINODE_API_URL"
 ENV_REGION_OVERRIDE = "LINODE_TEST_REGION_OVERRIDE"
 ENV_API_CA_NAME = "LINODE_API_CA"
 RUN_LONG_TESTS = "RUN_LONG_TESTS"
+SKIP_E2E_FIREWALL = "SKIP_E2E_FIREWALL"
 
 
 def get_token():
@@ -78,6 +79,12 @@ def run_long_tests():
 
 @pytest.fixture(autouse=True, scope="session")
 def e2e_test_firewall(test_linode_client):
+    # Allow skipping firewall creation for local runs: set SKIP_E2E_FIREWALL=1
+    if os.environ.get(SKIP_E2E_FIREWALL):
+        # Yield None so fixtures depending on this receive a falsy value but the session continues.
+        yield None
+        return
+
     def is_valid_ipv4(address):
         try:
             ipaddress.IPv4Address(address)
