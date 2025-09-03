@@ -18,7 +18,6 @@ from linode_api4 import (
     PlacementGroupPolicy,
     PlacementGroupType,
     PostgreSQLDatabase,
-    ApiError,
 )
 from linode_api4.linode_client import LinodeClient, MonitorClient
 from linode_api4.objects import Region
@@ -77,7 +76,7 @@ def run_long_tests():
     return os.environ.get(RUN_LONG_TESTS, None)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(autouse=True, scope="session")
 def e2e_test_firewall(test_linode_client):
     def is_valid_ipv4(address):
         try:
@@ -152,22 +151,13 @@ def e2e_test_firewall(test_linode_client):
 
     label = "cloud_firewall_" + str(int(time.time()))
 
-    try:
-        firewall = client.networking.firewall_create(
-            label=label, rules=rules, status="enabled"
-        )
-    except ApiError as e:
-        msg = str(e)
-        if "401" in msg or "not authorized" in msg.lower() or "forbidden" in msg.lower():
-            pytest.skip("Token lacks permission to create firewalls; skipping tests that require cloud firewall")
-        raise
+    firewall = client.networking.firewall_create(
+        label=label, rules=rules, status="enabled"
+    )
 
     yield firewall
 
-    try:
-        firewall.delete()
-    except Exception:
-        pass
+    firewall.delete()
 
 
 @pytest.fixture(scope="session")
