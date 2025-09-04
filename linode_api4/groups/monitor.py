@@ -220,14 +220,9 @@ class MonitorGroup(Group):
         label: str,
         severity: str,
         type: str,
+        conditions: list,
+        channel_ids: list[int],
         description: Optional[str] = None,
-        conditions: Optional[list] = None,
-        notification_groups: Optional[list[int]] = None,
-        # The API expects these top-level fields when creating an alert
-        # definition. Accept them here and send them as top-level keys.
-        channel_ids: Optional[list[int]] = None,
-        trigger_conditions: Optional[list] = None,
-        rule_criteria: Optional[list] = None,
     ) -> AlertDefinition:
         """
         Creates a new alert definition for a specific service type.
@@ -236,20 +231,20 @@ class MonitorGroup(Group):
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/post-alert-definition-for-service-type
 
-        :param service_type: The service type for which to create the alert definition.
+        :param service_type: The service type to create the alert definition for.
         :type service_type: str
-        :param label: The label for the new alert definition.
+        :param label: The label for the alert definition.
         :type label: str
         :param severity: The severity of the alert.
         :type severity: str
-        :param type: The type of alert.
+        :param type: The type of alert definition.
         :type type: str
-        :param description: A description for the new alert definition.
+        :param conditions: A list of conditions for the alert.
+        :type conditions: list
+        :param channel_ids: A list of channel IDs to notify.
+        :type channel_ids: list[int]
+        :param description: The description for the alert definition.
         :type description: Optional[str]
-        :param conditions: The conditions for the alert.
-        :type conditions: Optional[list]
-        :param notification_groups: A list of notification group IDs.
-        :type notification_groups: Optional[list[int]]
 
         :returns: The newly created AlertDefinition.
         :rtype: AlertDefinition
@@ -258,20 +253,11 @@ class MonitorGroup(Group):
             "label": label,
             "severity": severity,
             "type": type,
+            "conditions": conditions,
+            "channel_ids": channel_ids,
         }
         if description is not None:
             params["description"] = description
-        if conditions is not None:
-            params["conditions"] = conditions
-        if notification_groups is not None:
-            params["notification_groups"] = notification_groups
-        # include top-level channel/trigger/rule fields if provided
-        if channel_ids is not None:
-            params["channel_ids"] = channel_ids
-        if trigger_conditions is not None:
-            params["trigger_conditions"] = trigger_conditions
-        if rule_criteria is not None:
-            params["rule_criteria"] = rule_criteria
 
         result = self.client.post(
             f"/monitor/services/{service_type}/alert-definitions", data=params
