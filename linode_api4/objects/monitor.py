@@ -11,7 +11,8 @@ __all__ = [
     "AlertType",
 ]
 from dataclasses import dataclass, field
-from typing import List, Optional
+from enum import Enum
+from typing import List, Optional, Literal, Union
 
 from linode_api4.objects.base import Base, Property
 from linode_api4.objects.serializable import JSONObject, StrEnum
@@ -210,10 +211,28 @@ class TriggerConditions(JSONObject):
       - polling_interval_seconds: how often metrics are sampled (seconds)
       - trigger_occurrences: how many consecutive evaluation periods must match to trigger
     """
-    criteria_condition: Literal["ALL", "ANY"] = "ALL"
+    criteria_condition: Literal["ALL"] = "ALL"
     evaluation_period_seconds: int = 0
     polling_interval_seconds: int = 0
     trigger_occurrences: int = 1
+
+@dataclass
+class DimensionFilter(JSONObject):
+    """
+    A single dimension filter used inside a Rule.
+
+    Example JSON:
+      {
+        "dimension_label": "node_type",
+        "label": "Node Type",
+        "operator": "eq",
+        "value": "primary"
+      }
+    """
+    dimension_label: str = ""
+    label: str = ""
+    operator: str = ""
+    value: Union[str, int, float, bool, None] = None
 
 @dataclass
 class Rule(JSONObject):
