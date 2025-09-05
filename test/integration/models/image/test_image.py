@@ -19,10 +19,10 @@ DISALLOWED_IMAGE_REGIONS = {
 def get_image_upload_regions(client: LinodeClient):
     """
     This is necessary because the API does not currently expose
-        a capability for regions that allow custom image uploads.
+    a capability for regions that allow custom image uploads.
 
-        In the future, we should remove this if the API exposes a custom images capability or
-        if all Object Storage regions support custom images.
+    In the future, we should remove this if the API exposes a custom images capability or
+    if all Object Storage regions support custom images.
     """
 
     return [
