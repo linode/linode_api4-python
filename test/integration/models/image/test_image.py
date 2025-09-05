@@ -1,22 +1,46 @@
 from io import BytesIO
-from test.integration.conftest import get_region, get_regions
+from test.integration.conftest import get_regions
 from test.integration.helpers import get_test_label
 
 import polling
 import pytest
 
+from linode_api4 import LinodeClient
 from linode_api4.objects import Image
+
+DISALLOWED_IMAGE_REGIONS = {
+    "gb-lon",
+    "au-mel",
+    "sg-sin-2",
+    "jp-tyo-3",
+}
+
+
+def get_image_upload_regions(client: LinodeClient):
+    """
+    This is necessary because the API does not currently expose
+        a capability for regions that allow custom image uploads.
+
+        In the future, we should remove this if the API exposes a custom images capability or
+        if all Object Storage regions support custom images.
+    """
+
+    return [
+        region
+        for region in get_regions(
+            client,
+            capabilities={"Linodes", "Object Storage"},
+            site_type="core",
+        )
+        if region.id not in DISALLOWED_IMAGE_REGIONS
+    ]
 
 
 @pytest.fixture(scope="session")
 def image_upload_url(test_linode_client):
     label = get_test_label() + "_image"
 
-    region = get_region(
-        test_linode_client,
-        capabilities={"Linodes", "Object Storage"},
-        site_type="core",
-    )
+    region = get_image_upload_regions(test_linode_client)[0]
 
     test_linode_client.image_create_upload(
         label, region.id, "integration test image upload"
@@ -38,9 +62,7 @@ def test_uploaded_image(test_linode_client):
 
     label = get_test_label() + "_image"
 
-    regions = get_regions(
-        test_linode_client, capabilities={"Object Storage"}, site_type="core"
-    )
+    regions = get_image_upload_regions(test_linode_client)
 
     image = test_linode_client.image_upload(
         label,
