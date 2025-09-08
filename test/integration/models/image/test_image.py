@@ -13,6 +13,7 @@ DISALLOWED_IMAGE_REGIONS = {
     "au-mel",
     "sg-sin-2",
     "jp-tyo-3",
+    "no-osl-1",
 }
 
 
