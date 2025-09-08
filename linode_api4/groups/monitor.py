@@ -218,10 +218,10 @@ class MonitorGroup(Group):
         self,
         service_type: str,
         label: str,
-        severity: str,
-        type: str,
+        severity: int,
         conditions: list,
-        channel_ids: list[int],
+        channel_ids: list[str],
+        entity_ids: Optional[list[str]] = None,
         description: Optional[str] = None,
     ) -> AlertDefinition:
         """
@@ -237,12 +237,10 @@ class MonitorGroup(Group):
         :type label: str
         :param severity: The severity of the alert.
         :type severity: str
-        :param type: The type of alert definition.
-        :type type: str
         :param conditions: A list of conditions for the alert.
         :type conditions: list
         :param channel_ids: A list of channel IDs to notify.
-        :type channel_ids: list[int]
+        :type channel_ids: list[str]
         :param description: The description for the alert definition.
         :type description: Optional[str]
 
@@ -252,12 +250,13 @@ class MonitorGroup(Group):
         params = {
             "label": label,
             "severity": severity,
-            "type": type,
             "conditions": conditions,
             "channel_ids": channel_ids,
         }
         if description is not None:
             params["description"] = description
+        if entity_ids is not None:
+            params["entity_ids"] = entity_ids
 
         result = self.client.post(
             f"/monitor/services/{service_type}/alert-definitions", data=params
