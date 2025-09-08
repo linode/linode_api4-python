@@ -23,9 +23,7 @@ def lke_cluster_instance(test_linode_client):
     node_type = test_linode_client.linode.types()[1]  # g6-standard-1
     version = test_linode_client.lke.versions()[0]
 
-    region = get_region(
-        test_linode_client, {"Kubernetes", "LA Disk Encryption"}
-    )
+    region = get_region(test_linode_client, {"Kubernetes", "Disk Encryption"})
 
     node_pools = test_linode_client.lke.node_pool(node_type, 3)
     label = get_test_label() + "_cluster"
