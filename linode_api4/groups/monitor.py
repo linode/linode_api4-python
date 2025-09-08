@@ -390,3 +390,4 @@ class MonitorGroup(Group):
         self.client.delete(
             f"/monitor/services/{service_type}/alert-definitions/{alert_id}"
         )
+

@@ -397,3 +397,4 @@ class AlertType(Enum):
     """
     SYSTEM = "system"
     USER = "user"
+    
