@@ -235,7 +235,7 @@ def test_create_and_delete_vlan(test_linode_client, linode_for_vlan_tests):
     config.interfaces = []
     config.save()
 
-    vlan_label = "testvlan"
+    vlan_label = f"{get_test_label(8)}-testvlan"
     interface = config.interface_create_vlan(
         label=vlan_label, ipam_address="10.0.0.2/32"
     )
