@@ -291,6 +291,7 @@ class AlertDefinition(Base):
     created: Optional[str] = None
     updated: Optional[str] = None
     updated_by: Optional[str] = None
+    created_by: Optional[str] = None
 
     def __init__(self, client, id, json=None):
         super().__init__(client, id, json)
@@ -311,7 +312,8 @@ class AlertDefinition(Base):
             # Map "class" to "_class" class is a reserved word in Python
             if key == "class":  
                 self._class = value
-            setattr(self, key, value)
+            elif hasattr(self, key):
+                setattr(self, key, value)
 
 
 class AlertChannel(Base):
@@ -335,8 +337,5 @@ class AlertType(Enum):
     """
     Types of alerts that can be triggered.
     """
-    CPU = "cpu"
-    DISK = "disk"
-    NETWORK_IN = "network_in"
-    NETWORK_OUT = "network_out"
-    TRANSFER = "transfer"
+    CPU = "system"
+    DISK = "user"

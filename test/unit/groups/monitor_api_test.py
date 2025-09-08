@@ -91,7 +91,7 @@ class MonitorAlertDefinitionsTest(MonitorClientBaseCase):
         service_type = "dbaas"
         alert_id = 12345
         url = f"/monitor/services/{service_type}/alert-definitions/{alert_id}"
-        with self.mock_get(url) as mock_get:
+        with self.mock_get(url) as m:
             single = self.client.monitor.alert_definitions(
                 service_type=service_type, alert_id=alert_id
             )

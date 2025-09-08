@@ -3,7 +3,7 @@
   "label": "Test Alert for DBAAS",
   "service_type": "dbaas",
   "severity": "warning",
-  "type": "cpu",
+  "type": "user",
   "description": "A test alert for dbaas service",
   "conditions": [],
   "entity_ids": [13217],
