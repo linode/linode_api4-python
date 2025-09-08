@@ -10,6 +10,8 @@ __all__ = [
     "AlertDefinition",
     "AlertType",
     "AlertChannelEnvelope",
+    "ChannelContent",
+    "EmailChannelContent",
 ]
 from dataclasses import dataclass, field
 from enum import Enum
@@ -192,7 +194,6 @@ class MonitorServiceToken(JSONObject):
     token: str = ""
 
 
-
 @dataclass
 class TriggerConditions(JSONObject):
     """
@@ -217,6 +218,7 @@ class TriggerConditions(JSONObject):
     polling_interval_seconds: int = 0
     trigger_occurrences: int = 1
 
+
 @dataclass
 class DimensionFilter(JSONObject):
     """
@@ -234,6 +236,7 @@ class DimensionFilter(JSONObject):
     label: str = ""
     operator: str = ""
     value: Union[str, int, float, bool, None] = None
+
 
 @dataclass
 class Rule(JSONObject):
@@ -258,6 +261,7 @@ class Rule(JSONObject):
     threshold: Optional[float] = None
     unit: Optional[str] = None
 
+
 @dataclass
 class RuleCriteria(JSONObject):
     """
@@ -265,6 +269,7 @@ class RuleCriteria(JSONObject):
       "rule_criteria": { "rules": [ { ... }, ... ] }
     """
     rules: List[Rule] = field(default_factory=list)
+
 
 @dataclass
 class AlertChannelEnvelope(JSONObject):
@@ -275,7 +280,8 @@ class AlertChannelEnvelope(JSONObject):
     label: str
     type: str
     url: str
-    
+
+
 @dataclass
 class AlertDefinition(Base):
     """
@@ -325,7 +331,28 @@ class AlertDefinition(Base):
                 setattr(self, key, value)
 
 
+@dataclass
+class EmailChannelContent(JSONObject):
+    """
+    Represents the content for an email alert channel.
+    """
+    email_addresses: List[str] = field(default_factory=list)
 
+@dataclass
+class ChannelContent(JSONObject):
+    """
+    Represents the content block for an AlertChannel, which varies by channel type.
+    """
+    email: EmailChannelContent = None
+    # Other channel types like 'webhook', 'slack' could be added here as Optional fields.
+
+@dataclass
+class AlertType(Enum):
+    """
+    Types of alerts that can be triggered.
+    """
+    SYSTEM = "system"
+    USER = "user"
 
 class AlertChannel(Base):
     """
@@ -335,18 +362,29 @@ class AlertChannel(Base):
     `api_list()` and pagination work correctly.
     """
     api_endpoint = "/monitor/alert-channels/{id}"
-    properties = {
-        "id": Property(identifier=True),
-        "label": Property(),
-        "type": Property(),
-        "url": Property(),
-    }
+    id: int
+    alerts: List[AlertChannelEnvelope]
+    label: str
+    channel_type: str
+    content: ChannelContent
+    created: str
+    created_by: str
+    _type: AlertType
+    updated: str
+    updated_by: str
 
+    @property
+    def type(self):
+        return self._type
 
-@dataclass
-class AlertType(Enum):
-    """
-    Types of alerts that can be triggered.
-    """
-    SYSTEM = "system"
-    USER = "user"
+    @type.setter
+    def type(self, value):
+        self._type = value
+
+    def _populate(self, json):
+        """
+        Populates this object with data from a JSON dictionary.
+        """
+        for key, value in json.items():
+            if hasattr(self, key):
+                setattr(self, key, value)

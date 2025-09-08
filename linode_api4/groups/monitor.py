@@ -15,7 +15,10 @@ from linode_api4.objects import (
     AlertChannel,
     RuleCriteria,
     TriggerConditions,
-    AlertChannelEnvelope
+    AlertChannelEnvelope,
+    AlertType,
+    EmailChannelContent,
+    ChannelContent,
 )
 
 
