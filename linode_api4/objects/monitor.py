@@ -282,53 +282,54 @@ class AlertChannelEnvelope(JSONObject):
     url: str
 
 
-@dataclass
 class AlertDefinition(Base):
     """
     An alert definition for a monitor service.
 
     API Documentation: https://techdocs.akamai.com/linode-api/reference/get-alert-definition
     """
-    id: int
-    label: str
-    severity: int
-    _type: str
-    service_type: str
-    status: str
-    has_more_resources: bool
-    rule_criteria: list[Rule]
-    trigger_conditions: TriggerConditions  
-    alert_channels: list[AlertChannelEnvelope]
-    created: str
-    updated: str
-    updated_by: str
-    created_by: str
-    entity_ids: list[str] = None
-    description: str = None
-    _class: str = None
-   
 
-    def __init__(self, client, id, json=None):
+    api_endpoint = "/monitor/services/{service_type}/alert-definitions/{id}"
+    id_attribute = "id"
+
+    properties = {
+        "id": Property(identifier=True),
+        "label": Property(),
+        "severity": Property(),
+        "type": Property(),
+        "service_type": Property(),
+        "status": Property(),
+        "has_more_resources": Property(),
+        "rule_criteria": Property(json_object=RuleCriteria),
+        "trigger_conditions": Property(json_object=TriggerConditions),
+        "alert_channels": Property(json_object=AlertChannelEnvelope),
+        "created": Property(is_datetime=True),
+        "updated": Property(is_datetime=True),
+        "updated_by": Property(),
+        "created_by": Property(),
+        "entity_ids": Property(),
+        "description": Property(),
+        "class": Property(),
+    }
+
+    def __init__(self, client, id, json=None, service_type=None):
+        """
+        Override __init__ to accept service_type, which is required to build the api_endpoint.
+        """
+        # Bypass the Base.__setattr__ check for this property during initialization.
+        object.__setattr__(self, "service_type", service_type)
         super().__init__(client, id, json)
 
     @property
-    def type(self):
-        return self._type
-
-    @type.setter
-    def type(self, value):
-        self._type = value
-
-    def _populate(self, json):
+    def api_endpoint(self):
         """
-        Populates this object with data from a JSON dictionary.
+        The endpoint for this object, based on its service_type.
         """
-        for key, value in json.items():
-            # Map "class" to "_class" class is a reserved word in Python
-            if key == "class":  
-                self._class = value
-            elif hasattr(self, key):
-                setattr(self, key, value)
+        if not self.service_type:
+            # This is required for save() and delete() to work.
+            # The group methods handle populating this.
+            raise ValueError("AlertDefinition requires a service_type.")
+        return f"/monitor/services/{self.service_type}/alert-definitions/{self.id}"
 
 
 @dataclass

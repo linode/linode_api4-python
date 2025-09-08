@@ -196,7 +196,9 @@ class MonitorGroup(Group):
                 endpoint = f"{endpoint}/{alert_id}"
                 # Requesting a single object
                 alert_json = self.client.get(endpoint)
-                return AlertDefinition(self.client, alert_id, alert_json)
+                return AlertDefinition(
+                    self.client, alert_id, alert_json, service_type=service_type
+                )
 
         # Requesting a list
         return self.client._get_and_filter(

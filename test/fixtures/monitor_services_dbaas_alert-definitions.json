@@ -7,12 +7,37 @@
       "severity": "warning",
       "type": "cpu",
       "description": "A test alert for dbaas service",
-      "conditions": [],
-      "entity_ids": [13217],
+      "entity_ids": [
+        13217
+      ],
       "alert_channels": [],
       "has_more_resources": false,
-      "rule_criteria": null,
-      "trigger_conditions": null,
+      "rule_criteria": {
+        "rules": [
+          {
+            "aggregate_function": "avg",
+            "dimension_filters": [
+              {
+                "dimension_label": "node_type",
+                "label": "Node Type",
+                "operator": "eq",
+                "value": "primary"
+              }
+            ],
+            "label": "High CPU Usage",
+            "metric": "cpu_usage",
+            "operator": "gt",
+            "threshold": 90,
+            "unit": "percent"
+          }
+        ]
+      },
+      "trigger_conditions": {
+        "criteria_condition": "ALL",
+        "evaluation_period_seconds": 300,
+        "polling_interval_seconds": 60,
+        "trigger_occurrences": 3
+      },
       "class": "alert",
       "notification_groups": [],
       "status": "active",
