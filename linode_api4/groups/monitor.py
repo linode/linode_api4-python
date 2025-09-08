@@ -13,6 +13,9 @@ from linode_api4.objects import (
     MonitorServiceToken,
     AlertDefinition,
     AlertChannel,
+    RuleCriteria,
+    TriggerConditions,
+    AlertChannelEnvelope
 )
 
 
@@ -219,8 +222,9 @@ class MonitorGroup(Group):
         service_type: str,
         label: str,
         severity: int,
-        conditions: list,
-        channel_ids: list[str],
+        channel_ids: list[int],
+        rule_criteria: dict = None,
+        trigger_conditions: dict = None,
         entity_ids: Optional[list[str]] = None,
         description: Optional[str] = None,
     ) -> AlertDefinition:
@@ -250,14 +254,16 @@ class MonitorGroup(Group):
         params = {
             "label": label,
             "severity": severity,
-            "conditions": conditions,
             "channel_ids": channel_ids,
+            "rule_criteria": rule_criteria,
+            "trigger_conditions": trigger_conditions,
         }
         if description is not None:
             params["description"] = description
         if entity_ids is not None:
             params["entity_ids"] = entity_ids
 
+        #API will handle check for service_type return error if missing
         result = self.client.post(
             f"/monitor/services/{service_type}/alert-definitions", data=params
         )
@@ -277,8 +283,10 @@ class MonitorGroup(Group):
         label: Optional[str] = None,
         severity: Optional[str] = None,
         description: Optional[str] = None,
-        conditions: Optional[list] = None,
-        notification_groups: Optional[list[int]] = None,
+        rule_criteria: Optional[RuleCriteria] = None,
+        trigger_conditions: Optional[TriggerConditions] = None,
+        entity_ids: Optional[list[str]] = None,
+        channel_ids: Optional[list[int]] = None,
     ) -> AlertDefinition:
         """
         Updates an existing alert definition.
@@ -312,17 +320,16 @@ class MonitorGroup(Group):
             params["severity"] = severity
         if description is not None:
             params["description"] = description
-        if conditions is not None:
-            params["conditions"] = conditions
-        if notification_groups is not None:
-            params["notification_groups"] = notification_groups
-
-        # Allow updating channel/trigger/rule fields as well
-        # (keeps backward compatibility if callers don't provide them)
-        if hasattr(self, 'channel_ids'):
-            # no-op; preserve attribute check to avoid lint errors
-            pass
-
+        if rule_criteria is not None:
+            params["rule_criteria"] = rule_criteria
+        if trigger_conditions is not None:
+            params["trigger_conditions"] = trigger_conditions
+        if entity_ids is not None:
+            params["entity_ids"] = entity_ids
+        if channel_ids is not None:
+            params["channel_ids"] = channel_ids
+        
+        #API will handle check for service_type and alert_id and return correct error if missing
         result = self.client.put(
             f"/monitor/services/{service_type}/alert-definitions/{alert_id}",
             data=params,

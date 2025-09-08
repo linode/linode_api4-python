@@ -9,6 +9,7 @@ __all__ = [
     "AlertChannel",
     "AlertDefinition",
     "AlertType",
+    "AlertChannelEnvelope",
 ]
 from dataclasses import dataclass, field
 from enum import Enum
@@ -265,7 +266,16 @@ class RuleCriteria(JSONObject):
     """
     rules: List[Rule] = field(default_factory=list)
 
-
+@dataclass
+class AlertChannelEnvelope(JSONObject):
+    """
+    Envelope for alert channel list responses.
+    """
+    id: int
+    label: str
+    type: str
+    url: str
+    
 @dataclass
 class AlertDefinition(Base):
     """
@@ -275,23 +285,22 @@ class AlertDefinition(Base):
     """
     id: int
     label: str
-    severity: str
-    type: str
-    description: Optional[str] = None
-    conditions: Optional[list] = None
-    entity_ids: Optional[list[int]] = None
-    alert_channels: Optional[list[int]] = None
-    has_more_resources: Optional[bool] = None
-    rule_criteria: Optional[RuleCriteria] = None
-    trigger_conditions: Optional[TriggerConditions] = None  
-    _class: Optional[str] = None
-    notification_groups: Optional[list[int]] = None
-    service_type: Optional[str] = None
-    status: Optional[str] = None
-    created: Optional[str] = None
-    updated: Optional[str] = None
-    updated_by: Optional[str] = None
-    created_by: Optional[str] = None
+    severity: int
+    _type: str
+    service_type: str
+    status: str
+    has_more_resources: bool
+    rule_criteria: list[Rule]
+    trigger_conditions: TriggerConditions  
+    alert_channels: list[AlertChannelEnvelope]
+    created: str
+    updated: str
+    updated_by: str
+    created_by: str
+    entity_ids: list[str] = None
+    description: str = None
+    _class: str = None
+   
 
     def __init__(self, client, id, json=None):
         super().__init__(client, id, json)
@@ -316,6 +325,8 @@ class AlertDefinition(Base):
                 setattr(self, key, value)
 
 
+
+
 class AlertChannel(Base):
     """
     An alert channel through which notifications can be sent.
@@ -337,5 +348,5 @@ class AlertType(Enum):
     """
     Types of alerts that can be triggered.
     """
-    CPU = "system"
-    DISK = "user"
+    SYSTEM = "system"
+    USER = "user"
