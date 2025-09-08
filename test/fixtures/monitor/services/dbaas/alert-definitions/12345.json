@@ -1,0 +1,24 @@
+{
+  "id": 12345,
+  "label": "Test Alert for DBAAS",
+  "severity": 4,
+  "type": "user",
+  "service_type": "dbaas",
+  "status": "active",
+  "description": "A test alert for dbaas service",
+  "conditions": [],
+  "entity_ids": [
+    13217
+  ],
+  "alert_channels": [],
+  "has_more_resources": false,
+  "rule_criteria": null,
+  "trigger_conditions": {
+    "criteria_condition": "ANY",
+    "evaluation_period_seconds": 300,
+    "polling_interval_seconds": 300,
+    "trigger_occurrences": 1
+  },
+  "created": "2023-10-01T12:00:00",
+  "updated": "2023-10-01T12:00:00"
+}
