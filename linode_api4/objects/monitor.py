@@ -373,7 +373,7 @@ class AlertChannel(Base):
     This is a top-level API resource and must inherit from Base so that
     `api_list()` and pagination work correctly.
     """
-    api_endpoint = "/monitor/alert-channels"
+    api_endpoint = "/monitor/alert-channels/{id}"
     properties = {
         "id": Property(identifier=True),
         "label": Property(),

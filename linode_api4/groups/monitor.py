@@ -163,26 +163,36 @@ class MonitorGroup(Group):
         """
         Retrieve one or more alert definitions.
 
+        If both `service_type` and `alert_id` are provided, a single
+        :class:`AlertDefinition` instance is returned. If only `service_type` is
+        provided (or neither), a paginated list of :class:`AlertDefinition`
+        objects is returned.
+
+        Examples:
+            alert_definitions = client.monitor.alert_definitions()
+            alert_definition = client.monitor.alert_definitions(service_type="dbaas", alert_id=1234)
+            alert_definitions_for_service = client.monitor.alert_definitions(service_type="dbaas")
+
+        .. note:: This endpoint is in beta and requires using the v4beta base URL.
+
         If both ``service_type`` and ``alert_id`` are provided, a single
         :class:`AlertDefinition` is returned. If only ``service_type`` is
         provided (or neither), a :class:`PaginatedList` of
         :class:`AlertDefinition` objects is returned.
 
-        Examples:
-            alerts = client.monitor.alert_definitions()
-            alerts_for_service = client.monitor.alert_definitions(service_type="dbaas")
-            single = client.monitor.alert_definitions(service_type="dbaas", alert_id=1234)
-
-        .. note:: This endpoint is in beta and requires the v4beta base URL.
-
-        :param service_type: Optional service type to scope the query (e.g. ``"dbaas"``).
+        :param service_type: If provided, limits the query to alert definitions for
+                             the given service type (e.g. ``"dbaas"``).
         :type service_type: Optional[str]
-        :param alert_id: Optional alert definition ID. When provided, ``service_type`` must also be provided.
+        :param alert_id: If provided, the ID of the alert definition to fetch. When
+                         specifying an ``alert_id``, ``service_type`` must also be
+                         provided.
         :type alert_id: Optional[int]
-        :param filters: Optional filter expressions to apply to a collection. See :doc:`Filtering Collections</linode_api4/objects/filtering>`.
+        :param filters: Optional filtering expressions to apply to the returned
+                        collection. See :doc:`Filtering Collections</linode_api4/objects/filtering>`.
 
-        :returns: A single :class:`AlertDefinition` when ``alert_id`` is used,
-                  otherwise a :class:`PaginatedList` of :class:`AlertDefinition`.
+        :returns: A single :class:`AlertDefinition` when ``alert_id`` is used, or
+                  a :class:`PaginatedList` of :class:`AlertDefinition` objects
+                  otherwise.
         :rtype: Union[AlertDefinition, PaginatedList[AlertDefinition]]
         """
 
@@ -209,17 +219,19 @@ class MonitorGroup(Group):
 
     def alert_channels(self, *filters) -> PaginatedList:
         """
-        List alert channels for the authenticated account.
+        List alert channels accessible to the authenticated user.
 
-        Alert channels describe notification destinations (email, webhook,
-        PagerDuty, etc.) and are returned as :class:`AlertChannel` objects.
+        Each alert channel describes a notification destination (email, webhook,
+        PagerDuty, etc.) and is represented by an :class:`AlertChannel` object.
+
+        .. note:: This endpoint is in beta and requires using the v4beta base URL.
 
         Example:
             channels = client.monitor.alert_channels()
 
-        .. note:: This endpoint is in beta and requires the v4beta base URL.
+        :param filters: Optional filtering expressions to apply to the returned
+                        collection. See :doc:`Filtering Collections</linode_api4/objects/filtering>`.
 
-        :param filters: Optional filter expressions to apply to the collection. See :doc:`Filtering Collections</linode_api4/objects/filtering>`.
         :returns: A paginated list of :class:`AlertChannel` objects.
         :rtype: PaginatedList[AlertChannel]
         """
@@ -237,10 +249,12 @@ class MonitorGroup(Group):
         description: Optional[str] = None,
     ) -> AlertDefinition:
         """
-        Create a new alert definition for a service type.
+        Create a new alert definition for a given service type.
 
-        The alert definition configures when alerts are evaluated and which
-        channels receive notifications.
+        The alert definition configures when alerts are fired and which channels
+        are notified.
+
+        .. note:: This endpoint is in beta and requires using the v4beta base URL.
 
         Example:
             new_alert = client.monitor.create_alert_definition(
@@ -252,24 +266,28 @@ class MonitorGroup(Group):
 
         .. note:: This endpoint is in beta and requires the v4beta base URL.
 
-        :param service_type: Service type to create the alert for (e.g. ``"dbaas"``).
+        :param service_type: Service type for which to create the alert definition
+                             (e.g. ``"dbaas"``).
         :type service_type: str
         :param label: Human-readable label for the alert definition.
         :type label: str
-        :param severity: Numeric severity value as expected by the API.
+        :param severity: Severity level for the alert (numeric severity used by API).
         :type severity: int
-        :param channel_ids: List of alert channel IDs to notify when triggered.
+        :param channel_ids: List of alert channel IDs to notify when the alert fires.
         :type channel_ids: list[int]
-        :param rule_criteria: Optional rule criteria payload for evaluation.
+        :param rule_criteria: (Optional) Rule criteria that determine when the alert
+                              should be evaluated. Structure depends on the service
+                              metric definitions.
         :type rule_criteria: Optional[dict]
-        :param trigger_conditions: Optional trigger conditions payload.
+        :param trigger_conditions: (Optional) Trigger conditions that define when
+                                   the alert should transition state.
         :type trigger_conditions: Optional[dict]
-        :param entity_ids: Optional list of entity IDs to scope the alert.
+        :param entity_ids: (Optional) Restrict the alert to a subset of entity IDs.
         :type entity_ids: Optional[list[str]]
-        :param description: Optional longer description for the alert definition.
+        :param description: (Optional) Longer description for the alert definition.
         :type description: Optional[str]
 
-        :returns: The created :class:`AlertDefinition` as returned by the API.
+        :returns: The newly created :class:`AlertDefinition`.
         :rtype: AlertDefinition
         """
         params = {
@@ -312,7 +330,10 @@ class MonitorGroup(Group):
         """
         Update an existing alert definition.
 
-        Only provided parameters will be updated; omitted fields are left unchanged.
+        Only the parameters provided will be updated; omitted parameters are left
+        unchanged.
+
+        .. note:: This endpoint is in beta and requires using the v4beta base URL.
 
         Example:
             updated = client.monitor.update_alert_definition(
@@ -323,26 +344,29 @@ class MonitorGroup(Group):
 
         .. note:: This endpoint is in beta and requires the v4beta base URL.
 
-        :param service_type: Service type of the alert definition to update.
+        :param service_type: Service type of the alert definition to update
+                             (e.g. ``"dbaas"``).
         :type service_type: str
         :param alert_id: ID of the alert definition to update.
         :type alert_id: int
-        :param label: Optional new label for the alert definition.
+        :param label: (Optional) New label for the alert definition.
         :type label: Optional[str]
-        :param severity: Optional new severity value.
+        :param severity: (Optional) New severity for the alert. The SDK accepts
+                         this value as provided to the API (commonly an integer).
         :type severity: Optional[str]
-        :param description: Optional new description.
+        :param description: (Optional) New description for the alert definition.
         :type description: Optional[str]
-        :param rule_criteria: Optional new rule criteria payload.
+        :param rule_criteria: (Optional) New rule criteria to replace the current
+                              definition.
         :type rule_criteria: Optional[RuleCriteria]
-        :param trigger_conditions: Optional new trigger conditions payload.
+        :param trigger_conditions: (Optional) New trigger conditions.
         :type trigger_conditions: Optional[TriggerConditions]
-        :param entity_ids: Optional new list of entity IDs to scope the alert.
+        :param entity_ids: (Optional) New list of entity IDs to scope the alert.
         :type entity_ids: Optional[list[str]]
-        :param channel_ids: Optional new list of channel IDs to notify.
+        :param channel_ids: (Optional) New list of channel IDs to notify.
         :type channel_ids: Optional[list[int]]
 
-        :returns: The updated :class:`AlertDefinition` returned by the API.
+        :returns: The updated :class:`AlertDefinition` as returned by the API.
         :rtype: AlertDefinition
         """
         params = {}
@@ -373,14 +397,14 @@ class MonitorGroup(Group):
         self, service_type: str, alert_id: int
     ) -> None:
         """
-        Delete an alert definition by ID.
+        Delete an alert definition.
 
-        Example:
-            client.monitor.delete_alert_definition("dbaas", 12345)
+        .. note:: This endpoint is in beta and requires using the v4beta base URL.
 
         .. note:: This endpoint is in beta and requires the v4beta base URL.
 
-        :param service_type: Service type of the alert definition to delete.
+        :param service_type: Service type of the alert definition to delete
+                             (e.g. ``"dbaas"``).
         :type service_type: str
         :param alert_id: ID of the alert definition to delete.
         :type alert_id: int
