@@ -364,6 +364,21 @@ class AlertDefinition(Base):
                 setattr(self, key, value)
 
 
+@dataclass
+class EmailChannelContent(JSONObject):
+    """
+    Represents the content for an email alert channel.
+    """
+    email_addresses: List[str] = field(default_factory=list)
+
+@dataclass
+class ChannelContent(JSONObject):
+    """
+    Represents the content block for an AlertChannel, which varies by channel type.
+    """
+    email: EmailChannelContent = None
+    # Other channel types like 'webhook', 'slack' could be added here as Optional fields.
+    
 class AlertChannel(Base):
     """
     Represents an alert channel used to deliver notifications when alerts
