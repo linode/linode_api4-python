@@ -121,13 +121,12 @@ def test_integration_create_get_update_delete_alert_definition(
     service_type = "dbaas"
     label = get_test_label() + "-e2e-alert"
 
-    conditions = {
-        "rule_criteria": {
-            "rules": [
-                {
-                    "aggregate_function": "avg",
-                    "dimension_filters": [
-                        {
+    rule_criteria = {
+        "rules": [
+            {
+                "aggregate_function": "avg",
+                "dimension_filters": [
+                    {
                             "dimension_label": "node_type",
                             "label": "Node Type",
                             "operator": "eq",
@@ -141,13 +140,12 @@ def test_integration_create_get_update_delete_alert_definition(
                     "unit": "percent",
                 }
             ]
-        },
-        "trigger_conditions": {
-            "criteria_condition": "ALL",
-            "evaluation_period_seconds": 300,
-            "polling_interval_seconds": 300,
-            "trigger_occurrences": 1,
-        },
+        }
+    trigger_conditions = {
+        "criteria_condition": "ALL",
+        "evaluation_period_seconds": 300,
+        "polling_interval_seconds": 300,
+        "trigger_occurrences": 1,
     }
 
     # Make the label unique and ensure it begins/ends with an alphanumeric char
@@ -155,7 +153,7 @@ def test_integration_create_get_update_delete_alert_definition(
     description = "E2E alert created by SDK integration test"
 
     # Pick an existing alert channel to attach to the definition; skip if none
-    channels = list(client.monitor.alert_channels())
+    channels = list(client.monitor.get_alert_channels())
     if not channels:
         pytest.skip("No alert channels available on account for creating alert definitions")
 
@@ -168,14 +166,15 @@ def test_integration_create_get_update_delete_alert_definition(
             severity=1,
             description=description,
             channel_ids=[channels[0].id],
-            conditions=[conditions],
+            rule_criteria=rule_criteria,
+            trigger_conditions=trigger_conditions,
         )
 
         assert created.id
         assert getattr(created, "label", None) == label
 
         # Fetch by id
-        fetched = client.monitor.alert_definitions(
+        fetched = client.monitor.get_alert_definitions(
             service_type=service_type, alert_id=created.id
         )
         assert fetched.id == created.id
