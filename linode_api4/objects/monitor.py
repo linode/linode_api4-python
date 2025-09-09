@@ -364,22 +364,53 @@ class AlertDefinition(Base):
                 setattr(self, key, value)
 
 
-
-
 class AlertChannel(Base):
     """
-    An alert channel through which notifications can be sent.
+    Represents an alert channel used to deliver notifications when alerts
+    fire. Alert channels define a destination and configuration for
+    notifications (for example: email lists, webhooks, PagerDuty, Slack, etc.).
 
-    This is a top-level API resource and must inherit from Base so that
-    `api_list()` and pagination work correctly.
+    This class maps to the Monitor API's `/monitor/alert-channels` resource
+    and is used by the SDK to list, load, and inspect channels. Typical fields
+    returned by the API include:
+      - id: int - Unique identifier for the channel
+      - label: str - Human readable label for the channel
+      - type / channel_type: str - Channel type ("email", "webhook", "pagerduty", ...)
+      - url: str - URL or destination associated with the channel (when applicable)
+      - content: dict - Channel-specific configuration block (e.g. email addresses)
+      - created / updated / created_by / updated_by - Auditing metadata
+
+    Note: The exact shape of the `content` block varies by channel type; the
+    SDK exposes `ChannelContent` / `EmailChannelContent` dataclasses for common
+    cases but callers may receive raw dicts from the API in some responses.
     """
-    api_endpoint = "/monitor/alert-channels/{id}"
-    properties = {
-        "id": Property(identifier=True),
-        "label": Property(),
-        "type": Property(),
-        "url": Property(),
-    }
+    api_endpoint = "/monitor/alert-channels/"
+    id: int
+    alerts: List[AlertChannelEnvelope]
+    label: str
+    channel_type: str
+    content: ChannelContent
+    created: str
+    created_by: str
+    _type: AlertType
+    updated: str
+    updated_by: str
+
+    @property
+    def type(self):
+        return self._type
+
+    @type.setter
+    def type(self, value):
+        self._type = value
+
+    def _populate(self, json):
+        """
+        Populates this object with data from a JSON dictionary.
+        """
+        for key, value in json.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
 
 
 @dataclass
