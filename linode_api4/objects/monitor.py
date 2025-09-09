@@ -378,6 +378,22 @@ class ChannelContent(JSONObject):
     """
     email: EmailChannelContent = None
     # Other channel types like 'webhook', 'slack' could be added here as Optional fields.
+
+@dataclass
+class AlertType(Enum):
+    """
+    Enumeration of alert origin types used by alert definitions.
+
+    Values:
+      - SYSTEM: Alerts that originate from the system (built-in or platform-managed).
+      - USER: Alerts created and managed by users (custom alerts).
+
+    The API uses this value in the `type` field of alert-definition responses.
+    This enum can be used to compare or validate the `type` value when
+    processing alert definitions.
+    """
+    SYSTEM = "system"
+    USER = "user"
     
 class AlertChannel(Base):
     """
@@ -428,18 +444,3 @@ class AlertChannel(Base):
                 setattr(self, key, value)
 
 
-@dataclass
-class AlertType(Enum):
-    """
-    Enumeration of alert origin types used by alert definitions.
-
-    Values:
-      - SYSTEM: Alerts that originate from the system (built-in or platform-managed).
-      - USER: Alerts created and managed by users (custom alerts).
-
-    The API uses this value in the `type` field of alert-definition responses.
-    This enum can be used to compare or validate the `type` value when
-    processing alert definitions.
-    """
-    SYSTEM = "system"
-    USER = "user"
