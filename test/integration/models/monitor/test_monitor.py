@@ -165,8 +165,7 @@ def test_integration_create_get_update_delete_alert_definition(
         created = client.monitor.create_alert_definition(
             service_type=service_type,
             label=label,
-            severity="major",
-            type="threshold",
+            severity=1,
             description=description,
             channel_ids=[channels[0].id],
             conditions=[conditions],
