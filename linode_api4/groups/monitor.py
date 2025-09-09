@@ -15,10 +15,7 @@ from linode_api4.objects import (
     AlertChannel,
     RuleCriteria,
     TriggerConditions,
-    AlertChannelEnvelope,
-    AlertType,
-    EmailChannelContent,
-    ChannelContent,
+    AlertChannelEnvelope
 )
 
 
@@ -175,10 +172,10 @@ class MonitorGroup(Group):
 
         .. note:: This endpoint is in beta and requires using the v4beta base URL.
 
-        If both ``service_type`` and ``alert_id`` are provided, a single
-        :class:`AlertDefinition` is returned. If only ``service_type`` is
-        provided (or neither), a :class:`PaginatedList` of
-        :class:`AlertDefinition` objects is returned.
+        API Documentation:
+            https://techdocs.akamai.com/linode-api/reference/get-alert-definition
+            https://techdocs.akamai.com/linode-api/reference/get-alert-definitions
+            https://techdocs.akamai.com/linode-api/reference/get-alert-definitions-for-service-type
 
         :param service_type: If provided, limits the query to alert definitions for
                              the given service type (e.g. ``"dbaas"``).
@@ -208,9 +205,7 @@ class MonitorGroup(Group):
                 endpoint = f"{endpoint}/{alert_id}"
                 # Requesting a single object
                 alert_json = self.client.get(endpoint)
-                return AlertDefinition(
-                    self.client, alert_id, alert_json, service_type=service_type
-                )
+                return AlertDefinition(self.client, alert_id, alert_json)
 
         # Requesting a list
         return self.client._get_and_filter(
@@ -226,8 +221,7 @@ class MonitorGroup(Group):
 
         .. note:: This endpoint is in beta and requires using the v4beta base URL.
 
-        Example:
-            channels = client.monitor.alert_channels()
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-alert-channels
 
         :param filters: Optional filtering expressions to apply to the returned
                         collection. See :doc:`Filtering Collections</linode_api4/objects/filtering>`.
@@ -256,15 +250,7 @@ class MonitorGroup(Group):
 
         .. note:: This endpoint is in beta and requires using the v4beta base URL.
 
-        Example:
-            new_alert = client.monitor.create_alert_definition(
-                service_type="dbaas",
-                label="High CPU",
-                severity=2,
-                channel_ids=[1,2],
-            )
-
-        .. note:: This endpoint is in beta and requires the v4beta base URL.
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-alert-definition-for-service-type
 
         :param service_type: Service type for which to create the alert definition
                              (e.g. ``"dbaas"``).
@@ -335,14 +321,7 @@ class MonitorGroup(Group):
 
         .. note:: This endpoint is in beta and requires using the v4beta base URL.
 
-        Example:
-            updated = client.monitor.update_alert_definition(
-                service_type="dbaas",
-                alert_id=12345,
-                label="Updated label",
-            )
-
-        .. note:: This endpoint is in beta and requires the v4beta base URL.
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/put-alert-definition
 
         :param service_type: Service type of the alert definition to update
                              (e.g. ``"dbaas"``).
@@ -401,7 +380,7 @@ class MonitorGroup(Group):
 
         .. note:: This endpoint is in beta and requires using the v4beta base URL.
 
-        .. note:: This endpoint is in beta and requires the v4beta base URL.
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/delete-alert-definition
 
         :param service_type: Service type of the alert definition to delete
                              (e.g. ``"dbaas"``).
@@ -414,4 +393,3 @@ class MonitorGroup(Group):
         self.client.delete(
             f"/monitor/services/{service_type}/alert-definitions/{alert_id}"
         )
-
