@@ -151,7 +151,7 @@ class MonitorGroup(Group):
             )
         return MonitorServiceToken(token=result["token"])
 
-    def alert_definitions(
+    def get_alert_definitions(
         self,
         service_type: Optional[str] = None,
         alert_id: Optional[int] = None,
@@ -166,9 +166,9 @@ class MonitorGroup(Group):
         objects is returned.
 
         Examples:
-            alert_definitions = client.monitor.alert_definitions()
-            alert_definition = client.monitor.alert_definitions(service_type="dbaas", alert_id=1234)
-            alert_definitions_for_service = client.monitor.alert_definitions(service_type="dbaas")
+            alert_definitions = client.monitor.get_alert_definitions()
+            alert_definition = client.monitor.get_alert_definitions(service_type="dbaas", alert_id=1234)
+            alert_definitions_for_service = client.monitor.get_alert_definitions(service_type="dbaas")
 
         .. note:: This endpoint is in beta and requires using the v4beta base URL.
 
@@ -212,20 +212,25 @@ class MonitorGroup(Group):
             AlertDefinition, *filters, endpoint=endpoint
         )
 
-    def alert_channels(self, *filters) -> PaginatedList:
+    def get_alert_channels(self, *filters) -> PaginatedList:
         """
-        List alert channels accessible to the authenticated user.
+        List alert channels for the authenticated account.
 
-        Each alert channel describes a notification destination (email, webhook,
-        PagerDuty, etc.) and is represented by an :class:`AlertChannel` object.
+        Returns a paginated collection of :class:`AlertChannel` objects which
+        describe destinations for alert notifications (for example: email
+        lists, webhooks, PagerDuty, Slack, etc.). By default this method
+        returns all channels visible to the authenticated account; you can
+        supply optional filter expressions to restrict the results.
+
+        Examples:
+            channels = client.monitor.get_alert_channels()
 
         .. note:: This endpoint is in beta and requires using the v4beta base URL.
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/get-alert-channels
 
-        :param filters: Optional filtering expressions to apply to the returned
-                        collection. See :doc:`Filtering Collections</linode_api4/objects/filtering>`.
-
+        :param filters: Optional filter expressions to apply to the collection.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>` for details.
         :returns: A paginated list of :class:`AlertChannel` objects.
         :rtype: PaginatedList[AlertChannel]
         """
@@ -308,8 +313,8 @@ class MonitorGroup(Group):
         label: Optional[str] = None,
         severity: Optional[str] = None,
         description: Optional[str] = None,
-        rule_criteria: Optional[RuleCriteria] = None,
-        trigger_conditions: Optional[TriggerConditions] = None,
+        rule_criteria: Optional[dict] = None,
+        trigger_conditions: Optional[dict] = None,
         entity_ids: Optional[list[str]] = None,
         channel_ids: Optional[list[int]] = None,
     ) -> AlertDefinition:

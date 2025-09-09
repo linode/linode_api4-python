@@ -283,11 +283,11 @@ class AlertChannelEnvelope(JSONObject):
       - type: str - Channel type (e.g. 'webhook', 'email', 'pagerduty').
       - url: str - Destination URL or address associated with the channel.
     """
-    id: int
-    label: str
-    type: str
-    url: str
-    
+    id: int = 0
+    label: str = ""
+    type: str = ""
+    url: str = ""
+
 @dataclass
 class AlertDefinition(Base):
     """
