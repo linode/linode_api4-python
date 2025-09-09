@@ -344,23 +344,23 @@ class AlertDefinition(Base):
     def __init__(self, client, id, json=None):
         super().__init__(client, id, json)
 
-    @property
-    def type(self):
-        return self._type
+    # @property
+    # def type(self):
+    #     return self._type
 
-    @type.setter
-    def type(self, value):
-        self._type = value
+    # @type.setter
+    # def type(self, value):
+    #     self._type = value
 
     def _populate(self, json):
         """
         Populates this object with data from a JSON dictionary.
         """
         for key, value in json.items():
-            # Map "class" to "_class" class is a reserved word in Python
-            if key == "class":  
-                self._class = value
-            elif hasattr(self, key):
+            # Map "class" to "_class" because "class" is a reserved word in Python.
+            if key == "class":
+                setattr(self, "_class", value)
+            else:
                 setattr(self, key, value)
 
 
