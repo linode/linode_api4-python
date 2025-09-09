@@ -161,26 +161,28 @@ class MonitorGroup(Group):
         *filters,
     ) -> Union[PaginatedList, AlertDefinition]:
         """
-        Returns one or more alert definitions.
-            alert_definitions = client.monitor.alert_definitions()
-            alert_definition = client.monitor.alert_definitions(service_type="dbaas", alert_id=1234)
-            alert_definitions_for_service_type = client.monitor.alert_definitions(service_type="dbaas")
-        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+        Retrieve one or more alert definitions.
 
-        API Documentation:
-            https://techdocs.akamai.com/linode-api/reference/get-alert-definition
-            https://techdocs.akamai.com/linode-api/reference/get-alert-definitions
-            https://techdocs.akamai.com/linode-api/reference/get-alert-definitions-for-service-type
+        If both ``service_type`` and ``alert_id`` are provided, a single
+        :class:`AlertDefinition` is returned. If only ``service_type`` is
+        provided (or neither), a :class:`PaginatedList` of
+        :class:`AlertDefinition` objects is returned.
 
-        :param service_type: The service type to get alert defintions for.
-        :type service_type: str
-        :param alert_id:  The ID of the alert definition to look up.
-        :type alert_id: int
-        :param filters: Any number of filters to apply to this query.
-                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
-                        for more details on filtering.
+        Examples:
+            alerts = client.monitor.alert_definitions()
+            alerts_for_service = client.monitor.alert_definitions(service_type="dbaas")
+            single = client.monitor.alert_definitions(service_type="dbaas", alert_id=1234)
 
-        :returns: An alert definition or a list of alert definitions.
+        .. note:: This endpoint is in beta and requires the v4beta base URL.
+
+        :param service_type: Optional service type to scope the query (e.g. ``"dbaas"``).
+        :type service_type: Optional[str]
+        :param alert_id: Optional alert definition ID. When provided, ``service_type`` must also be provided.
+        :type alert_id: Optional[int]
+        :param filters: Optional filter expressions to apply to a collection. See :doc:`Filtering Collections</linode_api4/objects/filtering>`.
+
+        :returns: A single :class:`AlertDefinition` when ``alert_id`` is used,
+                  otherwise a :class:`PaginatedList` of :class:`AlertDefinition`.
         :rtype: Union[AlertDefinition, PaginatedList[AlertDefinition]]
         """
 
@@ -207,18 +209,19 @@ class MonitorGroup(Group):
 
     def alert_channels(self, *filters) -> PaginatedList:
         """
-        Returns a list of alert channels.
+        List alert channels for the authenticated account.
 
-        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+        Alert channels describe notification destinations (email, webhook,
+        PagerDuty, etc.) and are returned as :class:`AlertChannel` objects.
 
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-alert-channels
+        Example:
+            channels = client.monitor.alert_channels()
 
-        :param filters: Any number of filters to apply to this query.
-                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
-                        for more details on filtering.
+        .. note:: This endpoint is in beta and requires the v4beta base URL.
 
-        :returns: A list of AlertChannels.
-        :rtype: PaginatedList of AlertChannel
+        :param filters: Optional filter expressions to apply to the collection. See :doc:`Filtering Collections</linode_api4/objects/filtering>`.
+        :returns: A paginated list of :class:`AlertChannel` objects.
+        :rtype: PaginatedList[AlertChannel]
         """
         return self.client._get_and_filter(AlertChannel, *filters)
 
@@ -234,26 +237,39 @@ class MonitorGroup(Group):
         description: Optional[str] = None,
     ) -> AlertDefinition:
         """
-        Creates a new alert definition for a specific service type.
+        Create a new alert definition for a service type.
 
-        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+        The alert definition configures when alerts are evaluated and which
+        channels receive notifications.
 
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-alert-definition-for-service-type
+        Example:
+            new_alert = client.monitor.create_alert_definition(
+                service_type="dbaas",
+                label="High CPU",
+                severity=2,
+                channel_ids=[1,2],
+            )
 
-        :param service_type: The service type to create the alert definition for.
+        .. note:: This endpoint is in beta and requires the v4beta base URL.
+
+        :param service_type: Service type to create the alert for (e.g. ``"dbaas"``).
         :type service_type: str
-        :param label: The label for the alert definition.
+        :param label: Human-readable label for the alert definition.
         :type label: str
-        :param severity: The severity of the alert.
-        :type severity: str
-        :param conditions: A list of conditions for the alert.
-        :type conditions: list
-        :param channel_ids: A list of channel IDs to notify.
-        :type channel_ids: list[str]
-        :param description: The description for the alert definition.
+        :param severity: Numeric severity value as expected by the API.
+        :type severity: int
+        :param channel_ids: List of alert channel IDs to notify when triggered.
+        :type channel_ids: list[int]
+        :param rule_criteria: Optional rule criteria payload for evaluation.
+        :type rule_criteria: Optional[dict]
+        :param trigger_conditions: Optional trigger conditions payload.
+        :type trigger_conditions: Optional[dict]
+        :param entity_ids: Optional list of entity IDs to scope the alert.
+        :type entity_ids: Optional[list[str]]
+        :param description: Optional longer description for the alert definition.
         :type description: Optional[str]
 
-        :returns: The newly created AlertDefinition.
+        :returns: The created :class:`AlertDefinition` as returned by the API.
         :rtype: AlertDefinition
         """
         params = {
@@ -294,28 +310,39 @@ class MonitorGroup(Group):
         channel_ids: Optional[list[int]] = None,
     ) -> AlertDefinition:
         """
-        Updates an existing alert definition.
+        Update an existing alert definition.
 
-        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+        Only provided parameters will be updated; omitted fields are left unchanged.
 
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/put-alert-definition
+        Example:
+            updated = client.monitor.update_alert_definition(
+                service_type="dbaas",
+                alert_id=12345,
+                label="Updated label",
+            )
 
-        :param service_type: The service type of the alert definition to update.
+        .. note:: This endpoint is in beta and requires the v4beta base URL.
+
+        :param service_type: Service type of the alert definition to update.
         :type service_type: str
-        :param alert_id: The ID of the alert definition to update.
+        :param alert_id: ID of the alert definition to update.
         :type alert_id: int
-        :param label: The new label for the alert definition.
+        :param label: Optional new label for the alert definition.
         :type label: Optional[str]
-        :param severity: The new severity of the alert.
+        :param severity: Optional new severity value.
         :type severity: Optional[str]
-        :param description: The new description for the alert definition.
+        :param description: Optional new description.
         :type description: Optional[str]
-        :param conditions: The new conditions for the alert.
-        :type conditions: Optional[list]
-        :param notification_groups: The new list of notification group IDs.
-        :type notification_groups: Optional[list[int]]
+        :param rule_criteria: Optional new rule criteria payload.
+        :type rule_criteria: Optional[RuleCriteria]
+        :param trigger_conditions: Optional new trigger conditions payload.
+        :type trigger_conditions: Optional[TriggerConditions]
+        :param entity_ids: Optional new list of entity IDs to scope the alert.
+        :type entity_ids: Optional[list[str]]
+        :param channel_ids: Optional new list of channel IDs to notify.
+        :type channel_ids: Optional[list[int]]
 
-        :returns: The updated AlertDefinition.
+        :returns: The updated :class:`AlertDefinition` returned by the API.
         :rtype: AlertDefinition
         """
         params = {}
@@ -346,16 +373,19 @@ class MonitorGroup(Group):
         self, service_type: str, alert_id: int
     ) -> None:
         """
-        Deletes an alert definition.
+        Delete an alert definition by ID.
 
-        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
+        Example:
+            client.monitor.delete_alert_definition("dbaas", 12345)
 
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/delete-alert-definition
+        .. note:: This endpoint is in beta and requires the v4beta base URL.
 
-        :param service_type: The service type of the alert definition to delete.
+        :param service_type: Service type of the alert definition to delete.
         :type service_type: str
-        :param alert_id: The ID of the alert definition to delete.
+        :param alert_id: ID of the alert definition to delete.
         :type alert_id: int
+
+        :returns: None
         """
         self.client.delete(
             f"/monitor/services/{service_type}/alert-definitions/{alert_id}"

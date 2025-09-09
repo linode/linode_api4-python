@@ -10,8 +10,6 @@ __all__ = [
     "AlertDefinition",
     "AlertType",
     "AlertChannelEnvelope",
-    "ChannelContent",
-    "EmailChannelContent",
 ]
 from dataclasses import dataclass, field
 from enum import Enum
@@ -194,6 +192,7 @@ class MonitorServiceToken(JSONObject):
     token: str = ""
 
 
+
 @dataclass
 class TriggerConditions(JSONObject):
     """
@@ -218,7 +217,6 @@ class TriggerConditions(JSONObject):
     polling_interval_seconds: int = 0
     trigger_occurrences: int = 1
 
-
 @dataclass
 class DimensionFilter(JSONObject):
     """
@@ -236,7 +234,6 @@ class DimensionFilter(JSONObject):
     label: str = ""
     operator: str = ""
     value: Union[str, int, float, bool, None] = None
-
 
 @dataclass
 class Rule(JSONObject):
@@ -261,7 +258,6 @@ class Rule(JSONObject):
     threshold: Optional[float] = None
     unit: Optional[str] = None
 
-
 @dataclass
 class RuleCriteria(JSONObject):
     """
@@ -270,109 +266,83 @@ class RuleCriteria(JSONObject):
     """
     rules: List[Rule] = field(default_factory=list)
 
-
 @dataclass
 class AlertChannelEnvelope(JSONObject):
     """
-    Envelope for alert channel list responses.
+    Represents a single alert channel entry returned inside alert definition
+    responses.
+
+    This envelope type is used when an AlertDefinition includes a list of
+    alert channels. It contains lightweight information about the channel so
+    that callers can display or reference the channel without performing an
+    additional API lookup.
+
+    Fields:
+      - id: int - Unique identifier of the alert channel.
+      - label: str - Human-readable name for the channel.
+      - type: str - Channel type (e.g. 'webhook', 'email', 'pagerduty').
+      - url: str - Destination URL or address associated with the channel.
     """
     id: int
     label: str
     type: str
     url: str
-
-
+    
+@dataclass
 class AlertDefinition(Base):
     """
-    An alert definition for a monitor service.
+    Represents an alert definition for a monitor service.
+
+    This object models the JSON returned by the Monitor API's alert-definition
+    endpoints. Alert definitions describe a named condition (one or more rules)
+    that, when met, will trigger notifications via configured alert channels.
+
+    Typical usage:
+      alert = client.monitor.alert_definitions(service_type="dbaas", alert_id=1234)
+      alerts = client.monitor.alert_definitions(service_type="dbaas")
+
+    Important fields encoded in the API response include:
+      - id: int - Unique identifier for the alert definition.
+      - label: str - Human-readable name for the alert.
+      - severity: str/int - Severity level (e.g. "warning", "critical").
+      - type: str - "user" or "system" indicating origin.
+      - service_type: str - The service type the alert applies to (e.g. "dbaas").
+      - status: str - Current status of the alert definition (e.g. "active").
+      - rule_criteria: dict - The set of rules evaluated to determine whether
+        an alert should trigger (see :class:`RuleCriteria`).
+      - trigger_conditions: dict - Evaluation configuration (see :class:`TriggerConditions`).
+      - alert_channels: list - A list of lightweight channel envelopes
+        (:class:`AlertChannelEnvelope`) used to notify when the alert fires.
+      - entity_ids: list - Optional list of entity IDs this alert targets.
+      - created / updated / updated_by / created_by - Auditing metadata.
+
+    Note: The API returns a key named "class" which is a reserved word in
+    Python. When populating this object the value is stored on the attribute
+    ``_class``.
 
     API Documentation: https://techdocs.akamai.com/linode-api/reference/get-alert-definition
     """
-
-    api_endpoint = "/monitor/services/{service_type}/alert-definitions/{id}"
-    id_attribute = "id"
-
-    properties = {
-        "id": Property(identifier=True),
-        "label": Property(),
-        "severity": Property(),
-        "type": Property(),
-        "service_type": Property(),
-        "status": Property(),
-        "has_more_resources": Property(),
-        "rule_criteria": Property(json_object=RuleCriteria),
-        "trigger_conditions": Property(json_object=TriggerConditions),
-        "alert_channels": Property(json_object=AlertChannelEnvelope),
-        "created": Property(is_datetime=True),
-        "updated": Property(is_datetime=True),
-        "updated_by": Property(),
-        "created_by": Property(),
-        "entity_ids": Property(),
-        "description": Property(),
-        "class": Property(),
-    }
-
-    def __init__(self, client, id, json=None, service_type=None):
-        """
-        Override __init__ to accept service_type, which is required to build the api_endpoint.
-        """
-        # Bypass the Base.__setattr__ check for this property during initialization.
-        object.__setattr__(self, "service_type", service_type)
-        super().__init__(client, id, json)
-
-    @property
-    def api_endpoint(self):
-        """
-        The endpoint for this object, based on its service_type.
-        """
-        if not self.service_type:
-            # This is required for save() and delete() to work.
-            # The group methods handle populating this.
-            raise ValueError("AlertDefinition requires a service_type.")
-        return f"/monitor/services/{self.service_type}/alert-definitions/{self.id}"
-
-
-@dataclass
-class EmailChannelContent(JSONObject):
-    """
-    Represents the content for an email alert channel.
-    """
-    email_addresses: List[str] = field(default_factory=list)
-
-@dataclass
-class ChannelContent(JSONObject):
-    """
-    Represents the content block for an AlertChannel, which varies by channel type.
-    """
-    email: EmailChannelContent = None
-    # Other channel types like 'webhook', 'slack' could be added here as Optional fields.
-
-@dataclass
-class AlertType(Enum):
-    """
-    Types of alerts that can be triggered.
-    """
-    SYSTEM = "system"
-    USER = "user"
-
-class AlertChannel(Base):
-    """
-    An alert channel through which notifications can be sent.
-
-    This is a top-level API resource and must inherit from Base so that
-    `api_list()` and pagination work correctly.
-    """
-    api_endpoint = "/monitor/alert-channels/{id}"
     id: int
-    alerts: List[AlertChannelEnvelope]
     label: str
-    channel_type: str
-    content: ChannelContent
+    severity: int
+    _type: str
+    service_type: str
+    status: str
+    has_more_resources: bool
+    rule_criteria: list[Rule]
+    trigger_conditions: TriggerConditions  
+    alert_channels: list[AlertChannelEnvelope]
     created: str
-    created_by: str
-    _type: AlertType
     updated: str
     updated_by: str
+    created_by: str
+    entity_ids: list[str] = None
+    description: str = None
+    _class: str = None
+   
+
+    def __init__(self, client, id, json=None):
+        super().__init__(client, id, json)
 
     @property
     def type(self):
@@ -387,5 +357,43 @@ class AlertChannel(Base):
         Populates this object with data from a JSON dictionary.
         """
         for key, value in json.items():
-            if hasattr(self, key):
+            # Map "class" to "_class" class is a reserved word in Python
+            if key == "class":  
+                self._class = value
+            elif hasattr(self, key):
                 setattr(self, key, value)
+
+
+
+
+class AlertChannel(Base):
+    """
+    An alert channel through which notifications can be sent.
+
+    This is a top-level API resource and must inherit from Base so that
+    `api_list()` and pagination work correctly.
+    """
+    api_endpoint = "/monitor/alert-channels/{id}"
+    properties = {
+        "id": Property(identifier=True),
+        "label": Property(),
+        "type": Property(),
+        "url": Property(),
+    }
+
+
+@dataclass
+class AlertType(Enum):
+    """
+    Enumeration of alert origin types used by alert definitions.
+
+    Values:
+      - SYSTEM: Alerts that originate from the system (built-in or platform-managed).
+      - USER: Alerts created and managed by users (custom alerts).
+
+    The API uses this value in the `type` field of alert-definition responses.
+    This enum can be used to compare or validate the `type` value when
+    processing alert definitions.
+    """
+    SYSTEM = "system"
+    USER = "user"
