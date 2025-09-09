@@ -61,7 +61,7 @@ class MonitorAlertDefinitionsTest(MonitorClientBaseCase):
         alert_id = 12345
         url = f"/monitor/services/{service_type}/alert-definitions/{alert_id}"
         with self.mock_get(url) as mock_get:
-            alert = self.client.monitor.alert_definitions(
+            alert = self.client.monitor.get_alert_definitions(
                 service_type=service_type, alert_id=alert_id
             )
 
@@ -82,7 +82,7 @@ class MonitorAlertDefinitionsTest(MonitorClientBaseCase):
     def test_alert_definitions_requires_service_type_when_id_given(self):
         # alert_id without service_type should raise ValueError
         try:
-            self.client.monitor.alert_definitions(alert_id=12345)
+            self.client.monitor.get_alert_definitions(alert_id=12345)
             raised = False
         except ValueError:
             raised = True
