@@ -50,3 +50,4 @@ class TestFixtures:
                 for obj in data["data"]:
                     if "id" in obj:  # tags, obj-buckets don't have ids
                         self.fixtures[fixture_url + "/" + str(obj["id"])] = obj
+                        
