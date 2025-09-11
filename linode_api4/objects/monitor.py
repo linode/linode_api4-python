@@ -13,7 +13,7 @@ __all__ = [
 ]
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Optional, Literal, Union
+from typing import List, Literal, Optional, Union
 
 from linode_api4.objects.base import Base, Property
 from linode_api4.objects.serializable import JSONObject, StrEnum
@@ -348,12 +348,10 @@ class AlertDefinition(Base):
         """
         Populates this object with data from a JSON dictionary.
         """
-        for key, value in json.items():
-            #class and type are reserved words in Python.
-            reserved = {"class": "_class", "type": "_type"}
-            for json_key, json_value in json.items():
-                attr = reserved.get(json_key, json_key)
-                setattr(self, attr, json_value)
+        reserved = {"class": "_class", "type": "_type"}
+        for json_key, json_value in json.items():
+            attr = reserved.get(json_key, json_key)
+            setattr(self, attr, json_value)
 
 
 @dataclass

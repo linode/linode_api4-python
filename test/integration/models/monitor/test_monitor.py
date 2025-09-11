@@ -1,19 +1,18 @@
-from test.integration.helpers import (
-    get_test_label,
-    send_request_when_resource_available,
-    wait_for_condition,
-)
-
-import pytest
 import time
 
-from linode_api4 import LinodeClient
-from linode_api4 import ApiError
+import pytest
+from linode_api4 import ApiError, LinodeClient
 from linode_api4.objects import (
     MonitorDashboard,
     MonitorMetricsDefinition,
     MonitorService,
     MonitorServiceToken,
+)
+
+from test.integration.helpers import (
+    get_test_label,
+    send_request_when_resource_available,
+    wait_for_condition,
 )
 
 

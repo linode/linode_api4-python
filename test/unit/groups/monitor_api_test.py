@@ -1,10 +1,10 @@
-from test.unit.base import MonitorClientBaseCase
-
 from linode_api4.objects import (
+    AlertDefinition,
     AggregateFunction,
     EntityMetricOptions,
-    AlertDefinition,
 )
+
+from test.unit.base import MonitorClientBaseCase
 
 
 class MonitorAPITest(MonitorClientBaseCase):
