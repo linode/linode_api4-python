@@ -153,9 +153,9 @@ class MonitorGroup(Group):
 
     def get_alert_definitions(
         self,
+        *filters,
         service_type: Optional[str] = None,
         alert_id: Optional[int] = None,
-        *filters,
     ) -> Union[PaginatedList, AlertDefinition]:
         """
         Retrieve one or more alert definitions.
