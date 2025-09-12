@@ -18,7 +18,7 @@ class MonitorAPITest(MonitorClientBaseCase):
         with self.mock_post(url) as mock_post:
             metrics = self.client.metrics.fetch_metrics(
                 service_type,
-                entity_ids=[13217, 13316],   
+                entity_ids=[13217, 13316],
                 metrics=[
                     EntityMetricOptions(
                         name="avg_read_iops",
