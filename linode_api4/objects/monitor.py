@@ -330,7 +330,7 @@ class AlertDefinition(Base):
     status: str
     has_more_resources: bool
     rule_criteria: list[Rule]
-    trigger_conditions: TriggerConditions  
+    trigger_conditions: TriggerConditions
     alert_channels: list[AlertChannelEnvelope]
     created: str
     updated: str
