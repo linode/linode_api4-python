@@ -127,11 +127,11 @@ def test_integration_create_get_update_delete_alert_definition(
                 "aggregate_function": "avg",
                 "dimension_filters": [
                     {
-                            "dimension_label": "node_type",
-                            "label": "Node Type",
-                            "operator": "eq",
-                            "value": "primary",
-                        }
+                        "dimension_label": "node_type",
+                        "label": "Node Type",
+                        "operator": "eq",
+                        "value": "primary",
+                    }
                     ],
                     "label": "Memory Usage",
                     "metric": "memory_usage",
