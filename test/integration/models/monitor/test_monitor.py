@@ -213,6 +213,7 @@ def test_integration_create_get_update_delete_alert_definition(
                 time.sleep(alert_update_interval) 
                 client.monitor.delete_alert_definition(service_type, created.id)
             except Exception:
+                
                 pass
 
             # confirm it's gone (if API returns 404 or raises)

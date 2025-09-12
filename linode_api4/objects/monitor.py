@@ -288,7 +288,6 @@ class AlertChannelEnvelope(JSONObject):
     type: str = ""
     url: str = ""
 
-@dataclass
 class AlertDefinition(Base):
     """
     Represents an alert definition for a monitor service.
@@ -432,5 +431,3 @@ class AlertChannel(Base):
         for key, value in json.items():
             if hasattr(self, key):
                 setattr(self, key, value)
-
-
