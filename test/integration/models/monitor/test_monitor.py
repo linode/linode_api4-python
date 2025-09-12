@@ -138,9 +138,9 @@ def test_integration_create_get_update_delete_alert_definition(
                     "operator": "gt",
                     "threshold": 90,
                     "unit": "percent",
-                }
-            ]
-        }
+            }  # <-- Close the rule dictionary here
+        ]
+    }
     trigger_conditions = {
         "criteria_condition": "ALL",
         "evaluation_period_seconds": 300,
