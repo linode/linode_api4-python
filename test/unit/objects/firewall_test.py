@@ -139,7 +139,7 @@ class FirewallTemplatesTest(ClientBaseCase):
         assert outbound_rule.ports == "22-24, 80, 443"
         assert outbound_rule.protocol == "TCP"
 
-        inbound_rule = rules.outbound[0]
+        inbound_rule = rules.inbound[0]
         assert inbound_rule.action == "ACCEPT"
         assert inbound_rule.addresses.ipv4[0] == "192.0.2.0/24"
         assert inbound_rule.addresses.ipv4[1] == "198.51.100.2/32"
