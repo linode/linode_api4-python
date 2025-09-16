@@ -527,7 +527,6 @@ class LinodeTest(ClientBaseCase):
         iface_settings.default_route.ipv4_interface_id = 456
         iface_settings.default_route.ipv6_interface_id = 123
 
-
         with self.mock_put("/linode/instances/124/interfaces/settings") as m:
             iface_settings.save()
 
