@@ -1973,7 +1973,7 @@ class Instance(Base):
             data=drop_null_keys(_flatten_request_body_recursive(params)),
         )
 
-        if not "id" in result:
+        if "id" not in result:
             raise UnexpectedResponseError(
                 "Unexpected response creating config!", json=result
             )
