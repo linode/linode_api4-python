@@ -24,7 +24,6 @@ from linode_api4 import (
     LinodeInterfaceVPCOptions,
     PlacementGroupPolicy,
     PlacementGroupType,
-    PlacementGroupType,
     PostgreSQLDatabase,
 )
 from linode_api4.linode_client import LinodeClient, MonitorClient
