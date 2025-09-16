@@ -49,7 +49,7 @@ class ServiceType(StrEnum):
     firewall = "firewall"
     object_storage = "object_storage"
     aclb = "aclb"
-    netloadbalancer = "netloadbalancer"
+    net_load_balancer = "netloadbalancer"
 
 
 class MetricType(StrEnum):
@@ -124,7 +124,7 @@ class DashboardWidget(JSONObject):
     y_label: str = ""
     aggregate_function: AggregateFunction = ""
     group_by: List[str] = field(default_factory=list)
-    filters: Optional[List[Filter]] = None
+    filters: List[Filter] = field(default_factory=list)
 
 
 @dataclass
