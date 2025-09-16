@@ -138,7 +138,7 @@
       "disk_encryption": "disabled",
       "lke_cluster_id": null,
       "placement_group": null,
-      "interface_generation": "linode"
+      "interface_generation": "linode",
       "placement_group": null,
       "maintenance_policy" : "linode/power_off_on"
     }
