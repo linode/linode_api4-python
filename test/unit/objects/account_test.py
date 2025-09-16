@@ -147,8 +147,8 @@ class InvoiceTest(ClientBaseCase):
                 "network_helper": True,
                 "backups_enabled": False,
                 "interfaces_for_new_linodes": AccountSettingsInterfacesForNewLinodes.linode_only,
+                "maintenance_policy": "linode/migrate",
             }
-        self.assertEqual(settings.maintenance_policy, "linode/migrate")
 
     def test_update_account_settings(self):
         """

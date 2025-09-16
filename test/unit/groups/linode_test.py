@@ -131,7 +131,7 @@ class LinodeTest(ClientBaseCase):
                 "interfaces": [iface._serialize() for iface in interfaces],
             }
 
-def test_create_with_maintenance_policy(self):
+    def test_create_with_maintenance_policy(self):
         """
         Tests that you can create a Linode with a maintenance policy
         """
