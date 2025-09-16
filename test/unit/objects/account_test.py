@@ -406,7 +406,6 @@ def test_user_grants_serialization():
             "add_linodes": True,
             "add_longview": True,
             "add_nodebalancers": True,
-            "add_placement_groups": True,
             "add_stackscripts": True,
             "add_volumes": True,
             "add_vpcs": True,

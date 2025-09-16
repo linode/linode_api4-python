@@ -206,7 +206,7 @@ def create_linode_for_long_running_tests(test_linode_client, e2e_test_firewall):
 def linode_with_disk_encryption(test_linode_client, request):
     client = test_linode_client
 
-    target_region = get_region(client, {"LA Disk Encryption"})
+    target_region = get_region(client, {"Disk Encryption"})
     label = get_test_label(length=8)
 
     disk_encryption = request.param
@@ -261,7 +261,7 @@ def test_linode_transfer(test_linode_client, linode_with_volume_firewall):
 def test_linode_rebuild(test_linode_client):
     client = test_linode_client
 
-    region = get_region(client, {"LA Disk Encryption"})
+    region = get_region(client, {"Disk Encryption"})
 
     label = get_test_label() + "_rebuild"
 

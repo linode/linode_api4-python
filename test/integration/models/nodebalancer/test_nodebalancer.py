@@ -167,7 +167,9 @@ def test_update_nb(test_linode_client, create_nb):
         create_nb.id,
     )
 
-    nb.label = "ThisNewLabel"
+    new_label = f"{nb.label}-ThisNewLabel"
+
+    nb.label = new_label
     nb.client_udp_sess_throttle = 5
     nb.save()
 
@@ -176,7 +178,7 @@ def test_update_nb(test_linode_client, create_nb):
         create_nb.id,
     )
 
-    assert "ThisNewLabel" == nb_updated.label
+    assert new_label == nb_updated.label
     assert 5 == nb_updated.client_udp_sess_throttle
 
 
@@ -215,7 +217,10 @@ def test_update_nb_node(test_linode_client, create_nb_config):
         create_nb_config.nodebalancer_id,
     )
     node = config.nodes[0]
-    node.label = "ThisNewLabel"
+
+    new_label = f"{node.label}-ThisNewLabel"
+
+    node.label = new_label
     node.weight = 50
     node.mode = "accept"
     node.save()
@@ -226,7 +231,7 @@ def test_update_nb_node(test_linode_client, create_nb_config):
         (create_nb_config.id, create_nb_config.nodebalancer_id),
     )
 
-    assert "ThisNewLabel" == node_updated.label
+    assert new_label == node_updated.label
     assert 50 == node_updated.weight
     assert "accept" == node_updated.mode
 
