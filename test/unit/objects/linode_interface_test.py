@@ -36,7 +36,7 @@ def build_interface_options_public():
             ipv6=LinodeInterfacePublicIPv6Options(
                 ranges=[
                     LinodeInterfacePublicIPv6RangeOptions(
-                        range="2600:3cO9:e001:59::/64"
+                        range="2600:3c09:e001:59::/64"
                     )
                 ]
             ),
@@ -105,22 +105,22 @@ class LinodeInterfaceTest(ClientBaseCase):
         assert iface.public.ipv4.shared[0].linode_id == 125
 
         # public.ipv6 assertions
-        assert iface.public.ipv6.ranges[0].range == "2600:3cO9:e001:59::/64"
+        assert iface.public.ipv6.ranges[0].range == "2600:3c09:e001:59::/64"
         assert (
             iface.public.ipv6.ranges[0].route_target
-            == "2600:3cO9::ff:feab:cdef"
+            == "2600:3c09::ff:feab:cdef"
         )
 
-        assert iface.public.ipv6.ranges[1].range == "2600:3cO9:e001:5a::/64"
+        assert iface.public.ipv6.ranges[1].range == "2600:3c09:e001:5a::/64"
         assert (
             iface.public.ipv6.ranges[1].route_target
-            == "2600:3cO9::ff:feab:cdef"
+            == "2600:3c09::ff:feab:cdef"
         )
 
-        assert iface.public.ipv6.shared[0].range == "2600:3cO9:e001:2a::/64"
+        assert iface.public.ipv6.shared[0].range == "2600:3c09:e001:2a::/64"
         assert iface.public.ipv6.shared[0].route_target is None
 
-        assert iface.public.ipv6.slaac[0].address == "2600:3cO9::ff:feab:cdef"
+        assert iface.public.ipv6.slaac[0].address == "2600:3c09::ff:feab:cdef"
         assert iface.public.ipv6.slaac[0].prefix == 64
 
     @staticmethod
@@ -207,7 +207,7 @@ class LinodeInterfaceTest(ClientBaseCase):
 
         iface.public.ipv6.ranges = [
             LinodeInterfacePublicIPv6RangeOptions(
-                range="2600:3cO9:e001:58::/64"
+                range="2600:3c09:e001:58::/64"
             )
         ]
 
@@ -233,7 +233,7 @@ class LinodeInterfaceTest(ClientBaseCase):
                     "ipv6": {
                         "ranges": [
                             {
-                                "range": "2600:3cO9:e001:58::/64",
+                                "range": "2600:3c09:e001:58::/64",
                             }
                         ]
                     },

@@ -26,23 +26,23 @@
         "ipv6": {
           "ranges": [
             {
-              "range": "2600:3cO9:e001:59::/64",
-              "route_target": "2600:3cO9::ff:feab:cdef"
+              "range": "2600:3c09:e001:59::/64",
+              "route_target": "2600:3c09::ff:feab:cdef"
             },
             {
-              "range": "2600:3cO9:e001:5a::/64",
-              "route_target": "2600:3cO9::ff:feab:cdef"
+              "range": "2600:3c09:e001:5a::/64",
+              "route_target": "2600:3c09::ff:feab:cdef"
             }
           ],
           "shared": [
             {
-              "range": "2600:3cO9:e001:2a::/64",
+              "range": "2600:3c09:e001:2a::/64",
               "route_target": null
             }
           ],
           "slaac": [
             {
-              "address": "2600:3cO9::ff:feab:cdef",
+              "address": "2600:3c09::ff:feab:cdef",
               "prefix": 64
             }
           ]
