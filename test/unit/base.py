@@ -228,3 +228,4 @@ class MonitorClientBaseCase(TestCase):
             mocked requests
         """
         return MethodMock("post", return_dct)
+        
