@@ -1,9 +1,8 @@
 import json
-import os
 import re
-import sys
+from pathlib import Path
 
-FIXTURES_DIR = sys.path[0] + "/test/fixtures"
+FIXTURES_DIR = Path(__file__).parent.parent / "fixtures"
 
 # This regex is useful for finding individual underscore characters,
 # which is necessary to allow us to use underscores in URL paths.
@@ -30,18 +29,18 @@ class TestFixtures:
         """
         self.fixtures = {}
 
-        for json_file in os.listdir(FIXTURES_DIR):
-            if not json_file.endswith(".json"):
+        for json_file in FIXTURES_DIR.iterdir():
+            if not json_file.suffix == ".json":
                 continue
 
-            with open(FIXTURES_DIR + "/" + json_file) as f:
+            with open(FIXTURES_DIR / json_file) as f:
                 raw = f.read()
 
             data = json.loads(raw)
 
-            fixture_url = PATH_REPLACEMENT_REGEX.sub("/", json_file).replace(
-                "__", "_"
-            )[:-5]
+            fixture_url = PATH_REPLACEMENT_REGEX.sub(
+                "/", json_file.name
+            ).replace("__", "_")[:-5]
 
             self.fixtures[fixture_url] = data
 
