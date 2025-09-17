@@ -477,11 +477,6 @@ class LinodeTest(ClientBaseCase):
         assert pg.placement_group_type == "anti_affinity:local"
 
     def test_get_interfaces(self):
-        # Local import to avoid circular dependency
-        from linode_interface_test import (  # pylint: disable=import-outside-toplevel
-            LinodeInterfaceTest,
-        )
-
         instance = Instance(self.client, 124)
 
         assert instance.interface_generation == InterfaceGeneration.LINODE
@@ -539,11 +534,6 @@ class LinodeTest(ClientBaseCase):
             }
 
     def test_upgrade_interfaces(self):
-        # Local import to avoid circular dependency
-        from linode_interface_test import (  # pylint: disable=import-outside-toplevel
-            LinodeInterfaceTest,
-        )
-
         instance = Instance(self.client, 124)
 
         with self.mock_post("/linode/instances/124/upgrade-interfaces") as m:
