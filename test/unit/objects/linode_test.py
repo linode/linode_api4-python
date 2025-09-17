@@ -545,8 +545,6 @@ class LinodeTest(ClientBaseCase):
         assert result.config_id == 123
         assert result.dry_run
 
-        # We don't use the assertion helpers here because dry runs return
-        # a MappedObject.
         LinodeInterfaceTest.assert_linode_124_interface_123(
             result.interfaces[0]
         )
