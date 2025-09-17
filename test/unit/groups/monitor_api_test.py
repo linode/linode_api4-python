@@ -4,7 +4,7 @@ from linode_api4.objects import (
     EntityMetricOptions,
 )
 
-from test.unit.base import MonitorClientBaseCase
+from test.unit.base import ClientBaseCase, MonitorClientBaseCase
 
 
 class MonitorAPITest(MonitorClientBaseCase):
@@ -55,7 +55,7 @@ class MonitorAPITest(MonitorClientBaseCase):
             assert metrics.stats.seriesFetched == "2"
             assert not metrics.isPartial
 
-class MonitorAlertDefinitionsTest(MonitorClientBaseCase):
+class MonitorAlertDefinitionsTest(ClientBaseCase):
     def test_get_alert_definition(self):
         service_type = "dbaas"
         alert_id = 12345

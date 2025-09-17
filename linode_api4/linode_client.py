@@ -601,10 +601,6 @@ class MonitorClient(BaseClient):
         #: more information
         self.metrics = MetricsGroup(self)
 
-        # Expose higher-level monitor functionality (alerts, dashboards, channels)
-        # required by unit tests.
-        self.monitor = MonitorGroup(self)
-
         super().__init__(
             token=token,
             base_url=base_url,
