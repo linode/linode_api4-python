@@ -1975,7 +1975,7 @@ class Instance(Base):
 
         if "id" not in result:
             raise UnexpectedResponseError(
-                "Unexpected response creating config!", json=result
+                "Unexpected response creating interface!", json=result
             )
 
         return LinodeInterface(self._client, result["id"], self.id, json=result)
