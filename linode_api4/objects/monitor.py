@@ -1,4 +1,5 @@
 __all__ = [
+       "AlertType",
     "MonitorDashboard",
     "MonitorMetricsDefinition",
     "MonitorService",
@@ -8,7 +9,6 @@ __all__ = [
     "TriggerConditions",
     "AlertChannel",
     "AlertDefinition",
-    "AlertType",
     "AlertChannelEnvelope",
 ]
 from dataclasses import dataclass, field
@@ -16,6 +16,7 @@ from enum import Enum
 from typing import List, Literal, Optional, Union
 
 from linode_api4.objects.base import Base, Property
+from linode_api4.objects import DerivedBase
 from linode_api4.objects.serializable import JSONObject, StrEnum
 
 
@@ -288,69 +289,53 @@ class AlertChannelEnvelope(JSONObject):
     type: str = ""
     url: str = ""
 
-class AlertDefinition(Base):
+@dataclass
+class AlertType(Enum):
+    """
+    Enumeration of alert origin types used by alert definitions.
+
+    Values:
+      - SYSTEM: Alerts that originate from the system (built-in or platform-managed).
+      - USER: Alerts created and managed by users (custom alerts).
+
+    The API uses this value in the `type` field of alert-definition responses.
+    This enum can be used to compare or validate the `type` value when
+    processing alert definitions.
+    """
+    SYSTEM = "system"
+    USER = "user"
+
+class AlertDefinition(DerivedBase):
     """
     Represents an alert definition for a monitor service.
 
-    This object models the JSON returned by the Monitor API's alert-definition
-    endpoints. Alert definitions describe a named condition (one or more rules)
-    that, when met, will trigger notifications via configured alert channels.
-
-    Typical usage:
-      alert = client.monitor.alert_definitions(service_type="dbaas", alert_id=1234)
-      alerts = client.monitor.alert_definitions(service_type="dbaas")
-
-    Important fields encoded in the API response include:
-      - id: int - Unique identifier for the alert definition.
-      - label: str - Human-readable name for the alert.
-      - severity: str/int - Severity level (e.g. "warning", "critical").
-      - type: str - "user" or "system" indicating origin.
-      - service_type: str - The service type the alert applies to (e.g. "dbaas").
-      - status: str - Current status of the alert definition (e.g. "active").
-      - rule_criteria: dict - The set of rules evaluated to determine whether
-        an alert should trigger (see :class:`RuleCriteria`).
-      - trigger_conditions: dict - Evaluation configuration (see :class:`TriggerConditions`).
-      - alert_channels: list - A list of lightweight channel envelopes
-        (:class:`AlertChannelEnvelope`) used to notify when the alert fires.
-      - entity_ids: list - Optional list of entity IDs this alert targets.
-      - created / updated / updated_by / created_by - Auditing metadata.
-
-    Note: The API returns a key named "class" which is a reserved word in
-    Python. When populating this object the value is stored on the attribute
-    ``_class``.
-
     API Documentation: https://techdocs.akamai.com/linode-api/reference/get-alert-definition
     """
-    id: int
-    label: str
-    severity: int
-    _type: str
-    service_type: str
-    status: str
-    has_more_resources: bool
-    rule_criteria: list[Rule]
-    trigger_conditions: TriggerConditions
-    alert_channels: list[AlertChannelEnvelope]
-    created: str
-    updated: str
-    updated_by: str
-    created_by: str
-    entity_ids: list[str] = None
-    description: str = None
-    _class: str = None
-   
+    
+    api_endpoint = "/monitor/services/{service}/alert-definitions/{id}"
+    derived_url_path = "alert-definitions"
+    parent_id_name =  "service"
+    id_attribute = "id"
 
-    def __init__(self, client, id, json=None):
-        super().__init__(client, id, json)
-
-    def _populate(self, json):
-        """
-        Populates this object with data from a JSON dictionary.
-        """
-        reserved = {"class": "_class", "type": "_type"}
-        for json_key, json_value in json.items():
-            attr = reserved.get(json_key, json_key)
-            setattr(self, attr, json_value)
+    properties = {
+        "id": Property(identifier=True),
+        "label": Property(),
+        "severity": Property(),
+        "type": Property(AlertType),
+        "service_type": Property(mutable=True),
+        "status": Property(mutable=True),
+        "has_more_resources": Property(mutable=True),
+        "rule_criteria": Property(RuleCriteria),
+        "trigger_conditions": Property(TriggerConditions),
+        "alert_channels": Property(List[AlertChannelEnvelope]),
+        "created": Property(is_datetime=True),
+        "updated": Property(is_datetime=True),
+        "updated_by": Property(),
+        "created_by": Property(),
+        "entity_ids": Property(List[str]),
+        "description": Property(),
+        "_class": Property("class"),
+    }
 
 
 @dataclass
@@ -367,22 +352,6 @@ class ChannelContent(JSONObject):
     """
     email: EmailChannelContent = None
     # Other channel types like 'webhook', 'slack' could be added here as Optional fields.
-
-@dataclass
-class AlertType(Enum):
-    """
-    Enumeration of alert origin types used by alert definitions.
-
-    Values:
-      - SYSTEM: Alerts that originate from the system (built-in or platform-managed).
-      - USER: Alerts created and managed by users (custom alerts).
-
-    The API uses this value in the `type` field of alert-definition responses.
-    This enum can be used to compare or validate the `type` value when
-    processing alert definitions.
-    """
-    SYSTEM = "system"
-    USER = "user"
     
 class AlertChannel(Base):
     """
@@ -391,43 +360,22 @@ class AlertChannel(Base):
     notifications (for example: email lists, webhooks, PagerDuty, Slack, etc.).
 
     This class maps to the Monitor API's `/monitor/alert-channels` resource
-    and is used by the SDK to list, load, and inspect channels. Typical fields
-    returned by the API include:
-      - id: int - Unique identifier for the channel
-      - label: str - Human readable label for the channel
-      - type / channel_type: str - Channel type ("email", "webhook", "pagerduty", ...)
-      - url: str - URL or destination associated with the channel (when applicable)
-      - content: dict - Channel-specific configuration block (e.g. email addresses)
-      - created / updated / created_by / updated_by - Auditing metadata
-
-    Note: The exact shape of the `content` block varies by channel type; the
-    SDK exposes `ChannelContent` / `EmailChannelContent` dataclasses for common
-    cases but callers may receive raw dicts from the API in some responses.
+    and is used by the SDK to list, load, and inspect channels.
     """
+
     api_endpoint = "/monitor/alert-channels/"
-    id: int
-    alerts: List[AlertChannelEnvelope]
-    label: str
-    channel_type: str
-    content: ChannelContent
-    created: str
-    created_by: str
-    _type: AlertType
-    updated: str
-    updated_by: str
+    id_attribute = "id"
 
-    @property
-    def type(self):
-        return self._type
-
-    @type.setter
-    def type(self, value):
-        self._type = value
-
-    def _populate(self, json):
-        """
-        Populates this object with data from a JSON dictionary.
-        """
-        for key, value in json.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
+    properties = {
+        "id": Property(identifier=True),
+        "label": Property(),
+        "type": Property("channel_type"),
+        "channel_type": Property(),
+        "content": Property(ChannelContent),
+        "created": Property(is_datetime=True),
+        "updated": Property(is_datetime=True),
+        "created_by": Property(),
+        "updated_by": Property(),
+        "url": Property(),
+        # Add other fields as needed
+    }

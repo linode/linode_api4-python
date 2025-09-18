@@ -4,6 +4,7 @@ import pytest
 
 from linode_api4 import ApiError, LinodeClient
 from linode_api4.objects import (
+    AlertDefinition,
     MonitorDashboard,
     MonitorMetricsDefinition,
     MonitorService,
@@ -173,13 +174,6 @@ def test_integration_create_get_update_delete_alert_definition(
         assert created.id
         assert getattr(created, "label", None) == label
 
-        # Fetch by id
-        fetched = client.monitor.get_alert_definitions(
-            service_type=service_type, alert_id=created.id
-        )
-        assert fetched.id == created.id
-        assert getattr(fetched, "label", None) == label
-
         # Wait for server-side processing to complete (status transitions)
         timeout = 120
         interval = 10
@@ -187,9 +181,7 @@ def test_integration_create_get_update_delete_alert_definition(
         while getattr(created, "status", None) == "in progress" and (time.time() - start) < timeout:
             time.sleep(interval)
             try:
-                created = client.monitor.alert_definitions(
-                    service_type=service_type, alert_id=created.id
-                )
+                created = client.load(AlertDefinition,created.id,service_type)
             except Exception:
                 # transient errors while polling; continue until timeout
                 pass
@@ -208,17 +200,18 @@ def test_integration_create_get_update_delete_alert_definition(
     finally:
         if created:
             # Best-effort cleanup; allow transient errors.
-            alert_update_interval = 120 # max time alert should take to update
+            alert_update_interval = 60 # max time alert should take to update
             try:
                 time.sleep(alert_update_interval) 
-                client.monitor.delete_alert_definition(service_type, created.id)
+                delete_alert = client.load(AlertDefinition,created.id,service_type)
+                delete_alert.delete()
             except Exception:
                 
                 pass
 
             # confirm it's gone (if API returns 404 or raises)
             try:
-                client.monitor.alert_definitions(service_type=service_type, alert_id=created.id)
+                client.load(AlertDefinition,created.id,service_type)
                 # If no exception, fail explicitly
                 assert False, "Alert definition still retrievable after delete"
             except ApiError:

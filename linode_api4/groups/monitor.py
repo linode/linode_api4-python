@@ -155,7 +155,6 @@ class MonitorGroup(Group):
         self,
         *filters,
         service_type: Optional[str] = None,
-        alert_id: Optional[int] = None,
     ) -> Union[PaginatedList, AlertDefinition]:
         """
         Retrieve one or more alert definitions.
@@ -167,7 +166,7 @@ class MonitorGroup(Group):
 
         Examples:
             alert_definitions = client.monitor.get_alert_definitions()
-            alert_definition = client.monitor.get_alert_definitions(service_type="dbaas", alert_id=1234)
+            alert_definition = client.load(AlertDefinition, alert_id,"dbaas")
             alert_definitions_for_service = client.monitor.get_alert_definitions(service_type="dbaas")
 
         .. note:: This endpoint is in beta and requires using the v4beta base URL.
@@ -193,19 +192,9 @@ class MonitorGroup(Group):
         :rtype: Union[AlertDefinition, PaginatedList[AlertDefinition]]
         """
 
-        if alert_id is not None and service_type is None:
-            raise ValueError(
-                "service_type must be provided when alert_id is specified"
-            )
-
         endpoint = "/monitor/alert-definitions"
         if service_type:
             endpoint = f"/monitor/services/{service_type}/alert-definitions"
-            if alert_id:
-                endpoint = f"{endpoint}/{alert_id}"
-                # Requesting a single object
-                alert_json = self.client.get(endpoint)
-                return AlertDefinition(self.client, alert_id, alert_json)
 
         # Requesting a list
         return self.client._get_and_filter(
@@ -304,7 +293,7 @@ class MonitorGroup(Group):
                 json=result,
             )
 
-        return AlertDefinition(self.client, result["id"], result)
+        return AlertDefinition(self.client, result["id"],service_type, result)
 
     def update_alert_definition(
         self,
@@ -375,26 +364,4 @@ class MonitorGroup(Group):
             data=params,
         )
 
-        return AlertDefinition(self.client, result["id"], result)
-
-    def delete_alert_definition(
-        self, service_type: str, alert_id: int
-    ) -> None:
-        """
-        Delete an alert definition.
-
-        .. note:: This endpoint is in beta and requires using the v4beta base URL.
-
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/delete-alert-definition
-
-        :param service_type: Service type of the alert definition to delete
-                             (e.g. ``"dbaas"``).
-        :type service_type: str
-        :param alert_id: ID of the alert definition to delete.
-        :type alert_id: int
-
-        :returns: None
-        """
-        self.client.delete(
-            f"/monitor/services/{service_type}/alert-definitions/{alert_id}"
-        )
+        return AlertDefinition(self.client, result["id"], service_type, result)
