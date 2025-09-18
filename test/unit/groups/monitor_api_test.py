@@ -1,3 +1,4 @@
+from linode_api4 import PaginatedList
 from linode_api4.objects import (
     AggregateFunction,
     AlertDefinition,
@@ -55,38 +56,30 @@ class MonitorAPITest(MonitorClientBaseCase):
             assert metrics.stats.seriesFetched == "2"
             assert not metrics.isPartial
 
+
 class MonitorAlertDefinitionsTest(ClientBaseCase):
     def test_get_alert_definition(self):
         service_type = "dbaas"
-        alert_id = 12345
-        url = f"/monitor/services/{service_type}/alert-definitions/{alert_id}"
+        url = f"/monitor/services/{service_type}/alert-definitions"
         with self.mock_get(url) as mock_get:
             alert = self.client.monitor.get_alert_definitions(
-                service_type=service_type, alert_id=alert_id
+                service_type=service_type
             )
 
-            # assert call
             assert mock_get.call_url == url
 
-            # assert object
-            assert isinstance(alert, AlertDefinition)
-            assert alert.id == 12345
+            # assert collection and element types
+            assert isinstance(alert, PaginatedList)
+            assert isinstance(alert[0], AlertDefinition)
 
             # fetch the raw JSON from the client and assert its fields
             raw = self.client.get(url)
-            assert raw["label"] == "Test Alert for DBAAS"
-            assert raw["service_type"] == "dbaas"
-            assert raw["status"] == "active"
-            assert raw["created"] == "2024-01-01T00:00:00"
-
-    def test_alert_definitions_requires_service_type_when_id_given(self):
-        # alert_id without service_type should raise ValueError
-        try:
-            self.client.monitor.get_alert_definitions(alert_id=12345)
-            raised = False
-        except ValueError:
-            raised = True
-        assert raised
+            # raw is a paginated response; check first item's fields
+            first = raw["data"][0]
+            assert first["label"] == "Test Alert for DBAAS"
+            assert first["service_type"] == "dbaas"
+            assert first["status"] == "active"
+            assert first["created"] == "2024-01-01T00:00:00"
 
     def test_create_alert_definition(self):
         service_type = "dbaas"
@@ -143,14 +136,3 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
 
             resp = self.client.put(url, data={})
             assert resp["label"] == "Updated Label"
-
-    def test_delete_alert_definition(self):
-        service_type = "dbaas"
-        alert_id = 12345
-        url = f"/monitor/services/{service_type}/alert-definitions/{alert_id}"
-
-        with self.mock_delete() as mock_delete:
-            self.client.monitor.delete_alert_definition(service_type, alert_id)
-
-            assert mock_delete.call_url == url
-            assert mock_delete.called

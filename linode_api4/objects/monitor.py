@@ -364,7 +364,6 @@ class AlertChannel(Base):
     """
 
     api_endpoint = "/monitor/alert-channels/"
-    id_attribute = "id"
 
     properties = {
         "id": Property(identifier=True),

@@ -1,9 +1,10 @@
-import time
+from time import time
 
 import pytest
 
 from linode_api4 import ApiError, LinodeClient
 from linode_api4.objects import (
+    AlertChannel,
     AlertDefinition,
     MonitorDashboard,
     MonitorMetricsDefinition,
@@ -200,10 +201,10 @@ def test_integration_create_get_update_delete_alert_definition(
     finally:
         if created:
             # Best-effort cleanup; allow transient errors.
-            alert_update_interval = 60 # max time alert should take to update
+            alert_update_interval = 120  # max time alert should take to update
             try:
-                time.sleep(alert_update_interval) 
-                delete_alert = client.load(AlertDefinition,created.id,service_type)
+                time.sleep(alert_update_interval)
+                delete_alert = client.load(AlertDefinition, created.id, service_type)
                 delete_alert.delete()
             except Exception:
                 
