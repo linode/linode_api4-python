@@ -199,7 +199,7 @@ class MonitorGroup(Group):
             AlertDefinition, *filters, endpoint=endpoint
         )
 
-    def get_alert_channels(self, *filters) -> PaginatedList:
+    def alert_channels(self, *filters) -> PaginatedList:
         """
         List alert channels for the authenticated account.
 
