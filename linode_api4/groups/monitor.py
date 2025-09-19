@@ -149,7 +149,7 @@ class MonitorGroup(Group):
             )
         return MonitorServiceToken(token=result["token"])
 
-    def get_alert_definitions(
+    def alert_definitions(
         self,
         *filters,
         service_type: Optional[str] = None,
