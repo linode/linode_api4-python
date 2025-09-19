@@ -48,7 +48,9 @@ def linode_with_private_ip(test_linode_client, e2e_test_firewall):
 
 
 @pytest.fixture(scope="session")
-def create_nb_config(test_linode_client, e2e_test_firewall, linode_with_private_ip):
+def create_nb_config(
+    test_linode_client, e2e_test_firewall, linode_with_private_ip
+):
     client = test_linode_client
     nb_label = get_test_label()
     node_label = get_test_label(8)
@@ -62,7 +64,9 @@ def create_nb_config(test_linode_client, e2e_test_firewall, linode_with_private_
     config = nb.config_create()
     linode = linode_with_private_ip
     address = next(a for a in linode.ipv4 if a.startswith("192.168"))
-    node = config.node_create(node_label, f"{address}:80", weight=50, mode="accept")
+    node = config.node_create(
+        node_label, f"{address}:80", weight=50, mode="accept"
+    )
 
     yield config
 
