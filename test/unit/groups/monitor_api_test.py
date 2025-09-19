@@ -58,7 +58,7 @@ class MonitorAPITest(MonitorClientBaseCase):
 
 
 class MonitorAlertDefinitionsTest(ClientBaseCase):
-    def test_get_alert_definition(self):
+    def test_alert_definition(self):
         service_type = "dbaas"
         url = f"/monitor/services/{service_type}/alert-definitions"
         with self.mock_get(url) as mock_get:
