@@ -37,6 +37,10 @@ def retry_sending_request(
                     "Api Error: Failed after all retry attempts"
                 ) from e
             time.sleep(backoff)
+            wait = backoff * attempt + random.uniform(0, 2)
+            print(f"Attempt {attempt} failed ({e}), retrying in {wait:.1f}s...")
+            time.sleep(wait)
+    return None
 
 
 def send_request_when_resource_available(

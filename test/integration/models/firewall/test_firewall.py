@@ -63,22 +63,35 @@ def test_update_firewall_rules(test_linode_client, test_firewall):
     assert firewall.rules.outbound_policy == "DROP"
 
 
-def test_get_devices(test_linode_client, linode_fw, test_firewall):
+def test_get_devices(test_linode_client, linode_fw):
     linode = linode_fw
 
-    test_firewall.device_create(int(linode.id))
+    firewalls = list(linode.firewalls())
+    assert len(firewalls) > 0
 
-    firewall = test_linode_client.load(Firewall, test_firewall.id)
+    firewall = test_linode_client.load(Firewall, firewalls[0].id)
 
-    assert len(firewall.devices) > 0
+    devices = list(firewall.devices)
+    assert any(d.entity.id == linode.id for d in devices)
 
 
-def test_get_device(test_linode_client, test_firewall, linode_fw):
-    firewall = test_firewall
+def test_get_device(test_linode_client, linode_fw):
+    linode = linode_fw
+
+    firewalls = list(linode.firewalls())
+    assert firewalls, "No firewalls found on Linode"
+
+    firewall = test_linode_client.load(Firewall, firewalls[0].id)
+
+    devices = list(firewall.devices)
+    assert devices, "No devices found on Firewall"
+
+    device = next((d for d in devices if d.entity.id == linode.id), None)
+    assert device is not None, f"No FirewallDevice found for Linode {linode.id}"
 
     firewall_device = test_linode_client.load(
-        FirewallDevice, firewall.devices.first().id, firewall.id
+        FirewallDevice, device.id, firewall.id
     )
 
     assert firewall_device.entity.type == "linode"
-    assert "/v4/linode/instances/" in firewall_device.entity.url
+    assert f"/v4/linode/instances/{linode.id}" in firewall_device.entity.url

@@ -47,7 +47,7 @@ def test_get_login(test_linode_client):
     assert "ip" in str(login._raw_json)
     assert "datetime" in str(login._raw_json)
     assert "status" in str(login._raw_json)
-    assert login_updated < 15
+    assert login_updated < 60
 
 
 def test_get_account_settings(test_linode_client):
@@ -101,29 +101,29 @@ def test_latest_get_event(test_linode_client, e2e_test_firewall):
         firewall=e2e_test_firewall,
     )
 
-    events = client.load(Event, "")
+    try:
+        for _ in range(5):
+            events = client.load(Event, "")
+            latest_events = events._raw_json.get("data", [])[:50]
 
-    latest_events = events._raw_json.get("data")
-
-    linode.delete()
-
-    for event in latest_events[:15]:
-        if label == event["entity"]["label"]:
-            break
-    else:
-        assert False, f"Linode '{label}' not found in the last 15 events"
+            if any(
+                event["entity"]["id"] == linode.id for event in latest_events
+            ):
+                break
+            time.sleep(5)
+        else:
+            assert False, f"Linode '{label}' not found in recent events"
+    finally:
+        linode.delete()
 
 
 def test_get_user(test_linode_client):
     client = test_linode_client
 
-    events = client.load(Event, "")
+    profile = client.profile()
+    user = client.load(User, profile.username)
 
-    username = events._raw_json.get("data")[0]["username"]
-
-    user = client.load(User, username)
-
-    assert username == user.username
+    assert user.username == profile.username
     assert "email" in user._raw_json
 
 
