@@ -318,19 +318,19 @@ class AlertDefinition(DerivedBase):
     API Documentation: https://techdocs.akamai.com/linode-api/reference/get-alert-definition
     """
 
-    api_endpoint = "/monitor/services/{service}/alert-definitions/{id}"
+    api_endpoint = "/monitor/services/{service_type}/alert-definitions/{id}"
     derived_url_path = "alert-definitions"
-    parent_id_name =  "service"
+    parent_id_name = "service_type"
     id_attribute = "id"
 
     properties = {
         "id": Property(identifier=True),
-        "label": Property(),
-        "severity": Property(),
+        "label": Property(mutable=True),
+        "severity": Property(mutable=True),
         "type": Property(AlertType),
-        "service_type": Property(mutable=True),
-        "status": Property(mutable=True),
-        "has_more_resources": Property(mutable=True),
+        "service_type": Property(),
+        "status": Property(),
+        "has_more_resources": Property(),
         "rule_criteria": Property(RuleCriteria),
         "trigger_conditions": Property(TriggerConditions),
         "alert_channels": Property(List[AlertChannelEnvelope]),
@@ -339,7 +339,7 @@ class AlertDefinition(DerivedBase):
         "updated_by": Property(),
         "created_by": Property(),
         "entity_ids": Property(List[str]),
-        "description": Property(),
+        "description": Property(mutable=True),
         "_class": Property("class"),
     }
 
@@ -365,6 +365,8 @@ class AlertChannel(Base):
     Represents an alert channel used to deliver notifications when alerts
     fire. Alert channels define a destination and configuration for
     notifications (for example: email lists, webhooks, PagerDuty, Slack, etc.).
+
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-alert-channels
 
     This class maps to the Monitor API's `/monitor/alert-channels` resource
     and is used by the SDK to list, load, and inspect channels.

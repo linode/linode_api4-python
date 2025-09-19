@@ -155,39 +155,27 @@ class MonitorGroup(Group):
         service_type: Optional[str] = None,
     ) -> Union[PaginatedList, AlertDefinition]:
         """
-        Retrieve one or more alert definitions.
+        Retrieve alert definitions.
 
-        If both `service_type` and `alert_id` are provided, a single
-        :class:`AlertDefinition` instance is returned. If only `service_type` is
-        provided (or neither), a paginated list of :class:`AlertDefinition`
-        objects is returned.
+        Returns a paginated collection of :class:`AlertDefinition` objects. If you
+        need to obtain a single :class:`AlertDefinition`, use :meth:`LinodeClient.load`
+        and supply the `service_type` as the parent identifier, for example:
 
-        Examples:
-            alert_definitions = client.monitor.get_alert_definitions()
-            alert_definition = client.load(AlertDefinition, alert_id,"dbaas")
-            alert_definitions_for_service = client.monitor.get_alert_definitions(service_type="dbaas")
-
+            alerts = client.monitor.alert_definitions()
+            alerts_by_service = client.monitor.alert_definitions(service_type="dbaas")
         .. note:: This endpoint is in beta and requires using the v4beta base URL.
 
         API Documentation:
-            https://techdocs.akamai.com/linode-api/reference/get-alert-definition
             https://techdocs.akamai.com/linode-api/reference/get-alert-definitions
             https://techdocs.akamai.com/linode-api/reference/get-alert-definitions-for-service-type
 
-        :param service_type: If provided, limits the query to alert definitions for
-                             the given service type (e.g. ``"dbaas"``).
+        :param service_type: Optional service type to scope the query (e.g. ``"dbaas"``).
         :type service_type: Optional[str]
-        :param alert_id: If provided, the ID of the alert definition to fetch. When
-                         specifying an ``alert_id``, ``service_type`` must also be
-                         provided.
-        :type alert_id: Optional[int]
         :param filters: Optional filtering expressions to apply to the returned
                         collection. See :doc:`Filtering Collections</linode_api4/objects/filtering>`.
 
-        :returns: A single :class:`AlertDefinition` when ``alert_id`` is used, or
-                  a :class:`PaginatedList` of :class:`AlertDefinition` objects
-                  otherwise.
-        :rtype: Union[AlertDefinition, PaginatedList[AlertDefinition]]
+        :returns: A paginated list of :class:`AlertDefinition` objects.
+        :rtype: PaginatedList[AlertDefinition]
         """
 
         endpoint = "/monitor/alert-definitions"
@@ -292,74 +280,3 @@ class MonitorGroup(Group):
             )
 
         return AlertDefinition(self.client, result["id"],service_type, result)
-
-    def update_alert_definition(
-        self,
-        service_type: str,
-        alert_id: int,
-        label: Optional[str] = None,
-        severity: Optional[str] = None,
-        description: Optional[str] = None,
-        rule_criteria: Optional[dict] = None,
-        trigger_conditions: Optional[dict] = None,
-        entity_ids: Optional[list[str]] = None,
-        channel_ids: Optional[list[int]] = None,
-    ) -> AlertDefinition:
-        """
-        Update an existing alert definition.
-
-        Only the parameters provided will be updated; omitted parameters are left
-        unchanged.
-
-        .. note:: This endpoint is in beta and requires using the v4beta base URL.
-
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/put-alert-definition
-
-        :param service_type: Service type of the alert definition to update
-                             (e.g. ``"dbaas"``).
-        :type service_type: str
-        :param alert_id: ID of the alert definition to update.
-        :type alert_id: int
-        :param label: (Optional) New label for the alert definition.
-        :type label: Optional[str]
-        :param severity: (Optional) New severity for the alert. The SDK accepts
-                         this value as provided to the API (commonly an integer).
-        :type severity: Optional[str]
-        :param description: (Optional) New description for the alert definition.
-        :type description: Optional[str]
-        :param rule_criteria: (Optional) New rule criteria to replace the current
-                              definition.
-        :type rule_criteria: Optional[RuleCriteria]
-        :param trigger_conditions: (Optional) New trigger conditions.
-        :type trigger_conditions: Optional[TriggerConditions]
-        :param entity_ids: (Optional) New list of entity IDs to scope the alert.
-        :type entity_ids: Optional[list[str]]
-        :param channel_ids: (Optional) New list of channel IDs to notify.
-        :type channel_ids: Optional[list[int]]
-
-        :returns: The updated :class:`AlertDefinition` as returned by the API.
-        :rtype: AlertDefinition
-        """
-        params = {}
-        if label is not None:
-            params["label"] = label
-        if severity is not None:
-            params["severity"] = severity
-        if description is not None:
-            params["description"] = description
-        if rule_criteria is not None:
-            params["rule_criteria"] = rule_criteria
-        if trigger_conditions is not None:
-            params["trigger_conditions"] = trigger_conditions
-        if entity_ids is not None:
-            params["entity_ids"] = entity_ids
-        if channel_ids is not None:
-            params["channel_ids"] = channel_ids
-        
-        #API will handle check for service_type and alert_id and return correct error if missing
-        result = self.client.put(
-            f"/monitor/services/{service_type}/alert-definitions/{alert_id}",
-            data=params,
-        )
-
-        return AlertDefinition(self.client, result["id"], service_type, result)
