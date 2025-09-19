@@ -1,6 +1,3 @@
-__all__ = [
-    "MonitorGroup",
-]
 from typing import Any, Optional, Union
 
 from linode_api4 import PaginatedList
@@ -14,6 +11,10 @@ from linode_api4.objects import (
     MonitorService,
     MonitorServiceToken,
 )
+
+__all__ = [
+    "MonitorGroup",
+]
 
 
 class MonitorGroup(Group):

@@ -1,11 +1,11 @@
+from test.unit.base import ClientBaseCase, MonitorClientBaseCase
+
 from linode_api4 import PaginatedList
 from linode_api4.objects import (
     AggregateFunction,
     AlertDefinition,
     EntityMetricOptions,
 )
-
-from test.unit.base import ClientBaseCase, MonitorClientBaseCase
 
 
 class MonitorAPITest(MonitorClientBaseCase):

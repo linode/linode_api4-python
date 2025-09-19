@@ -1,5 +1,13 @@
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import List, Literal, Optional, Union
+
+from linode_api4.objects import DerivedBase
+from linode_api4.objects.base import Base, Property
+from linode_api4.objects.serializable import JSONObject, StrEnum
+
 __all__ = [
-       "AlertType",
+    "AlertType",
     "MonitorDashboard",
     "MonitorMetricsDefinition",
     "MonitorService",
@@ -11,13 +19,6 @@ __all__ = [
     "AlertDefinition",
     "AlertChannelEnvelope",
 ]
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import List, Literal, Optional, Union
-
-from linode_api4.objects.base import Base, Property
-from linode_api4.objects import DerivedBase
-from linode_api4.objects.serializable import JSONObject, StrEnum
 
 
 class AggregateFunction(StrEnum):
@@ -193,7 +194,6 @@ class MonitorServiceToken(JSONObject):
     token: str = ""
 
 
-
 @dataclass
 class TriggerConditions(JSONObject):
     """
@@ -218,6 +218,7 @@ class TriggerConditions(JSONObject):
     polling_interval_seconds: int = 0
     trigger_occurrences: int = 1
 
+
 @dataclass
 class DimensionFilter(JSONObject):
     """
@@ -235,6 +236,7 @@ class DimensionFilter(JSONObject):
     label: str = ""
     operator: str = ""
     value: Union[str, int, float, bool, None] = None
+
 
 @dataclass
 class Rule(JSONObject):
@@ -259,6 +261,7 @@ class Rule(JSONObject):
     threshold: Optional[float] = None
     unit: Optional[str] = None
 
+
 @dataclass
 class RuleCriteria(JSONObject):
     """
@@ -266,6 +269,7 @@ class RuleCriteria(JSONObject):
       "rule_criteria": { "rules": [ { ... }, ... ] }
     """
     rules: List[Rule] = field(default_factory=list)
+
 
 @dataclass
 class AlertChannelEnvelope(JSONObject):
@@ -289,6 +293,7 @@ class AlertChannelEnvelope(JSONObject):
     type: str = ""
     url: str = ""
 
+
 @dataclass
 class AlertType(Enum):
     """
@@ -305,13 +310,14 @@ class AlertType(Enum):
     SYSTEM = "system"
     USER = "user"
 
+
 class AlertDefinition(DerivedBase):
     """
     Represents an alert definition for a monitor service.
 
     API Documentation: https://techdocs.akamai.com/linode-api/reference/get-alert-definition
     """
-    
+
     api_endpoint = "/monitor/services/{service}/alert-definitions/{id}"
     derived_url_path = "alert-definitions"
     parent_id_name =  "service"
@@ -344,6 +350,7 @@ class EmailChannelContent(JSONObject):
     Represents the content for an email alert channel.
     """
     email_addresses: List[str] = field(default_factory=list)
+
 
 @dataclass
 class ChannelContent(JSONObject):
