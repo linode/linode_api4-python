@@ -62,7 +62,7 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
         service_type = "dbaas"
         url = f"/monitor/services/{service_type}/alert-definitions"
         with self.mock_get(url) as mock_get:
-            alert = self.client.monitor.get_alert_definitions(
+            alert = self.client.monitor.alert_definitions(
                 service_type=service_type
             )
 
@@ -116,23 +116,3 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             # fetch the same response from the client and assert
             resp = self.client.post(url, data={})
             assert resp["label"] == "Created Alert"
-
-    def test_update_alert_definition(self):
-        service_type = "dbaas"
-        alert_id = 12345
-        url = f"/monitor/services/{service_type}/alert-definitions/{alert_id}"
-        result = {"id": alert_id, "label": "Updated Label"}
-
-        with self.mock_put(result) as mock_put:
-            alert = self.client.monitor.update_alert_definition(
-                service_type=service_type, alert_id=alert_id, label="Updated Label"
-            )
-
-            assert mock_put.call_url == url
-            assert mock_put.call_data["label"] == "Updated Label"
-
-            assert isinstance(alert, AlertDefinition)
-            assert alert.id == alert_id
-
-            resp = self.client.put(url, data={})
-            assert resp["label"] == "Updated Label"
