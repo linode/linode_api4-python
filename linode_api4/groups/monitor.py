@@ -153,7 +153,7 @@ class MonitorGroup(Group):
         self,
         *filters,
         service_type: Optional[str] = None,
-    ) -> Union[PaginatedList, AlertDefinition]:
+    ) -> Union[PaginatedList]:
         """
         Retrieve alert definitions.
 

@@ -318,9 +318,9 @@ class AlertDefinition(DerivedBase):
     API Documentation: https://techdocs.akamai.com/linode-api/reference/get-alert-definition
     """
 
-    api_endpoint = "/monitor/services/{service_type}/alert-definitions/{id}"
+    api_endpoint = "/monitor/services/{service}/alert-definitions/{id}"
     derived_url_path = "alert-definitions"
-    parent_id_name = "service_type"
+    parent_id_name = "service"
     id_attribute = "id"
 
     properties = {
