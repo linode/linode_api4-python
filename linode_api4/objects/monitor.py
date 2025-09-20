@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from enum import Enum
 from typing import List, Literal, Optional, Union
 
 from linode_api4.objects import DerivedBase
