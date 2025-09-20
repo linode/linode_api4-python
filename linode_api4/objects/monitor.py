@@ -295,7 +295,7 @@ class AlertChannelEnvelope(JSONObject):
 
 
 @dataclass
-class AlertType(Enum):
+class AlertType(StrEnum):
     """
     Enumeration of alert origin types used by alert definitions.
 
@@ -307,8 +307,8 @@ class AlertType(Enum):
     This enum can be used to compare or validate the `type` value when
     processing alert definitions.
     """
-    SYSTEM = "system"
-    USER = "user"
+    system = "system"
+    user = "user"
 
 
 class AlertDefinition(DerivedBase):

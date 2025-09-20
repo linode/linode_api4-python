@@ -187,10 +187,6 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
             if issubclass(type(value), JSONObject):
                 return value._serialize(is_put=is_put)
 
-            # Handle Enum instances by returning their value
-            if isinstance(value, Enum):
-                return value.value
-
             return value
 
         def should_include(key: str, value: Any) -> bool:
