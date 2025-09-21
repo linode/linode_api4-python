@@ -186,6 +186,10 @@ def test_integration_create_get_update_delete_alert_definition(
                 # transient errors while polling; continue until timeout
                 pass
 
+        update_alert= client.load(AlertDefinition, created.id, service_type)
+        update_alert.label = f"{label}-updated"
+        update_alert.save()
+
     finally:
         if created:
             # Best-effort cleanup; allow transient errors.
