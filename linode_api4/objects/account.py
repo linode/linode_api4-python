@@ -213,7 +213,7 @@ class AccountSettings(Base):
         "network_helper": Property(mutable=True),
         "managed": Property(),
         "longview_subscription": Property(
-            slug_relationship=LongviewSubscription
+            slug_relationship=LongviewSubscription, mutable=False
         ),
         "object_storage": Property(),
         "backups_enabled": Property(mutable=True),
