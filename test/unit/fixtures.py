@@ -30,7 +30,7 @@ class TestFixtures:
         self.fixtures = {}
 
         for json_file in FIXTURES_DIR.iterdir():
-            if not json_file.suffix == ".json":
+            if json_file.suffix != ".json":
                 continue
 
             with open(FIXTURES_DIR / json_file) as f:
