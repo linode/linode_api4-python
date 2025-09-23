@@ -33,7 +33,7 @@ class TestFixtures:
             if json_file.suffix != ".json":
                 continue
 
-            with open(FIXTURES_DIR / json_file) as f:
+            with open(json_file) as f:
                 raw = f.read()
 
             data = json.loads(raw)
