@@ -1317,7 +1317,7 @@ class NetworkingGroupTest(ClientBaseCase):
                     "devices": {
                         "linodes": [123],
                         "nodebalancers": [456],
-                        "interfaces": [789],
+                        "linode_interfaces": [789],
                     },
                 },
             )
