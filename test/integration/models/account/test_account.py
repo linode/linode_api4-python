@@ -110,7 +110,7 @@ def test_latest_get_event(test_linode_client, e2e_test_firewall):
                 event["entity"]["id"] == linode.id for event in latest_events
             ):
                 break
-            time.sleep(5)
+            time.sleep(1)
         else:
             assert False, f"Linode '{label}' not found in recent events"
     finally:
