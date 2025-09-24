@@ -5,7 +5,7 @@ __all__ = [
     "MonitorServiceToken",
     "AggregateFunction",
 ]
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Optional
 
 from linode_api4.objects.base import Base, Property
@@ -123,8 +123,8 @@ class DashboardWidget(JSONObject):
     chart_type: ChartType = ""
     y_label: str = ""
     aggregate_function: AggregateFunction = ""
-    group_by: List[str] = field(default_factory=list)
-    filters: List[Filter] = field(default_factory=list)
+    group_by: Optional[List[str]] = None
+    filters: Optional[List[Filter]] = None
 
 
 @dataclass
@@ -133,9 +133,9 @@ class ServiceAlert(JSONObject):
     Represents alert configuration options for a monitor service.
     """
 
-    polling_interval_seconds: List[int] = field(default_factory=list)
-    evaluation_period_seconds: List[int] = field(default_factory=list)
-    scope: List[str] = field(default_factory=list)
+    polling_interval_seconds: Optional[List[int]] = None
+    evaluation_period_seconds: Optional[List[int]] = None
+    scope: Optional[List[str]] = None
 
 
 @dataclass
@@ -164,9 +164,7 @@ class MonitorMetricsDefinition(JSONObject):
     scrape_interval: int = 0
     is_alertable: bool = False
     dimensions: Optional[List[Dimension]] = None
-    available_aggregate_functions: List[AggregateFunction] = field(
-        default_factory=list
-    )
+    available_aggregate_functions: Optional[List[AggregateFunction]] = None
 
 
 class MonitorDashboard(Base):

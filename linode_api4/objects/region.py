@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Optional
 
 from linode_api4.errors import UnexpectedResponseError
@@ -24,8 +24,8 @@ class RegionMonitors(JSONObject):
     use with Akamai Cloud Pulse (ACLP).
     """
 
-    alerts: list[str] = field(default_factory=list)
-    metrics: list[str] = field(default_factory=list)
+    alerts: Optional[list[str]] = None
+    metrics: Optional[list[str]] = None
 
 
 class Region(Base):
