@@ -213,7 +213,7 @@ class FirewallCreateDevicesOptions(JSONObject):
 
     linodes: List[int] = field(default_factory=list)
     nodebalancers: List[int] = field(default_factory=list)
-    interfaces: List[int] = field(default_factory=list)
+    linode_interfaces: List[int] = field(default_factory=list)
 
 
 @dataclass
