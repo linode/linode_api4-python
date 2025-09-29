@@ -187,6 +187,16 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
             if issubclass(type(value), JSONObject):
                 return value._serialize(is_put=is_put)
 
+            # Needed to avoid circular imports without a breaking change
+            from linode_api4.objects.base import (  # pylint: disable=import-outside-toplevel
+                ExplicitNullValue,
+            )
+
+            if value == ExplicitNullValue or isinstance(
+                value, ExplicitNullValue
+            ):
+                return None
+
             return value
 
         def should_include(key: str, value: Any) -> bool:
