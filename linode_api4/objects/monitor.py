@@ -253,7 +253,7 @@ class Rule(JSONObject):
       }
     """
     aggregate_function: Union[AggregateFunction, str] = ""
-    dimension_filters: Optional[List[DimensionFilter]] = field(default_factory=list)
+    dimension_filters: Optional[List[DimensionFilter]] = None
     label: str = ""
     metric: str = ""
     operator: str = ""
