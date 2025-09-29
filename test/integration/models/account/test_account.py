@@ -59,6 +59,7 @@ def test_get_account_settings(test_linode_client):
     assert "longview_subscription" in str(account_settings._raw_json)
     assert "backups_enabled" in str(account_settings._raw_json)
     assert "object_storage" in str(account_settings._raw_json)
+    assert isinstance(account_settings.interfaces_for_new_linodes, str)
     assert "maintenance_policy" in str(account_settings._raw_json)
 
 

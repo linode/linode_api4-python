@@ -15,7 +15,6 @@ class RegionTest(ClientBaseCase):
         region = Region(self.client, "us-east")
 
         self.assertEqual(region.id, "us-east")
-        self.assertIsNotNone(region.capabilities)
         self.assertEqual(region.country, "us")
         self.assertEqual(region.label, "label7")
         self.assertEqual(region.status, "ok")
@@ -27,6 +26,9 @@ class RegionTest(ClientBaseCase):
         self.assertEqual(
             region.placement_group_limits.maximum_linodes_per_pg, 5
         )
+
+        self.assertIsNotNone(region.capabilities)
+        self.assertIn("Linode Interfaces", region.capabilities)
 
     def test_region_availability(self):
         """
