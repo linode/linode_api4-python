@@ -18,7 +18,9 @@ def linode_fw(test_linode_client, test_firewall):
     )
 
     for fw in linode_instance.firewalls():
-        fw_device = next((d for d in fw.devices if d.entity.id == linode_instance.id), None)
+        fw_device = next(
+            (d for d in fw.devices if d.entity.id == linode_instance.id), None
+        )
         if fw_device:
             fw_device.delete()
 

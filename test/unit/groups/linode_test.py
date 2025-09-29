@@ -5,10 +5,7 @@ from test.unit.objects.linode_interface_test import (
     build_interface_options_vpc,
 )
 
-from linode_api4 import (
-    InstancePlacementGroupAssignment,
-    InterfaceGeneration,
-)
+from linode_api4 import InstancePlacementGroupAssignment, InterfaceGeneration
 from linode_api4.objects import ConfigInterface
 
 
