@@ -215,7 +215,7 @@ class TriggerConditions(JSONObject):
     criteria_condition: Literal["ALL"] = "ALL"
     evaluation_period_seconds: int = 0
     polling_interval_seconds: int = 0
-    trigger_occurrences: int = 1
+    trigger_occurrences: int = 0
 
 
 @dataclass
