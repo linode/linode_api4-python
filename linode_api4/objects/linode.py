@@ -2012,7 +2012,8 @@ class Instance(Base):
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-interface
 
-        :returns: An ordered list of interfaces under this Linode.
+        :returns: An ordered list of linode interfaces under this Linode. If the linode is with legacy config interfaces, returns None.
+        :rtype: Optional[list[LinodeInterface]]
         """
 
         if self.interface_generation != "linode":
