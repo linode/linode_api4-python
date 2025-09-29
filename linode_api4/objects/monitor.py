@@ -327,7 +327,7 @@ class AlertDefinition(DerivedBase):
         "label": Property(mutable=True),
         "severity": Property(mutable=True),
         "type": Property(AlertType),
-        "service_type": Property(),
+        "service_type": Property(identifier=True),
         "status": Property(),
         "has_more_resources": Property(),
         "rule_criteria": Property(RuleCriteria),
