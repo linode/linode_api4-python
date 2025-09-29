@@ -198,7 +198,7 @@ class MonitorGroup(Group):
         supply optional filter expressions to restrict the results.
 
         Examples:
-            channels = client.monitor.get_alert_channels()
+            channels = client.monitor.alert_channels()
 
         .. note:: This endpoint is in beta and requires using the v4beta base URL.
 

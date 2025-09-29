@@ -69,6 +69,14 @@ class MetricType(StrEnum):
     histogram = "histogram"
     summary = "summary"
 
+class CriteriaCondition(StrEnum):
+    """
+    Enum for supported CriteriaCondition
+    Currently, only ALL is supported.
+    """
+
+    all = "ALL"
+
 
 class MetricUnit(StrEnum):
     """
@@ -207,12 +215,12 @@ class TriggerConditions(JSONObject):
       }
 
     Fields:
-      - criteria_condition: "ALL" or "ANY" (whether all rules must match or any)
+      - criteria_condition: "ALL" (currently, only "ALL" is supported)
       - evaluation_period_seconds: seconds over which the rule(s) are evaluated
       - polling_interval_seconds: how often metrics are sampled (seconds)
       - trigger_occurrences: how many consecutive evaluation periods must match to trigger
     """
-    criteria_condition: Literal["ALL"] = "ALL"
+    criteria_condition: CriteriaCondition = CriteriaCondition.all
     evaluation_period_seconds: int = 0
     polling_interval_seconds: int = 0
     trigger_occurrences: int = 0
@@ -234,7 +242,7 @@ class DimensionFilter(JSONObject):
     dimension_label: str = ""
     label: str = ""
     operator: str = ""
-    value: Union[str, int, float, bool, None] = None
+    value: str = None
 
 
 @dataclass
@@ -292,8 +300,6 @@ class AlertChannelEnvelope(JSONObject):
     type: str = ""
     url: str = ""
 
-
-@dataclass
 class AlertType(StrEnum):
     """
     Enumeration of alert origin types used by alert definitions.
@@ -317,17 +323,17 @@ class AlertDefinition(DerivedBase):
     API Documentation: https://techdocs.akamai.com/linode-api/reference/get-alert-definition
     """
 
-    api_endpoint = "/monitor/services/{service}/alert-definitions/{id}"
+    api_endpoint = "/monitor/services/{service_type}/alert-definitions/{id}"
     derived_url_path = "alert-definitions"
-    parent_id_name = "service"
+    parent_id_name = "service_type"
     id_attribute = "id"
 
     properties = {
         "id": Property(identifier=True),
+        "service_type": Property(identifier=True),
         "label": Property(mutable=True),
         "severity": Property(mutable=True),
         "type": Property(AlertType),
-        "service_type": Property(identifier=True),
         "status": Property(),
         "has_more_resources": Property(),
         "rule_criteria": Property(RuleCriteria),
@@ -371,7 +377,7 @@ class AlertChannel(Base):
     and is used by the SDK to list, load, and inspect channels.
     """
 
-    api_endpoint = "/monitor/alert-channels/"
+    api_endpoint = "/monitor/alert-channels/{id}"
 
     properties = {
         "id": Property(identifier=True),

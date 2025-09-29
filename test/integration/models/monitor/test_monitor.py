@@ -1,4 +1,9 @@
 import time
+from test.integration.helpers import (
+    get_test_label,
+    send_request_when_resource_available,
+    wait_for_condition,
+)
 
 import pytest
 
@@ -9,12 +14,6 @@ from linode_api4.objects import (
     MonitorMetricsDefinition,
     MonitorService,
     MonitorServiceToken,
-)
-
-from test.integration.helpers import (
-    get_test_label,
-    send_request_when_resource_available,
-    wait_for_condition,
 )
 
 
