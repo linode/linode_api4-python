@@ -189,12 +189,20 @@ def test_integration_create_get_update_delete_alert_definition(
         update_alert.label = f"{label}-updated"
         update_alert.save()
 
+        updated = client.load(AlertDefinition, update_alert.id, service_type)
+        while getattr(updated, "status", None) == "in progress" and (time.time() - start) < timeout:
+            time.sleep(interval)
+            try:
+                updated = client.load(AlertDefinition,updated.id,service_type)
+            except Exception:
+                # transient errors while polling; continue until timeout
+                pass
+
     finally:
         if created:
             # Best-effort cleanup; allow transient errors.
-            alert_update_interval = 120  # max time alert should take to update
+             # max time alert should take to update
             try:
-                time.sleep(alert_update_interval)
                 delete_alert = client.load(AlertDefinition, created.id, service_type)
                 delete_alert.delete()
             except Exception:
