@@ -2006,7 +2006,7 @@ class Instance(Base):
         return self._interfaces_settings
 
     @property
-    def interfaces(self) -> List[LinodeInterface]:
+    def linode_interfaces(self) -> list[LinodeInterface]:
         """
         All interfaces for this Linode.
 
