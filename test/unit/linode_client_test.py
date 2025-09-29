@@ -1,7 +1,7 @@
 from datetime import datetime
 from test.unit.base import ClientBaseCase
 
-from linode_api4 import LongviewSubscription
+from linode_api4 import FirewallCreateDevicesOptions, LongviewSubscription
 from linode_api4.objects.beta import BetaProgram
 from linode_api4.objects.linode import Instance
 from linode_api4.objects.networking import IPAddress
@@ -44,7 +44,13 @@ class LinodeClientGeneralTest(ClientBaseCase):
         self.assertEqual(a.balance, 0)
         self.assertEqual(
             a.capabilities,
-            ["Linodes", "NodeBalancers", "Block Storage", "Object Storage"],
+            [
+                "Linodes",
+                "NodeBalancers",
+                "Block Storage",
+                "Object Storage",
+                "Linode Interfaces",
+            ],
         )
 
     def test_get_regions(self):
@@ -63,12 +69,18 @@ class LinodeClientGeneralTest(ClientBaseCase):
                         "NodeBalancers",
                         "Block Storage",
                         "Object Storage",
+                        "Linode Interfaces",
                     ],
                 )
             else:
                 self.assertEqual(
                     region.capabilities,
-                    ["Linodes", "NodeBalancers", "Block Storage"],
+                    [
+                        "Linodes",
+                        "NodeBalancers",
+                        "Block Storage",
+                        "Linode Interfaces",
+                    ],
                 )
             self.assertEqual(region.status, "ok")
             self.assertIsNotNone(region.resolvers)
@@ -1282,7 +1294,12 @@ class NetworkingGroupTest(ClientBaseCase):
             }
 
             f = self.client.networking.firewall_create(
-                "test-firewall-1", rules, status="enabled"
+                "test-firewall-1",
+                rules,
+                devices=FirewallCreateDevicesOptions(
+                    linodes=[123], nodebalancers=[456], linode_interfaces=[789]
+                ),
+                status="enabled",
             )
 
             self.assertIsNotNone(f)
@@ -1297,6 +1314,11 @@ class NetworkingGroupTest(ClientBaseCase):
                     "label": "test-firewall-1",
                     "status": "enabled",
                     "rules": rules,
+                    "devices": {
+                        "linodes": [123],
+                        "nodebalancers": [456],
+                        "linode_interfaces": [789],
+                    },
                 },
             )
 
@@ -1310,6 +1332,47 @@ class NetworkingGroupTest(ClientBaseCase):
         firewall = f[0]
 
         self.assertEqual(firewall.id, 123)
+
+    def test_get_firewall_settings(self):
+        """
+        Tests that firewall settings can be retrieved
+        """
+        settings = self.client.networking.firewall_settings()
+
+        assert settings.default_firewall_ids.vpc_interface == 123
+        assert settings.default_firewall_ids.public_interface == 456
+        assert settings.default_firewall_ids.linode == 789
+        assert settings.default_firewall_ids.nodebalancer == 321
+
+        settings.invalidate()
+
+        assert settings.default_firewall_ids.vpc_interface == 123
+        assert settings.default_firewall_ids.public_interface == 456
+        assert settings.default_firewall_ids.linode == 789
+        assert settings.default_firewall_ids.nodebalancer == 321
+
+    def test_update_firewall_settings(self):
+        """
+        Tests that firewall settings can be updated
+        """
+        settings = self.client.networking.firewall_settings()
+
+        settings.default_firewall_ids.vpc_interface = 321
+        settings.default_firewall_ids.public_interface = 654
+        settings.default_firewall_ids.linode = 987
+        settings.default_firewall_ids.nodebalancer = 123
+
+        with self.mock_put("networking/firewalls/settings") as m:
+            settings.save()
+
+            assert m.call_data == {
+                "default_firewall_ids": {
+                    "vpc_interface": 321,
+                    "public_interface": 654,
+                    "linode": 987,
+                    "nodebalancer": 123,
+                }
+            }
 
     def test_ip_addresses_share(self):
         """

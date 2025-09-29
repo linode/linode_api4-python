@@ -6,7 +6,8 @@
       "capabilities": [
         "Linodes",
         "NodeBalancers",
-        "Block Storage"
+        "Block Storage",
+        "Linode Interfaces"
       ],
       "status": "ok",
       "resolvers": {
@@ -26,7 +27,8 @@
       "capabilities": [
         "Linodes",
         "NodeBalancers",
-        "Block Storage"
+        "Block Storage",
+        "Linode Interfaces"
       ],
       "status": "ok",
       "resolvers": {
@@ -46,7 +48,8 @@
       "capabilities": [
         "Linodes",
         "NodeBalancers",
-        "Block Storage"
+        "Block Storage",
+        "Linode Interfaces"
       ],
       "status": "ok",
       "resolvers": {
@@ -62,7 +65,8 @@
       "capabilities": [
         "Linodes",
         "NodeBalancers",
-        "Block Storage"
+        "Block Storage",
+        "Linode Interfaces"
       ],
       "status": "ok",
       "resolvers": {
@@ -82,7 +86,8 @@
       "capabilities": [
         "Linodes",
         "NodeBalancers",
-        "Block Storage"
+        "Block Storage",
+        "Linode Interfaces"
       ],
       "status": "ok",
       "resolvers": {
@@ -102,7 +107,8 @@
       "capabilities": [
         "Linodes",
         "NodeBalancers",
-        "Block Storage"
+        "Block Storage",
+        "Linode Interfaces"
       ],
       "status": "ok",
       "resolvers": {
@@ -123,7 +129,8 @@
         "Linodes",
         "NodeBalancers",
         "Block Storage",
-        "Object Storage"
+        "Object Storage",
+        "Linode Interfaces"
       ],
       "monitors": {
           "alerts": [
@@ -151,7 +158,8 @@
       "capabilities": [
         "Linodes",
         "NodeBalancers",
-        "Block Storage"
+        "Block Storage",
+        "Linode Interfaces"
       ],
       "status": "ok",
       "resolvers": {
@@ -172,7 +180,8 @@
         "Linodes",
         "NodeBalancers",
         "Block Storage",
-        "Object Storage"
+        "Object Storage",
+        "Linode Interfaces"
       ],
       "status": "ok",
       "resolvers": {
@@ -193,7 +202,8 @@
         "Linodes",
         "NodeBalancers",
         "Block Storage",
-        "Object Storage"
+        "Object Storage",
+        "Linode Interfaces"
       ],
       "status": "ok",
       "resolvers": {
@@ -213,7 +223,8 @@
       "capabilities": [
         "Linodes",
         "NodeBalancers",
-        "Block Storage"
+        "Block Storage",
+        "Linode Interfaces"
       ],
       "status": "ok",
       "resolvers": {

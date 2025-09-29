@@ -15,6 +15,13 @@ import requests
 from requests.exceptions import ConnectionError, RequestException
 
 from linode_api4 import (
+    ExplicitNullValue,
+    InterfaceGeneration,
+    LinodeInterfaceDefaultRouteOptions,
+    LinodeInterfaceOptions,
+    LinodeInterfacePublicOptions,
+    LinodeInterfaceVLANOptions,
+    LinodeInterfaceVPCOptions,
     PlacementGroupPolicy,
     PlacementGroupType,
     PostgreSQLDatabase,
@@ -527,6 +534,77 @@ def linode_for_vlan_tests(test_linode_client, e2e_test_firewall):
     yield linode_instance
 
     linode_instance.delete()
+
+
+@pytest.fixture(scope="function")
+def linode_with_interface_generation_linode(
+    test_linode_client,
+    e2e_test_firewall,
+    # We won't be using this all the time, but it's
+    # necessary for certain consumers of this fixture
+    create_vpc_with_subnet,
+):
+    client = test_linode_client
+
+    label = get_test_label()
+
+    instance = client.linode.instance_create(
+        "g6-nanode-1",
+        create_vpc_with_subnet[0].region,
+        label=label,
+        interface_generation=InterfaceGeneration.LINODE,
+        booted=False,
+    )
+
+    yield instance
+
+    instance.delete()
+
+
+@pytest.fixture(scope="function")
+def linode_with_linode_interfaces(
+    test_linode_client, e2e_test_firewall, create_vpc_with_subnet
+):
+    client = test_linode_client
+    vpc, subnet = create_vpc_with_subnet
+
+    # Are there regions where VPCs are supported but Linode Interfaces aren't?
+    region = vpc.region
+    label = get_test_label()
+
+    instance, _ = client.linode.instance_create(
+        "g6-nanode-1",
+        region,
+        image="linode/debian12",
+        label=label,
+        booted=False,
+        interface_generation=InterfaceGeneration.LINODE,
+        interfaces=[
+            LinodeInterfaceOptions(
+                firewall_id=e2e_test_firewall.id,
+                default_route=LinodeInterfaceDefaultRouteOptions(
+                    ipv4=True,
+                    ipv6=True,
+                ),
+                public=LinodeInterfacePublicOptions(),
+            ),
+            LinodeInterfaceOptions(
+                firewall_id=ExplicitNullValue,
+                vpc=LinodeInterfaceVPCOptions(
+                    subnet_id=subnet.id,
+                ),
+            ),
+            LinodeInterfaceOptions(
+                vlan=LinodeInterfaceVLANOptions(
+                    vlan_label="test-vlan", ipam_address="10.0.0.5/32"
+                ),
+            ),
+        ],
+    )
+
+    yield instance
+
+    instance.delete()
 
 
 @pytest.fixture(scope="session")
