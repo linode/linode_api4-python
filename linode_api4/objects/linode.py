@@ -2006,7 +2006,7 @@ class Instance(Base):
         return self._interfaces_settings
 
     @property
-    def linode_interfaces(self) -> list[LinodeInterface]:
+    def linode_interfaces(self) -> Optional[list[LinodeInterface]]:
         """
         All interfaces for this Linode.
 
@@ -2015,6 +2015,8 @@ class Instance(Base):
         :returns: An ordered list of interfaces under this Linode.
         """
 
+        if self.interface_generation != "linode":
+            return None
         if not hasattr(self, "_interfaces"):
             result = self._client.get(
                 "{}/interfaces".format(Instance.api_endpoint),
