@@ -348,7 +348,7 @@ class EmailChannelContent(JSONObject):
     """
     Represents the content for an email alert channel.
     """
-    email_addresses: List[str] = field(default_factory=list)
+    email_addresses: List[str] = None
 
 
 @dataclass
