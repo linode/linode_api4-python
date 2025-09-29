@@ -198,6 +198,9 @@ def test_integration_create_get_update_delete_alert_definition(
                 # transient errors while polling; continue until timeout
                 pass
 
+        assert created.id == updated.id
+        assert updated.label == f"{label}-updated"
+
     finally:
         if created:
             # Best-effort cleanup; allow transient errors.
@@ -206,7 +209,6 @@ def test_integration_create_get_update_delete_alert_definition(
                 delete_alert = client.load(AlertDefinition, created.id, service_type)
                 delete_alert.delete()
             except Exception:
-                
                 pass
 
             # confirm it's gone (if API returns 404 or raises)

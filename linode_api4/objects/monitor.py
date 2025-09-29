@@ -375,6 +375,9 @@ class AlertChannel(Base):
 
     This class maps to the Monitor API's `/monitor/alert-channels` resource
     and is used by the SDK to list, load, and inspect channels.
+
+    NOTE: Only read operations are supported for AlertChannel at this time.
+    Create, update, and delete (CRUD) operations are not allowed.
     """
 
     api_endpoint = "/monitor/alert-channels/{id}"
