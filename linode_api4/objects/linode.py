@@ -2006,15 +2006,18 @@ class Instance(Base):
         return self._interfaces_settings
 
     @property
-    def interfaces(self) -> List[LinodeInterface]:
+    def linode_interfaces(self) -> Optional[list[LinodeInterface]]:
         """
         All interfaces for this Linode.
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-interface
 
-        :returns: An ordered list of interfaces under this Linode.
+        :returns: An ordered list of linode interfaces under this Linode. If the linode is with legacy config interfaces, returns None.
+        :rtype: Optional[list[LinodeInterface]]
         """
 
+        if self.interface_generation != InterfaceGeneration.LINODE:
+            return None
         if not hasattr(self, "_interfaces"):
             result = self._client.get(
                 "{}/interfaces".format(Instance.api_endpoint),
