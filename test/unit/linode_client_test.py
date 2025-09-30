@@ -1297,7 +1297,7 @@ class NetworkingGroupTest(ClientBaseCase):
                 "test-firewall-1",
                 rules,
                 devices=FirewallCreateDevicesOptions(
-                    linodes=[123], nodebalancers=[456], interfaces=[789]
+                    linodes=[123], nodebalancers=[456], linode_interfaces=[789]
                 ),
                 status="enabled",
             )
@@ -1317,7 +1317,7 @@ class NetworkingGroupTest(ClientBaseCase):
                     "devices": {
                         "linodes": [123],
                         "nodebalancers": [456],
-                        "interfaces": [789],
+                        "linode_interfaces": [789],
                     },
                 },
             )
