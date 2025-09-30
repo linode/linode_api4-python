@@ -706,37 +706,46 @@ def test_linode_upgrade_interfaces(
     __assert_vlan(result.interfaces[1])
     __assert_vpc(result.interfaces[2])
 
-    __assert_public(linode.interfaces[0])
-    __assert_vlan(linode.interfaces[1])
-    __assert_vpc(linode.interfaces[2])
+    __assert_public(linode.linode_interfaces[0])
+    __assert_vlan(linode.linode_interfaces[1])
+    __assert_vpc(linode.linode_interfaces[2])
 
 
 def test_linode_interfaces_settings(linode_with_linode_interfaces):
     linode = linode_with_linode_interfaces
-    settings = linode.interfaces_settings
+    settings = linode.linode_interfaces_settings
 
     assert settings.network_helper is not None
-    assert settings.default_route.ipv4_interface_id == linode.interfaces[0].id
+    assert (
+        settings.default_route.ipv4_interface_id
+        == linode.linode_interfaces[0].id
+    )
     assert settings.default_route.ipv4_eligible_interface_ids == [
-        linode.interfaces[0].id,
-        linode.interfaces[1].id,
+        linode.linode_interfaces[0].id,
+        linode.linode_interfaces[1].id,
     ]
 
-    assert settings.default_route.ipv6_interface_id == linode.interfaces[0].id
+    assert (
+        settings.default_route.ipv6_interface_id
+        == linode.linode_interfaces[0].id
+    )
     assert settings.default_route.ipv6_eligible_interface_ids == [
-        linode.interfaces[0].id
+        linode.linode_interfaces[0].id
     ]
 
     # Arbitrary updates
     settings.network_helper = True
-    settings.default_route.ipv4_interface_id = linode.interfaces[1].id
+    settings.default_route.ipv4_interface_id = linode.linode_interfaces[1].id
 
     settings.save()
     settings.invalidate()
 
     # Assert updates
     assert settings.network_helper is not None
-    assert settings.default_route.ipv4_interface_id == linode.interfaces[1].id
+    assert (
+        settings.default_route.ipv4_interface_id
+        == linode.linode_interfaces[1].id
+    )
 
 
 def test_config_update_interfaces(create_linode):
