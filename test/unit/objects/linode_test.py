@@ -481,7 +481,7 @@ class LinodeTest(ClientBaseCase):
 
         assert instance.interface_generation == InterfaceGeneration.LINODE
 
-        interfaces = instance.interfaces
+        interfaces = instance.linode_interfaces
 
         LinodeInterfaceTest.assert_linode_124_interface_123(
             next(iface for iface in interfaces if iface.id == 123)
