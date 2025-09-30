@@ -2016,7 +2016,7 @@ class Instance(Base):
         :rtype: Optional[list[LinodeInterface]]
         """
 
-        if self.interface_generation != "linode":
+        if self.interface_generation != InterfaceGeneration.LINODE:
             return None
         if not hasattr(self, "_interfaces"):
             result = self._client.get(
