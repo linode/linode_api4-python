@@ -217,8 +217,8 @@ def test_integration_create_get_update_delete_alert_definition(
                 # If no exception, fail explicitly
                 assert False, "Alert definition still retrievable after delete"
             except ApiError:
-                # expected
+                # Expected: alert definition is deleted and API returns 404 or similar error
                 pass
             except Exception:
-                # any other exception is acceptable here
+                # Any other exception is acceptable here, as the resource should be gone
                 pass

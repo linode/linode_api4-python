@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Literal, Optional, Union
+from typing import List, Optional, Union
 
 from linode_api4.objects import DerivedBase
 from linode_api4.objects.base import Base, Property
