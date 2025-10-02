@@ -1,6 +1,7 @@
+import copy
 import string
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from os import urandom
@@ -19,6 +20,14 @@ from linode_api4.objects.base import (
 from linode_api4.objects.dbase import DerivedBase
 from linode_api4.objects.filtering import FilterableAttribute
 from linode_api4.objects.image import Image
+from linode_api4.objects.linode_interfaces import (
+    LinodeInterface,
+    LinodeInterfaceDefaultRouteOptions,
+    LinodeInterfacePublicOptions,
+    LinodeInterfacesSettings,
+    LinodeInterfaceVLANOptions,
+    LinodeInterfaceVPCOptions,
+)
 from linode_api4.objects.networking import (
     Firewall,
     IPAddress,
@@ -653,6 +662,33 @@ class MigrationType:
     WARM = "warm"
 
 
+class InterfaceGeneration(StrEnum):
+    """
+    A string enum representing which interface generation a Linode is using.
+    """
+
+    LEGACY_CONFIG = "legacy_config"
+    LINODE = "linode"
+
+
+@dataclass
+class UpgradeInterfacesResult(JSONObject):
+    """
+    Contains information about an Linode Interface upgrade operation.
+
+    NOTE: If dry_run is True, each returned interface will be of type Dict[str, Any].
+          Otherwise, each returned interface will be of type LinodeInterface.
+
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/post-upgrade-linode-interfaces
+    """
+
+    dry_run: bool = False
+    config_id: int = 0
+    interfaces: List[Union[Dict[str, Any], LinodeInterface]] = field(
+        default_factory=list
+    )
+
+
 class Instance(Base):
     """
     A Linode Instance.
@@ -686,6 +722,7 @@ class Instance(Base):
         "disk_encryption": Property(),
         "lke_cluster_id": Property(),
         "capabilities": Property(unordered=True),
+        "interface_generation": Property(),
         "maintenance_policy": Property(
             mutable=True
         ),  # Note: This field is only available when using v4beta.
@@ -699,8 +736,8 @@ class Instance(Base):
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-ips
 
-        :returns: A List of the ips of the Linode Instance.
-        :rtype: List[IPAddress]
+        :returns: Information about the IP addresses assigned to this instance.
+        :rtype: MappedObject
         """
         if not hasattr(self, "_ips"):
             result = self._client.get(
@@ -964,6 +1001,9 @@ class Instance(Base):
 
         if hasattr(self, "_placement_group"):
             del self._placement_group
+
+        if hasattr(self, "_interfaces"):
+            del self._interfaces
 
         Base.invalidate(self)
 
@@ -1848,6 +1888,216 @@ class Instance(Base):
             ),
             model=self,
         )
+
+    def interface_create(
+        self,
+        firewall: Optional[Union[Firewall, int]] = None,
+        default_route: Optional[
+            Union[Dict[str, Any], LinodeInterfaceDefaultRouteOptions]
+        ] = None,
+        public: Optional[
+            Union[Dict[str, Any], LinodeInterfacePublicOptions]
+        ] = None,
+        vlan: Optional[
+            Union[Dict[str, Any], LinodeInterfaceVLANOptions]
+        ] = None,
+        vpc: Optional[Union[Dict[str, Any], LinodeInterfaceVPCOptions]] = None,
+        **kwargs,
+    ) -> LinodeInterface:
+        """
+        Creates a new interface under this Linode.
+        Linode interfaces are not interchangeable with Config interfaces.
+
+        NOTE: Linode interfaces may not currently be available to all users.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-linode-interface
+
+        Example: Creating a simple public interface for this Linode::
+
+            interface = instance.interface_create(
+                default_route=LinodeInterfaceDefaultRouteOptions(
+                    ipv4=True,
+                    ipv6=True
+                ),
+                public=LinodeInterfacePublicOptions()
+            )
+
+        Example: Creating a simple VPC interface for this Linode::
+
+            interface = instance.interface_create(
+                default_route=LinodeInterfaceDefaultRouteOptions(
+                    ipv4=True
+                ),
+                vpc=LinodeInterfaceVPCOptions(
+                    subnet_id=12345
+                )
+            )
+
+        Example: Creating a simple VLAN interface for this Linode::
+
+            interface = instance.interface_create(
+                default_route=LinodeInterfaceDefaultRouteOptions(
+                    ipv4=True
+                ),
+                vlan=LinodeInterfaceVLANOptions(
+                    vlan_label="my-vlan"
+                )
+            )
+
+        :param firewall: The firewall this interface should be assigned to.
+        :param default_route: The desired default route configuration of the new interface.
+        :param public: The public-specific configuration of the new interface.
+                    If set, the new instance will be a public interface.
+        :param vlan: The VLAN-specific configuration of the new interface.
+                  If set, the new instance will be a VLAN interface.
+        :param vpc: The VPC-specific configuration of the new interface.
+                    If set, the new instance will be a VPC interface.
+
+        :returns: The newly created Linode Interface.
+        :rtype: LinodeInterface
+        """
+
+        params = {
+            "firewall_id": firewall,
+            "default_route": default_route,
+            "public": public,
+            "vlan": vlan,
+            "vpc": vpc,
+        }
+
+        params.update(kwargs)
+
+        result = self._client.post(
+            "{}/interfaces".format(Instance.api_endpoint),
+            model=self,
+            data=drop_null_keys(_flatten_request_body_recursive(params)),
+        )
+
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response creating interface!", json=result
+            )
+
+        return LinodeInterface(self._client, result["id"], self.id, json=result)
+
+    @property
+    def interfaces_settings(self) -> LinodeInterfacesSettings:
+        """
+        The settings for all interfaces under this Linode.
+
+        NOTE: Linode interfaces may not currently be available to all users.
+
+        :returns: The settings for instance-level interface settings for this Linode.
+        :rtype: LinodeInterfacesSettings
+        """
+
+        # NOTE: We do not implement this as a Property because Property does
+        # not currently have a mechanism for 1:1 sub-entities.
+
+        if not hasattr(self, "_interfaces_settings"):
+            self._set(
+                "_interfaces_settings",
+                # We don't use lazy loading here because it can trigger a known issue
+                # where setting fields for updates before the entity has been lazy loaded
+                # causes the user's value to be discarded.
+                self._client.load(LinodeInterfacesSettings, self.id),
+            )
+
+        return self._interfaces_settings
+
+    @property
+    def linode_interfaces(self) -> Optional[list[LinodeInterface]]:
+        """
+        All interfaces for this Linode.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-interface
+
+        :returns: An ordered list of linode interfaces under this Linode. If the linode is with legacy config interfaces, returns None.
+        :rtype: Optional[list[LinodeInterface]]
+        """
+
+        if self.interface_generation != InterfaceGeneration.LINODE:
+            return None
+        if not hasattr(self, "_interfaces"):
+            result = self._client.get(
+                "{}/interfaces".format(Instance.api_endpoint),
+                model=self,
+            )
+            if "interfaces" not in result:
+                raise UnexpectedResponseError(
+                    "Got unexpected response when retrieving Linode interfaces",
+                    json=result,
+                )
+
+            self._set(
+                "_interfaces",
+                [
+                    LinodeInterface(
+                        self._client, iface["id"], self.id, json=iface
+                    )
+                    for iface in result["interfaces"]
+                ],
+            )
+
+        return self._interfaces
+
+    def upgrade_interfaces(
+        self,
+        config: Optional[Union[Config, int]] = None,
+        dry_run: bool = False,
+        **kwargs,
+    ) -> UpgradeInterfacesResult:
+        """
+        Automatically upgrades all legacy config interfaces of a
+        single configuration profile to Linode interfaces.
+
+        NOTE: If dry_run is True, interfaces in the result will be
+              of type MappedObject rather than LinodeInterface.
+
+        NOTE: Linode interfaces may not currently be available to all users.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-upgrade-linode-interfaces
+
+        :param config: The configuration profile the legacy interfaces to
+                       upgrade are under.
+        :type config: Config or int
+        :param dry_run: Whether this operation should be a dry run,
+                        which will return the interfaces that would be
+                        created if the operation were completed.
+        :type dry_run: bool
+
+        :returns: Information about the newly upgraded interfaces.
+        :rtype: UpgradeInterfacesResult
+        """
+        params = {"config_id": config, "dry_run": dry_run}
+
+        params.update(kwargs)
+
+        result = self._client.post(
+            "{}/upgrade-interfaces".format(Instance.api_endpoint),
+            model=self,
+            data=_flatten_request_body_recursive(drop_null_keys(params)),
+        )
+
+        # This resolves an edge case where `result["interfaces"]` persists across
+        # multiple calls, which can cause parsing errors when expanding them below.
+        result = copy.deepcopy(result)
+
+        self.invalidate()
+
+        # We don't convert interface dicts to LinodeInterface objects on dry runs
+        # actual API entities aren't created.
+        if dry_run:
+            result["interfaces"] = [
+                MappedObject(**iface) for iface in result["interfaces"]
+            ]
+        else:
+            result["interfaces"] = [
+                LinodeInterface(self._client, iface["id"], self.id, iface)
+                for iface in result["interfaces"]
+            ]
+
+        return UpgradeInterfacesResult.from_json(result)
 
 
 class UserDefinedFieldType(Enum):

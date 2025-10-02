@@ -121,16 +121,31 @@ class NetworkingTest(ClientBaseCase):
 
             self.assertEqual(m.call_data_raw, '{"rdns": null}')
 
-    def test_vpc_nat_1_1(self):
+    def test_get_ip(self):
         """
-        Tests that the vpc_nat_1_1 of an IP can be retrieved.
+        Tests retrieving comprehensive IP address information, including all relevant properties.
         """
 
         ip = IPAddress(self.client, "127.0.0.1")
 
-        self.assertEqual(ip.vpc_nat_1_1.vpc_id, 242)
-        self.assertEqual(ip.vpc_nat_1_1.subnet_id, 194)
-        self.assertEqual(ip.vpc_nat_1_1.address, "139.144.244.36")
+        def __validate_ip(_ip: IPAddress):
+            assert _ip.address == "127.0.0.1"
+            assert _ip.gateway == "127.0.0.1"
+            assert _ip.linode_id == 123
+            assert _ip.interface_id == 456
+            assert _ip.prefix == 24
+            assert _ip.public
+            assert _ip.rdns == "test.example.org"
+            assert _ip.region.id == "us-east"
+            assert _ip.subnet_mask == "255.255.255.0"
+            assert _ip.type == "ipv4"
+            assert _ip.vpc_nat_1_1.vpc_id == 242
+            assert _ip.vpc_nat_1_1.subnet_id == 194
+            assert _ip.vpc_nat_1_1.address == "139.144.244.36"
+
+        __validate_ip(ip)
+        ip.invalidate()
+        __validate_ip(ip)
 
     def test_delete_ip(self):
         """
