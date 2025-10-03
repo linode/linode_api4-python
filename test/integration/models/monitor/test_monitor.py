@@ -132,12 +132,12 @@ def test_integration_create_get_update_delete_alert_definition(
                         "operator": "eq",
                         "value": "primary",
                     }
-                    ],
-                    "label": "Memory Usage",
-                    "metric": "memory_usage",
-                    "operator": "gt",
-                    "threshold": 90,
-                    "unit": "percent",
+                ],
+                "label": "Memory Usage",
+                "metric": "memory_usage",
+                "operator": "gt",
+                "threshold": 90,
+                "unit": "percent",
             }  # <-- Close the rule dictionary here
         ]
     }
@@ -155,7 +155,9 @@ def test_integration_create_get_update_delete_alert_definition(
     # Pick an existing alert channel to attach to the definition; skip if none
     channels = list(client.monitor.alert_channels())
     if not channels:
-        pytest.skip("No alert channels available on account for creating alert definitions")
+        pytest.skip(
+            "No alert channels available on account for creating alert definitions"
+        )
 
     created = None
     try:
@@ -177,23 +179,29 @@ def test_integration_create_get_update_delete_alert_definition(
         timeout = 120
         interval = 10
         start = time.time()
-        while getattr(created, "status", None) == "in progress" and (time.time() - start) < timeout:
+        while (
+            getattr(created, "status", None) == "in progress"
+            and (time.time() - start) < timeout
+        ):
             time.sleep(interval)
             try:
-                created = client.load(AlertDefinition,created.id,service_type)
+                created = client.load(AlertDefinition, created.id, service_type)
             except Exception:
                 # transient errors while polling; continue until timeout
                 pass
 
-        update_alert= client.load(AlertDefinition, created.id, service_type)
+        update_alert = client.load(AlertDefinition, created.id, service_type)
         update_alert.label = f"{label}-updated"
         update_alert.save()
 
         updated = client.load(AlertDefinition, update_alert.id, service_type)
-        while getattr(updated, "status", None) == "in progress" and (time.time() - start) < timeout:
+        while (
+            getattr(updated, "status", None) == "in progress"
+            and (time.time() - start) < timeout
+        ):
             time.sleep(interval)
             try:
-                updated = client.load(AlertDefinition,updated.id,service_type)
+                updated = client.load(AlertDefinition, updated.id, service_type)
             except Exception:
                 # transient errors while polling; continue until timeout
                 pass
@@ -204,16 +212,18 @@ def test_integration_create_get_update_delete_alert_definition(
     finally:
         if created:
             # Best-effort cleanup; allow transient errors.
-             # max time alert should take to update
+            # max time alert should take to update
             try:
-                delete_alert = client.load(AlertDefinition, created.id, service_type)
+                delete_alert = client.load(
+                    AlertDefinition, created.id, service_type
+                )
                 delete_alert.delete()
             except Exception:
                 pass
 
             # confirm it's gone (if API returns 404 or raises)
             try:
-                client.load(AlertDefinition,created.id,service_type)
+                client.load(AlertDefinition, created.id, service_type)
                 # If no exception, fail explicitly
                 assert False, "Alert definition still retrievable after delete"
             except ApiError:

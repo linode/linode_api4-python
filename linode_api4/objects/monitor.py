@@ -69,6 +69,7 @@ class MetricType(StrEnum):
     histogram = "histogram"
     summary = "summary"
 
+
 class CriteriaCondition(StrEnum):
     """
     Enum for supported CriteriaCondition
@@ -220,6 +221,7 @@ class TriggerConditions(JSONObject):
       - polling_interval_seconds: how often metrics are sampled (seconds)
       - trigger_occurrences: how many consecutive evaluation periods must match to trigger
     """
+
     criteria_condition: CriteriaCondition = CriteriaCondition.all
     evaluation_period_seconds: int = 0
     polling_interval_seconds: int = 0
@@ -239,6 +241,7 @@ class DimensionFilter(JSONObject):
         "value": "primary"
       }
     """
+
     dimension_label: str = ""
     label: str = ""
     operator: str = ""
@@ -260,6 +263,7 @@ class Rule(JSONObject):
         "unit": "percent"
       }
     """
+
     aggregate_function: Union[AggregateFunction, str] = ""
     dimension_filters: Optional[List[DimensionFilter]] = None
     label: str = ""
@@ -275,6 +279,7 @@ class RuleCriteria(JSONObject):
     Container for a list of Rule objects, matching the JSON shape:
       "rule_criteria": { "rules": [ { ... }, ... ] }
     """
+
     rules: List[Rule] = field(default_factory=list)
 
 
@@ -295,10 +300,12 @@ class AlertChannelEnvelope(JSONObject):
       - type: str - Channel type (e.g. 'webhook', 'email', 'pagerduty').
       - url: str - Destination URL or address associated with the channel.
     """
+
     id: int = 0
     label: str = ""
     type: str = ""
     url: str = ""
+
 
 class AlertType(StrEnum):
     """
@@ -312,6 +319,7 @@ class AlertType(StrEnum):
     This enum can be used to compare or validate the `type` value when
     processing alert definitions.
     """
+
     system = "system"
     user = "user"
 
@@ -354,6 +362,7 @@ class EmailChannelContent(JSONObject):
     """
     Represents the content for an email alert channel.
     """
+
     email_addresses: List[str] = None
 
 
@@ -362,9 +371,11 @@ class ChannelContent(JSONObject):
     """
     Represents the content block for an AlertChannel, which varies by channel type.
     """
+
     email: EmailChannelContent = None
     # Other channel types like 'webhook', 'slack' could be added here as Optional fields.
-    
+
+
 class AlertChannel(Base):
     """
     Represents an alert channel used to deliver notifications when alerts
