@@ -713,7 +713,7 @@ def test_linode_upgrade_interfaces(
 
 def test_linode_interfaces_settings(linode_with_linode_interfaces):
     linode = linode_with_linode_interfaces
-    settings = linode.linode_interfaces_settings
+    settings = linode.interfaces_settings
 
     assert settings.network_helper is not None
     assert (
