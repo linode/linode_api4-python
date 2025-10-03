@@ -20,6 +20,13 @@ class VPCSubnetLinode(JSONObject):
     interfaces: Optional[List[VPCSubnetLinodeInterface]] = None
 
 
+@dataclass
+class VPCSubnetDatabase(JSONObject):
+    id: int = 0
+    ipv4_range: Optional[str] = None
+    ipv6_range: Optional[str] = None
+
+
 class VPCSubnet(DerivedBase):
     """
     An instance of a VPC subnet.
@@ -36,6 +43,7 @@ class VPCSubnet(DerivedBase):
         "label": Property(mutable=True),
         "ipv4": Property(),
         "linodes": Property(json_object=VPCSubnetLinode, unordered=True),
+        "databases": Property(json_object=VPCSubnetDatabase, unordered=True),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),
     }
