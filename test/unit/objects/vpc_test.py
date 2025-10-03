@@ -120,7 +120,13 @@ class VPCTest(ClientBaseCase):
 
         self.assertEqual(subnet.label, "test-subnet")
         self.assertEqual(subnet.ipv4, "10.0.0.0/24")
+
         self.assertEqual(subnet.linodes[0].id, 12345)
+
+        self.assertEqual(subnet.databases[0].id, 12345)
+        self.assertEqual(subnet.databases[0].ipv4_range, "10.0.0.0/24")
+        self.assertEqual(subnet.databases[0].ipv6_range, "2001:db8::/64")
+
         self.assertEqual(subnet.created, expected_dt)
         self.assertEqual(subnet.updated, expected_dt)
 
