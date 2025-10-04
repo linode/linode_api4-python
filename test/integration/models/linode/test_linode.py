@@ -897,9 +897,12 @@ class TestNetworkInterface:
         test_linode_client,
         linode_and_vpc_for_legacy_interface_tests_offline,
     ):
-        vpc, subnet, linode, _ = (
-            linode_and_vpc_for_legacy_interface_tests_offline
-        )
+        (
+            vpc,
+            subnet,
+            linode,
+            _,
+        ) = linode_and_vpc_for_legacy_interface_tests_offline
 
         config: Config = linode.configs[0]
 
@@ -954,9 +957,12 @@ class TestNetworkInterface:
         self,
         linode_and_vpc_for_legacy_interface_tests_offline,
     ):
-        vpc, subnet, linode, _ = (
-            linode_and_vpc_for_legacy_interface_tests_offline
-        )
+        (
+            vpc,
+            subnet,
+            linode,
+            _,
+        ) = linode_and_vpc_for_legacy_interface_tests_offline
 
         config: Config = linode.configs[0]
 
