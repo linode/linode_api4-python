@@ -1,15 +1,23 @@
+from dataclasses import dataclass, field
+from typing import List, Optional, Union
+
+from linode_api4.objects import DerivedBase
+from linode_api4.objects.base import Base, Property
+from linode_api4.objects.serializable import JSONObject, StrEnum
+
 __all__ = [
+    "AlertType",
     "MonitorDashboard",
     "MonitorMetricsDefinition",
     "MonitorService",
     "MonitorServiceToken",
     "AggregateFunction",
+    "RuleCriteria",
+    "TriggerConditions",
+    "AlertChannel",
+    "AlertDefinition",
+    "AlertChannelEnvelope",
 ]
-from dataclasses import dataclass, field
-from typing import List, Optional
-
-from linode_api4.objects.base import Base, Property
-from linode_api4.objects.serializable import JSONObject, StrEnum
 
 
 class AggregateFunction(StrEnum):
@@ -60,6 +68,15 @@ class MetricType(StrEnum):
     counter = "counter"
     histogram = "histogram"
     summary = "summary"
+
+
+class CriteriaCondition(StrEnum):
+    """
+    Enum for supported CriteriaCondition
+    Currently, only ALL is supported.
+    """
+
+    all = "ALL"
 
 
 class MetricUnit(StrEnum):
@@ -183,3 +200,209 @@ class MonitorServiceToken(JSONObject):
     """
 
     token: str = ""
+
+
+@dataclass
+class TriggerConditions(JSONObject):
+    """
+    Represents the trigger/evaluation configuration for an alert.
+
+    Expected JSON example:
+      "trigger_conditions": {
+        "criteria_condition": "ALL",
+        "evaluation_period_seconds": 60,
+        "polling_interval_seconds": 10,
+        "trigger_occurrences": 3
+      }
+
+    Fields:
+      - criteria_condition: "ALL" (currently, only "ALL" is supported)
+      - evaluation_period_seconds: seconds over which the rule(s) are evaluated
+      - polling_interval_seconds: how often metrics are sampled (seconds)
+      - trigger_occurrences: how many consecutive evaluation periods must match to trigger
+    """
+
+    criteria_condition: CriteriaCondition = CriteriaCondition.all
+    evaluation_period_seconds: int = 0
+    polling_interval_seconds: int = 0
+    trigger_occurrences: int = 0
+
+
+@dataclass
+class DimensionFilter(JSONObject):
+    """
+    A single dimension filter used inside a Rule.
+
+    Example JSON:
+      {
+        "dimension_label": "node_type",
+        "label": "Node Type",
+        "operator": "eq",
+        "value": "primary"
+      }
+    """
+
+    dimension_label: str = ""
+    label: str = ""
+    operator: str = ""
+    value: str = None
+
+
+@dataclass
+class Rule(JSONObject):
+    """
+    A single rule within RuleCriteria.
+    Example JSON:
+      {
+        "aggregate_function": "avg",
+        "dimension_filters": [ ... ],
+        "label": "Memory Usage",
+        "metric": "memory_usage",
+        "operator": "gt",
+        "threshold": 95,
+        "unit": "percent"
+      }
+    """
+
+    aggregate_function: Union[AggregateFunction, str] = ""
+    dimension_filters: Optional[List[DimensionFilter]] = None
+    label: str = ""
+    metric: str = ""
+    operator: str = ""
+    threshold: Optional[float] = None
+    unit: Optional[str] = None
+
+
+@dataclass
+class RuleCriteria(JSONObject):
+    """
+    Container for a list of Rule objects, matching the JSON shape:
+      "rule_criteria": { "rules": [ { ... }, ... ] }
+    """
+
+    rules: List[Rule] = field(default_factory=list)
+
+
+@dataclass
+class AlertChannelEnvelope(JSONObject):
+    """
+    Represents a single alert channel entry returned inside alert definition
+    responses.
+
+    This envelope type is used when an AlertDefinition includes a list of
+    alert channels. It contains lightweight information about the channel so
+    that callers can display or reference the channel without performing an
+    additional API lookup.
+
+    Fields:
+      - id: int - Unique identifier of the alert channel.
+      - label: str - Human-readable name for the channel.
+      - type: str - Channel type (e.g. 'webhook', 'email', 'pagerduty').
+      - url: str - Destination URL or address associated with the channel.
+    """
+
+    id: int = 0
+    label: str = ""
+    type: str = ""
+    url: str = ""
+
+
+class AlertType(StrEnum):
+    """
+    Enumeration of alert origin types used by alert definitions.
+
+    Values:
+      - SYSTEM: Alerts that originate from the system (built-in or platform-managed).
+      - USER: Alerts created and managed by users (custom alerts).
+
+    The API uses this value in the `type` field of alert-definition responses.
+    This enum can be used to compare or validate the `type` value when
+    processing alert definitions.
+    """
+
+    system = "system"
+    user = "user"
+
+
+class AlertDefinition(DerivedBase):
+    """
+    Represents an alert definition for a monitor service.
+
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-alert-definition
+    """
+
+    api_endpoint = "/monitor/services/{service_type}/alert-definitions/{id}"
+    derived_url_path = "alert-definitions"
+    parent_id_name = "service_type"
+    id_attribute = "id"
+
+    properties = {
+        "id": Property(identifier=True),
+        "service_type": Property(identifier=True),
+        "label": Property(mutable=True),
+        "severity": Property(mutable=True),
+        "type": Property(AlertType),
+        "status": Property(),
+        "has_more_resources": Property(),
+        "rule_criteria": Property(RuleCriteria),
+        "trigger_conditions": Property(TriggerConditions),
+        "alert_channels": Property(List[AlertChannelEnvelope]),
+        "created": Property(is_datetime=True),
+        "updated": Property(is_datetime=True),
+        "updated_by": Property(),
+        "created_by": Property(),
+        "entity_ids": Property(List[str]),
+        "description": Property(mutable=True),
+        "_class": Property("class"),
+    }
+
+
+@dataclass
+class EmailChannelContent(JSONObject):
+    """
+    Represents the content for an email alert channel.
+    """
+
+    email_addresses: List[str] = None
+
+
+@dataclass
+class ChannelContent(JSONObject):
+    """
+    Represents the content block for an AlertChannel, which varies by channel type.
+    """
+
+    email: EmailChannelContent = None
+    # Other channel types like 'webhook', 'slack' could be added here as Optional fields.
+
+
+class AlertChannel(Base):
+    """
+    Represents an alert channel used to deliver notifications when alerts
+    fire. Alert channels define a destination and configuration for
+    notifications (for example: email lists, webhooks, PagerDuty, Slack, etc.).
+
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-alert-channels
+
+    This class maps to the Monitor API's `/monitor/alert-channels` resource
+    and is used by the SDK to list, load, and inspect channels.
+
+    NOTE: Only read operations are supported for AlertChannel at this time.
+    Create, update, and delete (CRUD) operations are not allowed.
+    """
+
+    api_endpoint = "/monitor/alert-channels/{id}"
+
+    properties = {
+        "id": Property(identifier=True),
+        "label": Property(),
+        "type": Property("channel_type"),
+        "channel_type": Property(),
+        "content": Property(ChannelContent),
+        "created": Property(is_datetime=True),
+        "updated": Property(is_datetime=True),
+        "created_by": Property(),
+        "updated_by": Property(),
+        "url": Property(),
+        # Add other fields as needed
+    }
