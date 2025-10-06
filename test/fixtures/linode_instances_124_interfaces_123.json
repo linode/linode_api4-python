@@ -34,7 +34,7 @@
       ],
       "shared": [
         {
-          "range": "2600:3cO9:e001:2a::/64",
+          "range": "2600:3c09:e001:2a::/64",
           "route_target": null
         }
       ],

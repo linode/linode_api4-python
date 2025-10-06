@@ -407,7 +407,9 @@ def create_vpc(test_linode_client):
 
     vpc = client.vpcs.create(
         label=label,
-        region=get_region(test_linode_client, {"VPCs"}),
+        region=get_region(
+            test_linode_client, {"VPCs", "VPC IPv6 Stack", "Linode Interfaces"}
+        ),
         description="test description",
         ipv6=[{"range": "auto"}],
     )

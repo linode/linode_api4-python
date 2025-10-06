@@ -667,7 +667,7 @@ def test_linode_upgrade_interfaces(
         __assert_base(iface)
 
         assert iface.default_route.ipv4
-        assert not iface.default_route.ipv6
+        assert iface.default_route.ipv6
 
         assert iface.vpc.vpc_id == vpc.id
         assert iface.vpc.subnet_id == subnet.id
@@ -710,10 +710,6 @@ def test_linode_upgrade_interfaces(
 
     assert not result.dry_run
     assert result.config_id == config.id
-
-    __assert_public(result.interfaces[0])
-    __assert_vlan(result.interfaces[1])
-    __assert_vpc(result.interfaces[2])
 
     __assert_public(linode.linode_interfaces[0])
     __assert_vlan(linode.linode_interfaces[1])

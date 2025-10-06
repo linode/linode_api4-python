@@ -263,7 +263,7 @@ def test_linode_interface_create_vpc(linode_interface_vpc):
     assert iface.version
 
     assert iface.default_route.ipv4
-    assert not iface.default_route.ipv6
+    assert iface.default_route.ipv6
 
     assert iface.vpc.vpc_id == vpc.id
     assert iface.vpc.subnet_id == subnet.id
