@@ -280,7 +280,7 @@ class RuleCriteria(JSONObject):
       "rule_criteria": { "rules": [ { ... }, ... ] }
     """
 
-    rules: List[Rule] = field(default_factory=list)
+    rules: List[Rule] = None
 
 
 @dataclass
