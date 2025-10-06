@@ -123,8 +123,8 @@ class DashboardWidget(JSONObject):
     chart_type: ChartType = ""
     y_label: str = ""
     aggregate_function: AggregateFunction = ""
-    group_by: List[str] = None
-    filters: List[Filter] = None
+    group_by: Optional[List[str]] = None
+    filters: Optional[List[Filter]] = None
 
 
 @dataclass
