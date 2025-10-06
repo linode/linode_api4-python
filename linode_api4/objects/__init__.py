@@ -6,6 +6,7 @@ from .filtering import and_, or_
 from .region import Region
 from .image import Image
 from .linode import *
+from .linode_interfaces import *
 from .volume import *
 from .domain import *
 from .account import *
@@ -22,3 +23,4 @@ from .vpc import *
 from .beta import *
 from .placement import *
 from .monitor import *
+from .monitor_api import *

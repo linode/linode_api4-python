@@ -31,11 +31,11 @@ def retry_sending_request(
     for attempt in range(1, retries + 1):
         try:
             return condition(*args, **kwargs)
-        except ApiError:
+        except ApiError as e:
             if attempt == retries:
-                raise ApiError(
+                raise Exception(
                     "Api Error: Failed after all retry attempts"
-                ) from None
+                ) from e
             time.sleep(backoff)
 
 
@@ -43,7 +43,7 @@ def send_request_when_resource_available(
     timeout: int, func: Callable, *args, **kwargs
 ) -> object:
     start_time = time.time()
-    retry_statuses = {400, 500}
+    retry_statuses = {400, 500, 503}
 
     while True:
         try:

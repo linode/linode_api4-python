@@ -17,6 +17,7 @@ from linode_api4.objects.longview import LongviewClient, LongviewSubscription
 from linode_api4.objects.networking import Firewall
 from linode_api4.objects.nodebalancer import NodeBalancer
 from linode_api4.objects.profile import PersonalAccessToken
+from linode_api4.objects.serializable import StrEnum
 from linode_api4.objects.support import SupportTicket
 from linode_api4.objects.volume import Volume
 from linode_api4.objects.vpc import VPC
@@ -180,6 +181,24 @@ class Login(Base):
     }
 
 
+class AccountSettingsInterfacesForNewLinodes(StrEnum):
+    """
+    A string enum corresponding to valid values
+    for the AccountSettings(...).interfaces_for_new_linodes field.
+
+    NOTE: This feature may not currently be available to all users.
+    """
+
+    legacy_config_only = "legacy_config_only"
+    legacy_config_default_but_linode_allowed = (
+        "legacy_config_default_but_linode_allowed"
+    )
+    linode_default_but_legacy_config_allowed = (
+        "linode_default_but_legacy_config_allowed"
+    )
+    linode_only = "linode_only"
+
+
 class AccountSettings(Base):
     """
     Information related to your Account settings.
@@ -194,10 +213,14 @@ class AccountSettings(Base):
         "network_helper": Property(mutable=True),
         "managed": Property(),
         "longview_subscription": Property(
-            slug_relationship=LongviewSubscription
+            slug_relationship=LongviewSubscription, mutable=False
         ),
         "object_storage": Property(),
         "backups_enabled": Property(mutable=True),
+        "interfaces_for_new_linodes": Property(mutable=True),
+        "maintenance_policy": Property(
+            mutable=True
+        ),  # Note: This field is only available when using v4beta.
     }
 
 
@@ -220,12 +243,18 @@ class Event(Base):
         "user_id": Property(),
         "username": Property(),
         "entity": Property(),
-        "time_remaining": Property(),
+        "time_remaining": Property(),  # Deprecated
         "rate": Property(),
         "status": Property(),
         "duration": Property(),
         "secondary_entity": Property(),
         "message": Property(),
+        "maintenance_policy_set": Property(),  # Note: This field is only available when using v4beta.
+        "description": Property(),
+        "source": Property(),
+        "not_before": Property(is_datetime=True),
+        "start_time": Property(is_datetime=True),
+        "complete_time": Property(is_datetime=True),
     }
 
     @property

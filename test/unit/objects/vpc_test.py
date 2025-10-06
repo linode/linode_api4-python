@@ -118,17 +118,23 @@ class VPCTest(ClientBaseCase):
             "2018-01-01T00:01:01", DATE_FORMAT
         )
 
-        self.assertEqual(subnet.label, "test-subnet")
-        self.assertEqual(subnet.ipv4, "10.0.0.0/24")
+        assert subnet.label == "test-subnet"
+        assert subnet.ipv4 == "10.0.0.0/24"
+        assert subnet.linodes[0].id == 12345
+        assert subnet.created == expected_dt
+        assert subnet.updated == expected_dt
 
-        self.assertEqual(subnet.linodes[0].id, 12345)
+        assert subnet.databases[0].id == 12345
+        assert subnet.databases[0].ipv4_range == "10.0.0.0/24"
+        assert subnet.databases[0].ipv6_ranges == ["2001:db8::/64"]
 
-        self.assertEqual(subnet.databases[0].id, 12345)
-        self.assertEqual(subnet.databases[0].ipv4_range, "10.0.0.0/24")
-        self.assertEqual(subnet.databases[0].ipv6_ranges, ["2001:db8::/64"])
+        assert subnet.linodes[0].interfaces[0].id == 678
+        assert subnet.linodes[0].interfaces[0].active
+        assert subnet.linodes[0].interfaces[0].config_id is None
 
-        self.assertEqual(subnet.created, expected_dt)
-        self.assertEqual(subnet.updated, expected_dt)
+        assert subnet.linodes[0].interfaces[1].id == 543
+        assert not subnet.linodes[0].interfaces[1].active
+        assert subnet.linodes[0].interfaces[1].config_id is None
 
     def test_list_vpc_ips(self):
         """

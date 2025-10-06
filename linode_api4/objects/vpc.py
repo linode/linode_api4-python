@@ -11,6 +11,7 @@ from linode_api4.paginated_list import PaginatedList
 @dataclass
 class VPCSubnetLinodeInterface(JSONObject):
     id: int = 0
+    config_id: Optional[int] = None
     active: bool = False
 
 

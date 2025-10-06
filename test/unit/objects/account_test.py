@@ -3,6 +3,7 @@ from copy import deepcopy
 from datetime import datetime
 from test.unit.base import ClientBaseCase
 
+from linode_api4 import AccountSettingsInterfacesForNewLinodes
 from linode_api4.objects import (
     Account,
     AccountAvailability,
@@ -97,6 +98,7 @@ class InvoiceTest(ClientBaseCase):
         self.assertEqual(account.balance_uninvoiced, 145)
         self.assertEqual(account.billing_source, "akamai")
         self.assertEqual(account.euuid, "E1AF5EEC-526F-487D-B317EBEB34C87D71")
+        self.assertIn("Linode Interfaces", account.capabilities)
 
     def test_get_login(self):
         """
@@ -121,6 +123,50 @@ class InvoiceTest(ClientBaseCase):
         self.assertEqual(settings.network_helper, False)
         self.assertEqual(settings.object_storage, "active")
         self.assertEqual(settings.backups_enabled, True)
+        self.assertEqual(
+            settings.interfaces_for_new_linodes,
+            AccountSettingsInterfacesForNewLinodes.linode_default_but_legacy_config_allowed,
+        )
+
+    def test_post_account_settings(self):
+        """
+        Tests that account settings can be updated successfully
+        """
+        settings = self.client.account.settings()
+
+        settings.network_helper = True
+        settings.backups_enabled = False
+        settings.interfaces_for_new_linodes = (
+            AccountSettingsInterfacesForNewLinodes.linode_only
+        )
+
+        with self.mock_put("/account/settings") as m:
+            settings.save()
+
+            assert m.call_data == {
+                "network_helper": True,
+                "backups_enabled": False,
+                "interfaces_for_new_linodes": AccountSettingsInterfacesForNewLinodes.linode_only,
+                "maintenance_policy": "linode/migrate",
+            }
+
+    def test_update_account_settings(self):
+        """
+        Tests that account settings can be updated
+        """
+        with self.mock_put("account/settings") as m:
+            settings = AccountSettings(self.client, False, {})
+
+            settings.maintenance_policy = "linode/migrate"
+            settings.save()
+
+            self.assertEqual(m.call_url, "/account/settings")
+            self.assertEqual(
+                m.call_data,
+                {
+                    "maintenance_policy": "linode/migrate",
+                },
+            )
 
     def test_get_event(self):
         """
@@ -129,19 +175,39 @@ class InvoiceTest(ClientBaseCase):
         event = Event(self.client, 123, {})
 
         self.assertEqual(event.action, "ticket_create")
-        self.assertEqual(event.created, datetime(2018, 1, 1, 0, 1, 1))
+        self.assertEqual(event.created, datetime(2025, 3, 25, 12, 0, 0))
         self.assertEqual(event.duration, 300.56)
+
         self.assertIsNotNone(event.entity)
+        self.assertEqual(event.entity.id, 11111)
+        self.assertEqual(event.entity.label, "Problem booting my Linode")
+        self.assertEqual(event.entity.type, "ticket")
+        self.assertEqual(event.entity.url, "/v4/support/tickets/11111")
+
         self.assertEqual(event.id, 123)
-        self.assertEqual(event.message, "None")
+        self.assertEqual(event.message, "Ticket created for user issue.")
         self.assertIsNone(event.percent_complete)
         self.assertIsNone(event.rate)
         self.assertTrue(event.read)
+
         self.assertIsNotNone(event.secondary_entity)
+        self.assertEqual(event.secondary_entity.id, "linode/debian9")
+        self.assertEqual(event.secondary_entity.label, "linode1234")
+        self.assertEqual(event.secondary_entity.type, "linode")
+        self.assertEqual(
+            event.secondary_entity.url, "/v4/linode/instances/1234"
+        )
+
         self.assertTrue(event.seen)
-        self.assertIsNone(event.status)
-        self.assertIsNone(event.time_remaining)
+        self.assertEqual(event.status, "completed")
         self.assertEqual(event.username, "exampleUser")
+
+        self.assertEqual(event.maintenance_policy_set, "Tentative")
+        self.assertEqual(event.description, "Scheduled maintenance")
+        self.assertEqual(event.source, "user")
+        self.assertEqual(event.not_before, datetime(2025, 3, 25, 12, 0, 0))
+        self.assertEqual(event.start_time, datetime(2025, 3, 25, 12, 30, 0))
+        self.assertEqual(event.complete_time, datetime(2025, 3, 25, 13, 0, 0))
 
     def test_get_invoice(self):
         """
@@ -340,7 +406,6 @@ def test_user_grants_serialization():
             "add_linodes": True,
             "add_longview": True,
             "add_nodebalancers": True,
-            "add_placement_groups": True,
             "add_stackscripts": True,
             "add_volumes": True,
             "add_vpcs": True,

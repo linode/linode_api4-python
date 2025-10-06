@@ -3,11 +3,13 @@ __all__ = [
     "MonitorMetricsDefinition",
     "MonitorService",
     "MonitorServiceToken",
+    "AggregateFunction",
 ]
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-from linode_api4.objects import Base, JSONObject, Property, StrEnum
+from linode_api4.objects.base import Base, Property
+from linode_api4.objects.serializable import JSONObject, StrEnum
 
 
 class AggregateFunction(StrEnum):
@@ -157,16 +159,19 @@ class MonitorDashboard(Base):
     }
 
 
-@dataclass
-class MonitorService(JSONObject):
+class MonitorService(Base):
     """
     Represents a single service type.
     API Documentation: https://techdocs.akamai.com/linode-api/reference/get-monitor-services
 
     """
 
-    service_type: ServiceType = ""
-    label: str = ""
+    api_endpoint = "/monitor/services/{service_type}"
+    id_attribute = "service_type"
+    properties = {
+        "service_type": Property(ServiceType),
+        "label": Property(),
+    }
 
 
 @dataclass

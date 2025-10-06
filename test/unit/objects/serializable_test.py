@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from test.unit.base import ClientBaseCase
-from typing import Optional
+from typing import Optional, Union
 
-from linode_api4 import Base, JSONObject, Property
+from linode_api4 import Base, ExplicitNullValue, JSONObject, Property
 
 
 class JSONObjectTest(ClientBaseCase):
@@ -14,18 +14,21 @@ class JSONObjectTest(ClientBaseCase):
             foo: Optional[str] = None
             bar: Optional[str] = None
             baz: str = None
+            foobar: Union[str, ExplicitNullValue, None] = None
 
         foo = Foo().dict
 
         assert foo["foo"] is None
         assert "bar" not in foo
         assert foo["baz"] is None
+        assert "foobar" not in foo
 
-        foo = Foo(foo="test", bar="test2", baz="test3").dict
+        foo = Foo(foo="test", bar="test2", baz="test3", foobar="test4").dict
 
         assert foo["foo"] == "test"
         assert foo["bar"] == "test2"
         assert foo["baz"] == "test3"
+        assert foo["foobar"] == "test4"
 
     def test_serialize_optional_include_None(self):
         @dataclass
@@ -35,18 +38,23 @@ class JSONObjectTest(ClientBaseCase):
             foo: Optional[str] = None
             bar: Optional[str] = None
             baz: str = None
+            foobar: Union[str, ExplicitNullValue, None] = None
 
         foo = Foo().dict
 
         assert foo["foo"] is None
         assert foo["bar"] is None
         assert foo["baz"] is None
+        assert foo["foobar"] is None
 
-        foo = Foo(foo="test", bar="test2", baz="test3").dict
+        foo = Foo(
+            foo="test", bar="test2", baz="test3", foobar=ExplicitNullValue()
+        ).dict
 
         assert foo["foo"] == "test"
         assert foo["bar"] == "test2"
         assert foo["baz"] == "test3"
+        assert foo["foobar"] is None
 
     def test_serialize_put_class(self):
         """

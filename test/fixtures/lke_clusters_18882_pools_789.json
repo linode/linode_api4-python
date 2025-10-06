@@ -1,6 +1,7 @@
 {
     "id": 789,
     "type": "g6-standard-2",
+    "label": "enterprise-node-pool",
     "count": 3,
     "nodes": [],
     "disks": [],
