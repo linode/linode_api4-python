@@ -24,7 +24,7 @@ class VPCSubnetLinode(JSONObject):
 class VPCSubnetDatabase(JSONObject):
     id: int = 0
     ipv4_range: Optional[str] = None
-    ipv6_ranges: Optional[str] = None
+    ipv6_ranges: Optional[List[str]] = None
 
 
 class VPCSubnet(DerivedBase):
