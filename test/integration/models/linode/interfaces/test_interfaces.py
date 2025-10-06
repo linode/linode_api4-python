@@ -79,15 +79,15 @@ def test_linode_create_with_linode_interfaces(
         assert iface.vlan.vlan_label == "test-vlan"
         assert iface.vlan.ipam_address == "10.0.0.5/32"
 
-    __assert_public(instance.interfaces[0])
-    __assert_vpc(instance.interfaces[1])
-    __assert_vlan(instance.interfaces[2])
+    __assert_public(instance.linode_interfaces[0])
+    __assert_vpc(instance.linode_interfaces[1])
+    __assert_vlan(instance.linode_interfaces[2])
 
     instance.invalidate()
 
-    __assert_public(instance.interfaces[0])
-    __assert_vpc(instance.interfaces[1])
-    __assert_vlan(instance.interfaces[2])
+    __assert_public(instance.linode_interfaces[0])
+    __assert_vpc(instance.linode_interfaces[1])
+    __assert_vlan(instance.linode_interfaces[2])
 
 
 @pytest.fixture
