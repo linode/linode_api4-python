@@ -32,9 +32,7 @@ def lke_cluster(test_linode_client):
     node_type = test_linode_client.linode.types()[1]  # g6-standard-1
     version = test_linode_client.lke.versions()[0]
 
-    region = get_region(
-        test_linode_client, {"Kubernetes", "LA Disk Encryption"}
-    )
+    region = get_region(test_linode_client, {"Kubernetes", "Disk Encryption"})
 
     node_pools = test_linode_client.lke.node_pool(node_type, 3)
     label = get_test_label() + "_cluster"
@@ -117,9 +115,7 @@ def lke_cluster_with_labels_and_taints(test_linode_client):
 def lke_cluster_with_apl(test_linode_client):
     version = test_linode_client.lke.versions()[0]
 
-    region = get_region(
-        test_linode_client, {"Kubernetes", "LA Disk Encryption"}
-    )
+    region = get_region(test_linode_client, {"Kubernetes", "Disk Encryption"})
 
     # NOTE: g6-dedicated-4 is the minimum APL-compatible Linode type
     node_pools = test_linode_client.lke.node_pool("g6-dedicated-4", 3)
@@ -149,7 +145,7 @@ def lke_cluster_enterprise(test_linode_client):
     )[0]
 
     region = get_region(
-        test_linode_client, {"Kubernetes Enterprise", "LA Disk Encryption"}
+        test_linode_client, {"Kubernetes Enterprise", "Disk Encryption"}
     )
 
     node_pools = test_linode_client.lke.node_pool(

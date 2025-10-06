@@ -241,7 +241,7 @@ class LinodeInterfaceTest(ClientBaseCase):
                     "ipv6": {
                         "ranges": [
                             {
-                                "range": "2600:3cO9:e001:58::/64",
+                                "range": "2600:3c09:e001:58::/64",
                             }
                         ]
                     },

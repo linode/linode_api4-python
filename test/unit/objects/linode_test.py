@@ -56,6 +56,7 @@ class LinodeTest(ClientBaseCase):
             linode.disk_encryption, InstanceDiskEncryptionType.disabled
         )
         self.assertEqual(linode.lke_cluster_id, None)
+        self.assertEqual(linode.maintenance_policy, "linode/migrate")
 
         json = linode._raw_json
         self.assertIsNotNone(json)
@@ -169,6 +170,7 @@ class LinodeTest(ClientBaseCase):
 
             linode.label = "NewLinodeLabel"
             linode.group = "new_group"
+            linode.maintenance_policy = "linode/power_off_on"
             linode.save()
 
             self.assertEqual(m.call_url, "/linode/instances/123")
@@ -190,6 +192,7 @@ class LinodeTest(ClientBaseCase):
                     "group": "new_group",
                     "tags": ["something"],
                     "watchdog_enabled": True,
+                    "maintenance_policy": "linode/power_off_on",
                 },
             )
 
@@ -489,7 +492,7 @@ class LinodeTest(ClientBaseCase):
 
         assert instance.interface_generation == InterfaceGeneration.LINODE
 
-        interfaces = instance.interfaces
+        interfaces = instance.linode_interfaces
 
         LinodeInterfaceTest.assert_linode_124_interface_123(
             next(iface for iface in interfaces if iface.id == 123)
@@ -530,8 +533,6 @@ class LinodeTest(ClientBaseCase):
         iface_settings.default_route.ipv4_interface_id = 456
         iface_settings.default_route.ipv6_interface_id = 123
 
-        print(vars(iface_settings))
-
         with self.mock_put("/linode/instances/124/interfaces/settings") as m:
             iface_settings.save()
 
@@ -560,8 +561,6 @@ class LinodeTest(ClientBaseCase):
         assert result.config_id == 123
         assert result.dry_run
 
-        # We don't use the assertion helpers here because dry runs return
-        # a MappedObject.
         LinodeInterfaceTest.assert_linode_124_interface_123(
             result.interfaces[0]
         )

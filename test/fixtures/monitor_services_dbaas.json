@@ -1,0 +1,15 @@
+{
+    "service_type": "dbaas",
+    "label": "Databases",
+    "alert": {
+        "polling_interval_seconds": [
+            300
+        ],
+        "evaluation_period_seconds": [
+            300
+        ],
+        "scope": [
+            "entity"
+        ]
+    }
+}

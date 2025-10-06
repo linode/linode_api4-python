@@ -800,6 +800,9 @@ class Instance(Base):
         "lke_cluster_id": Property(),
         "capabilities": Property(unordered=True),
         "interface_generation": Property(),
+        "maintenance_policy": Property(
+            mutable=True
+        ),  # Note: This field is only available when using v4beta.
     }
 
     @property
@@ -2047,9 +2050,9 @@ class Instance(Base):
             data=drop_null_keys(_flatten_request_body_recursive(params)),
         )
 
-        if not "id" in result:
+        if "id" not in result:
             raise UnexpectedResponseError(
-                "Unexpected response creating config!", json=result
+                "Unexpected response creating interface!", json=result
             )
 
         return LinodeInterface(self._client, result["id"], self.id, json=result)
@@ -2080,14 +2083,18 @@ class Instance(Base):
         return self._interfaces_settings
 
     @property
-    def interfaces(self) -> List[LinodeInterface]:
+    def linode_interfaces(self) -> Optional[list[LinodeInterface]]:
         """
         All interfaces for this Linode.
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/get-linode-interface
 
-        :returns: An ordered list of interfaces under this Linode.
+        :returns: An ordered list of linode interfaces under this Linode. If the linode is with legacy config interfaces, returns None.
+        :rtype: Optional[list[LinodeInterface]]
         """
+
+        if self.interface_generation != InterfaceGeneration.LINODE:
+            return None
 
         if not hasattr(self, "_interfaces"):
             result = self._client.get(

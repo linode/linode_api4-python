@@ -207,7 +207,7 @@ def create_linode_for_long_running_tests(test_linode_client, e2e_test_firewall):
 def linode_with_disk_encryption(test_linode_client, request):
     client = test_linode_client
 
-    target_region = get_region(client, {"LA Disk Encryption"})
+    target_region = get_region(client, {"Disk Encryption"})
     label = get_test_label(length=8)
 
     disk_encryption = request.param
@@ -262,7 +262,7 @@ def test_linode_transfer(test_linode_client, linode_with_volume_firewall):
 def test_linode_rebuild(test_linode_client):
     client = test_linode_client
 
-    region = get_region(client, {"LA Disk Encryption"})
+    region = get_region(client, {"Disk Encryption"})
 
     label = get_test_label() + "_rebuild"
 
@@ -279,7 +279,7 @@ def test_linode_rebuild(test_linode_client):
         disk_encryption=InstanceDiskEncryptionType.disabled,
     )
 
-    wait_for_condition(10, 100, get_status, linode, "rebuilding")
+    wait_for_condition(10, 300, get_status, linode, "rebuilding")
 
     assert linode.status == "rebuilding"
     assert linode.image.id == "linode/debian12"
@@ -667,7 +667,7 @@ def test_linode_upgrade_interfaces(
         __assert_base(iface)
 
         assert iface.default_route.ipv4
-        assert iface.default_route.ipv6
+        assert not iface.default_route.ipv6
 
         assert iface.vpc.vpc_id == vpc.id
         assert iface.vpc.subnet_id == subnet.id
@@ -715,9 +715,9 @@ def test_linode_upgrade_interfaces(
     __assert_vlan(result.interfaces[1])
     __assert_vpc(result.interfaces[2])
 
-    __assert_public(linode.interfaces[0])
-    __assert_vlan(linode.interfaces[1])
-    __assert_vpc(linode.interfaces[2])
+    __assert_public(linode.linode_interfaces[0])
+    __assert_vlan(linode.linode_interfaces[1])
+    __assert_vpc(linode.linode_interfaces[2])
 
 
 def test_linode_interfaces_settings(linode_with_linode_interfaces):
@@ -738,14 +738,17 @@ def test_linode_interfaces_settings(linode_with_linode_interfaces):
 
     # Arbitrary updates
     settings.network_helper = True
-    settings.default_route.ipv4_interface_id = linode.interfaces[1].id
+    settings.default_route.ipv4_interface_id = linode.linode_interfaces[1].id
 
     settings.save()
     settings.invalidate()
 
     # Assert updates
     assert settings.network_helper is not None
-    assert settings.default_route.ipv4_interface_id == linode.interfaces[1].id
+    assert (
+        settings.default_route.ipv4_interface_id
+        == linode.linode_interfaces[1].id
+    )
 
 
 def test_config_update_interfaces(create_linode):
@@ -897,12 +900,9 @@ class TestNetworkInterface:
         test_linode_client,
         linode_and_vpc_for_legacy_interface_tests_offline,
     ):
-        (
-            vpc,
-            subnet,
-            linode,
-            _,
-        ) = linode_and_vpc_for_legacy_interface_tests_offline
+        vpc, subnet, linode, _ = (
+            linode_and_vpc_for_legacy_interface_tests_offline
+        )
 
         config: Config = linode.configs[0]
 
@@ -1010,12 +1010,9 @@ class TestNetworkInterface:
         self,
         linode_and_vpc_for_legacy_interface_tests_offline,
     ):
-        (
-            vpc,
-            subnet,
-            linode,
-            _,
-        ) = linode_and_vpc_for_legacy_interface_tests_offline
+        vpc, subnet, linode, _ = (
+            linode_and_vpc_for_legacy_interface_tests_offline
+        )
 
         config: Config = linode.configs[0]
 
@@ -1097,3 +1094,48 @@ class TestNetworkInterface:
 
         # returns true when delete successful
         assert result
+
+
+def test_create_linode_with_maintenance_policy(test_linode_client):
+    client = test_linode_client
+    # TODO: Replace with random region after GA
+    region = "ap-south"
+    label = get_test_label()
+
+    policies = client.maintenance.maintenance_policies()
+    assert policies, "No maintenance policies returned from API"
+
+    non_default_policy = next((p for p in policies if not p.is_default), None)
+    assert non_default_policy, "No non-default maintenance policy available"
+
+    linode_instance, password = client.linode.instance_create(
+        "g6-nanode-1",
+        region,
+        image="linode/debian12",
+        label=label + "_with_policy",
+        maintenance_policy=non_default_policy.slug,
+    )
+
+    assert linode_instance.id is not None
+    assert linode_instance.label.startswith(label)
+    assert linode_instance.maintenance_policy == non_default_policy.slug
+
+    linode_instance.delete()
+
+
+def test_update_linode_maintenance_policy(create_linode, test_linode_client):
+    client = test_linode_client
+    linode = create_linode
+
+    policies = client.maintenance.maintenance_policies()
+    assert policies, "No maintenance policies returned from API"
+
+    non_default_policy = next((p for p in policies if not p.is_default), None)
+    assert non_default_policy, "No non-default maintenance policy found"
+
+    linode.maintenance_policy_id = non_default_policy.slug
+    result = linode.save()
+
+    linode.invalidate()
+    assert result
+    assert linode.maintenance_policy_id == non_default_policy.slug

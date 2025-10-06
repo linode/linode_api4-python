@@ -86,15 +86,15 @@ def test_linode_create_with_linode_interfaces(
         assert iface.vlan.vlan_label == "test-vlan"
         assert iface.vlan.ipam_address == "10.0.0.5/32"
 
-    __assert_public(instance.interfaces[0])
-    __assert_vpc(instance.interfaces[1])
-    __assert_vlan(instance.interfaces[2])
+    __assert_public(instance.linode_interfaces[0])
+    __assert_vpc(instance.linode_interfaces[1])
+    __assert_vlan(instance.linode_interfaces[2])
 
     instance.invalidate()
 
-    __assert_public(instance.interfaces[0])
-    __assert_vpc(instance.interfaces[1])
-    __assert_vlan(instance.interfaces[2])
+    __assert_public(instance.linode_interfaces[0])
+    __assert_vpc(instance.linode_interfaces[1])
+    __assert_vlan(instance.linode_interfaces[2])
 
 
 @pytest.fixture
@@ -162,7 +162,7 @@ def linode_interface_vpc(
                 ],
                 ranges=[
                     LinodeInterfaceVPCIPv4RangeOptions(
-                        range="/29",
+                        range="/32",
                     )
                 ],
             ),
@@ -263,16 +263,17 @@ def test_linode_interface_create_vpc(linode_interface_vpc):
     assert iface.version
 
     assert iface.default_route.ipv4
-    assert iface.default_route.ipv6
+    assert not iface.default_route.ipv6
 
     assert iface.vpc.vpc_id == vpc.id
     assert iface.vpc.subnet_id == subnet.id
 
     assert len(iface.vpc.ipv4.addresses[0].address) > 0
     assert iface.vpc.ipv4.addresses[0].primary
+
     assert iface.vpc.ipv4.addresses[0].nat_1_1_address is None
 
-    assert iface.vpc.ipv4.ranges[0].range.split("/")[1] == "29"
+    assert iface.vpc.ipv4.ranges[0].range.split("/")[1] == "32"
 
     assert iface.default_route.ipv6
     ipv6 = iface.vpc.ipv6

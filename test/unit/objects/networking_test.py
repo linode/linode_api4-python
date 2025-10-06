@@ -123,7 +123,7 @@ class NetworkingTest(ClientBaseCase):
 
     def test_get_ip(self):
         """
-        Tests that the vpc_nat_1_1 of an IP can be retrieved.
+        Tests retrieving comprehensive IP address information, including all relevant properties.
         """
 
         ip = IPAddress(self.client, "127.0.0.1")

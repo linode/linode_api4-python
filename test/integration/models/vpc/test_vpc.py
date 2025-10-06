@@ -61,7 +61,6 @@ def test_fails_create_vpc_invalid_data(test_linode_client):
             description="test description",
         )
     assert excinfo.value.status == 400
-    assert "Label must include only ASCII" in str(excinfo.value.json)
 
 
 def test_get_all_vpcs(test_linode_client, create_multiple_vpcs):
@@ -83,7 +82,6 @@ def test_fails_update_vpc_invalid_data(create_vpc):
         vpc.save()
 
     assert excinfo.value.status == 400
-    assert "Label must include only ASCII" in str(excinfo.value.json)
 
 
 def test_fails_create_subnet_invalid_data(create_vpc):

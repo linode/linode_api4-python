@@ -19,6 +19,9 @@ from linode_api4.groups import (
     LinodeGroup,
     LKEGroup,
     LongviewGroup,
+    MaintenanceGroup,
+    MetricsGroup,
+    MonitorGroup,
     NetworkingGroup,
     NodeBalancerGroup,
     ObjectStorageGroup,
@@ -50,11 +53,48 @@ class LinearRetry(Retry):
         return self.backoff_factor
 
 
-class LinodeClient:
+class BaseClient:
+    """
+    The base class for a client.
+
+    :param token: The authentication token to use for communication with the
+                  API.  Can be either a Personal Access Token or an OAuth Token.
+    :type token: str
+    :param base_url: The base URL for API requests.  Generally, you shouldn't
+                     change this.
+    :type base_url: str
+    :param user_agent: What to append to the User Agent of all requests made
+                       by this client.  Setting this allows Linode's internal
+                       monitoring applications to track the usage of your
+                       application.  Setting this is not necessary, but some
+                       applications may desire this behavior.
+    :type user_agent: str
+    :param page_size: The default size to request pages at.  If not given,
+                              the API's default page size is used.  Valid values
+                              can be found in the API docs, but at time of writing
+                              are between 25 and 500.
+    :type page_size: int
+    :param retry: Whether API requests should automatically be retries on known
+                  intermittent responses.
+    :type retry: bool
+    :param retry_rate_limit_interval: The amount of time to wait between HTTP request
+                                      retries.
+    :type retry_rate_limit_interval: Union[float, int]
+    :param retry_max: The number of request retries that should be attempted before
+                      raising an API error.
+    :type retry_max: int
+    :type retry_statuses: List of int
+    :param retry_statuses: Additional HTTP response statuses to retry on.
+                           By default, the client will retry on 408, 429, and 502
+                           responses.
+    :param ca_path: The path to a CA file to use for API requests in this client.
+    :type ca_path: str
+    """
+
     def __init__(
         self,
         token,
-        base_url="https://api.linode.com/v4",
+        base_url,
         user_agent=None,
         page_size=None,
         retry=True,
@@ -63,42 +103,6 @@ class LinodeClient:
         retry_statuses=None,
         ca_path=None,
     ):
-        """
-        The main interface to the Linode API.
-
-        :param token: The authentication token to use for communication with the
-                      API.  Can be either a Personal Access Token or an OAuth Token.
-        :type token: str
-        :param base_url: The base URL for API requests.  Generally, you shouldn't
-                         change this.
-        :type base_url: str
-        :param user_agent: What to append to the User Agent of all requests made
-                           by this client.  Setting this allows Linode's internal
-                           monitoring applications to track the usage of your
-                           application.  Setting this is not necessary, but some
-                           applications may desire this behavior.
-        :type user_agent: str
-        :param page_size: The default size to request pages at.  If not given,
-                                  the API's default page size is used.  Valid values
-                                  can be found in the API docs, but at time of writing
-                                  are between 25 and 500.
-        :type page_size: int
-        :param retry: Whether API requests should automatically be retries on known
-                      intermittent responses.
-        :type retry: bool
-        :param retry_rate_limit_interval: The amount of time to wait between HTTP request
-                                          retries.
-        :type retry_rate_limit_interval: Union[float, int]
-        :param retry_max: The number of request retries that should be attempted before
-                          raising an API error.
-        :type retry_max: int
-        :type retry_statuses: List of int
-        :param retry_statuses: Additional HTTP response statuses to retry on.
-                               By default, the client will retry on 408, 429, and 502
-                               responses.
-        :param ca_path: The path to a CA file to use for API requests in this client.
-        :type ca_path: str
-        """
         self.base_url = base_url
         self._add_user_agent = user_agent
         self.token = token
@@ -136,70 +140,6 @@ class LinodeClient:
 
         self.session.mount("http://", retry_adapter)
         self.session.mount("https://", retry_adapter)
-
-        #: Access methods related to Linodes - see :any:`LinodeGroup` for
-        #: more information
-        self.linode = LinodeGroup(self)
-
-        #: Access methods related to your user - see :any:`ProfileGroup` for
-        #: more information
-        self.profile = ProfileGroup(self)
-
-        #: Access methods related to your account - see :any:`AccountGroup` for
-        #: more information
-        self.account = AccountGroup(self)
-
-        #: Access methods related to networking on your account - see
-        #: :any:`NetworkingGroup` for more information
-        self.networking = NetworkingGroup(self)
-
-        #: Access methods related to support - see :any:`SupportGroup` for more
-        #: information
-        self.support = SupportGroup(self)
-
-        #: Access information related to the Longview service - see
-        #: :any:`LongviewGroup` for more information
-        self.longview = LongviewGroup(self)
-
-        #: Access methods related to Object Storage - see :any:`ObjectStorageGroup`
-        #: for more information
-        self.object_storage = ObjectStorageGroup(self)
-
-        #: Access methods related to LKE - see :any:`LKEGroup` for more information.
-        self.lke = LKEGroup(self)
-
-        #: Access methods related to Managed Databases - see :any:`DatabaseGroup` for more information.
-        self.database = DatabaseGroup(self)
-
-        #: Access methods related to NodeBalancers - see :any:`NodeBalancerGroup` for more information.
-        self.nodebalancers = NodeBalancerGroup(self)
-
-        #: Access methods related to Domains - see :any:`DomainGroup` for more information.
-        self.domains = DomainGroup(self)
-
-        #: Access methods related to Tags - See :any:`TagGroup` for more information.
-        self.tags = TagGroup(self)
-
-        #: Access methods related to Volumes - See :any:`VolumeGroup` for more information.
-        self.volumes = VolumeGroup(self)
-
-        #: Access methods related to Regions - See :any:`RegionGroup` for more information.
-        self.regions = RegionGroup(self)
-
-        #: Access methods related to Images - See :any:`ImageGroup` for more information.
-        self.images = ImageGroup(self)
-
-        #: Access methods related to VPCs - See :any:`VPCGroup` for more information.
-        self.vpcs = VPCGroup(self)
-
-        #: Access methods related to Event polling - See :any:`PollingGroup` for more information.
-        self.polling = PollingGroup(self)
-
-        #: Access methods related to Beta Program - See :any:`BetaProgramGroup` for more information.
-        self.beta = BetaProgramGroup(self)
-
-        #: Access methods related to VM placement - See :any:`PlacementAPIGroup` for more information.
-        self.placement = PlacementAPIGroup(self)
 
     @property
     def _user_agent(self):
@@ -364,6 +304,168 @@ class LinodeClient:
 
         super().__setattr__(key, value)
 
+    # helper functions
+    def _get_and_filter(
+        self,
+        obj_type,
+        *filters,
+        endpoint=None,
+        parent_id=None,
+    ):
+        parsed_filters = None
+        if filters:
+            if len(filters) > 1:
+                parsed_filters = and_(
+                    *filters
+                ).dct  # pylint: disable=no-value-for-parameter
+            else:
+                parsed_filters = filters[0].dct
+
+        # Use sepcified endpoint
+        if endpoint:
+            return self._get_objects(
+                endpoint, obj_type, parent_id=parent_id, filters=parsed_filters
+            )
+        else:
+            return self._get_objects(
+                obj_type.api_list(),
+                obj_type,
+                parent_id=parent_id,
+                filters=parsed_filters,
+            )
+
+
+class LinodeClient(BaseClient):
+    def __init__(
+        self,
+        token,
+        base_url="https://api.linode.com/v4",
+        user_agent=None,
+        page_size=None,
+        retry=True,
+        retry_rate_limit_interval=1.0,
+        retry_max=5,
+        retry_statuses=None,
+        ca_path=None,
+    ):
+        """
+        The main interface to the Linode API.
+
+        :param token: The authentication token to use for communication with the
+                      API.  Can be either a Personal Access Token or an OAuth Token.
+        :type token: str
+        :param base_url: The base URL for API requests.  Generally, you shouldn't
+                         change this.
+        :type base_url: str
+        :param user_agent: What to append to the User Agent of all requests made
+                           by this client.  Setting this allows Linode's internal
+                           monitoring applications to track the usage of your
+                           application.  Setting this is not necessary, but some
+                           applications may desire this behavior.
+        :type user_agent: str
+        :param page_size: The default size to request pages at.  If not given,
+                                  the API's default page size is used.  Valid values
+                                  can be found in the API docs, but at time of writing
+                                  are between 25 and 500.
+        :type page_size: int
+        :param retry: Whether API requests should automatically be retries on known
+                      intermittent responses.
+        :type retry: bool
+        :param retry_rate_limit_interval: The amount of time to wait between HTTP request
+                                          retries.
+        :type retry_rate_limit_interval: Union[float, int]
+        :param retry_max: The number of request retries that should be attempted before
+                          raising an API error.
+        :type retry_max: int
+        :type retry_statuses: List of int
+        :param retry_statuses: Additional HTTP response statuses to retry on.
+                               By default, the client will retry on 408, 429, and 502
+                               responses.
+        :param ca_path: The path to a CA file to use for API requests in this client.
+        :type ca_path: str
+        """
+        #: Access methods related to Linodes - see :any:`LinodeGroup` for
+        #: more information
+        self.linode = LinodeGroup(self)
+
+        #: Access methods related to your user - see :any:`ProfileGroup` for
+        #: more information
+        self.profile = ProfileGroup(self)
+
+        #: Access methods related to your account - see :any:`AccountGroup` for
+        #: more information
+        self.account = AccountGroup(self)
+
+        #: Access methods related to networking on your account - see
+        #: :any:`NetworkingGroup` for more information
+        self.networking = NetworkingGroup(self)
+
+        #: Access methods related to maintenance on your account - see
+        #: :any:`MaintenanceGroup` for more information
+        self.maintenance = MaintenanceGroup(self)
+
+        #: Access methods related to support - see :any:`SupportGroup` for more
+        #: information
+        self.support = SupportGroup(self)
+
+        #: Access information related to the Longview service - see
+        #: :any:`LongviewGroup` for more information
+        self.longview = LongviewGroup(self)
+
+        #: Access methods related to Object Storage - see :any:`ObjectStorageGroup`
+        #: for more information
+        self.object_storage = ObjectStorageGroup(self)
+
+        #: Access methods related to LKE - see :any:`LKEGroup` for more information.
+        self.lke = LKEGroup(self)
+
+        #: Access methods related to Managed Databases - see :any:`DatabaseGroup` for more information.
+        self.database = DatabaseGroup(self)
+
+        #: Access methods related to NodeBalancers - see :any:`NodeBalancerGroup` for more information.
+        self.nodebalancers = NodeBalancerGroup(self)
+
+        #: Access methods related to Domains - see :any:`DomainGroup` for more information.
+        self.domains = DomainGroup(self)
+
+        #: Access methods related to Tags - See :any:`TagGroup` for more information.
+        self.tags = TagGroup(self)
+
+        #: Access methods related to Volumes - See :any:`VolumeGroup` for more information.
+        self.volumes = VolumeGroup(self)
+
+        #: Access methods related to Regions - See :any:`RegionGroup` for more information.
+        self.regions = RegionGroup(self)
+
+        #: Access methods related to Images - See :any:`ImageGroup` for more information.
+        self.images = ImageGroup(self)
+
+        #: Access methods related to VPCs - See :any:`VPCGroup` for more information.
+        self.vpcs = VPCGroup(self)
+
+        #: Access methods related to Event polling - See :any:`PollingGroup` for more information.
+        self.polling = PollingGroup(self)
+
+        #: Access methods related to Beta Program - See :any:`BetaProgramGroup` for more information.
+        self.beta = BetaProgramGroup(self)
+
+        #: Access methods related to VM placement - See :any:`PlacementAPIGroup` for more information.
+        self.placement = PlacementAPIGroup(self)
+
+        self.monitor = MonitorGroup(self)
+
+        super().__init__(
+            token=token,
+            base_url=base_url,
+            user_agent=user_agent,
+            page_size=page_size,
+            retry=retry,
+            retry_rate_limit_interval=retry_rate_limit_interval,
+            retry_max=retry_max,
+            retry_statuses=retry_statuses,
+            ca_path=ca_path,
+        )
+
     def image_create(self, disk, label=None, description=None, tags=None):
         """
         .. note:: This method is an alias to maintain backwards compatibility.
@@ -454,32 +556,59 @@ class LinodeClient:
             label, region=region, linode=linode, size=size, **kwargs
         )
 
-    # helper functions
-    def _get_and_filter(
-        self,
-        obj_type,
-        *filters,
-        endpoint=None,
-        parent_id=None,
-    ):
-        parsed_filters = None
-        if filters:
-            if len(filters) > 1:
-                parsed_filters = and_(
-                    *filters
-                ).dct  # pylint: disable=no-value-for-parameter
-            else:
-                parsed_filters = filters[0].dct
 
-        # Use sepcified endpoint
-        if endpoint:
-            return self._get_objects(
-                endpoint, obj_type, parent_id=parent_id, filters=parsed_filters
-            )
-        else:
-            return self._get_objects(
-                obj_type.api_list(),
-                obj_type,
-                parent_id=parent_id,
-                filters=parsed_filters,
-            )
+class MonitorClient(BaseClient):
+    """
+    The main interface to the Monitor API.
+
+    :param token: The authentication Personal Access Token token to use for
+                  communication with the API. You may want to generate one using
+                  Linode Client. For example:
+                      linode_client.monitor.create_token(
+                        service_type="dbaas", entity_ids=[entity_id]
+                      )
+    :type token: str
+    :param base_url: The base URL for monitor API requests. Generally, you shouldn't
+                     change this.
+    :type base_url: str
+    :param user_agent: What to append to the User Agent of all requests made
+                       by this client.  Setting this allows Linode's internal
+                       monitoring applications to track the usage of your
+                       application.  Setting this is not necessary, but some
+                       applications may desire this behavior.
+    :type user_agent: str
+    :param page_size: The default size to request pages at. If not given,
+                      the API's default page size is used. Valid values
+                      can be found in the API docs.
+    :type page_size: int
+    :param ca_path: The path to a CA file to use for API requests in this client.
+        :type ca_path: str
+    """
+
+    def __init__(
+        self,
+        token,
+        base_url="https://monitor-api.linode.com/v2beta",
+        user_agent=None,
+        page_size=None,
+        ca_path=None,
+        retry=True,
+        retry_rate_limit_interval=1.0,
+        retry_max=5,
+        retry_statuses=None,
+    ):
+        #: Access methods related to your monitor metrics - see :any:`MetricsGroup` for
+        #: more information
+        self.metrics = MetricsGroup(self)
+
+        super().__init__(
+            token=token,
+            base_url=base_url,
+            user_agent=user_agent,
+            page_size=page_size,
+            retry=retry,
+            retry_rate_limit_interval=retry_rate_limit_interval,
+            retry_max=retry_max,
+            retry_statuses=retry_statuses,
+            ca_path=ca_path,
+        )

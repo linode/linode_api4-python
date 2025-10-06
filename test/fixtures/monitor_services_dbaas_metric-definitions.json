@@ -1,0 +1,55 @@
+{
+    "data": [
+      {
+        "available_aggregate_functions": [
+          "max",
+          "avg",
+          "min",
+          "sum"
+        ],
+        "dimensions": [
+          {
+            "dimension_label": "node_type",
+            "label": "Node Type",
+            "values": [
+              "primary",
+              "secondary"
+            ]
+          }
+        ],
+        "is_alertable": true,
+        "label": "CPU Usage",
+        "metric": "cpu_usage",
+        "metric_type": "gauge",
+        "scrape_interval": "60s",
+        "unit": "percent"
+      },
+      {
+        "available_aggregate_functions": [
+          "max",
+          "avg",
+          "min",
+          "sum"
+        ],
+        "dimensions": [
+          {
+            "dimension_label": "node_type",
+            "label": "Node Type",
+            "values": [
+              "primary",
+              "secondary"
+            ]
+          }
+        ],
+        "is_alertable": true,
+        "label": "Disk I/O Read",
+        "metric": "read_iops",
+        "metric_type": "gauge",
+        "scrape_interval": "60s",
+        "unit": "iops"
+      }
+    ],
+    "page": 1,
+    "pages": 1,
+    "results": 2
+  }
