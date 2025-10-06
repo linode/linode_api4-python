@@ -167,190 +167,187 @@ class LinodeGroup(Group):
         **kwargs,
     ):
         """
-                Creates a new Linode Instance. This function has several modes of operation:
+        Creates a new Linode Instance. This function has several modes of operation:
 
-                **Create an Instance from an Image**
+        **Create an Instance from an Image**
 
-                To create an Instance from an :any:`Image`, call `instance_create` with
-                a :any:`Type`, a :any:`Region`, and an :any:`Image`.  All three of
-                these fields may be provided as either the ID or the appropriate object.
-                In this mode, a root password will be generated and returned with the
-                new Instance object.
+        To create an Instance from an :any:`Image`, call `instance_create` with
+        a :any:`Type`, a :any:`Region`, and an :any:`Image`.  All three of
+        these fields may be provided as either the ID or the appropriate object.
+        In this mode, a root password will be generated and returned with the
+        new Instance object.
 
-                For example::
+        For example::
 
-                   new_linode, password = client.linode.instance_create(
-                       "g6-standard-2",
-                       "us-east",
-                       image="linode/debian9")
+           new_linode, password = client.linode.instance_create(
+               "g6-standard-2",
+               "us-east",
+               image="linode/debian9")
 
-                   ltype = client.linode.types().first()
-                   region = client.regions().first()
-                   image = client.images().first()
+           ltype = client.linode.types().first()
+           region = client.regions().first()
+           image = client.images().first()
 
-                   another_linode, password = client.linode.instance_create(
-                       ltype,
-                       region,
-                       image=image)
+           another_linode, password = client.linode.instance_create(
+               ltype,
+               region,
+               image=image)
 
-                To output the password from the above example:
-                    print(password)
+        To output the password from the above example:
+            print(password)
 
-                To output the first IPv4 address of the new Linode:
-                    print(new_linode.ipv4[0])
+        To output the first IPv4 address of the new Linode:
+            print(new_linode.ipv4[0])
 
-                To delete the new_linode (WARNING: this immediately destroys the Linode):
-                    new_linode.delete()
+        To delete the new_linode (WARNING: this immediately destroys the Linode):
+            new_linode.delete()
 
-                **Create an Instance from StackScript**
+        **Create an Instance from StackScript**
 
-                When creating an Instance from a :any:`StackScript`, an :any:`Image` that
-                the StackScript support must be provided..  You must also provide any
-                required StackScript data for the script's User Defined Fields..  For
-                example, if deploying `StackScript 10079`_ (which deploys a new Instance
-                with a user created from keys on `github`_::
+        When creating an Instance from a :any:`StackScript`, an :any:`Image` that
+        the StackScript support must be provided..  You must also provide any
+        required StackScript data for the script's User Defined Fields..  For
+        example, if deploying `StackScript 10079`_ (which deploys a new Instance
+        with a user created from keys on `github`_::
 
-                   stackscript = StackScript(client, 10079)
+           stackscript = StackScript(client, 10079)
 
-                   new_linode, password = client.linode.instance_create(
-                      "g6-standard-2",
-                      "us-east",
-                      image="linode/debian9",
-                      stackscript=stackscript,
-                      stackscript_data={"gh_username": "example"})
+           new_linode, password = client.linode.instance_create(
+              "g6-standard-2",
+              "us-east",
+              image="linode/debian9",
+              stackscript=stackscript,
+              stackscript_data={"gh_username": "example"})
 
-                In the above example, "gh_username" is the name of a User Defined Field
-                in the chosen StackScript.  For more information on StackScripts, see
-                the `StackScript guide`_.
+        In the above example, "gh_username" is the name of a User Defined Field
+        in the chosen StackScript.  For more information on StackScripts, see
+        the `StackScript guide`_.
 
-                .. _`StackScript 10079`: https://www.linode.com/stackscripts/view/10079
-                .. _`github`: https://github.com
-                .. _`StackScript guide`: https://www.linode.com/docs/platform/stackscripts/
+        .. _`StackScript 10079`: https://www.linode.com/stackscripts/view/10079
+        .. _`github`: https://github.com
+        .. _`StackScript guide`: https://www.linode.com/docs/platform/stackscripts/
 
-                **Create an Instance from a Backup**
+        **Create an Instance from a Backup**
 
-                To create a new Instance by restoring a :any:`Backup` to it, provide a
-                :any:`Type`, a :any:`Region`, and the :any:`Backup` to restore.  You
-                may provide either IDs or objects for all of these fields::
+        To create a new Instance by restoring a :any:`Backup` to it, provide a
+        :any:`Type`, a :any:`Region`, and the :any:`Backup` to restore.  You
+        may provide either IDs or objects for all of these fields::
 
-                   existing_linode = Instance(client, 123)
-                   snapshot = existing_linode.available_backups.snapshot.current
+           existing_linode = Instance(client, 123)
+           snapshot = existing_linode.available_backups.snapshot.current
 
-                   new_linode = client.linode.instance_create(
-                       "g6-standard-2",
-                       "us-east",
-                       backup=snapshot)
+           new_linode = client.linode.instance_create(
+               "g6-standard-2",
+               "us-east",
+               backup=snapshot)
 
-                **Create an Instance with explicit interfaces:**
+        **Create an Instance with explicit interfaces:**
 
-                To create a new Instance with explicit interfaces, provide list of
-                LinodeInterfaceOptions objects or dicts to the "interfaces" field::
+        To create a new Instance with explicit interfaces, provide list of
+        LinodeInterfaceOptions objects or dicts to the "interfaces" field::
 
-                linode, password = client.linode.instance_create(
-                    "g6-standard-1",
-                    "us-mia",
-                    image="linode/ubuntu24.04",
+        linode, password = client.linode.instance_create(
+            "g6-standard-1",
+            "us-mia",
+            image="linode/ubuntu24.04",
 
-                    # This can be configured as an account-wide default
-                    interface_generation=InterfaceGeneration.LINODE,
+            # This can be configured as an account-wide default
+            interface_generation=InterfaceGeneration.LINODE,
 
-                    interfaces=[
-                        LinodeInterfaceOptions(
-                            default_route=LinodeInterfaceDefaultRouteOptions(
-                                ipv4=True,
-                                ipv6=True
-                            ),
-                            public=LinodeInterfacePublicOptions
-                        )
-                    ]
+            interfaces=[
+                LinodeInterfaceOptions(
+                    default_route=LinodeInterfaceDefaultRouteOptions(
+                        ipv4=True,
+                        ipv6=True
+                    ),
+                    public=LinodeInterfacePublicOptions
                 )
+            ]
+        )
 
-                **Create an empty Instance**
+        **Create an empty Instance**
 
-                If you want to create an empty Instance that you will configure manually,
-                simply call `instance_create` with a :any:`Type` and a :any:`Region`::
+        If you want to create an empty Instance that you will configure manually,
+        simply call `instance_create` with a :any:`Type` and a :any:`Region`::
 
-                   empty_linode = client.linode.instance_create("g6-standard-2", "us-east")
+           empty_linode = client.linode.instance_create("g6-standard-2", "us-east")
 
-                When created this way, the Instance will not be booted and cannot boot
-                successfully until disks and configs are created, or it is otherwise
-                configured.
+        When created this way, the Instance will not be booted and cannot boot
+        successfully until disks and configs are created, or it is otherwise
+        configured.
 
-                API Documentation: https://techdocs.akamai.com/linode-api/reference/post-linode-instance
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-linode-instance
 
-                :param ltype: The Instance Type we are creating
-                :type ltype: str or Type
-                :param region: The Region in which we are creating the Instance
-                :type region: str or Region
-                :param image: The Image to deploy to this Instance. If this is provided
-                              and no root_pass is given, a password will be generated
-                              and returned along with the new Instance.
-                :type image: str or Image
-                :param stackscript: The StackScript to deploy to the new Instance.  If
-                                    provided, "image" is required and must be compatible
-                                    with the chosen StackScript.
-                :type stackscript: int or StackScript
-                :param stackscript_data: Values for the User Defined Fields defined in
-                                         the chosen StackScript.  Does nothing if
-                                         StackScript is not provided.
-                :type stackscript_data: dict
-                :param backup: The Backup to restore to the new Instance.  May not be
-                               provided if "image" is given.
-                :type backup: int of Backup
-                :param authorized_keys: The ssh public keys to install in the linode's
-                                        /root/.ssh/authorized_keys file.  Each entry may
-                                        be a single key, or a path to a file containing
-                                        the key.
-                :type authorized_keys: list or str
-                :param label: The display label for the new Instance
-                :type label: str
-                :param group: The display group for the new Instance
-                :type group: str
-                :param booted: Whether the new Instance should be booted.  This will
-                               default to True if the Instance is deployed from an Image
-                               or Backup.
-                :type booted: bool
-                :param tags: A list of tags to apply to the new instance.  If any of the
-                             tags included do not exist, they will be created as part of
-                             this operation.
-                :type tags: list[str]
-                :param private_ip: Whether the new Instance should have private networking
-                                   enabled and assigned a private IPv4 address.
-                :type private_ip: bool
-                :param metadata: Metadata-related fields to use when creating the new Instance.
-                                 The contents of this field can be built using the
-                                 :any:`build_instance_metadata` method.
-                :type metadata: dict
-                :param firewall: The firewall to attach this Linode to.
-                :type firewall: int or Firewall
-                :param disk_encryption: The disk encryption policy for this Linode.
-                                        NOTE: Disk encryption may not currently be available to all users.
-                :type disk_encryption: InstanceDiskEncryptionType or str
-                :param interfaces: An array of Network Interfaces to add to this Linode’s Configuration Profile.
-                                   At least one and up to three Interface objects can exist in this array.
-                :type interfaces: List[LinodeInterfaceOptions], List[NetworkInterface], or List[dict[str, Any]]
-                :param placement_group: A Placement Group to create this Linode under.
-                :type placement_group: Union[InstancePlacementGroupAssignment, PlacementGroup, Dict[str, Any], int]
-                :param interface_generation: The generation of network interfaces this Linode uses.
-                :type interface_generation: InterfaceGeneration or str
-                :param network_helper: Whether this instance should have Network Helper enabled.
-                :type network_helper: bool
-        <<<<<<< HEAD
-        =======
-                :param maintenance_policy: The slug of the maintenance policy to apply during maintenance.
-                                              If not provided, the default policy (linode/migrate) will be applied.
-                                              NOTE: This field is in beta and may only
-                                    function if base_url is set to `https://api.linode.com/v4beta`.
-                :type maintenance_policy: str
-        >>>>>>> fed436bb516bf1b08966058cb418ad3959e9b405
+        :param ltype: The Instance Type we are creating
+        :type ltype: str or Type
+        :param region: The Region in which we are creating the Instance
+        :type region: str or Region
+        :param image: The Image to deploy to this Instance. If this is provided
+                      and no root_pass is given, a password will be generated
+                      and returned along with the new Instance.
+        :type image: str or Image
+        :param stackscript: The StackScript to deploy to the new Instance.  If
+                            provided, "image" is required and must be compatible
+                            with the chosen StackScript.
+        :type stackscript: int or StackScript
+        :param stackscript_data: Values for the User Defined Fields defined in
+                                 the chosen StackScript.  Does nothing if
+                                 StackScript is not provided.
+        :type stackscript_data: dict
+        :param backup: The Backup to restore to the new Instance.  May not be
+                       provided if "image" is given.
+        :type backup: int of Backup
+        :param authorized_keys: The ssh public keys to install in the linode's
+                                /root/.ssh/authorized_keys file.  Each entry may
+                                be a single key, or a path to a file containing
+                                the key.
+        :type authorized_keys: list or str
+        :param label: The display label for the new Instance
+        :type label: str
+        :param group: The display group for the new Instance
+        :type group: str
+        :param booted: Whether the new Instance should be booted.  This will
+                       default to True if the Instance is deployed from an Image
+                       or Backup.
+        :type booted: bool
+        :param tags: A list of tags to apply to the new instance.  If any of the
+                     tags included do not exist, they will be created as part of
+                     this operation.
+        :type tags: list[str]
+        :param private_ip: Whether the new Instance should have private networking
+                           enabled and assigned a private IPv4 address.
+        :type private_ip: bool
+        :param metadata: Metadata-related fields to use when creating the new Instance.
+                         The contents of this field can be built using the
+                         :any:`build_instance_metadata` method.
+        :type metadata: dict
+        :param firewall: The firewall to attach this Linode to.
+        :type firewall: int or Firewall
+        :param disk_encryption: The disk encryption policy for this Linode.
+                                NOTE: Disk encryption may not currently be available to all users.
+        :type disk_encryption: InstanceDiskEncryptionType or str
+        :param interfaces: An array of Network Interfaces to add to this Linode’s Configuration Profile.
+                           At least one and up to three Interface objects can exist in this array.
+        :type interfaces: List[LinodeInterfaceOptions], List[NetworkInterface], or List[dict[str, Any]]
+        :param placement_group: A Placement Group to create this Linode under.
+        :type placement_group: Union[InstancePlacementGroupAssignment, PlacementGroup, Dict[str, Any], int]
+        :param interface_generation: The generation of network interfaces this Linode uses.
+        :type interface_generation: InterfaceGeneration or str
+        :param network_helper: Whether this instance should have Network Helper enabled.
+        :type network_helper: bool
+        :param maintenance_policy: The slug of the maintenance policy to apply during maintenance.
+                                      If not provided, the default policy (linode/migrate) will be applied.
+                                      NOTE: This field is in beta and may only
+                            function if base_url is set to `https://api.linode.com/v4beta`.
+        :type maintenance_policy: str
 
-                :returns: A new Instance object, or a tuple containing the new Instance and
-                          the generated password.
-                :rtype: Instance or tuple(Instance, str)
-                :raises ApiError: If contacting the API fails
-                :raises UnexpectedResponseError: If the API response is somehow malformed.
-                                                 This usually indicates that you are using
-                                                 an outdated library.
+        :returns: A new Instance object, or a tuple containing the new Instance and
+                  the generated password.
+        :rtype: Instance or tuple(Instance, str)
+        :raises ApiError: If contacting the API fails
+        :raises UnexpectedResponseError: If the API response is somehow malformed.
+                                         This usually indicates that you are using
+                                         an outdated library.
         """
 
         ret_pass = None
