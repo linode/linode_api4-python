@@ -27,7 +27,6 @@ class RegionTest(ClientBaseCase):
             region.placement_group_limits.maximum_linodes_per_pg, 5
         )
 
-
         # Test monitors section
         self.assertIsNotNone(region.monitors)
         self.assertEqual(region.monitors.alerts, ["Managed Databases"])
@@ -35,7 +34,6 @@ class RegionTest(ClientBaseCase):
 
         self.assertIsNotNone(region.capabilities)
         self.assertIn("Linode Interfaces", region.capabilities)
-
 
     def test_region_availability(self):
         """

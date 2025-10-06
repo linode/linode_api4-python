@@ -5,7 +5,7 @@ __all__ = [
     "MonitorServiceToken",
     "AggregateFunction",
 ]
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Optional
 
 from linode_api4.objects.base import Base, Property
@@ -123,8 +123,8 @@ class DashboardWidget(JSONObject):
     chart_type: ChartType = ""
     y_label: str = ""
     aggregate_function: AggregateFunction = ""
-    group_by: Optional[List[str]] = None
-    filters: Optional[List[Filter]] = None
+    group_by: List[str] = field(default_factory=list)
+    filters: List[Filter] = field(default_factory=list)
 
 
 @dataclass
