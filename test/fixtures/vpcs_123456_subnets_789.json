@@ -2,6 +2,11 @@
   "label": "test-subnet",
   "id": 789,
   "ipv4": "10.0.0.0/24",
+  "ipv6": [
+    {
+      "range": "fd71:1140:a9d0::/52"
+    }
+  ],
   "linodes": [
     {
       "id": 12345,
@@ -16,6 +21,15 @@
           "active": false,
           "config_id": null
         }
+      ]
+    }
+  ],
+  "databases": [
+    {
+      "id": 12345,
+      "ipv4_range": "10.0.0.0/24",
+      "ipv6_ranges": [
+        "2001:db8::/64"
       ]
     }
   ],

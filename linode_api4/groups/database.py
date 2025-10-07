@@ -9,6 +9,7 @@ from linode_api4.groups import Group
 from linode_api4.objects import (
     Database,
     DatabaseEngine,
+    DatabasePrivateNetwork,
     DatabaseType,
     MySQLDatabase,
     PostgreSQLDatabase,
@@ -126,6 +127,7 @@ class DatabaseGroup(Group):
         engine,
         ltype,
         engine_config: Union[MySQLDatabaseConfigOptions, Dict[str, Any]] = None,
+        private_network: Union[DatabasePrivateNetwork, Dict[str, Any]] = None,
         **kwargs,
     ):
         """
@@ -159,6 +161,8 @@ class DatabaseGroup(Group):
         :type ltype: str or Type
         :param engine_config: The configuration options for this MySQL cluster
         :type engine_config: Dict[str, Any] or MySQLDatabaseConfigOptions
+        :param private_network: The private network settings to use for this cluster
+        :type private_network: Dict[str, Any] or DatabasePrivateNetwork
         """
 
         params = {
@@ -167,6 +171,7 @@ class DatabaseGroup(Group):
             "engine": engine,
             "type": ltype,
             "engine_config": engine_config,
+            "private_network": private_network,
         }
         params.update(kwargs)
 
@@ -262,6 +267,7 @@ class DatabaseGroup(Group):
         engine_config: Union[
             PostgreSQLDatabaseConfigOptions, Dict[str, Any]
         ] = None,
+        private_network: Union[DatabasePrivateNetwork, Dict[str, Any]] = None,
         **kwargs,
     ):
         """
@@ -295,6 +301,8 @@ class DatabaseGroup(Group):
         :type ltype: str or Type
         :param engine_config: The configuration options for this PostgreSQL cluster
         :type engine_config: Dict[str, Any] or PostgreSQLDatabaseConfigOptions
+        :param private_network: The private network settings to use for this cluster
+        :type private_network: Dict[str, Any] or DatabasePrivateNetwork
         """
 
         params = {
@@ -303,6 +311,7 @@ class DatabaseGroup(Group):
             "engine": engine,
             "type": ltype,
             "engine_config": engine_config,
+            "private_network": private_network,
         }
         params.update(kwargs)
 
