@@ -413,9 +413,12 @@ def create_vpc(test_linode_client):
     label = get_test_label(length=10)
 
     vpc = client.vpcs.create(
-        label,
-        get_region(test_linode_client, {"VPCs"}),
+        label=label,
+        region=get_region(
+            test_linode_client, {"VPCs", "VPC IPv6 Stack", "Linode Interfaces"}
+        ),
         description="test description",
+        ipv6=[{"range": "auto"}],
     )
     yield vpc
 
@@ -424,7 +427,11 @@ def create_vpc(test_linode_client):
 
 @pytest.fixture(scope="session")
 def create_vpc_with_subnet(test_linode_client, create_vpc):
-    subnet = create_vpc.subnet_create("test-subnet", ipv4="10.0.0.0/24")
+    subnet = create_vpc.subnet_create(
+        label="test-subnet",
+        ipv4="10.0.0.0/24",
+        ipv6=[{"range": "auto"}],
+    )
 
     yield create_vpc, subnet
 

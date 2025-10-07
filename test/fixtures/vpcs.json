@@ -5,6 +5,11 @@
       "id": 123456,
       "description": "A very real VPC.",
       "region": "us-southeast",
+      "ipv6": [
+        {
+          "range": "fd71:1140:a9d0::/52"
+        }
+      ],
       "created": "2018-01-01T00:01:01",
       "updated": "2018-01-01T00:01:01"
     }
