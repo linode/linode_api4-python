@@ -721,15 +721,22 @@ def test_linode_interfaces_settings(linode_with_linode_interfaces):
     settings = linode.interfaces_settings
 
     assert settings.network_helper is not None
-    assert settings.default_route.ipv4_interface_id == linode.interfaces[0].id
+    assert (
+        settings.default_route.ipv4_interface_id
+        == linode.linode_interfaces[0].id
+    )
     assert settings.default_route.ipv4_eligible_interface_ids == [
-        linode.interfaces[0].id,
-        linode.interfaces[1].id,
+        linode.linode_interfaces[0].id,
+        linode.linode_interfaces[1].id,
     ]
 
-    assert settings.default_route.ipv6_interface_id == linode.interfaces[0].id
+    assert (
+        settings.default_route.ipv6_interface_id
+        == linode.linode_interfaces[0].id
+    )
     assert settings.default_route.ipv6_eligible_interface_ids == [
-        linode.interfaces[0].id
+        linode.linode_interfaces[0].id,
+        linode.linode_interfaces[1].id,
     ]
 
     # Arbitrary updates
