@@ -124,6 +124,10 @@ class VPCTest(ClientBaseCase):
         assert subnet.created == expected_dt
         assert subnet.updated == expected_dt
 
+        assert subnet.databases[0].id == 12345
+        assert subnet.databases[0].ipv4_range == "10.0.0.0/24"
+        assert subnet.databases[0].ipv6_ranges == ["2001:db8::/64"]
+
         assert subnet.linodes[0].interfaces[0].id == 678
         assert subnet.linodes[0].interfaces[0].active
         assert subnet.linodes[0].interfaces[0].config_id is None
