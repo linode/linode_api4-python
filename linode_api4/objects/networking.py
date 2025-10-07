@@ -157,6 +157,11 @@ class IPAddress(Base):
 
 
 @dataclass
+class VPCIPAddressIPv6(JSONObject):
+    slaac_address: str = ""
+
+
+@dataclass
 class VPCIPAddress(JSONObject):
     """
     VPCIPAddress represents the IP address of a VPC.
@@ -180,6 +185,10 @@ class VPCIPAddress(JSONObject):
 
     address_range: Optional[str] = None
     nat_1_1: Optional[str] = None
+
+    ipv6_range: Optional[str] = None
+    ipv6_is_public: Optional[bool] = None
+    ipv6_addresses: Optional[List[VPCIPAddressIPv6]] = None
 
 
 class VLAN(Base):

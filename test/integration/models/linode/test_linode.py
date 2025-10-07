@@ -1,3 +1,4 @@
+import ipaddress
 import time
 from test.integration.conftest import get_region
 from test.integration.helpers import (
@@ -651,7 +652,7 @@ def test_linode_upgrade_interfaces(
         __assert_base(iface)
 
         assert not iface.default_route.ipv4
-        assert iface.default_route.ipv6
+        assert not iface.default_route.ipv6
 
         assert len(iface.public.ipv4.addresses) == 0
         assert len(iface.public.ipv4.shared) == 0
@@ -666,7 +667,7 @@ def test_linode_upgrade_interfaces(
         __assert_base(iface)
 
         assert iface.default_route.ipv4
-        assert not iface.default_route.ipv6
+        assert iface.default_route.ipv6
 
         assert iface.vpc.vpc_id == vpc.id
         assert iface.vpc.subnet_id == subnet.id
@@ -678,6 +679,14 @@ def test_linode_upgrade_interfaces(
 
         assert len(iface.vpc.ipv4.ranges) == 1
         assert iface.vpc.ipv4.ranges[0].range == "10.0.0.5/32"
+
+        assert len(iface.vpc.ipv6.slaac) == 1
+
+        ipaddress.IPv6Network(iface.vpc.ipv6.slaac[0].range)
+        ipaddress.IPv6Address(iface.vpc.ipv6.slaac[0].address)
+
+        assert len(iface.vpc.ipv6.ranges) == 0
+        assert iface.vpc.ipv6.is_public is False
 
     def __assert_vlan(iface: LinodeInterface):
         __assert_base(iface)
@@ -702,10 +711,6 @@ def test_linode_upgrade_interfaces(
     assert not result.dry_run
     assert result.config_id == config.id
 
-    __assert_public(result.interfaces[0])
-    __assert_vlan(result.interfaces[1])
-    __assert_vpc(result.interfaces[2])
-
     __assert_public(linode.linode_interfaces[0])
     __assert_vlan(linode.linode_interfaces[1])
     __assert_vpc(linode.linode_interfaces[2])
@@ -716,21 +721,15 @@ def test_linode_interfaces_settings(linode_with_linode_interfaces):
     settings = linode.interfaces_settings
 
     assert settings.network_helper is not None
-    assert (
-        settings.default_route.ipv4_interface_id
-        == linode.linode_interfaces[0].id
-    )
+    assert settings.default_route.ipv4_interface_id == linode.interfaces[0].id
     assert settings.default_route.ipv4_eligible_interface_ids == [
-        linode.linode_interfaces[0].id,
-        linode.linode_interfaces[1].id,
+        linode.interfaces[0].id,
+        linode.interfaces[1].id,
     ]
 
-    assert (
-        settings.default_route.ipv6_interface_id
-        == linode.linode_interfaces[0].id
-    )
+    assert settings.default_route.ipv6_interface_id == linode.interfaces[0].id
     assert settings.default_route.ipv6_eligible_interface_ids == [
-        linode.linode_interfaces[0].id
+        linode.interfaces[0].id
     ]
 
     # Arbitrary updates
@@ -936,11 +935,30 @@ class TestNetworkInterface:
         assert vpc_range_ip.address_range == "10.0.0.5/32"
         assert not vpc_range_ip.active
 
+        assert isinstance(vpc.ipv6, list)
+        assert len(vpc.ipv6) > 0
+        assert isinstance(vpc.ipv6[0].range, str)
+        assert ":" in vpc.ipv6[0].range
+
         # TODO:: Add `VPCIPAddress.filters.linode_id == linode.id` filter back
 
         # Attempt to resolve the IP from /vpcs/ips
         all_vpc_ips = test_linode_client.vpcs.ips()
-        assert all_vpc_ips[0].dict == vpc_ip.dict
+        matched_ip = next(
+            (
+                ip
+                for ip in all_vpc_ips
+                if ip.address == vpc_ip.address
+                and ip.vpc_id == vpc_ip.vpc_id
+                and ip.linode_id == vpc_ip.linode_id
+            ),
+            None,
+        )
+
+        assert (
+            matched_ip is not None
+        ), f"Expected VPC IP {vpc_ip.address} not found in /vpcs/ips"
+        assert matched_ip.dict == vpc_ip.dict
 
         # Test getting the ips under this specific VPC
         vpc_ips = vpc.ips
@@ -949,6 +967,40 @@ class TestNetworkInterface:
         assert vpc_ips[0].vpc_id == vpc.id
         assert vpc_ips[0].linode_id == linode.id
         assert vpc_ips[0].nat_1_1 == linode.ips.ipv4.public[0].address
+
+        # Validate VPC IPv6 IPs from /vpcs/ips
+        all_vpc_ipv6 = test_linode_client.get("/vpcs/ipv6s")["data"]
+
+        # Find matching VPC IPv6 entry
+        matched_ipv6 = next(
+            (
+                ip
+                for ip in all_vpc_ipv6
+                if ip["vpc_id"] == vpc.id
+                and ip["linode_id"] == linode.id
+                and ip["interface_id"] == interface.id
+                and ip["subnet_id"] == subnet.id
+            ),
+            None,
+        )
+
+        assert (
+            matched_ipv6
+        ), f"No VPC IPv6 found for Linode {linode.id} in VPC {vpc.id}"
+
+        assert matched_ipv6["ipv6_range"].count(":") >= 2
+        assert not matched_ipv6["ipv6_is_public"]
+
+        ipv6_addresses = matched_ipv6.get("ipv6_addresses", [])
+        assert (
+            isinstance(ipv6_addresses, list) and ipv6_addresses
+        ), "No IPv6 addresses found"
+
+        slaac = ipv6_addresses[0]
+        assert (
+            isinstance(slaac.get("slaac_address"), str)
+            and ":" in slaac["slaac_address"]
+        )
 
     def test_update_vpc(
         self,

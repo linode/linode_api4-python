@@ -113,6 +113,8 @@ class VPCTest(ClientBaseCase):
         self.assertEqual(vpc.created, expected_dt)
         self.assertEqual(vpc.updated, expected_dt)
 
+        self.assertEqual(vpc.ipv6[0].range, "fd71:1140:a9d0::/52")
+
     def validate_vpc_subnet_789(self, subnet: VPCSubnet):
         expected_dt = datetime.datetime.strptime(
             "2018-01-01T00:01:01", DATE_FORMAT
@@ -135,6 +137,8 @@ class VPCTest(ClientBaseCase):
         assert subnet.linodes[0].interfaces[1].id == 543
         assert not subnet.linodes[0].interfaces[1].active
         assert subnet.linodes[0].interfaces[1].config_id is None
+
+        self.assertEqual(subnet.ipv6[0].range, "fd71:1140:a9d0::/52")
 
     def test_list_vpc_ips(self):
         """
@@ -160,3 +164,11 @@ class VPCTest(ClientBaseCase):
         self.assertEqual(vpc_ip.gateway, "10.0.0.1")
         self.assertEqual(vpc_ip.prefix, 8)
         self.assertEqual(vpc_ip.subnet_mask, "255.0.0.0")
+
+        vpc_ip_2 = vpc_ips[2]
+
+        self.assertEqual(vpc_ip_2.ipv6_range, "fd71:1140:a9d0::/52")
+        self.assertEqual(vpc_ip_2.ipv6_is_public, True)
+        self.assertEqual(
+            vpc_ip_2.ipv6_addresses[0].slaac_address, "fd71:1140:a9d0::/52"
+        )
