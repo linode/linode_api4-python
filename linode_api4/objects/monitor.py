@@ -363,7 +363,7 @@ class EmailChannelContent(JSONObject):
     Represents the content for an email alert channel.
     """
 
-    email_addresses: List[str] = None
+    email_addresses: Optional[List[str]] = None
 
 
 @dataclass
@@ -372,7 +372,7 @@ class ChannelContent(JSONObject):
     Represents the content block for an AlertChannel, which varies by channel type.
     """
 
-    email: EmailChannelContent = None
+    email: Optional[EmailChannelContent] = None
     # Other channel types like 'webhook', 'slack' could be added here as Optional fields.
 
 

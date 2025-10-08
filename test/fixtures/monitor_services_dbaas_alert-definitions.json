@@ -4,8 +4,8 @@
       "id": 12345,
       "label": "Test Alert for DBAAS",
       "service_type": "dbaas",
-      "severity": "warning",
-      "type": "cpu",
+      "severity": 1,
+      "type": "user",
       "description": "A test alert for dbaas service",
       "entity_ids": [
         13217

@@ -96,7 +96,7 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             alert = self.client.monitor.create_alert_definition(
                 service_type=service_type,
                 label="Created Alert",
-                severity="warning",
+                severity=1,
                 channel_ids=[1, 2],
                 rule_criteria={"rules": []},
                 trigger_conditions={"criteria_condition": "ALL"},

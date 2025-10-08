@@ -4,7 +4,7 @@
       "id": 12345,
       "label": "Test Alert for DBAAS",
       "service_type": "dbaas",
-      "severity": "warning",
+      "severity": 1,
       "type": "user",
       "description": "A test alert for dbaas service",
       "conditions": [],
