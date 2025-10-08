@@ -107,7 +107,7 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             assert mock_post.call_url == url
             # payload should include the provided fields
             assert mock_post.call_data["label"] == "Created Alert"
-            assert mock_post.call_data["severity"] == "warning"
+            assert mock_post.call_data["severity"] == 1
             assert "channel_ids" in mock_post.call_data
 
             assert isinstance(alert, AlertDefinition)
