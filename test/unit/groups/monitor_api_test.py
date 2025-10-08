@@ -88,7 +88,7 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             "id": 67890,
             "label": "Created Alert",
             "service_type": service_type,
-            "severity": "warning",
+            "severity": 1,
             "status": "active",
         }
 

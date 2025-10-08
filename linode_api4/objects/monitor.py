@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Union
 
 from linode_api4.objects import DerivedBase
 from linode_api4.objects.base import Base, Property
@@ -245,7 +245,7 @@ class DimensionFilter(JSONObject):
     dimension_label: str = ""
     label: str = ""
     operator: str = ""
-    value: str = None
+    value: Optional[str] = None
 
 
 @dataclass
@@ -351,7 +351,7 @@ class AlertDefinition(DerivedBase):
         "updated": Property(is_datetime=True),
         "updated_by": Property(),
         "created_by": Property(),
-        "entity_ids": Property(List[str]),
+        "entity_ids": Property(List[Any]),
         "description": Property(mutable=True),
         "_class": Property("class"),
     }

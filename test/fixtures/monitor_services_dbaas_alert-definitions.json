@@ -8,7 +8,7 @@
       "type": "user",
       "description": "A test alert for dbaas service",
       "entity_ids": [
-        13217
+        "13217"
       ],
       "alert_channels": [],
       "has_more_resources": false,
