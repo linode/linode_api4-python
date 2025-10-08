@@ -5,7 +5,7 @@ __all__ = [
     "MonitorServiceToken",
     "AggregateFunction",
 ]
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Optional
 
 from linode_api4.objects.base import Base, Property
