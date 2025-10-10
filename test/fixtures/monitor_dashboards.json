@@ -16,7 +16,9 @@
             "metric": "cpu_usage",
             "size": 12,
             "unit": "%",
-            "y_label": "cpu_usage"
+            "y_label": "cpu_usage",
+            "group_by": ["entity_id"],
+            "filters": null
           },
           {
             "aggregate_function": "sum",
@@ -26,7 +28,9 @@
             "metric": "write_iops",
             "size": 6,
             "unit": "IOPS",
-            "y_label": "write_iops"
+            "y_label": "write_iops",
+            "group_by": ["entity_id"],
+            "filters": null
           }
         ]
       }
