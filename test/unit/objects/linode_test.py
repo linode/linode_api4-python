@@ -815,7 +815,6 @@ class StackScriptTest(ClientBaseCase):
 
 
 class TypeTest(ClientBaseCase):
-
     def test_get_type_by_id(self):
         """
         Tests that a Linode type is loaded correctly by ID
