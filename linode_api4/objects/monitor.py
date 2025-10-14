@@ -5,7 +5,7 @@ __all__ = [
     "MonitorServiceToken",
     "AggregateFunction",
 ]
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Optional
 
 from linode_api4.objects.base import Base, Property
@@ -124,7 +124,22 @@ class DashboardWidget(JSONObject):
     y_label: str = ""
     aggregate_function: AggregateFunction = ""
     group_by: Optional[List[str]] = None
-    filters: Optional[List[Filter]] = None
+    _filters: Optional[List[Filter]] = field(
+        default=None, metadata={"json_key": "filters"}
+    )
+
+    def __getattribute__(self, name):
+        """Override to handle the filters attribute specifically to avoid metaclass conflict."""
+        if name == "filters":
+            return object.__getattribute__(self, "_filters")
+        return object.__getattribute__(self, name)
+
+    def __setattr__(self, name, value):
+        """Override to handle setting the filters attribute."""
+        if name == "filters":
+            object.__setattr__(self, "_filters", value)
+        else:
+            object.__setattr__(self, name, value)
 
 
 @dataclass
