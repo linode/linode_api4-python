@@ -183,7 +183,6 @@ class JSONObject(metaclass=JSONFilterableMetaclass):
             """
             Attempts to serialize the given value, else returns the value unchanged.
             """
-            # Handle JSONObject instances recursively
             if issubclass(type(value), JSONObject):
                 return value._serialize(is_put=is_put)
 
