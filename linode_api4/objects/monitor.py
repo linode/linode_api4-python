@@ -17,6 +17,7 @@ __all__ = [
     "AlertChannel",
     "AlertDefinition",
     "AlertChannelEnvelope",
+    "Alert",
 ]
 
 
@@ -280,7 +281,7 @@ class RuleCriteria(JSONObject):
       "rule_criteria": { "rules": [ { ... }, ... ] }
     """
 
-    rules: List[Rule] = None
+    rules: Optional[List[Rule]] = None
 
 
 @dataclass
@@ -312,8 +313,8 @@ class AlertType(StrEnum):
     Enumeration of alert origin types used by alert definitions.
 
     Values:
-      - SYSTEM: Alerts that originate from the system (built-in or platform-managed).
-      - USER: Alerts created and managed by users (custom alerts).
+      - system: Alerts that originate from the system (built-in or platform-managed).
+      - user: Alerts created and managed by users (custom alerts).
 
     The API uses this value in the `type` field of alert-definition responses.
     This enum can be used to compare or validate the `type` value when
@@ -376,6 +377,23 @@ class ChannelContent(JSONObject):
     # Other channel types like 'webhook', 'slack' could be added here as Optional fields.
 
 
+@dataclass
+class Alert(JSONObject):
+    """
+    Represents an alert definition reference within an AlertChannel.
+    
+    Fields:
+      - id: int - Unique identifier of the alert definition.
+      - label: str - Human-readable name for the alert definition.
+      - type: str - Type of the alert (e.g., 'alerts-definitions').
+      - url: str - API URL for the alert definition.
+    """
+    id: int = 0
+    label: str = ""
+    type: str = ""
+    url: str = ""
+
+
 class AlertChannel(Base):
     """
     Represents an alert channel used to deliver notifications when alerts
@@ -396,13 +414,12 @@ class AlertChannel(Base):
     properties = {
         "id": Property(identifier=True),
         "label": Property(),
-        "type": Property("channel_type"),
+        "type": Property(AlertType),
         "channel_type": Property(),
+        "alerts": Property(List[Alert]),
         "content": Property(ChannelContent),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),
         "created_by": Property(),
         "updated_by": Property(),
-        "url": Property(),
-        # Add other fields as needed
     }
