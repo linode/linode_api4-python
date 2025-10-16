@@ -49,6 +49,7 @@ class ServiceType(StrEnum):
     firewall = "firewall"
     object_storage = "object_storage"
     aclb = "aclb"
+    net_load_balancer = "netloadbalancer"
 
 
 class MetricType(StrEnum):
@@ -82,6 +83,10 @@ class MetricUnit(StrEnum):
     RATIO = "ratio"
     OPS_PER_SECOND = "ops_per_second"
     IOPS = "iops"
+    KILO_BYTES_PER_SECOND = "kilo_bytes_per_second"
+    SESSIONS_PER_SECOND = "sessions_per_second"
+    PACKETS_PER_SECOND = "packets_per_second"
+    KILO_BITS_PER_SECOND = "kilo_bits_per_second"
 
 
 class DashboardType(StrEnum):
@@ -91,6 +96,17 @@ class DashboardType(StrEnum):
 
     standard = "standard"
     custom = "custom"
+
+
+@dataclass
+class Filter(JSONObject):
+    """
+    Represents a filter in the filters list of a dashboard widget.
+    """
+
+    dimension_label: str = ""
+    operator: str = ""
+    value: str = ""
 
 
 @dataclass
@@ -107,6 +123,34 @@ class DashboardWidget(JSONObject):
     chart_type: ChartType = ""
     y_label: str = ""
     aggregate_function: AggregateFunction = ""
+    group_by: Optional[List[str]] = None
+    _filters: Optional[List[Filter]] = field(
+        default=None, metadata={"json_key": "filters"}
+    )
+
+    def __getattribute__(self, name):
+        """Override to handle the filters attribute specifically to avoid metaclass conflict."""
+        if name == "filters":
+            return object.__getattribute__(self, "_filters")
+        return object.__getattribute__(self, name)
+
+    def __setattr__(self, name, value):
+        """Override to handle setting the filters attribute."""
+        if name == "filters":
+            object.__setattr__(self, "_filters", value)
+        else:
+            object.__setattr__(self, name, value)
+
+
+@dataclass
+class ServiceAlert(JSONObject):
+    """
+    Represents alert configuration options for a monitor service.
+    """
+
+    polling_interval_seconds: Optional[List[int]] = None
+    evaluation_period_seconds: Optional[List[int]] = None
+    scope: Optional[List[str]] = None
 
 
 @dataclass
@@ -135,9 +179,7 @@ class MonitorMetricsDefinition(JSONObject):
     scrape_interval: int = 0
     is_alertable: bool = False
     dimensions: Optional[List[Dimension]] = None
-    available_aggregate_functions: List[AggregateFunction] = field(
-        default_factory=list
-    )
+    available_aggregate_functions: Optional[List[AggregateFunction]] = None
 
 
 class MonitorDashboard(Base):
@@ -154,7 +196,7 @@ class MonitorDashboard(Base):
         "label": Property(),
         "service_type": Property(ServiceType),
         "type": Property(DashboardType),
-        "widgets": Property(List[DashboardWidget]),
+        "widgets": Property(json_object=DashboardWidget),
         "updated": Property(is_datetime=True),
     }
 
@@ -171,6 +213,7 @@ class MonitorService(Base):
     properties = {
         "service_type": Property(ServiceType),
         "label": Property(),
+        "alert": Property(json_object=ServiceAlert),
     }
 
 
