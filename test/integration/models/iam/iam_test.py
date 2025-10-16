@@ -3,7 +3,6 @@ import pytest
 from linode_api4.objects import EntityAccess, LinodeEntity
 
 
-@pytest.mark.smoke
 def test_get_role_permissions(test_linode_client):
     client = test_linode_client
     iam = client.iam
@@ -14,7 +13,6 @@ def test_get_role_permissions(test_linode_client):
     assert isinstance(permissions["account_access"], list)
 
 
-@pytest.mark.smoke
 def test_get_user_role_permissions(test_linode_client):
     client = test_linode_client
     iam = client.iam
@@ -46,7 +44,6 @@ def test_set_user_role_permissions(test_linode_client):
     assert "entity_access" in updated
 
 
-@pytest.mark.smoke
 def test_list_entities(test_linode_client):
     client = test_linode_client
     iam = client.iam
