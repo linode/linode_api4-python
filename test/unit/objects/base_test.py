@@ -231,7 +231,9 @@ class FlattenRequestBodyRecursiveCase(ClientBaseCase):
             result["list"], [555, {"key": "mapped"}, {"value": "json"}, None]
         )
         self.assertEqual(result["nested"]["deep"]["base"], 555)
-        self.assertEqual(result["nested"]["deep"]["primitives"], [1, "two", 3.0])
+        self.assertEqual(
+            result["nested"]["deep"]["primitives"], [1, "two", 3.0]
+        )
 
     def test_flatten_with_is_put_false(self):
         """Test that is_put parameter is passed through"""
