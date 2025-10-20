@@ -530,6 +530,9 @@ def _flatten_request_body_recursive(data: Any, is_put: bool = False) -> Any:
     if isinstance(data, Base):
         return data.id
 
+    if isinstance(data, ExplicitNullValue) or data == ExplicitNullValue:
+        return None
+
     if isinstance(data, MappedObject) or issubclass(type(data), JSONObject):
         return data._serialize(is_put=is_put)
 
