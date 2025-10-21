@@ -52,6 +52,7 @@ class LKETest(ClientBaseCase):
         assert pool.cluster_id == 18881
         assert pool.type.id == "g6-standard-4"
         assert pool.label == "example-node-pool"
+        assert pool.firewall_id == 456
         assert pool.disk_encryption == InstanceDiskEncryptionType.enabled
 
         assert pool.disks is not None
@@ -254,6 +255,7 @@ class LKETest(ClientBaseCase):
         pool.tags = ["foobar"]
         pool.count = 5
         pool.label = "testing-label"
+        pool.firewall_id = 852
         pool.autoscaler = {
             "enabled": True,
             "min": 2,
@@ -281,6 +283,7 @@ class LKETest(ClientBaseCase):
                 "labels": {
                     "updated-key": "updated-value",
                 },
+                "firewall_id": 852,
                 "taints": [
                     {
                         "key": "updated-key",
@@ -551,6 +554,7 @@ class LKETest(ClientBaseCase):
         assert pool.k8s_version == "1.31.1+lke1"
         assert pool.update_strategy == "rolling_update"
         assert pool.label == "enterprise-node-pool"
+        assert pool.firewall_id == 789
 
     def test_lke_tiered_version(self):
         version = TieredKubeVersion(self.client, "1.32", "standard")
