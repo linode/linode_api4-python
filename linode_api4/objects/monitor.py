@@ -381,13 +381,14 @@ class ChannelContent(JSONObject):
 class Alert(JSONObject):
     """
     Represents an alert definition reference within an AlertChannel.
-    
+
     Fields:
       - id: int - Unique identifier of the alert definition.
       - label: str - Human-readable name for the alert definition.
       - type: str - Type of the alert (e.g., 'alerts-definitions').
       - url: str - API URL for the alert definition.
     """
+
     id: int = 0
     label: str = ""
     type: str = ""
