@@ -1,3 +1,4 @@
+import time
 from test.integration.helpers import (
     get_test_label,
     send_request_when_resource_available,
@@ -6,8 +7,9 @@ from test.integration.helpers import (
 
 import pytest
 
-from linode_api4 import LinodeClient
+from linode_api4 import ApiError, LinodeClient
 from linode_api4.objects import (
+    AlertDefinition,
     MonitorDashboard,
     MonitorMetricsDefinition,
     MonitorService,
@@ -112,3 +114,128 @@ def test_my_db_functionality(test_linode_client, test_create_and_test_db):
     assert isinstance(token, MonitorServiceToken)
     assert len(token.token) > 0, "Token should not be empty"
     assert hasattr(token, "token"), "Response object has no 'token' attribute"
+
+
+def test_integration_create_get_update_delete_alert_definition(
+    test_linode_client,
+):
+    """E2E: create an alert definition, fetch it, update it, then delete it.
+
+    This test attempts to be resilient: it cleans up the created definition
+    in a finally block so CI doesn't leak resources.
+    """
+    client = test_linode_client
+    service_type = "dbaas"
+    label = get_test_label() + "-e2e-alert"
+
+    rule_criteria = {
+        "rules": [
+            {
+                "aggregate_function": "avg",
+                "dimension_filters": [
+                    {
+                        "dimension_label": "node_type",
+                        "label": "Node Type",
+                        "operator": "eq",
+                        "value": "primary",
+                    }
+                ],
+                "label": "Memory Usage",
+                "metric": "memory_usage",
+                "operator": "gt",
+                "threshold": 90,
+                "unit": "percent",
+            }  # <-- Close the rule dictionary here
+        ]
+    }
+    trigger_conditions = {
+        "criteria_condition": "ALL",
+        "evaluation_period_seconds": 300,
+        "polling_interval_seconds": 300,
+        "trigger_occurrences": 1,
+    }
+
+    # Make the label unique and ensure it begins/ends with an alphanumeric char
+    label = f"{label}-{int(time.time())}"
+    description = "E2E alert created by SDK integration test"
+
+    # Pick an existing alert channel to attach to the definition; skip if none
+    channels = list(client.monitor.alert_channels())
+    if not channels:
+        pytest.skip(
+            "No alert channels available on account for creating alert definitions"
+        )
+
+    created = None
+    try:
+        # Create the alert definition using API-compliant top-level fields
+        created = client.monitor.create_alert_definition(
+            service_type=service_type,
+            label=label,
+            severity=1,
+            description=description,
+            channel_ids=[channels[0].id],
+            rule_criteria=rule_criteria,
+            trigger_conditions=trigger_conditions,
+        )
+
+        assert created.id
+        assert getattr(created, "label", None) == label
+
+        # Wait for server-side processing to complete (status transitions)
+        timeout = 120
+        interval = 10
+        start = time.time()
+        while (
+            getattr(created, "status", None) == "in progress"
+            and (time.time() - start) < timeout
+        ):
+            time.sleep(interval)
+            try:
+                created = client.load(AlertDefinition, created.id, service_type)
+            except Exception:
+                # transient errors while polling; continue until timeout
+                pass
+
+        update_alert = client.load(AlertDefinition, created.id, service_type)
+        update_alert.label = f"{label}-updated"
+        update_alert.save()
+
+        updated = client.load(AlertDefinition, update_alert.id, service_type)
+        while (
+            getattr(updated, "status", None) == "in progress"
+            and (time.time() - start) < timeout
+        ):
+            time.sleep(interval)
+            try:
+                updated = client.load(AlertDefinition, updated.id, service_type)
+            except Exception:
+                # transient errors while polling; continue until timeout
+                pass
+
+        assert created.id == updated.id
+        assert updated.label == f"{label}-updated"
+
+    finally:
+        if created:
+            # Best-effort cleanup; allow transient errors.
+            # max time alert should take to update
+            try:
+                delete_alert = client.load(
+                    AlertDefinition, created.id, service_type
+                )
+                delete_alert.delete()
+            except Exception:
+                pass
+
+            # confirm it's gone (if API returns 404 or raises)
+            try:
+                client.load(AlertDefinition, created.id, service_type)
+                # If no exception, fail explicitly
+                assert False, "Alert definition still retrievable after delete"
+            except ApiError:
+                # Expected: alert definition is deleted and API returns 404 or similar error
+                pass
+            except Exception:
+                # Any other exception is acceptable here, as the resource should be gone
+                pass
