@@ -55,6 +55,13 @@ def test_get_supported_services(test_linode_client):
     assert isinstance(metric_definitions[0], MonitorMetricsDefinition)
 
 
+def test_get_not_supported_service(test_linode_client):
+    client = test_linode_client
+    with pytest.raises(RuntimeError) as err:
+        client.load(MonitorService, "saas")
+    assert "[404] Not found" in str(err.value)
+
+
 # Test Helpers
 def get_db_engine_id(client: LinodeClient, engine: str):
     engines = client.database.engines()
