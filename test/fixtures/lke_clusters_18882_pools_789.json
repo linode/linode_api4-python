@@ -15,5 +15,6 @@
     "tags": [],
     "disk_encryption": "enabled",
     "k8s_version": "1.31.1+lke1",
+    "firewall_id": 789,
     "update_strategy": "rolling_update"
 }
