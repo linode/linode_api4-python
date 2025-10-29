@@ -138,7 +138,7 @@ def lke_cluster_with_apl(test_linode_client):
 
 
 @pytest.fixture(scope="session")
-def lke_cluster_enterprise(test_linode_client):
+def lke_cluster_enterprise(e2e_test_firewall, test_linode_client):
     # We use the oldest version here so we can test upgrades
     version = sorted(
         v.id for v in test_linode_client.lke.tier("enterprise").versions()
@@ -153,6 +153,7 @@ def lke_cluster_enterprise(test_linode_client):
         3,
         k8s_version=version,
         update_strategy="rolling_update",
+        firewall_id=e2e_test_firewall.id,
     )
     label = get_test_label() + "_cluster"
 
@@ -434,13 +435,18 @@ def test_lke_cluster_with_apl(lke_cluster_with_apl):
     )
 
 
-def test_lke_cluster_enterprise(test_linode_client, lke_cluster_enterprise):
+def test_lke_cluster_enterprise(
+    e2e_test_firewall,
+    test_linode_client,
+    lke_cluster_enterprise,
+):
     lke_cluster_enterprise.invalidate()
     assert lke_cluster_enterprise.tier == "enterprise"
 
     pool = lke_cluster_enterprise.pools[0]
     assert str(pool.k8s_version) == lke_cluster_enterprise.k8s_version.id
     assert pool.update_strategy == "rolling_update"
+    assert pool.firewall_id == e2e_test_firewall.id
 
     target_version = sorted(
         v.id for v in test_linode_client.lke.tier("enterprise").versions()
