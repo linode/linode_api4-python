@@ -415,10 +415,10 @@ class AlertChannel(Base):
     properties = {
         "id": Property(identifier=True),
         "label": Property(),
-        "type": Property(AlertType),
+        "type": Property(False, AlertType),
         "channel_type": Property(),
-        "alerts": Property(List[Alert]),
-        "content": Property(ChannelContent),
+        "alerts": Property(False, List[Alert]),
+        "content": Property(False, ChannelContent),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),
         "created_by": Property(),
