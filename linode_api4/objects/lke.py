@@ -205,6 +205,7 @@ class LKENodePool(DerivedBase):
         # directly exposed in the node pool response.
         "k8s_version": Property(mutable=True),
         "update_strategy": Property(mutable=True),
+        "firewall_id": Property(mutable=True),
     }
 
     def _parse_raw_node(
