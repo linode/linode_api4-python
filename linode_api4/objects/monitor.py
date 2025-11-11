@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, List, Optional, Union
+from typing import List, Optional, Union
 
 from linode_api4.objects import DerivedBase
 from linode_api4.objects.base import Base, Property
@@ -265,7 +265,7 @@ class Rule(JSONObject):
       }
     """
 
-    aggregate_function: Union[AggregateFunction, str] = ""
+    aggregate_function: Optional[Union[AggregateFunction, str]] = None
     dimension_filters: Optional[List[DimensionFilter]] = None
     label: str = ""
     metric: str = ""
@@ -346,7 +346,7 @@ class AlertDefinition(DerivedBase):
         "status": Property(mutable=True),
         "has_more_resources": Property(mutable=True),
         "rule_criteria": Property(mutable=True),
-        "trigger_conditions": Property(mutable=True),
+        "trigger_conditions": Property(mutable=True, json_object=TriggerConditions),
         "alert_channels": Property(mutable=True),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),
