@@ -304,7 +304,7 @@ class AlertChannelEnvelope(JSONObject):
 
     id: int = 0
     label: str = ""
-    type: str = ""
+    _type: str = field(default="", metadata={"json_key": "type"})
     url: str = ""
 
 
@@ -345,9 +345,9 @@ class AlertDefinition(DerivedBase):
         "type": Property(mutable=True),
         "status": Property(mutable=True),
         "has_more_resources": Property(mutable=True),
-        "rule_criteria": Property(mutable=True),
+        "rule_criteria": Property(mutable=True, json_object=RuleCriteria),
         "trigger_conditions": Property(mutable=True, json_object=TriggerConditions),
-        "alert_channels": Property(mutable=True),
+        "alert_channels": Property(mutable=True, json_object=AlertChannelEnvelope),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),
         "updated_by": Property(),
