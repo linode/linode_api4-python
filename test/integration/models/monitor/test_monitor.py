@@ -197,6 +197,8 @@ def test_integration_create_get_update_delete_alert_definition(
                 # transient errors while polling; continue until timeout
                 pass
 
+        update_alert = None
+
         if created:
             update_alert = client.load(
                 AlertDefinition, created.id, service_type
@@ -239,7 +241,6 @@ def test_integration_create_get_update_delete_alert_definition(
                 delete_alert.delete()
             except Exception:
                 assert False, "Could not delete alert definition during cleanup"
-                pass
 
             # confirm it's gone (if API returns 404 or raises)
             try:
