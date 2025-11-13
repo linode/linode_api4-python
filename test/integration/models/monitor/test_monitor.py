@@ -37,6 +37,57 @@ def test_get_all_dashboards(test_linode_client):
     assert dashboards_by_svc[0].service_type == get_service_type
 
 
+def test_filter_and_group_by(test_linode_client):
+    client = test_linode_client
+    dashboards_by_svc = client.monitor.dashboards(service_type="linode")
+    assert isinstance(dashboards_by_svc[0], MonitorDashboard)
+
+    # Get the first dashboard for linode service type
+    dashboard = dashboards_by_svc[0]
+    assert dashboard.service_type == "linode"
+
+    # Ensure the dashboard has widgets
+    assert hasattr(
+        dashboard, "widgets"
+    ), "Dashboard should have widgets attribute"
+    assert dashboard.widgets is not None, "Dashboard widgets should not be None"
+    assert (
+        len(dashboard.widgets) > 0
+    ), "Dashboard should have at least one widget"
+
+    # Test the first widget's group_by and filters fields
+    widget = dashboard.widgets[0]
+
+    # Test group_by field type
+    group_by = widget.group_by
+    assert group_by is None or isinstance(
+        group_by, list
+    ), "group_by should be None or list type"
+    if group_by is not None:
+        for item in group_by:
+            assert isinstance(item, str), "group_by items should be strings"
+
+    # Test filters field type
+    filters = widget.filters
+    assert filters is None or isinstance(
+        filters, list
+    ), "filters should be None or list type"
+    if filters is not None:
+        from linode_api4.objects.monitor import Filter
+
+        for filter_item in filters:
+            assert isinstance(
+                filter_item, Filter
+            ), "filter items should be Filter objects"
+            assert hasattr(
+                filter_item, "dimension_label"
+            ), "Filter should have dimension_label"
+            assert hasattr(
+                filter_item, "operator"
+            ), "Filter should have operator"
+            assert hasattr(filter_item, "value"), "Filter should have value"
+
+
 # List supported services
 def test_get_supported_services(test_linode_client):
     client = test_linode_client
