@@ -115,7 +115,6 @@ class MonitorTest(ClientBaseCase):
         self.assertEqual(data.alert.scope, ["entity"])
 
     def test_metric_definitions(self):
-
         metrics = self.client.monitor.metric_definitions(service_type="dbaas")
         self.assertEqual(
             metrics[0].available_aggregate_functions,
@@ -134,7 +133,6 @@ class MonitorTest(ClientBaseCase):
         )
 
     def test_create_token(self):
-
         with self.mock_post("/monitor/services/dbaas/token") as m:
             self.client.monitor.create_token(
                 service_type="dbaas", entity_ids=[189690, 188020]
