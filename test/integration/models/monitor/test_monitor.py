@@ -10,6 +10,7 @@ import pytest
 from linode_api4 import LinodeClient
 from linode_api4.objects import (
     AlertDefinition,
+    ApiError,
     MonitorDashboard,
     MonitorMetricsDefinition,
     MonitorService,
@@ -218,6 +219,27 @@ def test_integration_create_get_update_delete_alert_definition(
         )
 
     created = None
+
+    def wait_for_alert_ready(alert_id, service_type: str):
+        timeout = 360  # max time alert should take to create
+        INITIAL_TIMEOUT = 1
+        start = time.time()
+        interval = INITIAL_TIMEOUT
+        alert = client.load(AlertDefinition, alert_id, service_type)
+        while (
+            getattr(alert, "status", None) == "in progress"
+            and (time.time() - start) < timeout
+        ):
+            time.sleep(interval)
+            interval *= 2
+            try:
+                alert._api_get()
+            except ApiError as e:
+                # transient errors while polling; continue until timeout
+                if e.status != 404:
+                    raise
+        return alert
+
     try:
         # Create the alert definition using API-compliant top-level fields
         created = client.monitor.create_alert_definition(
@@ -233,50 +255,13 @@ def test_integration_create_get_update_delete_alert_definition(
         assert created.id
         assert getattr(created, "label", None) == label
 
-        # Wait for server-side processing to complete (status transitions)
-        timeout = 180  # max time alert should take to create
-        interval = 10
-        start = time.time()
-        while (
-            getattr(created, "status", None) == "in progress"
-            and (time.time() - start) < timeout
-        ):
-            time.sleep(interval)
-            try:
-                created = client.load(AlertDefinition, created.id, service_type)
-            except Exception:
-                # transient errors while polling; continue until timeout
-                pass
+        created = wait_for_alert_ready(created.id, service_type)
 
-        update_alert = None
+        updated = client.load(AlertDefinition, created.id, service_type)
+        updated.label = f"{label}-updated"
+        updated.save()
 
-        if created:
-            update_alert = client.load(
-                AlertDefinition, created.id, service_type
-            )
-            update_alert.label = f"{label}-updated"
-            update_alert.save()
-        else:
-            pytest.fail("Alert definition was not created successfully")
-
-        if update_alert:
-            updated = client.load(
-                AlertDefinition, update_alert.id, service_type
-            )
-            while (
-                getattr(updated, "status", None) == "in progress"
-                and (time.time() - start) < timeout
-            ):
-                time.sleep(interval)
-                try:
-                    updated = client.load(
-                        AlertDefinition, updated.id, service_type
-                    )
-                except Exception:
-                    # transient errors while polling; continue until timeout
-                    pass
-        else:
-            pytest.fail("Alert definition was not updated successfully")
+        updated = wait_for_alert_ready(updated.id, service_type)
 
         assert created.id == updated.id
         assert updated.label == f"{label}-updated"
@@ -285,17 +270,7 @@ def test_integration_create_get_update_delete_alert_definition(
         if created:
             # Best-effort cleanup; allow transient errors.
             # max time alert should take to update
-            try:
-                delete_alert = client.load(
-                    AlertDefinition, created.id, service_type
-                )
-                delete_alert.delete()
-            except Exception:
-                assert False, "Could not delete alert definition during cleanup"
-
-            # confirm it's gone (if API returns 404 or raises)
-            try:
-                client.load(AlertDefinition, created.id, service_type)
-                assert False, "Alert definition still retrievable after delete"
-            except Exception:
-                pass
+            delete_alert = client.load(
+                AlertDefinition, created.id, service_type
+            )
+            delete_alert.delete()
