@@ -194,7 +194,7 @@ def test_integration_create_get_update_delete_alert_definition(
             try:
                 created = client.load(AlertDefinition, created.id, service_type)
             except Exception:
-
+                # transient errors while polling; continue until timeout
                 pass
 
         if created:
@@ -206,17 +206,24 @@ def test_integration_create_get_update_delete_alert_definition(
         else:
             pytest.fail("Alert definition was not created successfully")
 
-        updated = client.load(AlertDefinition, update_alert.id, service_type)
-        while (
-            getattr(updated, "status", None) == "in progress"
-            and (time.time() - start) < timeout
-        ):
-            time.sleep(interval)
-            try:
-                updated = client.load(AlertDefinition, updated.id, service_type)
-            except Exception:
-                # transient errors while polling; continue until timeout
-                pass
+        if update_alert:
+            updated = client.load(
+                AlertDefinition, update_alert.id, service_type
+            )
+            while (
+                getattr(updated, "status", None) == "in progress"
+                and (time.time() - start) < timeout
+            ):
+                time.sleep(interval)
+                try:
+                    updated = client.load(
+                        AlertDefinition, updated.id, service_type
+                    )
+                except Exception:
+                    # transient errors while polling; continue until timeout
+                    pass
+        else:
+            pytest.fail("Alert definition was not updated successfully")
 
         assert created.id == updated.id
         assert updated.label == f"{label}-updated"
@@ -231,17 +238,12 @@ def test_integration_create_get_update_delete_alert_definition(
                 )
                 delete_alert.delete()
             except Exception:
-                pytest.fail("Could not delete alert definition during cleanup")
+                assert False, "Could not delete alert definition during cleanup"
                 pass
 
             # confirm it's gone (if API returns 404 or raises)
             try:
                 client.load(AlertDefinition, created.id, service_type)
-                # If no exception, fail explicitly
-                pytest.fail("Alert definition still retrievable after delete")
-            except ApiError:
-                pytest.skip("Alert definition successfully deleted")
-                pass
+                assert False, "Alert definition still retrievable after delete"
             except Exception:
-                pytest.skip("Alert definition successfully deleted")
                 pass
