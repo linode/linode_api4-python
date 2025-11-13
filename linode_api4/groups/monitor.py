@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union
+from typing import Any, List, Optional
 
 from linode_api4 import PaginatedList
 from linode_api4.errors import UnexpectedResponseError
@@ -216,10 +216,10 @@ class MonitorGroup(Group):
         service_type: str,
         label: str,
         severity: int,
-        channel_ids: list[int],
-        rule_criteria: dict = None,
-        trigger_conditions: dict = None,
-        entity_ids: Optional[list[str]] = None,
+        channel_ids: List[int],
+        rule_criteria: Optional[dict] = None,
+        trigger_conditions: Optional[dict] = None,
+        entity_ids: Optional[List[str]] = None,
         description: Optional[str] = None,
     ) -> AlertDefinition:
         """

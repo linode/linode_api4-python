@@ -6,18 +6,18 @@ from linode_api4.objects.base import Base, Property
 from linode_api4.objects.serializable import JSONObject, StrEnum
 
 __all__ = [
+    "AggregateFunction",
+    "Alert",
+    "AlertChannel",
+    "AlertDefinition",
     "AlertType",
+    "Alerts",
     "MonitorDashboard",
     "MonitorMetricsDefinition",
     "MonitorService",
     "MonitorServiceToken",
-    "AggregateFunction",
     "RuleCriteria",
     "TriggerConditions",
-    "AlertChannel",
-    "AlertDefinition",
-    "AlertChannelEnvelope",
-    "Alert",
 ]
 
 
@@ -285,27 +285,33 @@ class RuleCriteria(JSONObject):
 
 
 @dataclass
-class AlertChannelEnvelope(JSONObject):
+class Alert(JSONObject):
     """
-    Represents a single alert channel entry returned inside alert definition
-    responses.
-
-    This envelope type is used when an AlertDefinition includes a list of
-    alert channels. It contains lightweight information about the channel so
-    that callers can display or reference the channel without performing an
-    additional API lookup.
+    Represents an alert definition reference within an AlertChannel.
 
     Fields:
-      - id: int - Unique identifier of the alert channel.
-      - label: str - Human-readable name for the channel.
-      - type: str - Channel type (e.g. 'webhook', 'email', 'pagerduty').
-      - url: str - Destination URL or address associated with the channel.
+      - id: int - Unique identifier of the alert definition.
+      - label: str - Human-readable name for the alert definition.
+      - type: str - Type of the alert (e.g., 'alerts-definitions').
+      - url: str - API URL for the alert definition.
     """
 
     id: int = 0
     label: str = ""
     _type: str = field(default="", metadata={"json_key": "type"})
     url: str = ""
+
+
+@dataclass
+class Alerts(JSONObject):
+    """
+    Represents a collection of alert definitions within an AlertChannel.
+
+    Fields:
+      - items: List[Alert] - List of alert definitions.
+    """
+
+    items: List[Alert] = field(default_factory=list)
 
 
 class AlertType(StrEnum):
@@ -346,8 +352,10 @@ class AlertDefinition(DerivedBase):
         "status": Property(mutable=True),
         "has_more_resources": Property(mutable=True),
         "rule_criteria": Property(mutable=True, json_object=RuleCriteria),
-        "trigger_conditions": Property(mutable=True, json_object=TriggerConditions),
-        "alert_channels": Property(mutable=True, json_object=AlertChannelEnvelope),
+        "trigger_conditions": Property(
+            mutable=True, json_object=TriggerConditions
+        ),
+        "alert_channels": Property(mutable=True, json_object=Alerts),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),
         "updated_by": Property(),
@@ -377,24 +385,6 @@ class ChannelContent(JSONObject):
     # Other channel types like 'webhook', 'slack' could be added here as Optional fields.
 
 
-@dataclass
-class Alert(JSONObject):
-    """
-    Represents an alert definition reference within an AlertChannel.
-
-    Fields:
-      - id: int - Unique identifier of the alert definition.
-      - label: str - Human-readable name for the alert definition.
-      - type: str - Type of the alert (e.g., 'alerts-definitions').
-      - url: str - API URL for the alert definition.
-    """
-
-    id: int = 0
-    label: str = ""
-    type: str = ""
-    url: str = ""
-
-
 class AlertChannel(Base):
     """
     Represents an alert channel used to deliver notifications when alerts
@@ -417,8 +407,8 @@ class AlertChannel(Base):
         "label": Property(),
         "type": Property(),
         "channel_type": Property(),
-        "alerts": Property(),
-        "content": Property(),
+        "alerts": Property(mutable=False, json_object=Alerts),
+        "content": Property(mutable=False, json_object=ChannelContent),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),
         "created_by": Property(),

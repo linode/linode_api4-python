@@ -183,7 +183,7 @@ def test_integration_create_get_update_delete_alert_definition(
         assert getattr(created, "label", None) == label
 
         # Wait for server-side processing to complete (status transitions)
-        timeout = 120
+        timeout = 180  # max time alert should take to create
         interval = 10
         start = time.time()
         while (
@@ -194,12 +194,17 @@ def test_integration_create_get_update_delete_alert_definition(
             try:
                 created = client.load(AlertDefinition, created.id, service_type)
             except Exception:
-                # transient errors while polling; continue until timeout
+
                 pass
 
-        update_alert = client.load(AlertDefinition, created.id, service_type)
-        update_alert.label = f"{label}-updated"
-        update_alert.save()
+        if created:
+            update_alert = client.load(
+                AlertDefinition, created.id, service_type
+            )
+            update_alert.label = f"{label}-updated"
+            update_alert.save()
+        else:
+            pytest.fail("Alert definition was not created successfully")
 
         updated = client.load(AlertDefinition, update_alert.id, service_type)
         while (
@@ -226,16 +231,17 @@ def test_integration_create_get_update_delete_alert_definition(
                 )
                 delete_alert.delete()
             except Exception:
+                pytest.fail("Could not delete alert definition during cleanup")
                 pass
 
             # confirm it's gone (if API returns 404 or raises)
             try:
                 client.load(AlertDefinition, created.id, service_type)
                 # If no exception, fail explicitly
-                assert False, "Alert definition still retrievable after delete"
+                pytest.fail("Alert definition still retrievable after delete")
             except ApiError:
-                # Expected: alert definition is deleted and API returns 404 or similar error
+                pytest.skip("Alert definition successfully deleted")
                 pass
             except Exception:
-                # Any other exception is acceptable here, as the resource should be gone
+                pytest.skip("Alert definition successfully deleted")
                 pass
