@@ -1,17 +1,20 @@
-__all__ = [
-    "MonitorGroup",
-]
 from typing import Any, Optional
 
 from linode_api4 import PaginatedList
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
+    AlertChannel,
+    AlertDefinition,
     MonitorDashboard,
     MonitorMetricsDefinition,
     MonitorService,
     MonitorServiceToken,
 )
+
+__all__ = [
+    "MonitorGroup",
+]
 
 
 class MonitorGroup(Group):
@@ -145,3 +148,139 @@ class MonitorGroup(Group):
                 "Unexpected response when creating token!", json=result
             )
         return MonitorServiceToken(token=result["token"])
+
+    def alert_definitions(
+        self,
+        *filters,
+        service_type: Optional[str] = None,
+    ) -> PaginatedList:
+        """
+        Retrieve alert definitions.
+
+        Returns a paginated collection of :class:`AlertDefinition` objects. If you
+        need to obtain a single :class:`AlertDefinition`, use :meth:`LinodeClient.load`
+        and supply the `service_type` as the parent identifier, for example:
+
+            alerts = client.monitor.alert_definitions()
+            alerts_by_service = client.monitor.alert_definitions(service_type="dbaas")
+        .. note:: This endpoint is in beta and requires using the v4beta base URL.
+
+        API Documentation:
+            https://techdocs.akamai.com/linode-api/reference/get-alert-definitions
+            https://techdocs.akamai.com/linode-api/reference/get-alert-definitions-for-service-type
+
+        :param service_type: Optional service type to scope the query (e.g. ``"dbaas"``).
+        :type service_type: Optional[str]
+        :param filters: Optional filtering expressions to apply to the returned
+                        collection. See :doc:`Filtering Collections</linode_api4/objects/filtering>`.
+
+        :returns: A paginated list of :class:`AlertDefinition` objects.
+        :rtype: PaginatedList[AlertDefinition]
+        """
+
+        endpoint = "/monitor/alert-definitions"
+        if service_type:
+            endpoint = f"/monitor/services/{service_type}/alert-definitions"
+
+        # Requesting a list
+        return self.client._get_and_filter(
+            AlertDefinition, *filters, endpoint=endpoint
+        )
+
+    def alert_channels(self, *filters) -> PaginatedList:
+        """
+        List alert channels for the authenticated account.
+
+        Returns a paginated collection of :class:`AlertChannel` objects which
+        describe destinations for alert notifications (for example: email
+        lists, webhooks, PagerDuty, Slack, etc.). By default this method
+        returns all channels visible to the authenticated account; you can
+        supply optional filter expressions to restrict the results.
+
+        Examples:
+            channels = client.monitor.alert_channels()
+
+        .. note:: This endpoint is in beta and requires using the v4beta base URL.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-alert-channels
+
+        :param filters: Optional filter expressions to apply to the collection.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>` for details.
+        :returns: A paginated list of :class:`AlertChannel` objects.
+        :rtype: PaginatedList[AlertChannel]
+        """
+        return self.client._get_and_filter(AlertChannel, *filters)
+
+    def create_alert_definition(
+        self,
+        service_type: str,
+        label: str,
+        severity: int,
+        channel_ids: list[int],
+        rule_criteria: Optional[dict] = None,
+        trigger_conditions: Optional[dict] = None,
+        entity_ids: Optional[list[str]] = None,
+        description: Optional[str] = None,
+    ) -> AlertDefinition:
+        """
+        Create a new alert definition for a given service type.
+
+        The alert definition configures when alerts are fired and which channels
+        are notified.
+
+        .. note:: This endpoint is in beta and requires using the v4beta base URL.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-alert-definition-for-service-type
+
+        :param service_type: Service type for which to create the alert definition
+                             (e.g. ``"dbaas"``).
+        :type service_type: str
+        :param label: Human-readable label for the alert definition.
+        :type label: str
+        :param severity: Severity level for the alert (numeric severity used by API).
+        :type severity: int
+        :param channel_ids: List of alert channel IDs to notify when the alert fires.
+        :type channel_ids: list[int]
+        :param rule_criteria: (Optional) Rule criteria that determine when the alert
+                              should be evaluated. Structure depends on the service
+                              metric definitions.
+        :type rule_criteria: Optional[dict]
+        :param trigger_conditions: (Optional) Trigger conditions that define when
+                                   the alert should transition state.
+        :type trigger_conditions: Optional[dict]
+        :param entity_ids: (Optional) Restrict the alert to a subset of entity IDs.
+        :type entity_ids: Optional[list[str]]
+        :param description: (Optional) Longer description for the alert definition.
+        :type description: Optional[str]
+
+        :returns: The newly created :class:`AlertDefinition`.
+        :rtype: AlertDefinition
+
+        NOTE:
+        # For updating an alert definition, use the `save()` method on the AlertDefinition object.
+        # For deleting an alert definition, use the `delete()` method directly on the AlertDefinition object.
+        """
+        params = {
+            "label": label,
+            "severity": severity,
+            "channel_ids": channel_ids,
+            "rule_criteria": rule_criteria,
+            "trigger_conditions": trigger_conditions,
+        }
+        if description is not None:
+            params["description"] = description
+        if entity_ids is not None:
+            params["entity_ids"] = entity_ids
+
+        # API will handle check for service_type return error if missing
+        result = self.client.post(
+            f"/monitor/services/{service_type}/alert-definitions", data=params
+        )
+
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating alert definition!",
+                json=result,
+            )
+
+        return AlertDefinition(self.client, result["id"], service_type, result)
