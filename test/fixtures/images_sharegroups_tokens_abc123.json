@@ -1,0 +1,12 @@
+{
+  "created": "2025-08-04T10:09:09",
+  "expiry": null,
+  "label": "My Sharegroup Token",
+  "sharegroup_label": "A Sharegroup",
+  "sharegroup_uuid": "e1d0e58b-f89f-4237-84ab-b82077342359",
+  "status": "active",
+  "token_uuid": "abc123",
+  "updated": null,
+  "valid_for_sharegroup_uuid": "e1d0e58b-f89f-4237-84ab-b82077342359",
+  "token": "asupersecrettoken"
+}

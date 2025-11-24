@@ -1,0 +1,18 @@
+{
+  "data": [
+    {
+      "created": "2025-08-04T10:09:09",
+      "expiry": null,
+      "label": "My Sharegroup Token",
+      "sharegroup_label": "A Sharegroup",
+      "sharegroup_uuid": "e1d0e58b-f89f-4237-84ab-b82077342359",
+      "status": "active",
+      "token_uuid": "13428362-5458-4dad-b14b-8d0d4d648f8c",
+      "updated": null,
+      "valid_for_sharegroup_uuid": "e1d0e58b-f89f-4237-84ab-b82077342359"
+    }
+  ],
+  "page": 1,
+  "pages": 1,
+  "results": 1
+}
