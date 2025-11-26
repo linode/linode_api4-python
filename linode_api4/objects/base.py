@@ -422,7 +422,7 @@ class Base(object, metaclass=FilterableMetaclass):
                 if prop is None:
                     prop_key, prop = self.properties_with_alias[api_key]
 
-                if prop.relationship and not json[api_key] is None:
+                if prop.relationship and json[api_key] is not None:
                     if isinstance(json[api_key], list):
                         objs = []
                         for d in json[api_key]:
