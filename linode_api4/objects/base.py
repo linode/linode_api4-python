@@ -1,7 +1,6 @@
 import time
 from datetime import datetime, timedelta
 from functools import cached_property
-from itertools import chain
 from typing import Any, Dict, Optional
 
 from linode_api4.objects.serializable import JSONObject
