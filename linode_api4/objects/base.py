@@ -449,7 +449,7 @@ class Base(object, metaclass=FilterableMetaclass):
                         if obj and isinstance(json[api_key], dict):
                             obj._populate(json[api_key])
                         self._set(prop_key, obj)
-                elif prop.slug_relationship and not json[api_key] is None:
+                elif prop.slug_relationship and json[api_key] is not None:
                     # create an object of the expected type with the given slug
                     self._set(
                         prop_key,
