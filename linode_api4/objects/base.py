@@ -408,15 +408,14 @@ class Base(object, metaclass=FilterableMetaclass):
         self._set("_raw_json", json)
         self._set("_updated", False)
 
+        valid_keys = set(
+            k
+            for k, v in type(self).properties.items()
+            if (not v.identifier) and (not v.alias_of)
+        ) | set(self.properties_with_alias.keys())
+
         for api_key in json:
-            if api_key in chain(
-                (
-                    k
-                    for k, v in type(self).properties.items()
-                    if (not v.identifier) and (not v.alias_of)
-                ),  # Exclude identifiers and aliased properties to avoid conflicts with API attributes
-                self.properties_with_alias.keys(),
-            ):
+            if api_key in valid_keys:
                 prop = type(self).properties.get(api_key)
                 prop_key = api_key
 
