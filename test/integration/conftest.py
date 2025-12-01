@@ -56,10 +56,27 @@ def get_regions(
         return Region(client, region_override)
 
     regions = client.regions()
+    ALL_ACCOUNT_AVAILABILITIES = {
+        "Linodes",
+        "NodeBalancers",
+        "Block Storage",
+        "Kubernetes",
+    }
+    account_availabilities = client.account.availabilities()
+    account_regional_availabilities = {
+        a.region: a.available for a in account_availabilities
+    }
+
+    print(account_regional_availabilities)
 
     if capabilities is not None:
         regions = [
-            v for v in regions if set(capabilities).issubset(v.capabilities)
+            v
+            for v in regions
+            if set(capabilities).issubset(v.capabilities)
+            and set(capabilities)
+            .intersection(ALL_ACCOUNT_AVAILABILITIES)
+            .issubset(account_regional_availabilities.get(v.id, []))
         ]
 
     if site_type is not None:
