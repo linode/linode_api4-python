@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from linode_api4.objects.base import Base, Property
 from linode_api4.objects.serializable import JSONObject, StrEnum
 
+__all__ = ["LockType", "LockEntity", "Lock"]
+
 
 class LockType(StrEnum):
     """
