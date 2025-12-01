@@ -1,0 +1,97 @@
+from test.unit.base import ClientBaseCase
+
+from linode_api4.objects import Lock, LockType
+
+
+class LockGroupTest(ClientBaseCase):
+    """
+    Tests methods of the LockGroup class
+    """
+
+    def test_list_locks(self):
+        """
+        Tests that locks can be retrieved using client.locks()
+        """
+        locks = self.client.locks()
+
+        self.assertEqual(len(locks), 2)
+        self.assertEqual(locks[0].id, 1)
+        self.assertEqual(locks[0].lock_type, "cannot_delete")
+        self.assertEqual(locks[0].entity.id, 123)
+        self.assertEqual(locks[0].entity.type, "linode")
+        self.assertEqual(locks[1].id, 2)
+        self.assertEqual(locks[1].lock_type, "cannot_delete_with_subresources")
+        self.assertEqual(locks[1].entity.id, 456)
+
+    def test_create_lock(self):
+        """
+        Tests that a lock can be created using client.locks.create()
+        """
+        with self.mock_post("/locks/1") as m:
+            lock = self.client.locks.create(
+                entity_type="linode",
+                entity_id=123,
+                lock_type=LockType.cannot_delete,
+            )
+
+            self.assertEqual(m.call_url, "/locks")
+            self.assertEqual(m.call_data["entity_type"], "linode")
+            self.assertEqual(m.call_data["entity_id"], 123)
+            self.assertEqual(m.call_data["lock_type"], "cannot_delete")
+
+            self.assertEqual(lock.id, 1)
+            self.assertEqual(lock.lock_type, "cannot_delete")
+            self.assertIsNotNone(lock.entity)
+            self.assertEqual(lock.entity.id, 123)
+
+    def test_create_lock_with_subresources(self):
+        """
+        Tests that a lock with subresources can be created
+        """
+        with self.mock_post("/locks/1") as m:
+            lock = self.client.locks.create(
+                entity_type="linode",
+                entity_id=456,
+                lock_type=LockType.cannot_delete_with_subresources,
+            )
+
+            self.assertEqual(m.call_url, "/locks")
+            self.assertEqual(m.call_data["entity_type"], "linode")
+            self.assertEqual(m.call_data["entity_id"], 456)
+            self.assertEqual(
+                m.call_data["lock_type"], "cannot_delete_with_subresources"
+            )
+
+    def test_create_lock_default_type(self):
+        """
+        Tests that creating a lock without specifying lock_type uses cannot_delete
+        """
+        with self.mock_post("/locks/1") as m:
+            self.client.locks.create(
+                entity_type="linode",
+                entity_id=123,
+            )
+
+            self.assertEqual(m.call_data["lock_type"], "cannot_delete")
+
+    def test_delete_lock_by_object(self):
+        """
+        Tests that a lock can be deleted using client.locks.delete() with a Lock object
+        """
+        lock = Lock(self.client, 1)
+
+        with self.mock_delete() as m:
+            result = self.client.locks.delete(lock)
+
+            self.assertTrue(result)
+            self.assertEqual(m.call_url, "/locks/1")
+
+    def test_delete_lock_by_id(self):
+        """
+        Tests that a lock can be deleted using client.locks.delete() with an ID
+        """
+        with self.mock_delete() as m:
+            result = self.client.locks.delete(123)
+
+            self.assertTrue(result)
+            self.assertEqual(m.call_url, "/locks/123")
