@@ -217,8 +217,8 @@ class MonitorGroup(Group):
         label: str,
         severity: int,
         channel_ids: list[int],
-        rule_criteria: Optional[dict] = None,
-        trigger_conditions: Optional[dict] = None,
+        rule_criteria: dict,
+        trigger_conditions: dict,
         entity_ids: Optional[list[str]] = None,
         description: Optional[str] = None,
     ) -> AlertDefinition:
