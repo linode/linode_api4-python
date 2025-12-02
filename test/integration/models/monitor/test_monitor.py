@@ -222,9 +222,9 @@ def test_integration_create_get_update_delete_alert_definition(
 
     def wait_for_alert_ready(alert_id, service_type: str):
         timeout = 360  # max time alert should take to create
-        INITIAL_TIMEOUT = 1
+        initial_timeout = 1
         start = time.time()
-        interval = INITIAL_TIMEOUT
+        interval = initial_timeout
         alert = client.load(AlertDefinition, alert_id, service_type)
         while (
             getattr(alert, "status", None) == "in progress"
