@@ -405,7 +405,7 @@ class AlertDefinition(DerivedBase):
         "created_by": Property(),
         "entity_ids": Property(mutable=True),
         "description": Property(mutable=True),
-        "service_class": Property("class"),
+        "service_class": Property(alias_of="class"),
     }
 
 
