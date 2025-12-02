@@ -241,13 +241,13 @@ class MonitorGroup(Group):
         :type severity: int
         :param channel_ids: List of alert channel IDs to notify when the alert fires.
         :type channel_ids: list[int]
-        :param rule_criteria: (Optional) Rule criteria that determine when the alert
+        :param rule_criteria: Rule criteria that determine when the alert
                               should be evaluated. Structure depends on the service
                               metric definitions.
-        :type rule_criteria: Optional[dict]
-        :param trigger_conditions: (Optional) Trigger conditions that define when
+        :type rule_criteria: dict
+        :param trigger_conditions: Trigger conditions that define when
                                    the alert should transition state.
-        :type trigger_conditions: Optional[dict]
+        :type trigger_conditions: dict
         :param entity_ids: (Optional) Restrict the alert to a subset of entity IDs.
         :type entity_ids: Optional[list[str]]
         :param description: (Optional) Longer description for the alert definition.
