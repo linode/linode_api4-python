@@ -272,7 +272,7 @@ class MonitorGroup(Group):
         if entity_ids is not None:
             params["entity_ids"] = entity_ids
 
-        # API will handle check for service_type return error if missing
+        # API will validate service_type and return an error if missing
         result = self.client.post(
             f"/monitor/services/{service_type}/alert-definitions", data=params
         )
