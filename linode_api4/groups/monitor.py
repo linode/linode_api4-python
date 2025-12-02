@@ -256,9 +256,9 @@ class MonitorGroup(Group):
         :returns: The newly created :class:`AlertDefinition`.
         :rtype: AlertDefinition
 
-        NOTE:
-        # For updating an alert definition, use the `save()` method on the AlertDefinition object.
-        # For deleting an alert definition, use the `delete()` method directly on the AlertDefinition object.
+        .. note::
+           For updating an alert definition, use the ``save()`` method on the :class:`AlertDefinition` object.
+           For deleting an alert definition, use the ``delete()`` method directly on the :class:`AlertDefinition` object.
         """
         params = {
             "label": label,
