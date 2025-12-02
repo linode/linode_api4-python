@@ -221,7 +221,7 @@ def test_integration_create_get_update_delete_alert_definition(
     created = None
 
     def wait_for_alert_ready(alert_id, service_type: str):
-        timeout = 360  # max time alert should take to create
+        timeout = 360  # maximum time in seconds to wait for alert creation
         initial_timeout = 1
         start = time.time()
         interval = initial_timeout
