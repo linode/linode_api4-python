@@ -1261,7 +1261,10 @@ class Instance(Base):
 
         device_limit = int(max(8, min(self.specs.memory // 1024, 64)))
 
-        device_names = [hypervisor_prefix + suffix for suffix in generate_device_suffixes(device_limit)]
+        device_names = [
+            hypervisor_prefix + suffix
+            for suffix in generate_device_suffixes(device_limit)
+        ]
 
         device_map = {
             device_names[i]: None for i in range(0, len(device_names))

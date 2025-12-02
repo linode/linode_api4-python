@@ -2,8 +2,8 @@
 Contains various utility functions.
 """
 
-from typing import Any, Dict
 import string
+from typing import Any, Dict
 
 
 def drop_null_keys(data: Dict[Any, Any], recursive=True) -> Dict[Any, Any]:
