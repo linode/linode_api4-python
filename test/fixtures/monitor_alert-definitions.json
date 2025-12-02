@@ -7,7 +7,6 @@
       "severity": 1,
       "type": "user",
       "description": "A test alert for dbaas service",
-      "conditions": [],
       "entity_ids": ["13217"],
       "alert_channels": [],
       "has_more_resources": false,
