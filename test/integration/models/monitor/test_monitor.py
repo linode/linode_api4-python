@@ -269,7 +269,6 @@ def test_integration_create_get_update_delete_alert_definition(
     finally:
         if created:
             # Best-effort cleanup; allow transient errors.
-            # max time alert should take to update
             delete_alert = client.load(
                 AlertDefinition, created.id, service_type
             )
