@@ -42,6 +42,9 @@ from linode_api4.paginated_list import PaginatedList
 from linode_api4.util import drop_null_keys, generate_device_suffixes
 
 PASSWORD_CHARS = string.ascii_letters + string.digits + string.punctuation
+MIN_DEVICE_LIMIT = 8
+MEMORY_DIVISOR = 1024
+MAX_DEVICE_LIMIT = 64
 
 
 class InstanceDiskEncryptionType(StrEnum):
@@ -1259,7 +1262,7 @@ class Instance(Base):
 
         hypervisor_prefix = "sd" if self.hypervisor == "kvm" else "xvd"
 
-        device_limit = int(max(8, min(self.specs.memory // 1024, 64)))
+        device_limit = int(max(MIN_DEVICE_LIMIT, min(self.specs.memory // MEMORY_DIVISOR, MAX_DEVICE_LIMIT)))
 
         device_names = [
             hypervisor_prefix + suffix
