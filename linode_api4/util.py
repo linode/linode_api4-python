@@ -30,7 +30,7 @@ def drop_null_keys(data: Dict[Any, Any], recursive=True) -> Dict[Any, Any]:
     return recursive_helper(data)
 
 
-def generate_device_suffixes(n):
+def generate_device_suffixes(n: int) -> list[str]:
     """
     Generate n alphabetical suffixes starting with a, b, c, etc.
     After z, continue with aa, ab, ac, etc. followed by aaa, aab, etc.
