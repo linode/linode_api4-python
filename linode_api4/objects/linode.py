@@ -1262,7 +1262,12 @@ class Instance(Base):
 
         hypervisor_prefix = "sd" if self.hypervisor == "kvm" else "xvd"
 
-        device_limit = int(max(MIN_DEVICE_LIMIT, min(self.specs.memory // MEMORY_DIVISOR, MAX_DEVICE_LIMIT)))
+        device_limit = int(
+            max(
+                MIN_DEVICE_LIMIT,
+                min(self.specs.memory // MEMORY_DIVISOR, MAX_DEVICE_LIMIT),
+            )
+        )
 
         device_names = [
             hypervisor_prefix + suffix
