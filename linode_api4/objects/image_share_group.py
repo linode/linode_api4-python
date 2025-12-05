@@ -1,3 +1,12 @@
+__all__ = [
+    "ImageShareGroupImageToAdd",
+    "ImageShareGroupImagesToAdd",
+    "ImageShareGroupImageToUpdate",
+    "ImageShareGroupMemberToAdd",
+    "ImageShareGroupMemberToUpdate",
+    "ImageShareGroup",
+    "ImageShareGroupToken",
+]
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -242,7 +251,7 @@ class ImageShareGroup(Base):
         """
         Update the label of a Member in the Image Share Group.
 
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-sharegroup-member-token
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/put-sharegroup-member-token
 
         :param member: The Member to update, formatted in JSON.
         :type member: ImageShareGroupMemberToUpdate
