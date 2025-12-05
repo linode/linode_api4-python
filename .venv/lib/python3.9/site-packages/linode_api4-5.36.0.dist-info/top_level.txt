@@ -1,0 +1,6 @@
+dist
+docs
+e2e_scripts
+examples
+linode_api4
+scripts
