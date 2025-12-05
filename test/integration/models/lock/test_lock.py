@@ -149,7 +149,7 @@ def test_delete_lock(test_linode_client, linode_for_lock):
 
     # Verify the lock no longer exists
     locks = test_linode_client.locks()
-    lock_ids = [l.id for l in locks]
+    lock_ids = [lk.id for lk in locks]
     assert lock_id not in lock_ids
 
 
@@ -173,7 +173,7 @@ def test_delete_lock_by_id(test_linode_client, linode_for_lock):
 
     # Verify the lock no longer exists
     locks = test_linode_client.locks()
-    lock_ids = [l.id for l in locks]
+    lock_ids = [lk.id for lk in locks]
     assert lock_id not in lock_ids
 
 
@@ -195,5 +195,5 @@ def test_lock_object_delete(test_linode_client, linode_for_lock):
 
     # Verify the lock no longer exists
     locks = test_linode_client.locks()
-    lock_ids = [l.id for l in locks]
+    lock_ids = [lk.id for lk in locks]
     assert lock_id not in lock_ids

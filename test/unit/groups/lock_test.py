@@ -62,17 +62,22 @@ class LockGroupTest(ClientBaseCase):
                 m.call_data["lock_type"], "cannot_delete_with_subresources"
             )
 
+            self.assertEqual(lock.id, 1)
+            self.assertEqual(lock.lock_type, "cannot_delete")
+            self.assertIsNotNone(lock.entity)
+            self.assertEqual(lock.entity.id, 123)
+
     def test_create_lock_default_type(self):
         """
         Tests that creating a lock without specifying lock_type uses cannot_delete
         """
-        with self.mock_post("/locks/1") as m:
-            self.client.locks.create(
+        with self.mock_post("/locks/1"):
+            lock = self.client.locks.create(
                 entity_type="linode",
                 entity_id=123,
             )
 
-            self.assertEqual(m.call_data["lock_type"], "cannot_delete")
+            self.assertEqual(lock.lock_type, "cannot_delete")
 
     def test_delete_lock_by_object(self):
         """
