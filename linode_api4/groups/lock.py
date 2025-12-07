@@ -70,20 +70,3 @@ class LockGroup(Group):
             )
 
         return Lock(self.client, result["id"], result)
-
-    def delete(self, lock: Union[Lock, int]) -> bool:
-        """
-        Deletes a Resource Lock.
-
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/delete-lock
-
-        :param lock: The Lock to delete, or its ID.
-        :type lock: Lock or int
-
-        :returns: True if the lock was successfully deleted.
-        :rtype: bool
-        """
-        lock_id = lock.id if isinstance(lock, Lock) else lock
-
-        self.client.delete(f"/locks/{lock_id}")
-        return True

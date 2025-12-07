@@ -131,54 +131,6 @@ def test_create_lock_cannot_delete_with_subresources(
 
 def test_delete_lock(test_linode_client, linode_for_lock):
     """
-    Test that a lock can be deleted.
-    """
-    # Create a lock
-    lock = test_linode_client.locks.create(
-        entity_type="linode",
-        entity_id=linode_for_lock.id,
-        lock_type=LockType.cannot_delete,
-    )
-
-    lock_id = lock.id
-
-    # Delete the lock using the group method
-    result = test_linode_client.locks.delete(lock)
-
-    assert result is True
-
-    # Verify the lock no longer exists
-    locks = test_linode_client.locks()
-    lock_ids = [lk.id for lk in locks]
-    assert lock_id not in lock_ids
-
-
-def test_delete_lock_by_id(test_linode_client, linode_for_lock):
-    """
-    Test that a lock can be deleted by ID.
-    """
-    # Create a lock
-    lock = test_linode_client.locks.create(
-        entity_type="linode",
-        entity_id=linode_for_lock.id,
-        lock_type=LockType.cannot_delete,
-    )
-
-    lock_id = lock.id
-
-    # Delete the lock by ID
-    result = test_linode_client.locks.delete(lock_id)
-
-    assert result is True
-
-    # Verify the lock no longer exists
-    locks = test_linode_client.locks()
-    lock_ids = [lk.id for lk in locks]
-    assert lock_id not in lock_ids
-
-
-def test_lock_object_delete(test_linode_client, linode_for_lock):
-    """
     Test that a lock can be deleted using the Lock object's delete method.
     """
     # Create a lock

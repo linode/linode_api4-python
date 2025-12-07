@@ -1,6 +1,6 @@
 from test.unit.base import ClientBaseCase
 
-from linode_api4.objects import Lock, LockType
+from linode_api4.objects import LockType
 
 
 class LockGroupTest(ClientBaseCase):
@@ -78,25 +78,3 @@ class LockGroupTest(ClientBaseCase):
             )
 
             self.assertEqual(lock.lock_type, "cannot_delete")
-
-    def test_delete_lock_by_object(self):
-        """
-        Tests that a lock can be deleted using client.locks.delete() with a Lock object
-        """
-        lock = Lock(self.client, 1)
-
-        with self.mock_delete() as m:
-            result = self.client.locks.delete(lock)
-
-            self.assertTrue(result)
-            self.assertEqual(m.call_url, "/locks/1")
-
-    def test_delete_lock_by_id(self):
-        """
-        Tests that a lock can be deleted using client.locks.delete() with an ID
-        """
-        with self.mock_delete() as m:
-            result = self.client.locks.delete(123)
-
-            self.assertTrue(result)
-            self.assertEqual(m.call_url, "/locks/123")
