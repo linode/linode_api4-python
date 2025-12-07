@@ -1,5 +1,3 @@
-from typing import Union
-
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import Lock, LockType
@@ -24,7 +22,7 @@ class LockGroup(Group):
 
            locks = client.locks()
 
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-locks
+        API Documentation: TBD
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -38,20 +36,20 @@ class LockGroup(Group):
     def create(
         self,
         entity_type: str,
-        entity_id: Union[int, str],
-        lock_type: Union[LockType, str] = LockType.cannot_delete,
+        entity_id: int | str,
+        lock_type: LockType | str = LockType.cannot_delete,
     ) -> Lock:
         """
         Creates a new Resource Lock for the specified entity.
 
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-lock
+        API Documentation: TBD
 
         :param entity_type: The type of entity to lock (e.g., "linode").
         :type entity_type: str
         :param entity_id: The ID of the entity to lock.
-        :type entity_id: int or str
+        :type entity_id: int | str
         :param lock_type: The type of lock to create. Defaults to "cannot_delete".
-        :type lock_type: LockType or str
+        :type lock_type: LockType | str
 
         :returns: The newly created Resource Lock.
         :rtype: Lock
