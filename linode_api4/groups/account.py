@@ -11,7 +11,6 @@ from linode_api4.objects import (
     ChildAccount,
     Event,
     Invoice,
-    Lock,
     Login,
     MappedObject,
     OAuthClient,
@@ -511,58 +510,3 @@ class AccountGroup(Group):
         :rtype: PaginatedList of ChildAccount
         """
         return self.client._get_and_filter(ChildAccount, *filters)
-
-    def locks(self, *filters):
-        """
-        Returns a list of all resource locks on the account.
-
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-locks
-
-        :param filters: Any number of filters to apply to this query.
-                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
-                        for more details on filtering.
-
-        :returns: A list of resource locks on the account.
-        :rtype: PaginatedList of Lock
-        """
-        return self.client._get_and_filter(Lock, *filters)
-
-    def lock_create(self, entity_type, entity_id, lock_type, **kwargs):
-        """
-        Creates a resource lock to prevent deletion or modification.
-
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-lock
-
-        :param entity_type: The type of entity to lock (e.g., "linode").
-        :type entity_type: str
-        :param entity_id: The ID of the entity to lock.
-        :type entity_id: int
-        :param lock_type: The type of lock (e.g., "cannot_delete").
-        :type lock_type: str or LockType
-
-        :returns: The created resource lock.
-        :rtype: Lock
-        """
-        from linode_api4.objects.lock import (  # pylint: disable=import-outside-toplevel
-            LockType,
-        )
-
-        params = {
-            "entity_type": entity_type,
-            "entity_id": entity_id,
-            "lock_type": (
-                lock_type.value
-                if isinstance(lock_type, LockType)
-                else lock_type
-            ),
-        }
-        params.update(kwargs)
-
-        result = self.client.post("/locks", data=params)
-
-        if "id" not in result:
-            raise UnexpectedResponseError(
-                "Unexpected response when creating lock!", json=result
-            )
-
-        return Lock(self.client, result["id"], result)
