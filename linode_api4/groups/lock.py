@@ -1,3 +1,5 @@
+from typing import Union
+
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import Lock, LockType
@@ -36,8 +38,8 @@ class LockGroup(Group):
     def create(
         self,
         entity_type: str,
-        entity_id: int | str,
-        lock_type: LockType | str = LockType.cannot_delete,
+        entity_id: Union[int, str],
+        lock_type: Union[LockType, str] = LockType.cannot_delete,
     ) -> Lock:
         """
         Creates a new Resource Lock for the specified entity.
