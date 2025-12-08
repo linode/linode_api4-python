@@ -6,6 +6,7 @@ from .beta import *
 from .database import *
 from .domain import *
 from .image import *
+from .image_share_group import *
 from .linode import *
 from .lke import *
 from .lke_tier import *

@@ -1,0 +1,15 @@
+{
+  "data": [
+    {
+      "created": "2025-08-04T10:07:59",
+      "expiry": null,
+      "label": "New Member",
+      "status": "active",
+      "token_uuid": "4591075e-4ba8-43c9-a521-928c3d4a135d",
+      "updated": null
+    }
+  ],
+  "page": 1,
+  "pages": 1,
+  "results": 1
+}
