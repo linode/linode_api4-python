@@ -1,4 +1,5 @@
 import ipaddress
+import logging
 import os
 import random
 import time
@@ -26,6 +27,7 @@ from linode_api4 import (
     PlacementGroupType,
     PostgreSQLDatabase,
 )
+from linode_api4.errors import ApiError
 from linode_api4.linode_client import LinodeClient, MonitorClient
 from linode_api4.objects import Region
 
@@ -34,6 +36,8 @@ ENV_API_URL_NAME = "LINODE_API_URL"
 ENV_REGION_OVERRIDE = "LINODE_TEST_REGION_OVERRIDE"
 ENV_API_CA_NAME = "LINODE_API_CA"
 RUN_LONG_TESTS = "RUN_LONG_TESTS"
+
+logger = logging.getLogger(__name__)
 
 
 def get_token():
@@ -62,12 +66,20 @@ def get_regions(
         "Block Storage",
         "Kubernetes",
     }
-    account_availabilities = client.account.availabilities()
-    account_regional_availabilities = {
-        a.region: a.available for a in account_availabilities
-    }
 
-    print(account_regional_availabilities)
+    account_regional_availabilities = {}
+    try:
+        account_availabilities = client.account.availabilities()
+        for availability in account_availabilities:
+            account_regional_availabilities[availability.region] = (
+                availability.available
+            )
+    except ApiError:
+        logger.warning(
+            "Failed to retrieve account availabilities for regions. "
+            "Assuming required capabilities are available in all regions for this account. "
+            "Tests may fail if the account lacks access to necessary capabilities in the selected region."
+        )
 
     if capabilities is not None:
         regions = [
@@ -76,7 +88,16 @@ def get_regions(
             if set(capabilities).issubset(v.capabilities)
             and set(capabilities)
             .intersection(ALL_ACCOUNT_AVAILABILITIES)
-            .issubset(account_regional_availabilities.get(v.id, []))
+            .issubset(
+                account_regional_availabilities.get(
+                    v.id,
+                    (
+                        []
+                        if account_regional_availabilities
+                        else ALL_ACCOUNT_AVAILABILITIES
+                    ),
+                )
+            )
         ]
 
     if site_type is not None:
