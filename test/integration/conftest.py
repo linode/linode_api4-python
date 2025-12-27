@@ -38,6 +38,13 @@ ENV_API_CA_NAME = "LINODE_API_CA"
 RUN_LONG_TESTS = "RUN_LONG_TESTS"
 SKIP_E2E_FIREWALL = "SKIP_E2E_FIREWALL"
 
+ALL_ACCOUNT_AVAILABILITIES = {
+    "Linodes",
+    "NodeBalancers",
+    "Block Storage",
+    "Kubernetes",
+}
+
 logger = logging.getLogger(__name__)
 
 
@@ -61,12 +68,6 @@ def get_regions(
         return Region(client, region_override)
 
     regions = client.regions()
-    ALL_ACCOUNT_AVAILABILITIES = {
-        "Linodes",
-        "NodeBalancers",
-        "Block Storage",
-        "Kubernetes",
-    }
 
     account_regional_availabilities = {}
     try:
