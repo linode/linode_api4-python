@@ -84,13 +84,16 @@ def get_regions(
         )
 
     if capabilities is not None:
+        required_capabilities = set(capabilities)
+        required_account_capabilities = required_capabilities.intersection(
+            ALL_ACCOUNT_AVAILABILITIES
+        )
+
         regions = [
             v
             for v in regions
-            if set(capabilities).issubset(v.capabilities)
-            and set(capabilities)
-            .intersection(ALL_ACCOUNT_AVAILABILITIES)
-            .issubset(
+            if required_capabilities.issubset(v.capabilities)
+            and required_account_capabilities.issubset(
                 account_regional_availabilities.get(
                     v.id,
                     (
