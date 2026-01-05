@@ -38,7 +38,7 @@ def lke_cluster(test_linode_client):
     label = get_test_label() + "_cluster"
 
     cluster = test_linode_client.lke.cluster_create(
-        region, label, node_pools, version
+        region, label, version, node_pools
     )
 
     yield cluster
@@ -57,8 +57,8 @@ def lke_cluster_with_acl(test_linode_client):
     cluster = test_linode_client.lke.cluster_create(
         region,
         label,
-        node_pools,
         version,
+        node_pools,
         control_plane=LKEClusterControlPlaneOptions(
             acl=LKEClusterControlPlaneACLOptions(
                 enabled=True,
@@ -103,7 +103,7 @@ def lke_cluster_with_labels_and_taints(test_linode_client):
     label = get_test_label() + "_cluster"
 
     cluster = test_linode_client.lke.cluster_create(
-        region, label, node_pools, version
+        region, label, version, node_pools
     )
 
     yield cluster
@@ -124,8 +124,8 @@ def lke_cluster_with_apl(test_linode_client):
     cluster = test_linode_client.lke.cluster_create(
         region,
         label,
-        node_pools,
         version,
+        node_pools,
         control_plane=LKEClusterControlPlaneOptions(
             high_availability=True,
         ),
@@ -160,8 +160,8 @@ def lke_cluster_enterprise(e2e_test_firewall, test_linode_client):
     cluster = test_linode_client.lke.cluster_create(
         region,
         label,
-        node_pools,
         version,
+        node_pools,
         tier="enterprise",
     )
 

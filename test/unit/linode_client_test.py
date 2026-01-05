@@ -817,7 +817,7 @@ class LKEGroupTest(ClientBaseCase):
         node_pools = self.client.lke.node_pool(node_type, 3)
         with self.mock_post("lke/clusters") as m:
             cluster = self.client.lke.cluster_create(
-                region, "example-cluster", node_pools, version
+                region, "example-cluster", version, node_pools
             )
             self.assertEqual(m.call_data["region"], "ap-west")
             self.assertEqual(
@@ -850,8 +850,8 @@ class LKEGroupTest(ClientBaseCase):
             cluster = self.client.lke.cluster_create(
                 "ap-west",
                 "example-cluster",
-                {"type": "g6-standard-1", "count": 3},
                 "1.19",
+                {"type": "g6-standard-1", "count": 3},
             )
             self.assertEqual(m.call_data["region"], "ap-west")
             self.assertEqual(
