@@ -1,3 +1,4 @@
+import time
 from test.integration.helpers import (
     get_test_label,
     send_request_when_resource_available,
@@ -8,6 +9,8 @@ import pytest
 
 from linode_api4 import LinodeClient
 from linode_api4.objects import (
+    AlertDefinition,
+    ApiError,
     MonitorDashboard,
     MonitorMetricsDefinition,
     MonitorService,
@@ -33,6 +36,57 @@ def test_get_all_dashboards(test_linode_client):
     dashboards_by_svc = client.monitor.dashboards(service_type=get_service_type)
     assert isinstance(dashboards_by_svc[0], MonitorDashboard)
     assert dashboards_by_svc[0].service_type == get_service_type
+
+
+def test_filter_and_group_by(test_linode_client):
+    client = test_linode_client
+    dashboards_by_svc = client.monitor.dashboards(service_type="linode")
+    assert isinstance(dashboards_by_svc[0], MonitorDashboard)
+
+    # Get the first dashboard for linode service type
+    dashboard = dashboards_by_svc[0]
+    assert dashboard.service_type == "linode"
+
+    # Ensure the dashboard has widgets
+    assert hasattr(
+        dashboard, "widgets"
+    ), "Dashboard should have widgets attribute"
+    assert dashboard.widgets is not None, "Dashboard widgets should not be None"
+    assert (
+        len(dashboard.widgets) > 0
+    ), "Dashboard should have at least one widget"
+
+    # Test the first widget's group_by and filters fields
+    widget = dashboard.widgets[0]
+
+    # Test group_by field type
+    group_by = widget.group_by
+    assert group_by is None or isinstance(
+        group_by, list
+    ), "group_by should be None or list type"
+    if group_by is not None:
+        for item in group_by:
+            assert isinstance(item, str), "group_by items should be strings"
+
+    # Test filters field type
+    filters = widget.filters
+    assert filters is None or isinstance(
+        filters, list
+    ), "filters should be None or list type"
+    if filters is not None:
+        from linode_api4.objects.monitor import Filter
+
+        for filter_item in filters:
+            assert isinstance(
+                filter_item, Filter
+            ), "filter items should be Filter objects"
+            assert hasattr(
+                filter_item, "dimension_label"
+            ), "Filter should have dimension_label"
+            assert hasattr(
+                filter_item, "operator"
+            ), "Filter should have operator"
+            assert hasattr(filter_item, "value"), "Filter should have value"
 
 
 # List supported services
@@ -112,3 +166,110 @@ def test_my_db_functionality(test_linode_client, test_create_and_test_db):
     assert isinstance(token, MonitorServiceToken)
     assert len(token.token) > 0, "Token should not be empty"
     assert hasattr(token, "token"), "Response object has no 'token' attribute"
+
+
+def test_integration_create_get_update_delete_alert_definition(
+    test_linode_client,
+):
+    """E2E: create an alert definition, fetch it, update it, then delete it.
+
+    This test attempts to be resilient: it cleans up the created definition
+    in a finally block so CI doesn't leak resources.
+    """
+    client = test_linode_client
+    service_type = "dbaas"
+    label = get_test_label() + "-e2e-alert"
+
+    rule_criteria = {
+        "rules": [
+            {
+                "aggregate_function": "avg",
+                "dimension_filters": [
+                    {
+                        "dimension_label": "node_type",
+                        "label": "Node Type",
+                        "operator": "eq",
+                        "value": "primary",
+                    }
+                ],
+                "label": "Memory Usage",
+                "metric": "memory_usage",
+                "operator": "gt",
+                "threshold": 90,
+                "unit": "percent",
+            }
+        ]
+    }
+    trigger_conditions = {
+        "criteria_condition": "ALL",
+        "evaluation_period_seconds": 300,
+        "polling_interval_seconds": 300,
+        "trigger_occurrences": 1,
+    }
+
+    # Make the label unique and ensure it begins/ends with an alphanumeric char
+    label = f"{label}-{int(time.time())}"
+    description = "E2E alert created by SDK integration test"
+
+    # Pick an existing alert channel to attach to the definition; skip if none
+    channels = list(client.monitor.alert_channels())
+    if not channels:
+        pytest.skip(
+            "No alert channels available on account for creating alert definitions"
+        )
+
+    created = None
+
+    def wait_for_alert_ready(alert_id, service_type: str):
+        timeout = 360  # maximum time in seconds to wait for alert creation
+        initial_timeout = 1
+        start = time.time()
+        interval = initial_timeout
+        alert = client.load(AlertDefinition, alert_id, service_type)
+        while (
+            getattr(alert, "status", None) == "in progress"
+            and (time.time() - start) < timeout
+        ):
+            time.sleep(interval)
+            interval *= 2
+            try:
+                alert._api_get()
+            except ApiError as e:
+                # transient errors while polling; continue until timeout
+                if e.status != 404:
+                    raise
+        return alert
+
+    try:
+        # Create the alert definition using API-compliant top-level fields
+        created = client.monitor.create_alert_definition(
+            service_type=service_type,
+            label=label,
+            severity=1,
+            description=description,
+            channel_ids=[channels[0].id],
+            rule_criteria=rule_criteria,
+            trigger_conditions=trigger_conditions,
+        )
+
+        assert created.id
+        assert getattr(created, "label", None) == label
+
+        created = wait_for_alert_ready(created.id, service_type)
+
+        updated = client.load(AlertDefinition, created.id, service_type)
+        updated.label = f"{label}-updated"
+        updated.save()
+
+        updated = wait_for_alert_ready(updated.id, service_type)
+
+        assert created.id == updated.id
+        assert updated.label == f"{label}-updated"
+
+    finally:
+        if created:
+            # Best-effort cleanup; allow transient errors.
+            delete_alert = client.load(
+                AlertDefinition, created.id, service_type
+            )
+            delete_alert.delete()
