@@ -52,18 +52,16 @@ class LockGroupTest(ClientBaseCase):
             lock = self.client.locks.create(
                 entity_type="linode",
                 entity_id=456,
-                lock_type=LockType.cannot_delete_with_subresources,
+                lock_type=LockType.cannot_delete,
             )
 
             self.assertEqual(m.call_url, "/locks")
             self.assertEqual(m.call_data["entity_type"], "linode")
             self.assertEqual(m.call_data["entity_id"], 456)
-            self.assertEqual(
-                m.call_data["lock_type"], "cannot_delete_with_subresources"
-            )
+            self.assertEqual(m.call_data["lock_type"], LockType.cannot_delete)
 
             self.assertEqual(lock.id, 1)
-            self.assertEqual(lock.lock_type, "cannot_delete")
+            self.assertEqual(lock.lock_type, LockType.cannot_delete)
             self.assertIsNotNone(lock.entity)
             self.assertEqual(lock.entity.id, 123)
 
