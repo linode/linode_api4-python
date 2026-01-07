@@ -20,7 +20,9 @@ class LockGroupTest(ClientBaseCase):
         self.assertEqual(locks[0].entity.id, 123)
         self.assertEqual(locks[0].entity.type, "linode")
         self.assertEqual(locks[1].id, 2)
-        self.assertEqual(locks[1].lock_type, LockType.cannot_delete_with_subresources)
+        self.assertEqual(
+            locks[1].lock_type, LockType.cannot_delete_with_subresources
+        )
         self.assertEqual(locks[1].entity.id, 456)
 
     def test_create_lock(self):
