@@ -39,7 +39,7 @@ class LockGroup(Group):
         self,
         entity_type: str,
         entity_id: Union[int, str],
-        lock_type: Union[LockType, str] = LockType.cannot_delete,
+        lock_type: Union[LockType, str],
     ) -> Lock:
         """
         Creates a new Resource Lock for the specified entity.

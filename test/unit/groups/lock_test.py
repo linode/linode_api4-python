@@ -16,11 +16,11 @@ class LockGroupTest(ClientBaseCase):
 
         self.assertEqual(len(locks), 2)
         self.assertEqual(locks[0].id, 1)
-        self.assertEqual(locks[0].lock_type, "cannot_delete")
+        self.assertEqual(locks[0].lock_type, LockType.cannot_delete)
         self.assertEqual(locks[0].entity.id, 123)
         self.assertEqual(locks[0].entity.type, "linode")
         self.assertEqual(locks[1].id, 2)
-        self.assertEqual(locks[1].lock_type, "cannot_delete_with_subresources")
+        self.assertEqual(locks[1].lock_type, LockType.cannot_delete_with_subresources)
         self.assertEqual(locks[1].entity.id, 456)
 
     def test_create_lock(self):
@@ -37,10 +37,10 @@ class LockGroupTest(ClientBaseCase):
             self.assertEqual(m.call_url, "/locks")
             self.assertEqual(m.call_data["entity_type"], "linode")
             self.assertEqual(m.call_data["entity_id"], 123)
-            self.assertEqual(m.call_data["lock_type"], "cannot_delete")
+            self.assertEqual(m.call_data["lock_type"], LockType.cannot_delete)
 
             self.assertEqual(lock.id, 1)
-            self.assertEqual(lock.lock_type, "cannot_delete")
+            self.assertEqual(lock.lock_type, LockType.cannot_delete)
             self.assertIsNotNone(lock.entity)
             self.assertEqual(lock.entity.id, 123)
 
@@ -52,27 +52,13 @@ class LockGroupTest(ClientBaseCase):
             lock = self.client.locks.create(
                 entity_type="linode",
                 entity_id=456,
-                lock_type=LockType.cannot_delete,
+                lock_type=LockType.cannot_delete_with_subresources,
             )
 
             self.assertEqual(m.call_url, "/locks")
             self.assertEqual(m.call_data["entity_type"], "linode")
             self.assertEqual(m.call_data["entity_id"], 456)
-            self.assertEqual(m.call_data["lock_type"], LockType.cannot_delete)
-
-            self.assertEqual(lock.id, 1)
-            self.assertEqual(lock.lock_type, LockType.cannot_delete)
-            self.assertIsNotNone(lock.entity)
-            self.assertEqual(lock.entity.id, 123)
-
-    def test_create_lock_default_type(self):
-        """
-        Tests that creating a lock without specifying lock_type uses cannot_delete
-        """
-        with self.mock_post("/locks/1"):
-            lock = self.client.locks.create(
-                entity_type="linode",
-                entity_id=123,
+            self.assertEqual(
+                m.call_data["lock_type"],
+                LockType.cannot_delete_with_subresources,
             )
-
-            self.assertEqual(lock.lock_type, "cannot_delete")
