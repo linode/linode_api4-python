@@ -51,7 +51,7 @@ class LockGroupTest(ClientBaseCase):
         Tests that a lock with subresources can be created
         """
         with self.mock_post("/locks/1") as m:
-            lock = self.client.locks.create(
+            self.client.locks.create(
                 entity_type="linode",
                 entity_id=456,
                 lock_type=LockType.cannot_delete_with_subresources,
