@@ -9,6 +9,7 @@ import pytest
 from linode_api4.objects import (
     Image,
     ImageShareGroup,
+    ImageShareGroupMemberToAdd,
     ImageShareGroupToken,
 )
 
@@ -34,6 +35,16 @@ def create_image_id(test_linode_client, linode_for_legacy_interface_tests):
     create_image = test_linode_client.images.create(disks[0], label="linode-api4python-test-image-sharing-image")
     wait_for_image_status(test_linode_client, create_image.id, "available")
     yield create_image.id
+
+
+@pytest.fixture(scope="function")
+def share_group_id(test_linode_client):
+    group_label = get_test_label(8) + "_sharegroup_api4_test"
+    response = test_linode_client.sharegroups.create_sharegroup(
+        label=group_label,
+        description="Test api4python",
+    )
+    yield response.id
 
 
 def test_get_share_groups(test_linode_client):
@@ -120,3 +131,17 @@ def test_get_invalid_token(test_linode_client):
     with pytest.raises(RuntimeError) as err:
         test_linode_client.load(ImageShareGroupToken, "36b0-4d52_invalid")
     assert "[404] Not found" in str(err.value)
+
+
+def test_try_to_add_member_invalid_token(test_linode_client, share_group_id):
+    share_group = test_linode_client.load(ImageShareGroup, share_group_id)
+    with pytest.raises(RuntimeError) as err:
+        share_group.add_member(
+            ImageShareGroupMemberToAdd(
+                token="notExistingToken",
+                label="New Member",
+            )
+        )
+    assert "[500] Invalid token format" in str(err.value)
+    share_group.delete()
+
