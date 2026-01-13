@@ -803,6 +803,7 @@ class Instance(Base):
         "maintenance_policy": Property(
             mutable=True
         ),  # Note: This field is only available when using v4beta.
+        "locks": Property(unordered=True),
     }
 
     @property
