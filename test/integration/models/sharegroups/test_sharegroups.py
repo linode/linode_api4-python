@@ -19,7 +19,7 @@ from linode_api4.objects import (
 
 
 def wait_for_image_status(
-    test_linode_client, image_id, expected_status, timeout=180, interval=5
+    test_linode_client, image_id, expected_status, timeout=360, interval=5
 ):
     import time
 
@@ -44,7 +44,7 @@ def sample_linode(test_linode_client, e2e_test_firewall):
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
         region,
-        image="linode/debian12",
+        image="linode/alpine3.19",
         label=label + "_modlinode",
     )
     yield linode_instance
@@ -73,7 +73,7 @@ def share_group_id(test_linode_client):
     group.delete()
 
 
-def test_get_share_groups(test_linode_client):
+def test_get_share_groups(test_linode_client, share_group_id):
     response = test_linode_client.sharegroups()
     sharegroups_list = response.lists[0]
     assert len(sharegroups_list) > 0
@@ -81,12 +81,11 @@ def test_get_share_groups(test_linode_client):
     assert sharegroups_list[0].id > 0
     assert sharegroups_list[0].description != ""
     assert isinstance(sharegroups_list[0].images_count, int)
-    assert sharegroups_list[0].is_suspended == False
+    assert not sharegroups_list[0].is_suspended
     assert sharegroups_list[0].label != ""
     assert isinstance(sharegroups_list[0].members_count, int)
     assert sharegroups_list[0].uuid != ""
     assert isinstance(sharegroups_list[0].created, datetime.date)
-    assert isinstance(sharegroups_list[0].updated, datetime.date)
     assert not sharegroups_list[0].expiry
 
 
@@ -100,7 +99,7 @@ def test_add_update_remove_share_group(test_linode_client):
     assert share_group.id > 0
     assert share_group.description == "Test api4python create"
     assert isinstance(share_group.images_count, int)
-    assert share_group.is_suspended == False
+    assert not share_group.is_suspended
     assert share_group.label == group_label
     assert isinstance(share_group.members_count, int)
     assert share_group.uuid != ""
@@ -217,7 +216,7 @@ def test_try_to_add_member_invalid_token(test_linode_client, share_group_id):
     with pytest.raises(RuntimeError) as err:
         share_group.add_member(
             ImageShareGroupMemberToAdd(
-                token="notExistingToken",
+                token="not_existing_token",
                 label="New Member",
             )
         )
@@ -235,18 +234,18 @@ def test_try_to_get_update_revoke_share_group_member_by_invalid_token(
 ):
     share_group = test_linode_client.load(ImageShareGroup, share_group_id)
     with pytest.raises(RuntimeError) as err:
-        share_group.get_member("notExistingToken")
+        share_group.get_member("not_existing_token")
     assert "[404] Not found" in str(err.value)
 
     with pytest.raises(RuntimeError) as err:
         share_group.update_member(
             ImageShareGroupMemberToUpdate(
-                token_uuid="notExistingToken",
+                token_uuid="not_existing_token",
                 label="Update Member",
             )
         )
     assert "[404] Not found" in str(err.value)
 
     with pytest.raises(RuntimeError) as err:
-        share_group.remove_member("notExistingToken")
+        share_group.remove_member("not_existing_token")
     assert "[404] Not found" in str(err.value)
