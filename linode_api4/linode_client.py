@@ -19,6 +19,7 @@ from linode_api4.groups import (
     ImageShareGroupAPIGroup,
     LinodeGroup,
     LKEGroup,
+    LockGroup,
     LongviewGroup,
     MaintenanceGroup,
     MetricsGroup,
@@ -457,6 +458,9 @@ class LinodeClient(BaseClient):
         self.placement = PlacementAPIGroup(self)
 
         self.monitor = MonitorGroup(self)
+
+        #: Access methods related to Resource Locks - See :any:`LockGroup` for more information.
+        self.locks = LockGroup(self)
 
         super().__init__(
             token=token,
