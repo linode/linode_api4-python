@@ -24,4 +24,5 @@ from .beta import *
 from .placement import *
 from .monitor import *
 from .monitor_api import *
+from .image_share_group import *
 from .lock import *
