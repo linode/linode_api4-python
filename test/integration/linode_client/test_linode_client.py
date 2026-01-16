@@ -350,8 +350,8 @@ def test_fails_to_create_cluster_with_invalid_version(test_linode_client):
         cluster = client.lke.cluster_create(
             region,
             "example-cluster",
-            {"type": "g6-standard-1", "count": 3},
             invalid_version,
+            {"type": "g6-standard-1", "count": 3},
         )
     except ApiError as e:
         assert "not valid" in str(e.json)

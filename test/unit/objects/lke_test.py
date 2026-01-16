@@ -302,6 +302,7 @@ class LKETest(ClientBaseCase):
             self.client.lke.cluster_create(
                 "us-mia",
                 "test-acl-cluster",
+                "1.29",
                 [
                     self.client.lke.node_pool(
                         "g6-nanode-1",
@@ -317,7 +318,6 @@ class LKETest(ClientBaseCase):
                         ],
                     )
                 ],
-                "1.29",
             )
 
             assert m.call_data["node_pools"][0] == {
@@ -339,13 +339,13 @@ class LKETest(ClientBaseCase):
             cluster = self.client.lke.cluster_create(
                 "us-mia",
                 "test-aapl-cluster",
+                "1.29",
                 [
                     self.client.lke.node_pool(
                         "g6-dedicated-4",
                         3,
                     )
                 ],
-                "1.29",
                 apl_enabled=True,
                 control_plane=LKEClusterControlPlaneOptions(
                     high_availability=True,
