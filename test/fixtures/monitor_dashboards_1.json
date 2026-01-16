@@ -14,7 +14,9 @@
         "metric": "cpu_usage",
         "size": 12,
         "unit": "%",
-        "y_label": "cpu_usage"
+        "y_label": "cpu_usage",
+        "group_by": ["entity_id"],
+        "filters": null
       },
       {
         "aggregate_function": "sum",
@@ -24,7 +26,9 @@
         "metric": "available_memory",
         "size": 6,
         "unit": "GB",
-        "y_label": "available_memory"
+        "y_label": "available_memory",
+        "group_by": ["entity_id"],
+        "filters": null
       }
     ]
   }

@@ -30,6 +30,38 @@ class ImageRegion(JSONObject):
     status: Optional[ReplicationStatus] = None
 
 
+@dataclass
+class ImageSharingSharedWith(JSONObject):
+    """
+    Data representing who an Image has been shared with.
+    """
+
+    sharegroup_count: Optional[int] = None
+    sharegroup_list_url: Optional[str] = None
+
+
+@dataclass
+class ImageSharingSharedBy(JSONObject):
+    """
+    Data representing who shared an Image.
+    """
+
+    sharegroup_id: Optional[int] = None
+    sharegroup_uuid: Optional[str] = None
+    sharegroup_label: Optional[str] = None
+    source_image_id: Optional[str] = None
+
+
+@dataclass
+class ImageSharing(JSONObject):
+    """
+    The Image Sharing status of an Image.
+    """
+
+    shared_with: Optional[ImageSharingSharedWith] = None
+    shared_by: Optional[ImageSharingSharedBy] = None
+
+
 class Image(Base):
     """
     An Image is something a Linode Instance or Disk can be deployed from.
@@ -51,6 +83,7 @@ class Image(Base):
         "updated": Property(is_datetime=True),
         "type": Property(),
         "is_public": Property(),
+        "is_shared": Property(),
         "vendor": Property(),
         "size": Property(),
         "deprecated": Property(),
@@ -60,6 +93,7 @@ class Image(Base):
         "tags": Property(mutable=True, unordered=True),
         "total_size": Property(),
         "regions": Property(json_object=ImageRegion, unordered=True),
+        "image_sharing": Property(json_object=ImageSharing),
     }
 
     def replicate(self, regions: Union[List[str], List[Region]]):

@@ -143,7 +143,7 @@ class MySQLDatabaseTest(ClientBaseCase):
             # We don't care about errors here; we just want to
             # validate the request.
             try:
-                db.backup_create("mybackup", target="secondary")
+                db.backup_create("mybackup", target="standby")
             except Exception as e:
                 logger.warning(
                     "An error occurred while validating the request: %s", e
@@ -154,7 +154,7 @@ class MySQLDatabaseTest(ClientBaseCase):
                 m.call_url, "/databases/mysql/instances/123/backups"
             )
             self.assertEqual(m.call_data["label"], "mybackup")
-            self.assertEqual(m.call_data["target"], "secondary")
+            self.assertEqual(m.call_data["target"], "standby")
 
     def test_backup_restore(self):
         """
@@ -410,7 +410,7 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
             # We don't care about errors here; we just want to
             # validate the request.
             try:
-                db.backup_create("mybackup", target="secondary")
+                db.backup_create("mybackup", target="standby")
             except Exception as e:
                 logger.warning(
                     "An error occurred while validating the request: %s", e
@@ -421,7 +421,7 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
                 m.call_url, "/databases/postgresql/instances/123/backups"
             )
             self.assertEqual(m.call_data["label"], "mybackup")
-            self.assertEqual(m.call_data["target"], "secondary")
+            self.assertEqual(m.call_data["target"], "standby")
 
     def test_backup_restore(self):
         """

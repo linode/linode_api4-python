@@ -19,4 +19,5 @@ class BetaProgram(Base):
         "ended": Property(is_datetime=True),
         "greenlight_only": Property(),
         "more_info": Property(),
+        "beta_class": Property(alias_of="class"),
     }

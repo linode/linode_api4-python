@@ -23,9 +23,7 @@ from linode_api4.objects.linode import (
     NetworkInterface,
     _expand_placement_group_assignment,
 )
-from linode_api4.objects.linode_interfaces import (
-    LinodeInterfaceOptions,
-)
+from linode_api4.objects.linode_interfaces import LinodeInterfaceOptions
 from linode_api4.util import drop_null_keys
 
 
