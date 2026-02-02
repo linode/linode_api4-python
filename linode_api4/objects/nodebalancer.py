@@ -252,6 +252,7 @@ class NodeBalancer(Base):
         "transfer": Property(),
         "tags": Property(mutable=True, unordered=True),
         "client_udp_sess_throttle": Property(mutable=True),
+        "locks": Property(unordered=True),
     }
 
     # create derived objects

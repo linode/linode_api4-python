@@ -175,6 +175,24 @@ class NodeBalancerTest(ClientBaseCase):
                 },
             )
 
+    def test_locks_not_in_put(self):
+        """
+        Test that locks are not included in PUT request when updating a NodeBalancer.
+        Locks are managed through the separate /v4/locks endpoint.
+        """
+        nb = NodeBalancer(self.client, 123456)
+        # Access locks to ensure it's loaded
+        self.assertEqual(nb.locks, ["cannot_delete_with_subresources"])
+
+        nb.label = "new-label"
+
+        with self.mock_put("nodebalancers/123456") as m:
+            nb.save()
+            self.assertEqual(m.call_url, "/nodebalancers/123456")
+            # Verify locks is NOT in the PUT data
+            self.assertNotIn("locks", m.call_data)
+            self.assertEqual(m.call_data["label"], "new-label")
+
     def test_firewalls(self):
         """
         Test that you can get the firewalls for the requested NodeBalancer.
