@@ -122,7 +122,7 @@ class LKEGroup(Group):
         if node_pools is None:
             node_pools = []
 
-        if len(node_pools) == 0 and (
+        if len([node_pools]) == 0 and (
             tier is None or tier.lower() != "enterprise"
         ):
             raise ValueError(
