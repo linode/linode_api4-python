@@ -331,7 +331,7 @@ def test_cluster_create_with_api_objects(test_linode_client):
     node_pools = client.lke.node_pool(node_type, 3)
     label = get_test_label()
 
-    cluster = client.lke.cluster_create(region, label, version, node_pools)
+    cluster = client.lke.cluster_create(region, label, version, [node_pools])
 
     assert cluster.region.id == region.id
     assert cluster.k8s_version.id == version.id
