@@ -101,7 +101,7 @@ jobs:
           LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
 
       - name: Upload test results
-        if: always()
+        if: always() && github.event_name == 'pull_request'
         run: |
           filename=$(ls | grep -E '^[0-9]{12}_sdk_test_report\.xml$') 
           python3 e2e_scripts/tod_scripts/xml_to_obj_storage/scripts/add_gha_info_to_xml.py \
