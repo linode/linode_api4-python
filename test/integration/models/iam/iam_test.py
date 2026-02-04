@@ -58,3 +58,35 @@ def test_list_entities(test_linode_client):
         assert hasattr(entity, "type")
     else:
         pytest.skip("No entities found in IAM response.")
+
+
+def test_get_account_permissions(test_linode_client):
+    client = test_linode_client
+    username = client.profile().username
+
+    account_permissions = client.iam.account_permissions_get(username)
+
+    if len(account_permissions) > 0:
+        assert len(account_permissions) > 0
+    else:
+        pytest.skip("No account permissions found for the user.")
+
+
+def test_get_entity_permissions(test_linode_client):
+    client = test_linode_client
+    username = client.profile().username
+
+    entities = client.iam.entities()
+    if len(entities) > 0:
+        entity = entities[0]
+        entity_permissions = client.iam.entity_permissions_get(
+            username, entity.type, entity.id
+        )
+        if len(entity_permissions) > 0:
+            assert len(entity_permissions) > 0
+        else:
+            pytest.skip(
+                "No entity permissions found for the user and chosen entity."
+            )
+    else:
+        pytest.skip("No entities found in IAM response.")
