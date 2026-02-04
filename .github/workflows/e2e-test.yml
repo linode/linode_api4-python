@@ -96,7 +96,7 @@ jobs:
           LINODE_TOKEN: ${{ env.LINODE_TOKEN }}
 
       - name: Upload Test Report as Artifact
-        if: always() && github.event_name == 'push'
+        if: always()
         uses: actions/upload-artifact@v6
         with:
           name: test-report-file
@@ -172,7 +172,7 @@ jobs:
   process-upload-report:
     runs-on: ubuntu-latest
     needs: [integration-tests]
-    if: always() && github.repository == 'linode/linode_api4-python' # Run even if integration tests fail and only on main repository
+    if: always() && github.repository == 'linode/linode_api4-python' && github.event_name == 'push' # Run even if integration tests fail and only on main repository and push event
     outputs:
       summary: ${{ steps.set-test-summary.outputs.summary }}
 
