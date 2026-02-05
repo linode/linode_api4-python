@@ -1,0 +1,8 @@
+[
+    "generate_linode_lish_token_remote",
+    "rebuild_linode",
+    "shutdown_linode",
+    "create_linode_config_profile",
+    "rescue_linode",
+    "list_linode_volumes"
+]
