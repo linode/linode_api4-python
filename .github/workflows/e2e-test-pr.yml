@@ -27,6 +27,14 @@ on:
       pull_request_number:
         description: 'The number of the PR.'
         required: false
+      test_report_upload:
+        description: 'Indicates whether to upload the test report to object storage. Defaults to "false"'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
 
 name: PR E2E Tests
 
@@ -101,7 +109,7 @@ jobs:
           LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
 
       - name: Upload test results
-        if: always()
+        if: always() && github.repository == 'linode/linode_api4-python' && (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.test_report_upload == 'true'))
         run: |
           filename=$(ls | grep -E '^[0-9]{12}_sdk_test_report\.xml$') 
           python3 e2e_scripts/tod_scripts/xml_to_obj_storage/scripts/add_gha_info_to_xml.py \
