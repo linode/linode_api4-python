@@ -802,7 +802,7 @@ class Instance(Base):
         "interface_generation": Property(),
         "maintenance_policy": Property(
             mutable=True
-        ),  # Note: This field is only available when using v4beta.
+        ),
         "locks": Property(unordered=True),
     }
 
