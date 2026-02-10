@@ -10,7 +10,8 @@
       "updated": "2018-01-01T00:01:01",
       "label": "balancer123456",
       "client_conn_throttle": 0,
-      "tags": ["something"]
+      "tags": ["something"],
+      "locks": ["cannot_delete_with_subresources"]
     },
     {
       "created": "2018-01-01T00:01:01",
@@ -22,7 +23,8 @@
       "updated": "2018-01-01T00:01:01",
       "label": "balancer123457",
       "client_conn_throttle": 0,
-      "tags": []
+      "tags": [],
+      "locks": []
     }
   ],
   "results": 2,
