@@ -218,9 +218,7 @@ class AccountSettings(Base):
         "object_storage": Property(),
         "backups_enabled": Property(mutable=True),
         "interfaces_for_new_linodes": Property(mutable=True),
-        "maintenance_policy": Property(
-            mutable=True
-        ),  # Note: This field is only available when using v4beta.
+        "maintenance_policy": Property(mutable=True),
     }
 
 
@@ -249,7 +247,7 @@ class Event(Base):
         "duration": Property(),
         "secondary_entity": Property(),
         "message": Property(),
-        "maintenance_policy_set": Property(),  # Note: This field is only available when using v4beta.
+        "maintenance_policy_set": Property(),
         "description": Property(),
         "source": Property(),
         "not_before": Property(is_datetime=True),

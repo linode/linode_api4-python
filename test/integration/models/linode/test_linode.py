@@ -1101,8 +1101,7 @@ class TestNetworkInterface:
 
 def test_create_linode_with_maintenance_policy(test_linode_client):
     client = test_linode_client
-    # TODO: Replace with random region after GA
-    region = "ap-south"
+    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label()
 
     policies = client.maintenance.maintenance_policies()
