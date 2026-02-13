@@ -227,7 +227,7 @@ def test_integration_create_get_update_delete_alert_definition(
         interval = initial_timeout
         alert = client.load(AlertDefinition, alert_id, service_type)
         while (
-            getattr(alert, "status", None) == "in progress"
+            getattr(alert, "status", None) == "provisioning"
             and (time.time() - start) < timeout
         ):
             time.sleep(interval)

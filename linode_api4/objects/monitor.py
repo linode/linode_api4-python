@@ -428,6 +428,38 @@ class ChannelContent(JSONObject):
     # Other channel types like 'webhook', 'slack' could be added here as Optional fields.
 
 
+@dataclass
+class EmailDetails(JSONObject):
+    """
+    Represents email-specific details for an alert channel.
+    """
+    usernames: Optional[List[str]] = None
+    recipient_type: Optional[str] = None
+
+
+@dataclass
+class ChannelDetails(JSONObject):
+    """
+    Represents the details block for an AlertChannel, which varies by channel type.
+    """
+    email: Optional[EmailDetails] = None
+
+
+@dataclass
+class AlertsReference(JSONObject):
+    """
+    Represents a reference to alerts associated with an alert channel.
+    
+    Fields:
+      - url: str - API URL to fetch the alerts for this channel
+      - type: str - Type identifier (e.g., 'alerts-definitions')
+      - alert_count: int - Number of alerts associated with this channel
+    """
+    url: str = ""
+    _type: str = field(default="", metadata={"json_key": "type"})
+    alert_count: int = 0
+
+
 class AlertChannel(Base):
     """
     Represents an alert channel used to deliver notifications when alerts
@@ -450,7 +482,8 @@ class AlertChannel(Base):
         "label": Property(),
         "type": Property(),
         "channel_type": Property(),
-        "alerts": Property(mutable=False, json_object=Alerts),
+        "details": Property(mutable=False, json_object=ChannelDetails),
+        "alerts": Property(mutable=False, json_object=AlertsReference),
         "content": Property(mutable=False, json_object=ChannelContent),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),
