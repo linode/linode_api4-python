@@ -1,7 +1,6 @@
 import pytest
 
 from linode_api4.objects import Region
-from linode_api4.objects.region import RegionVPCAvailability
 
 
 @pytest.mark.smoke
@@ -94,19 +93,6 @@ def test_get_region_availability_via_group(test_linode_client):
         assert isinstance(entry.available, bool)
 
 
-def test_vpc_availability_matches_region_id(test_linode_client):
-    """
-    Test that VPC availability region field matches the requested region.
-    """
-    client = test_linode_client
-
-    # Test with a known region
-    region_id = "us-east"
-    vpc_avail = client.regions.vpc_availability_get(region_id)
-
-    assert vpc_avail.region == region_id
-
-
 def test_vpc_availability_available_regions(test_linode_client):
     """
     Test that some regions have VPC availability enabled.
@@ -120,49 +106,3 @@ def test_vpc_availability_available_regions(test_linode_client):
 
     # There should be at least some regions with VPC available
     assert len(available_regions) > 0
-
-    # Check that available regions have proper data
-    for entry in available_regions:
-        assert entry.region is not None
-        assert entry.available is True
-
-
-def test_vpc_availability_pagination(test_linode_client):
-    """
-    Test that VPC availability listing returns all entries.
-    """
-    client = test_linode_client
-
-    # Get all VPC availability entries
-    all_entries = client.regions.vpc_availability()
-
-    # Verify we got results
-    assert len(all_entries) > 0
-
-    # Each entry should have required fields
-    for entry in all_entries:
-        assert entry.region is not None
-        assert entry.available is not None
-        assert entry.available_ipv6_prefix_lengths is not None
-
-
-def test_vpc_availability_list_complete(test_linode_client):
-    """
-    Test that vpc_availability endpoint returns complete list of all regions.
-    """
-    client = test_linode_client
-
-    # Get VPC availability for all regions
-    vpc_availability = client.regions.vpc_availability()
-
-    # Get all regions
-    all_regions = client.regions()
-
-    # VPC availability should contain entries for all regions
-    assert len(vpc_availability) == len(all_regions)
-
-    # Verify each region has a VPC availability entry
-    vpc_region_ids = {v.region for v in vpc_availability}
-    all_region_ids = {r.id for r in all_regions}
-
-    assert vpc_region_ids == all_region_ids

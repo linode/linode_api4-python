@@ -93,7 +93,9 @@ class RegionGroup(Group):
         """
 
         return self.client._get_and_filter(
-            RegionVPCAvailability, *filters, endpoint="/regions/vpc-availability"
+            RegionVPCAvailability,
+            *filters,
+            endpoint="/regions/vpc-availability",
         )
 
     def vpc_availability_get(self, region_id):

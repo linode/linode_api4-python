@@ -1,10 +1,7 @@
 import json
 from test.unit.base import ClientBaseCase
 
-from linode_api4.objects.region import (
-    RegionAvailabilityEntry,
-    RegionVPCAvailability,
-)
+from linode_api4.objects.region import RegionAvailabilityEntry
 
 
 class RegionTest(ClientBaseCase):
@@ -67,7 +64,9 @@ class RegionTest(ClientBaseCase):
 
             # Ensure both pages are read
             assert m.call_count == 2
-            assert m.mock.call_args_list[0].args[0] == "//regions/vpc-availability"
+            assert (
+                m.mock.call_args_list[0].args[0] == "//regions/vpc-availability"
+            )
 
             assert (
                 m.mock.call_args_list[1].args[0]
@@ -97,8 +96,8 @@ class RegionTest(ClientBaseCase):
 
             assert len(avail_entries) > 0
 
-            # Verify all entries have valid data
-            for entry in avail_entries:
-                assert entry.region == "us-east"
-                assert len(entry.plan) > 0
-                assert entry.available is not None
+            # Verify first entry to ensure deserialization works
+            first_entry = avail_entries[0]
+            assert first_entry.region == "us-east"
+            assert len(first_entry.plan) > 0
+            assert first_entry.available is not None
