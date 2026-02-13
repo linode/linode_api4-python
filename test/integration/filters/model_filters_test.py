@@ -63,12 +63,13 @@ def test_linode_type_model_filter(test_linode_client):
 
 def test_lke_cluster_model_filter(test_linode_client, lke_cluster_instance):
     client = test_linode_client
+    lke_cluster = lke_cluster_instance
 
     filtered_cluster = client.lke.clusters(
-        LKECluster.label.contains(lke_cluster_instance.label)
+        LKECluster.label.contains(lke_cluster.label)
     )
 
-    assert filtered_cluster[0].id == lke_cluster_instance.id
+    assert filtered_cluster[0].id == lke_cluster.id
 
 
 def test_networking_firewall_model_filter(
