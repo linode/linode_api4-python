@@ -63,6 +63,29 @@ class Region(Base):
 
         return [RegionAvailabilityEntry.from_json(v) for v in result]
 
+    @property
+    def vpc_availability(self) -> "RegionVPCAvailability":
+        """
+        Returns VPC availability data for this region.
+
+        NOTE: IPv6 VPCs may not currently be available to all users.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-region-vpc-availability
+
+        :returns: VPC availability data for this region.
+        :rtype: RegionVPCAvailability
+        """
+        result = self._client.get(
+            f"{self.api_endpoint}/vpc-availability", model=self
+        )
+
+        if result is None:
+            raise UnexpectedResponseError(
+                "Expected VPC availability data, got None."
+            )
+
+        return RegionVPCAvailability.from_json(result)
+
 
 @dataclass
 class RegionAvailabilityEntry(JSONObject):
@@ -75,3 +98,18 @@ class RegionAvailabilityEntry(JSONObject):
     region: Optional[str] = None
     plan: Optional[str] = None
     available: bool = False
+
+
+@dataclass
+class RegionVPCAvailability(JSONObject):
+    """
+    Represents the VPC availability data for a region.
+
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-regions-vpc-availability
+
+    NOTE: IPv6 VPCs may not currently be available to all users.
+    """
+
+    region: Optional[str] = None
+    available: bool = False
+    available_ipv6_prefix_lengths: Optional[List[int]] = None
