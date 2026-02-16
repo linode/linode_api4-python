@@ -217,7 +217,7 @@ class Disk(DerivedBase):
 class Kernel(Base):
     """
     The primary component of every Linux system. The kernel interfaces
-    with the system’s hardware and it controls the operating system’s core functionality.
+    with the system’s hardware, and it controls the operating system’s core functionality.
 
     Your Compute Instance is capable of running one of three kinds of kernels:
 
@@ -251,7 +251,7 @@ class Kernel(Base):
         "updates": Property(),
         "version": Property(),
         "architecture": Property(),
-        "xen": Property(),
+        "xen": Property(), # deprecated and not returned by the API anymore, but left here for backward compatibility
         "built": Property(),
         "pvops": Property(),
     }
