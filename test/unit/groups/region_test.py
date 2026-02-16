@@ -84,7 +84,7 @@ class RegionTest(ClientBaseCase):
             assert vpc_avail is not None
             assert vpc_avail.region == "us-east"
             assert vpc_avail.available is True
-            assert vpc_avail.available_ipv6_prefix_lengths == [52, 60]
+            assert vpc_avail.available_ipv6_prefix_lengths == [52, 48]
 
     def test_get_availability(self):
         """
