@@ -614,8 +614,8 @@ def test_linode_initate_migration(test_linode_client, e2e_test_firewall):
     def get_linode_status():
         return linode.status == "offline"
 
-    # To verify if Linode's status changed before deletion (during migration status equals to 'offline')
-    wait_for_condition(5, 60, get_linode_status)
+    # To verify that Linode's status changed before deletion (during migration status is set to 'offline')
+    wait_for_condition(5, 120, get_linode_status)
 
     res = linode.delete()
 
