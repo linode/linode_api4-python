@@ -462,7 +462,6 @@ class ChannelDetails(JSONObject):
 class AlertsReference(JSONObject):
     """
     Represents a reference to alerts associated with an alert channel.
-    
     Fields:
       - url: str - API URL to fetch the alerts for this channel
       - type: str - Type identifier (e.g., 'alerts-definitions')
