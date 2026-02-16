@@ -459,7 +459,7 @@ class ChannelDetails(JSONObject):
 
 
 @dataclass
-class AlertsReference(JSONObject):
+class AlertInfo(JSONObject):
     """
     Represents a reference to alerts associated with an alert channel.
     Fields:
@@ -495,7 +495,7 @@ class AlertChannel(Base):
         "type": Property(),
         "channel_type": Property(),
         "details": Property(mutable=False, json_object=ChannelDetails),
-        "alerts": Property(mutable=False, json_object=AlertsReference),
+        "alerts": Property(mutable=False, json_object=AlertInfo),
         "content": Property(mutable=False, json_object=ChannelContent),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),
