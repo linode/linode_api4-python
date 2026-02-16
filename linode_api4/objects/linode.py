@@ -251,7 +251,7 @@ class Kernel(Base):
         "updates": Property(),
         "version": Property(),
         "architecture": Property(),
-        "xen": Property(), # deprecated and not returned by the API anymore, but left here for backward compatibility
+        "xen": Property(),  # deprecated and not returned by the API anymore, but left here for backward compatibility
         "built": Property(),
         "pvops": Property(),
     }
