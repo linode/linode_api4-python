@@ -237,6 +237,10 @@ class Kernel(Base):
           to compile the kernel from source than to download it from your package manager. For more
           information on custom compiled kernels, review our guides for Debian, Ubuntu, and CentOS.
 
+    .. note::
+        The ``xen`` property is deprecated and is no longer returned by the API.
+        It is maintained for backward compatibility only.
+
     API Documentation: https://techdocs.akamai.com/linode-api/reference/get-kernel
     """
 
