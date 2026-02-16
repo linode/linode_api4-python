@@ -115,6 +115,18 @@ class DashboardType(StrEnum):
     standard = "standard"
     custom = "custom"
 
+class AlertStatus(StrEnum):
+    """
+    Enum for supported alert status values.
+    """
+    
+    AlertDefinitionStatusProvisioning  = "provisioning"
+    AlertDefinitionStatusEnabling      = "enabling"
+    AlertDefinitionStatusDisabling     = "disabling"
+    AlertDefinitionStatusEnabled       = "enabled"
+    AlertDefinitionStatusDisabled      = "disabled"
+    AlertDefinitionStatusFailed        = "failed"
+   
 
 @dataclass
 class Filter(JSONObject):
@@ -372,6 +384,7 @@ class AlertType(StrEnum):
 
     system = "system"
     user = "user"
+
 
 
 class AlertDefinition(DerivedBase):

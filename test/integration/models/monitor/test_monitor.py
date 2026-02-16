@@ -8,6 +8,7 @@ from test.integration.helpers import (
 import pytest
 
 from linode_api4 import LinodeClient
+from linode_api4.objects.monitor import AlertStatus
 from linode_api4.objects import (
     AlertDefinition,
     ApiError,
@@ -227,7 +228,7 @@ def test_integration_create_get_update_delete_alert_definition(
         interval = initial_timeout
         alert = client.load(AlertDefinition, alert_id, service_type)
         while (
-            getattr(alert, "status", None) == "provisioning"
+            getattr(alert, "status", None) == AlertStatus.AlertDefinitionStatusEnabling
             and (time.time() - start) < timeout
         ):
             time.sleep(interval)
