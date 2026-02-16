@@ -8,7 +8,7 @@ from linode_api4.objects.serializable import StrEnum
 
 class Capability(StrEnum):
     """
-    An enum class representing the capabilities that Linode offers
+    An enum class that represents the capabilities that Linode offers
     across different regions and services.
 
     These capabilities indicate what services are available in each data center.
