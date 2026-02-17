@@ -1,11 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
-from deprecated import deprecated
-
 from linode_api4.objects import (
     Base,
-    DerivedBase,
     JSONObject,
     MappedObject,
     Property,
@@ -84,69 +81,6 @@ class DatabasePrivateNetwork(JSONObject):
     vpc_id: Optional[int] = None
     subnet_id: Optional[int] = None
     public_access: Optional[bool] = None
-
-
-@deprecated(
-    reason="Backups are not supported for non-legacy database clusters."
-)
-class DatabaseBackup(DerivedBase):
-    """
-    A generic Managed Database backup.
-
-    This class is not intended to be used on its own.
-    Use the appropriate subclasses for the corresponding database engine. (e.g. MySQLDatabaseBackup)
-    """
-
-    api_endpoint = ""
-    derived_url_path = "backups"
-    parent_id_name = "database_id"
-
-    properties = {
-        "created": Property(is_datetime=True),
-        "id": Property(identifier=True),
-        "label": Property(),
-        "type": Property(),
-    }
-
-    def restore(self):
-        """
-        Restore a backup to a Managed Database on your Account.
-
-        API Documentation:
-
-            - MySQL: https://techdocs.akamai.com/linode-api/reference/post-databases-mysql-instance-backup-restore
-            - PostgreSQL: https://techdocs.akamai.com/linode-api/reference/post-databases-postgre-sql-instance-backup-restore
-        """
-
-        return self._client.post(
-            "{}/restore".format(self.api_endpoint), model=self
-        )
-
-
-@deprecated(
-    reason="Backups are not supported for non-legacy database clusters."
-)
-class MySQLDatabaseBackup(DatabaseBackup):
-    """
-    A backup for an accessible Managed MySQL Database.
-
-    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-databases-mysql-instance-backup
-    """
-
-    api_endpoint = "/databases/mysql/instances/{database_id}/backups/{id}"
-
-
-@deprecated(
-    reason="Backups are not supported for non-legacy database clusters."
-)
-class PostgreSQLDatabaseBackup(DatabaseBackup):
-    """
-    A backup for an accessible Managed PostgreSQL Database.
-
-    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-databases-postgresql-instance-backup
-    """
-
-    api_endpoint = "/databases/postgresql/instances/{database_id}/backups/{id}"
 
 
 @dataclass
@@ -296,7 +230,6 @@ class MySQLDatabase(Base):
         "id": Property(identifier=True),
         "label": Property(mutable=True),
         "allow_list": Property(mutable=True, unordered=True),
-        "backups": Property(derived_class=MySQLDatabaseBackup),
         "cluster_size": Property(mutable=True),
         "created": Property(is_datetime=True),
         "encrypted": Property(),
@@ -304,7 +237,6 @@ class MySQLDatabase(Base):
         "hosts": Property(),
         "port": Property(),
         "region": Property(),
-        "replication_type": Property(),
         "ssl_connection": Property(),
         "status": Property(volatile=True),
         "type": Property(mutable=True),
@@ -393,28 +325,6 @@ class MySQLDatabase(Base):
             "{}/patch".format(MySQLDatabase.api_endpoint), model=self
         )
 
-    @deprecated(
-        reason="Backups are not supported for non-legacy database clusters."
-    )
-    def backup_create(self, label, **kwargs):
-        """
-        Creates a snapshot backup of a Managed MySQL Database.
-
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-databases-mysql-instance-backup
-        """
-
-        params = {
-            "label": label,
-        }
-        params.update(kwargs)
-
-        self._client.post(
-            "{}/backups".format(MySQLDatabase.api_endpoint),
-            model=self,
-            data=params,
-        )
-        self.invalidate()
-
     def invalidate(self):
         """
         Clear out cached properties.
@@ -464,7 +374,6 @@ class PostgreSQLDatabase(Base):
         "id": Property(identifier=True),
         "label": Property(mutable=True),
         "allow_list": Property(mutable=True, unordered=True),
-        "backups": Property(derived_class=PostgreSQLDatabaseBackup),
         "cluster_size": Property(mutable=True),
         "created": Property(is_datetime=True),
         "encrypted": Property(),
@@ -472,8 +381,6 @@ class PostgreSQLDatabase(Base):
         "hosts": Property(),
         "port": Property(),
         "region": Property(),
-        "replication_commit_type": Property(),
-        "replication_type": Property(),
         "ssl_connection": Property(),
         "status": Property(volatile=True),
         "type": Property(mutable=True),
@@ -562,28 +469,6 @@ class PostgreSQLDatabase(Base):
         return self._client.post(
             "{}/patch".format(PostgreSQLDatabase.api_endpoint), model=self
         )
-
-    @deprecated(
-        reason="Backups are not supported for non-legacy database clusters."
-    )
-    def backup_create(self, label, **kwargs):
-        """
-        Creates a snapshot backup of a Managed PostgreSQL Database.
-
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-databases-postgre-sql-instance-backup
-        """
-
-        params = {
-            "label": label,
-        }
-        params.update(kwargs)
-
-        self._client.post(
-            "{}/backups".format(PostgreSQLDatabase.api_endpoint),
-            model=self,
-            data=params,
-        )
-        self.invalidate()
 
     def invalidate(self):
         """
