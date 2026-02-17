@@ -1,5 +1,11 @@
 import time
 from datetime import datetime
+from test.integration.conftest import get_region
+from test.integration.helpers import (
+    get_test_label,
+    retry_sending_request,
+    wait_for_condition,
+)
 
 import pytest
 
@@ -10,12 +16,6 @@ from linode_api4.objects import (
     Event,
     Login,
     User,
-)
-from test.integration.conftest import get_region
-from test.integration.helpers import (
-    get_test_label,
-    retry_sending_request,
-    wait_for_condition
 )
 
 
