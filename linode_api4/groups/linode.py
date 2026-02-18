@@ -18,6 +18,7 @@ from linode_api4.objects.base import _flatten_request_body_recursive
 from linode_api4.objects.filtering import Filter
 from linode_api4.objects.linode import (
     Backup,
+    InstanceACLPAlertsOptions,
     InstancePlacementGroupAssignment,
     InterfaceGeneration,
     NetworkInterface,
@@ -140,6 +141,9 @@ class LinodeGroup(Group):
         region,
         image=None,
         authorized_keys=None,
+        alerts: Optional[
+            Union[Dict[str, Any], InstanceACLPAlertsOptions]
+        ] = None,
         firewall: Optional[Union[Firewall, int]] = None,
         backup: Optional[Union[Backup, int]] = None,
         stackscript: Optional[Union[StackScript, int]] = None,
@@ -319,6 +323,9 @@ class LinodeGroup(Group):
                          The contents of this field can be built using the
                          :any:`build_instance_metadata` method.
         :type metadata: dict
+        :param alerts: ACLP alerts available to define during instance creation.
+                        This is v4beta only and may not be available to all users.
+        :type alerts: dict[str, Any] or InstanceACLPAlertsOptions
         :param firewall: The firewall to attach this Linode to.
         :type firewall: int or Firewall
         :param disk_encryption: The disk encryption policy for this Linode.
@@ -356,6 +363,7 @@ class LinodeGroup(Group):
             "region": region,
             "image": image,
             "authorized_keys": load_and_validate_keys(authorized_keys),
+            "alerts": alerts,
             # These will automatically be flattened below
             "firewall_id": firewall,
             "backup_id": backup,
