@@ -777,8 +777,8 @@ class InstanceAlerts(JSONObject):
     network_in: int = 0
     network_out: int = 0
     transfer_quota: int = 0
-    system_alerts: List[int] = field(default_factory=list)
-    user_alerts: List[int] = field(default_factory=list)
+    system_alerts: Optional[List[int]] = None
+    user_alerts: Optional[List[int]] = None
 
 
 @dataclass
@@ -787,8 +787,8 @@ class InstanceACLPAlertsOptions(JSONObject):
     Represents the ACLP alerts available to define during instance creation and cloning.
     """
 
-    system_alerts: List[int] = field(default_factory=list)
-    user_alerts: List[int] = field(default_factory=list)
+    system_alerts: Optional[List[int]] = None
+    user_alerts: Optional[List[int]] = None
 
 
 class Instance(Base):
@@ -1847,14 +1847,14 @@ class Instance(Base):
         label=None,
         group=None,
         with_backups=None,
-        alerts: Optional[
-            Union[Dict[str, Any], InstanceACLPAlertsOptions]
-        ] = None,
         placement_group: Union[
             InstancePlacementGroupAssignment,
             "PlacementGroup",
             Dict[str, Any],
             int,
+        ] = None,
+        alerts: Optional[
+            Union[Dict[str, Any], InstanceACLPAlertsOptions]
         ] = None,
     ):
         """
@@ -1891,11 +1891,12 @@ class Instance(Base):
                              enrolled in the Linode Backup service. This will incur an additional charge.
         :type: with_backups: bool
 
-        :param alerts: ACLP monitor alert definitions associate with the cloned Instance.
-                       This is under v4beta and may not be available to all users.
-        :type alerts: dict[str, Any] or InstanceACLPAlertsOptions
         :param placement_group: Information about the placement group to create this instance under.
         :type placement_group: Union[InstancePlacementGroupAssignment, PlacementGroup, Dict[str, Any], int]
+
+        :param alerts: ACLP monitor alert definitions associated with the cloned Instance.
+                       This is under v4beta and may not be available to all users.
+        :type alerts: dict[str, Any] or InstanceACLPAlertsOptions
 
         :returns: The cloned Instance.
         :rtype: Instance

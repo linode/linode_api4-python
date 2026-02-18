@@ -141,9 +141,6 @@ class LinodeGroup(Group):
         region,
         image=None,
         authorized_keys=None,
-        alerts: Optional[
-            Union[Dict[str, Any], InstanceACLPAlertsOptions]
-        ] = None,
         firewall: Optional[Union[Firewall, int]] = None,
         backup: Optional[Union[Backup, int]] = None,
         stackscript: Optional[Union[StackScript, int]] = None,
@@ -166,6 +163,9 @@ class LinodeGroup(Group):
         interface_generation: Optional[Union[InterfaceGeneration, str]] = None,
         network_helper: Optional[bool] = None,
         maintenance_policy: Optional[str] = None,
+        alerts: Optional[
+            Union[Dict[str, Any], InstanceACLPAlertsOptions]
+        ] = None,
         **kwargs,
     ):
         """
@@ -323,9 +323,6 @@ class LinodeGroup(Group):
                          The contents of this field can be built using the
                          :any:`build_instance_metadata` method.
         :type metadata: dict
-        :param alerts: ACLP alerts available to define during instance creation.
-                        This is v4beta only and may not be available to all users.
-        :type alerts: dict[str, Any] or InstanceACLPAlertsOptions
         :param firewall: The firewall to attach this Linode to.
         :type firewall: int or Firewall
         :param disk_encryption: The disk encryption policy for this Linode.
@@ -343,6 +340,9 @@ class LinodeGroup(Group):
         :param maintenance_policy: The slug of the maintenance policy to apply during maintenance.
                                       If not provided, the default policy (linode/migrate) will be applied.
         :type maintenance_policy: str
+        :param alerts: ACLP alerts available to define during instance creation.
+                        This is v4beta only and may not be available to all users.
+        :type alerts: dict[str, Any] or InstanceACLPAlertsOptions
 
         :returns: A new Instance object, or a tuple containing the new Instance and
                   the generated password.
