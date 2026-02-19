@@ -115,18 +115,19 @@ class DashboardType(StrEnum):
     standard = "standard"
     custom = "custom"
 
+
 class AlertStatus(StrEnum):
     """
     Enum for supported alert status values.
     """
-    
-    AlertDefinitionStatusProvisioning  = "provisioning"
-    AlertDefinitionStatusEnabling      = "enabling"
-    AlertDefinitionStatusDisabling     = "disabling"
-    AlertDefinitionStatusEnabled       = "enabled"
-    AlertDefinitionStatusDisabled      = "disabled"
-    AlertDefinitionStatusFailed        = "failed"
-   
+
+    AlertDefinitionStatusProvisioning = "provisioning"
+    AlertDefinitionStatusEnabling = "enabling"
+    AlertDefinitionStatusDisabling = "disabling"
+    AlertDefinitionStatusEnabled = "enabled"
+    AlertDefinitionStatusDisabled = "disabled"
+    AlertDefinitionStatusFailed = "failed"
+
 
 @dataclass
 class Filter(JSONObject):
@@ -386,7 +387,6 @@ class AlertType(StrEnum):
     user = "user"
 
 
-
 class AlertDefinition(DerivedBase):
     """
     Represents an alert definition for a monitor service.
@@ -446,6 +446,7 @@ class EmailDetails(JSONObject):
     """
     Represents email-specific details for an alert channel.
     """
+
     usernames: Optional[List[str]] = None
     recipient_type: Optional[str] = None
 
@@ -455,6 +456,7 @@ class ChannelDetails(JSONObject):
     """
     Represents the details block for an AlertChannel, which varies by channel type.
     """
+
     email: Optional[EmailDetails] = None
 
 
@@ -467,6 +469,7 @@ class AlertInfo(JSONObject):
       - type: str - Type identifier (e.g., 'alerts-definitions')
       - alert_count: int - Number of alerts associated with this channel
     """
+
     url: str = ""
     _type: str = field(default="", metadata={"json_key": "type"})
     alert_count: int = 0
