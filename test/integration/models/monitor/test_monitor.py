@@ -8,7 +8,6 @@ from test.integration.helpers import (
 import pytest
 
 from linode_api4 import LinodeClient
-from linode_api4.objects.monitor import AlertStatus
 from linode_api4.objects import (
     AlertDefinition,
     ApiError,
@@ -17,6 +16,7 @@ from linode_api4.objects import (
     MonitorService,
     MonitorServiceToken,
 )
+from linode_api4.objects.monitor import AlertStatus
 
 
 # List all dashboards
