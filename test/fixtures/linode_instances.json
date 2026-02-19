@@ -14,7 +14,9 @@
         "network_out": 5,
         "cpu": 90,
         "transfer_quota": 80,
-        "io": 5000
+        "io": 5000,
+        "system_alerts": [123,456],
+        "user_alerts": [555]
       },
       "label": "linode123",
       "backups": {
@@ -64,7 +66,9 @@
         "network_out": 5,
         "cpu": 90,
         "transfer_quota": 80,
-        "io": 5000
+        "io": 5000,
+        "system_alerts": [123,456],
+        "user_alerts": [555]
       },
       "label": "linode456",
       "backups": {
@@ -104,7 +108,9 @@
         "network_out": 5,
         "cpu": 90,
         "transfer_quota": 80,
-        "io": 5000
+        "io": 5000,
+        "system_alerts": [123,456],
+        "user_alerts": [555]
       },
       "group": "test",
       "hypervisor": "kvm",

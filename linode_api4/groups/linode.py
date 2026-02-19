@@ -18,6 +18,7 @@ from linode_api4.objects.base import _flatten_request_body_recursive
 from linode_api4.objects.filtering import Filter
 from linode_api4.objects.linode import (
     Backup,
+    InstanceACLPAlertsOptions,
     InstancePlacementGroupAssignment,
     InterfaceGeneration,
     NetworkInterface,
@@ -162,6 +163,9 @@ class LinodeGroup(Group):
         interface_generation: Optional[Union[InterfaceGeneration, str]] = None,
         network_helper: Optional[bool] = None,
         maintenance_policy: Optional[str] = None,
+        alerts: Optional[
+            Union[Dict[str, Any], InstanceACLPAlertsOptions]
+        ] = None,
         **kwargs,
     ):
         """
@@ -336,6 +340,9 @@ class LinodeGroup(Group):
         :param maintenance_policy: The slug of the maintenance policy to apply during maintenance.
                                       If not provided, the default policy (linode/migrate) will be applied.
         :type maintenance_policy: str
+        :param alerts: ACLP alerts available to define during instance creation.
+                        This is v4beta only and may not be available to all users.
+        :type alerts: dict[str, Any] or InstanceACLPAlertsOptions
 
         :returns: A new Instance object, or a tuple containing the new Instance and
                   the generated password.
@@ -356,6 +363,7 @@ class LinodeGroup(Group):
             "region": region,
             "image": image,
             "authorized_keys": load_and_validate_keys(authorized_keys),
+            "alerts": alerts,
             # These will automatically be flattened below
             "firewall_id": firewall,
             "backup_id": backup,

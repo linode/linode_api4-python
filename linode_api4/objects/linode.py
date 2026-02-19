@@ -766,6 +766,31 @@ class UpgradeInterfacesResult(JSONObject):
     )
 
 
+@dataclass
+class InstanceAlerts(JSONObject):
+    """
+    Represents both legacy and ACLP alerts for a Linode Instance.
+    """
+
+    cpu: int = 0
+    io: int = 0
+    network_in: int = 0
+    network_out: int = 0
+    transfer_quota: int = 0
+    system_alerts: Optional[List[int]] = None
+    user_alerts: Optional[List[int]] = None
+
+
+@dataclass
+class InstanceACLPAlertsOptions(JSONObject):
+    """
+    Represents the ACLP alerts available to define during instance creation and cloning.
+    """
+
+    system_alerts: Optional[List[int]] = None
+    user_alerts: Optional[List[int]] = None
+
+
 class Instance(Base):
     """
     A Linode Instance.
@@ -782,7 +807,7 @@ class Instance(Base):
         "created": Property(is_datetime=True),
         "updated": Property(volatile=True, is_datetime=True),
         "region": Property(slug_relationship=Region),
-        "alerts": Property(mutable=True),
+        "alerts": Property(mutable=True, json_object=InstanceAlerts),
         "image": Property(slug_relationship=Image),
         "disks": Property(derived_class=Disk),
         "configs": Property(derived_class=Config),
@@ -1828,6 +1853,9 @@ class Instance(Base):
             Dict[str, Any],
             int,
         ] = None,
+        alerts: Optional[
+            Union[Dict[str, Any], InstanceACLPAlertsOptions]
+        ] = None,
     ):
         """
         Clones this linode into a new linode or into a new linode in the given region
@@ -1866,6 +1894,10 @@ class Instance(Base):
         :param placement_group: Information about the placement group to create this instance under.
         :type placement_group: Union[InstancePlacementGroupAssignment, PlacementGroup, Dict[str, Any], int]
 
+        :param alerts: ACLP monitor alert definitions associated with the cloned Instance.
+                       This is under v4beta and may not be available to all users.
+        :type alerts: dict[str, Any] or InstanceACLPAlertsOptions
+
         :returns: The cloned Instance.
         :rtype: Instance
         """
@@ -1893,6 +1925,7 @@ class Instance(Base):
             "label": label,
             "group": group,
             "with_backups": with_backups,
+            "alerts": alerts,
             "placement_group": _expand_placement_group_assignment(
                 placement_group
             ),
