@@ -54,7 +54,7 @@ class DatabaseTest(ClientBaseCase):
             "lin-123-456-mysql-mysql-primary.servers.linodedb.net",
         )
         self.assertEqual(
-            dbs[0].hosts.secondary,
+            dbs[0].hosts.standby,
             "lin-123-456-mysql-primary-private.servers.linodedb.net",
         )
         self.assertEqual(dbs[0].id, 123)
@@ -1280,7 +1280,7 @@ class DatabaseTest(ClientBaseCase):
             "lin-123-456-mysql-mysql-primary.servers.linodedb.net",
         )
         self.assertEqual(
-            dbs[0].hosts.secondary,
+            dbs[0].hosts.standby,
             "lin-123-456-mysql-primary-private.servers.linodedb.net",
         )
         self.assertEqual(dbs[0].id, 123)
@@ -1361,7 +1361,7 @@ class DatabaseTest(ClientBaseCase):
             "lin-0000-000-pgsql-primary.servers.linodedb.net",
         )
         self.assertEqual(
-            dbs[0].hosts.secondary,
+            dbs[0].hosts.standby,
             "lin-0000-000-pgsql-primary-private.servers.linodedb.net",
         )
         self.assertEqual(dbs[0].id, 123)

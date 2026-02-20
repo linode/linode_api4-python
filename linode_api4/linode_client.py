@@ -16,8 +16,10 @@ from linode_api4.groups import (
     DatabaseGroup,
     DomainGroup,
     ImageGroup,
+    ImageShareGroupAPIGroup,
     LinodeGroup,
     LKEGroup,
+    LockGroup,
     LongviewGroup,
     MaintenanceGroup,
     MetricsGroup,
@@ -440,6 +442,9 @@ class LinodeClient(BaseClient):
         #: Access methods related to Images - See :any:`ImageGroup` for more information.
         self.images = ImageGroup(self)
 
+        #: Access methods related to Image Share Groups - See :any:`ImageShareGroupAPIGroup` for more information.
+        self.sharegroups = ImageShareGroupAPIGroup(self)
+
         #: Access methods related to VPCs - See :any:`VPCGroup` for more information.
         self.vpcs = VPCGroup(self)
 
@@ -453,6 +458,9 @@ class LinodeClient(BaseClient):
         self.placement = PlacementAPIGroup(self)
 
         self.monitor = MonitorGroup(self)
+
+        #: Access methods related to Resource Locks - See :any:`LockGroup` for more information.
+        self.locks = LockGroup(self)
 
         super().__init__(
             token=token,

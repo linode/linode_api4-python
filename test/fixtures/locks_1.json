@@ -1,0 +1,10 @@
+{
+  "id": 1,
+  "lock_type": "cannot_delete",
+  "entity": {
+    "id": 123,
+    "type": "linode",
+    "label": "test-linode",
+    "url": "/v4/linode/instances/123"
+  }
+}

@@ -25,11 +25,11 @@ def lke_cluster_instance(test_linode_client):
 
     region = get_region(test_linode_client, {"Kubernetes", "Disk Encryption"})
 
-    node_pools = test_linode_client.lke.node_pool(node_type, 3)
+    node_pool = test_linode_client.lke.node_pool(node_type, 3)
     label = get_test_label() + "_cluster"
 
     cluster = test_linode_client.lke.cluster_create(
-        region, label, node_pools, version
+        region, label, version, [node_pool]
     )
 
     yield cluster

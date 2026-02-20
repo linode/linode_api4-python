@@ -10,5 +10,8 @@
   "client_conn_throttle": 0,
   "tags": [
     "something"
+  ],
+  "locks": [
+    "cannot_delete_with_subresources"
   ]
 }
