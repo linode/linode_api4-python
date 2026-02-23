@@ -1,6 +1,7 @@
 import copy
 import string
 import sys
+import warnings
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -255,10 +256,20 @@ class Kernel(Base):
         "updates": Property(),
         "version": Property(),
         "architecture": Property(),
-        "xen": Property(),  # deprecated and not returned by the API anymore, but left here for backward compatibility
+        "xen": Property(),
         "built": Property(),
         "pvops": Property(),
     }
+
+    def __getattribute__(self, name: str) -> object:
+        if name == "xen":
+            warnings.warn(
+                "The 'xen' property of Kernel is deprecated and is no longer "
+                "returned by the API. It is maintained for backward compatibility only.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        return super().__getattribute__(name)
 
 
 class Type(Base):
