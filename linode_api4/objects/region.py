@@ -3,6 +3,68 @@ from typing import List, Optional
 
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects.base import Base, JSONObject, Property
+from linode_api4.objects.serializable import StrEnum
+
+
+class Capability(StrEnum):
+    """
+    An enum class that represents the capabilities that Linode offers
+    across different regions and services.
+
+    These capabilities indicate what services are available in each data center.
+    """
+
+    linodes = "Linodes"
+    nodebalancers = "NodeBalancers"
+    block_storage = "Block Storage"
+    object_storage = "Object Storage"
+    object_storage_regions = "Object Storage Access Key Regions"
+    object_storage_endpoint_types = "Object Storage Endpoint Types"
+    lke = "Kubernetes"
+    lke_ha_controlplanes = "LKE HA Control Planes"
+    lke_e = "Kubernetes Enterprise"
+    firewall = "Cloud Firewall"
+    gpu = "GPU Linodes"
+    vlans = "Vlans"
+    vpcs = "VPCs"
+    vpcs_extra = "VPCs Extra"
+    machine_images = "Machine Images"
+    dbaas = "Managed Databases"
+    dbaas_beta = "Managed Databases Beta"
+    bs_migrations = "Block Storage Migrations"
+    metadata = "Metadata"
+    premium_plans = "Premium Plans"
+    edge_plans = "Edge Plans"
+    distributed_plans = "Distributed Plans"
+    lke_control_plane_acl = "LKE Network Access Control List (IP ACL)"
+    aclb = "Akamai Cloud Load Balancer"
+    support_ticket_severity = "Support Ticket Severity"
+    backups = "Backups"
+    placement_group = "Placement Group"
+    disk_encryption = "Disk Encryption"
+    la_disk_encryption = "LA Disk Encryption"
+    akamai_ram_protection = "Akamai RAM Protection"
+    blockstorage_encryption = "Block Storage Encryption"
+    blockstorage_perf_b1 = "Block Storage Performance B1"
+    blockstorage_perf_b1_default = "Block Storage Performance B1 Default"
+    aclp = "Akamai Cloud Pulse"
+    aclp_logs = "Akamai Cloud Pulse Logs"
+    aclp_logs_lkee = "Akamai Cloud Pulse Logs LKE-E Audit"
+    aclp_logs_dc_lkee = "ACLP Logs Datacenter LKE-E"
+    smtp_enabled = "SMTP Enabled"
+    stackscripts = "StackScripts"
+    vpu = "NETINT Quadra T1U"
+    linode_interfaces = "Linode Interfaces"
+    maintenance_policy = "Maintenance Policy"
+    vpc_dual_stack = "VPC Dual Stack"
+    vpc_ipv6_stack = "VPC IPv6 Stack"
+    nlb = "Network LoadBalancer"
+    natgateway = "NAT Gateway"
+    lke_e_byovpc = "Kubernetes Enterprise BYO VPC"
+    lke_e_stacktype = "Kubernetes Enterprise Dual Stack"
+    ruleset = "Cloud Firewall Rule Set"
+    prefixlists = "Cloud Firewall Prefix Lists"
+    current_prefixlists = "Cloud Firewall Prefix List Current References"
 
 
 @dataclass
