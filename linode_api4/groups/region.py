@@ -47,26 +47,6 @@ class RegionGroup(Group):
             RegionAvailabilityEntry, *filters, endpoint="/regions/availability"
         )
 
-    def availability_get(self, region_id):
-        """
-        Returns availability data for a specific region.
-
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-region-availability
-
-        :param region_id: The ID of the region to retrieve availability for.
-        :type region_id: str
-
-        :returns: A list of availability entries for the specified region.
-        :rtype: list of RegionAvailabilityEntry
-        """
-
-        result = self.client.get(f"/regions/{region_id}/availability")
-
-        if result is None:
-            return []
-
-        return [RegionAvailabilityEntry.from_json(v) for v in result]
-
     def vpc_availability(self, *filters):
         """
         Returns VPC availability data for all regions.
@@ -97,25 +77,3 @@ class RegionGroup(Group):
             *filters,
             endpoint="/regions/vpc-availability",
         )
-
-    def vpc_availability_get(self, region_id):
-        """
-        Returns VPC availability data for a specific region.
-
-        NOTE: IPv6 VPCs may not currently be available to all users.
-
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-region-vpc-availability
-
-        :param region_id: The ID of the region to retrieve VPC availability for.
-        :type region_id: str
-
-        :returns: VPC availability data for the specified region.
-        :rtype: RegionVPCAvailability
-        """
-
-        result = self.client.get(f"/regions/{region_id}/vpc-availability")
-
-        if result is None:
-            return None
-
-        return RegionVPCAvailability.from_json(result)

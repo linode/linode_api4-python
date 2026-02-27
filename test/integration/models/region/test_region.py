@@ -25,28 +25,6 @@ def test_list_regions_vpc_availability(test_linode_client):
 
 
 @pytest.mark.smoke
-def test_get_region_vpc_availability_via_group(test_linode_client):
-    """
-    Test getting VPC availability for a specific region via RegionGroup.
-    """
-    client = test_linode_client
-
-    # Get the first available region
-    regions = client.regions()
-    assert len(regions) > 0
-    test_region_id = regions[0].id
-
-    vpc_avail = client.regions.vpc_availability_get(test_region_id)
-
-    assert vpc_avail is not None
-    assert vpc_avail.region == test_region_id
-    assert vpc_avail.available is not None
-    assert isinstance(vpc_avail.available, bool)
-    assert vpc_avail.available_ipv6_prefix_lengths is not None
-    assert isinstance(vpc_avail.available_ipv6_prefix_lengths, list)
-
-
-@pytest.mark.smoke
 def test_get_region_vpc_availability_via_object(test_linode_client):
     """
     Test getting VPC availability via the Region object property.
@@ -67,30 +45,6 @@ def test_get_region_vpc_availability_via_object(test_linode_client):
     assert isinstance(vpc_avail.available, bool)
     assert vpc_avail.available_ipv6_prefix_lengths is not None
     assert isinstance(vpc_avail.available_ipv6_prefix_lengths, list)
-
-
-@pytest.mark.smoke
-def test_get_region_availability_via_group(test_linode_client):
-    """
-    Test getting availability for a specific region via RegionGroup.
-    """
-    client = test_linode_client
-
-    # Get the first available region
-    regions = client.regions()
-    assert len(regions) > 0
-    test_region_id = regions[0].id
-
-    avail_entries = client.regions.availability_get(test_region_id)
-
-    assert len(avail_entries) > 0
-
-    for entry in avail_entries:
-        assert entry.region == test_region_id
-        assert entry.plan is not None
-        assert len(entry.plan) > 0
-        assert entry.available is not None
-        assert isinstance(entry.available, bool)
 
 
 def test_vpc_availability_available_regions(test_linode_client):

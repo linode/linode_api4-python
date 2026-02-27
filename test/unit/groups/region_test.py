@@ -23,6 +23,7 @@ class RegionTest(ClientBaseCase):
             assert len(avail_entries) > 0
 
             for entry in avail_entries:
+                assert entry.region is not None
                 assert len(entry.region) > 0
                 assert len(entry.plan) > 0
                 assert entry.available is not None
@@ -72,32 +73,3 @@ class RegionTest(ClientBaseCase):
                 m.mock.call_args_list[1].args[0]
                 == "//regions/vpc-availability?page=2&page_size=25"
             )
-
-    def test_get_vpc_availability(self):
-        """
-        Tests that VPC availability for a specific region can be retrieved.
-        """
-
-        with self.mock_get("/regions/us-east/vpc-availability") as m:
-            vpc_avail = self.client.regions.vpc_availability_get("us-east")
-
-            assert vpc_avail is not None
-            assert vpc_avail.region == "us-east"
-            assert vpc_avail.available is True
-            assert vpc_avail.available_ipv6_prefix_lengths == [52, 48]
-
-    def test_get_availability(self):
-        """
-        Tests that availability for a specific region can be retrieved.
-        """
-
-        with self.mock_get("/regions/us-east/availability") as m:
-            avail_entries = self.client.regions.availability_get("us-east")
-
-            assert len(avail_entries) > 0
-
-            # Verify first entry to ensure deserialization works
-            first_entry = avail_entries[0]
-            assert first_entry.region == "us-east"
-            assert len(first_entry.plan) > 0
-            assert first_entry.available is not None
