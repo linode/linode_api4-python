@@ -1,7 +1,11 @@
 import time
 from datetime import datetime
 from test.integration.conftest import get_region
-from test.integration.helpers import get_test_label, retry_sending_request
+from test.integration.helpers import (
+    get_test_label,
+    retry_sending_request,
+    wait_for_condition,
+)
 
 import pytest
 
@@ -102,13 +106,18 @@ def test_latest_get_event(test_linode_client, e2e_test_firewall):
         firewall=e2e_test_firewall,
     )
 
-    events = client.load(Event, "")
+    def get_linode_status():
+        return linode.status == "running"
 
-    latest_events = events._raw_json.get("data")
+    # To ensure the Linode is running and the 'event' key has been populated
+    wait_for_condition(3, 100, get_linode_status)
+
+    events = client.load(Event, "")
+    latest_events = events._raw_json.get("data")[:15]
 
     linode.delete()
 
-    for event in latest_events[:15]:
+    for event in latest_events:
         if label == event["entity"]["label"]:
             break
     else:
