@@ -3,7 +3,7 @@ from .base import Base, Property, MappedObject, DATE_FORMAT, ExplicitNullValue
 from .dbase import DerivedBase
 from .serializable import JSONObject
 from .filtering import and_, or_
-from .region import Region
+from .region import Region, Capability
 from .image import Image
 from .linode import *
 from .linode_interfaces import *

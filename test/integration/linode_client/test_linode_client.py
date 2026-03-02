@@ -328,10 +328,10 @@ def test_cluster_create_with_api_objects(test_linode_client):
     node_type = client.linode.types()[1]  # g6-standard-1
     version = client.lke.versions()[0]
     region = get_region(client, {"Kubernetes"})
-    node_pools = client.lke.node_pool(node_type, 3)
+    node_pool = client.lke.node_pool(node_type, 3)
     label = get_test_label()
 
-    cluster = client.lke.cluster_create(region, label, node_pools, version)
+    cluster = client.lke.cluster_create(region, label, version, [node_pool])
 
     assert cluster.region.id == region.id
     assert cluster.k8s_version.id == version.id
@@ -350,8 +350,8 @@ def test_fails_to_create_cluster_with_invalid_version(test_linode_client):
         cluster = client.lke.cluster_create(
             region,
             "example-cluster",
-            {"type": "g6-standard-1", "count": 3},
             invalid_version,
+            {"type": "g6-standard-1", "count": 3},
         )
     except ApiError as e:
         assert "not valid" in str(e.json)

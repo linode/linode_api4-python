@@ -611,6 +611,12 @@ def test_linode_initate_migration(test_linode_client, e2e_test_firewall):
         migration_type=MigrationType.COLD,
     )
 
+    def get_linode_status():
+        return linode.status == "offline"
+
+    # To verify that Linode's status changed before deletion (during migration status is set to 'offline')
+    wait_for_condition(5, 120, get_linode_status)
+
     res = linode.delete()
 
     assert res
@@ -1101,8 +1107,7 @@ class TestNetworkInterface:
 
 def test_create_linode_with_maintenance_policy(test_linode_client):
     client = test_linode_client
-    # TODO: Replace with random region after GA
-    region = "ap-south"
+    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label()
 
     policies = client.maintenance.maintenance_policies()
