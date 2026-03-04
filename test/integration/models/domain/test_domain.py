@@ -43,9 +43,9 @@ def test_clone(test_linode_client, test_domain):
     dom = "example.clone-" + timestamp + "-inttestsdk.org"
     domain.clone(dom)
 
-    ds = test_linode_client.domains()
-
     time.sleep(1)
+
+    ds = test_linode_client.domains()
 
     domains = [i.domain for i in ds]
 

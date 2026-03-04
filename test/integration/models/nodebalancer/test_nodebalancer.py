@@ -130,7 +130,7 @@ def test_get_nb_config_with_udp(test_linode_client, create_nb_config_with_udp):
 
     assert "udp" == config.protocol
     assert 1234 == config.udp_check_port
-    assert 16 == config.udp_session_timeout
+    assert 2 == config.udp_session_timeout
 
 
 def test_update_nb_config(test_linode_client, create_nb_config_with_udp):

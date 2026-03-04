@@ -1,6 +1,7 @@
 import copy
 import string
 import sys
+import warnings
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -220,7 +221,7 @@ class Disk(DerivedBase):
 class Kernel(Base):
     """
     The primary component of every Linux system. The kernel interfaces
-    with the system’s hardware and it controls the operating system’s core functionality.
+    with the system’s hardware, and it controls the operating system’s core functionality.
 
     Your Compute Instance is capable of running one of three kinds of kernels:
 
@@ -240,6 +241,10 @@ class Kernel(Base):
           to compile the kernel from source than to download it from your package manager. For more
           information on custom compiled kernels, review our guides for Debian, Ubuntu, and CentOS.
 
+    .. note::
+        The ``xen`` property is deprecated and is no longer returned by the API.
+        It is maintained for backward compatibility only.
+
     API Documentation: https://techdocs.akamai.com/linode-api/reference/get-kernel
     """
 
@@ -258,6 +263,16 @@ class Kernel(Base):
         "built": Property(),
         "pvops": Property(),
     }
+
+    def __getattribute__(self, name: str) -> object:
+        if name == "xen":
+            warnings.warn(
+                "The 'xen' property of Kernel is deprecated and is no longer "
+                "returned by the API. It is maintained for backward compatibility only.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        return super().__getattribute__(name)
 
 
 class Type(Base):
