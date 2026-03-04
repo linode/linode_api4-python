@@ -40,9 +40,12 @@ from linode_api4.objects.region import Region
 from linode_api4.objects.serializable import JSONObject, StrEnum
 from linode_api4.objects.vpc import VPC, VPCSubnet
 from linode_api4.paginated_list import PaginatedList
-from linode_api4.util import drop_null_keys
+from linode_api4.util import drop_null_keys, generate_device_suffixes
 
 PASSWORD_CHARS = string.ascii_letters + string.digits + string.punctuation
+MIN_DEVICE_LIMIT = 8
+MB_PER_GB = 1024
+MAX_DEVICE_LIMIT = 64
 
 
 class InstanceDiskEncryptionType(StrEnum):
@@ -1272,9 +1275,19 @@ class Instance(Base):
         from .volume import Volume  # pylint: disable=import-outside-toplevel
 
         hypervisor_prefix = "sd" if self.hypervisor == "kvm" else "xvd"
+
+        device_limit = int(
+            max(
+                MIN_DEVICE_LIMIT,
+                min(self.specs.memory // MB_PER_GB, MAX_DEVICE_LIMIT),
+            )
+        )
+
         device_names = [
-            hypervisor_prefix + string.ascii_lowercase[i] for i in range(0, 8)
+            hypervisor_prefix + suffix
+            for suffix in generate_device_suffixes(device_limit)
         ]
+
         device_map = {
             device_names[i]: None for i in range(0, len(device_names))
         }
