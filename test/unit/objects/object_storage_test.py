@@ -365,7 +365,9 @@ class ObjectStorageTest(ClientBaseCase):
         self.assertEqual(quota.quota_limit, 100)
         self.assertTrue(quota.has_usage)
 
-        usage_url = "/object-storage/global-quotas/obj-access-keys-per-account/usage"
+        usage_url = (
+            "/object-storage/global-quotas/obj-access-keys-per-account/usage"
+        )
         with self.mock_get(usage_url) as m:
             usage = quota.usage()
             self.assertIsNotNone(usage)
@@ -379,9 +381,7 @@ class ObjectStorageTest(ClientBaseCase):
             self.assertIsNotNone(quotas)
             self.assertEqual(m.call_url, list_url)
             self.assertEqual(len(quotas), 2)
-            self.assertEqual(
-                quotas[0].quota_id, "obj-access-keys-per-account"
-            )
+            self.assertEqual(quotas[0].quota_id, "obj-access-keys-per-account")
             self.assertEqual(quotas[0].quota_type, "obj-access-keys")
             self.assertEqual(
                 quotas[0].quota_name,

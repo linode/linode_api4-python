@@ -548,6 +548,4 @@ class ObjectStorageGroup(Group):
         :returns: A list of account-level Object Storage Quotas that matched the query.
         :rtype: PaginatedList of ObjectStorageGlobalQuota
         """
-        return self.client._get_and_filter(
-            ObjectStorageGlobalQuota, *filters
-        )
+        return self.client._get_and_filter(ObjectStorageGlobalQuota, *filters)

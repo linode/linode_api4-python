@@ -37,7 +37,9 @@ def test_get_obj_storage_quota_usage(test_linode_client):
     if len(quotas) < 1:
         pytest.skip("No available quota for testing. Skipping now...")
 
-    quota_with_usage = next((quota for quota in quotas if quota.has_usage), None)
+    quota_with_usage = next(
+        (quota for quota in quotas if quota.has_usage), None
+    )
 
     if quota_with_usage is None:
         quota_id = quotas[0].quota_id
@@ -99,7 +101,9 @@ def test_get_obj_storage_global_quota_usage(test_linode_client):
     if len(quotas) < 1:
         pytest.skip("No available global quota for testing. Skipping now...")
 
-    quota_with_usage = next((quota for quota in quotas if quota.has_usage), None)
+    quota_with_usage = next(
+        (quota for quota in quotas if quota.has_usage), None
+    )
 
     if quota_with_usage is None:
         quota_id = quotas[0].quota_id
