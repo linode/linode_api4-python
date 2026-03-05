@@ -6,6 +6,7 @@ from linode_api4.objects import (
     ObjectStorageACL,
     ObjectStorageBucket,
     ObjectStorageCluster,
+    ObjectStorageGlobalQuota,
     ObjectStorageQuota,
 )
 
@@ -306,6 +307,8 @@ class ObjectStorageTest(ClientBaseCase):
         self.assertEqual(quota.s3_endpoint, "us-iad-1.linodeobjects.com")
         self.assertEqual(quota.quota_limit, 50)
         self.assertEqual(quota.resource_metric, "object")
+        self.assertEqual(quota.quota_type, "obj-objects")
+        self.assertTrue(quota.has_usage)
 
         quota_usage_url = "/object-storage/quotas/obj-objects-us-ord-1/usage"
         with self.mock_get(quota_usage_url) as m:
@@ -335,3 +338,59 @@ class ObjectStorageTest(ClientBaseCase):
             )
             self.assertEqual(quotas[0].quota_limit, 50)
             self.assertEqual(quotas[0].resource_metric, "object")
+            self.assertEqual(quotas[0].quota_type, "obj-objects")
+            self.assertTrue(quotas[0].has_usage)
+
+    def test_global_quota_get_and_list(self):
+        """
+        Test that you can get and list account-level Object Storage global quotas and usage.
+        """
+        quota = ObjectStorageGlobalQuota(
+            self.client,
+            "obj-access-keys-per-account",
+        )
+
+        self.assertIsNotNone(quota)
+        self.assertEqual(quota.quota_id, "obj-access-keys-per-account")
+        self.assertEqual(quota.quota_type, "obj-access-keys")
+        self.assertEqual(
+            quota.quota_name,
+            "Object Storage Access Keys per Account",
+        )
+        self.assertEqual(
+            quota.description,
+            "Maximum number of access keys this customer is allowed to have on their account.",
+        )
+        self.assertEqual(quota.resource_metric, "access_key")
+        self.assertEqual(quota.quota_limit, 100)
+        self.assertTrue(quota.has_usage)
+
+        usage_url = "/object-storage/global-quotas/obj-access-keys-per-account/usage"
+        with self.mock_get(usage_url) as m:
+            usage = quota.usage()
+            self.assertIsNotNone(usage)
+            self.assertEqual(m.call_url, usage_url)
+            self.assertEqual(usage.quota_limit, 100)
+            self.assertEqual(usage.usage, 25)
+
+        list_url = "/object-storage/global-quotas"
+        with self.mock_get(list_url) as m:
+            quotas = self.client.object_storage.global_quotas()
+            self.assertIsNotNone(quotas)
+            self.assertEqual(m.call_url, list_url)
+            self.assertEqual(len(quotas), 2)
+            self.assertEqual(
+                quotas[0].quota_id, "obj-access-keys-per-account"
+            )
+            self.assertEqual(quotas[0].quota_type, "obj-access-keys")
+            self.assertEqual(
+                quotas[0].quota_name,
+                "Object Storage Access Keys per Account",
+            )
+            self.assertEqual(
+                quotas[0].description,
+                "Maximum number of access keys this customer is allowed to have on their account.",
+            )
+            self.assertEqual(quotas[0].resource_metric, "access_key")
+            self.assertEqual(quotas[0].quota_limit, 100)
+            self.assertTrue(quotas[0].has_usage)
