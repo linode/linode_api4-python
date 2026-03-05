@@ -243,11 +243,11 @@ class NodeBalancerVPCConfig(DerivedBase):
     properties = {
         "id": Property(identifier=True),
         "nodebalancer_id": Property(identifier=True),
-        "ipv4_range": Property(mutable=True),
-        "ipv4_range_auto_assign": Property(mutable=True),
-        "subnet_id": Property(mutable=True),
-        "vpc_id": Property(mutable=True),
-        "purpose": Property(mutable=True),
+        "ipv4_range": Property(),
+        "ipv6_range": Property(),
+        "subnet_id": Property(),
+        "vpc_id": Property(),
+        "purpose": Property(),
     }
 
 
@@ -413,7 +413,10 @@ class NodeBalancer(Base):
         :rtype: NodeBalancerVPCConfig
         """
         result = self._client.get(
-            "{}/vpcs/{}".format(NodeBalancer.api_endpoint, id), model=self
+            "{}/vpcs/{}".format(
+                NodeBalancer.api_endpoint, parse.quote(str(id))
+            ),
+            model=self,
         )
 
         return NodeBalancerVPCConfig(

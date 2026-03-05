@@ -6,7 +6,7 @@
             "subnet_id": 5555,
             "vpc_id": 111,
             "ipv4_range": "10.100.5.0/24",
-            "ipv4_range_auto_assign": false,
+            "ipv6_range": "2001:db8::/64",
             "purpose": "frontend"
         },
         {
@@ -15,7 +15,7 @@
             "subnet_id": 5556,
             "vpc_id": 112,
             "ipv4_range": "10.100.6.0/24",
-            "ipv4_range_auto_assign": false,
+            "ipv6_range": "2001:db8:1::/64",
             "purpose": "backend"
         }
     ],

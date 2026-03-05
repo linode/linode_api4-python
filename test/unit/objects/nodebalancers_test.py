@@ -317,6 +317,7 @@ class NodeBalancerTest(ClientBaseCase):
             self.assertEqual(result[0].subnet_id, 5555)
             self.assertEqual(result[0].vpc_id, 111)
             self.assertEqual(result[0].ipv4_range, "10.100.5.0/24")
+            self.assertEqual(result[0].ipv6_range, "2001:db8::/64")
             self.assertEqual(result[0].purpose, "frontend")
 
             self.assertIsInstance(result[1], NodeBalancerVPCConfig)
@@ -324,6 +325,7 @@ class NodeBalancerTest(ClientBaseCase):
             self.assertEqual(result[1].subnet_id, 5556)
             self.assertEqual(result[1].vpc_id, 112)
             self.assertEqual(result[1].ipv4_range, "10.100.6.0/24")
+            self.assertEqual(result[1].ipv6_range, "2001:db8:1::/64")
             self.assertEqual(result[1].purpose, "backend")
 
     def test_vpc(self):
@@ -341,6 +343,7 @@ class NodeBalancerTest(ClientBaseCase):
             self.assertEqual(result.subnet_id, 5555)
             self.assertEqual(result.vpc_id, 111)
             self.assertEqual(result.ipv4_range, "10.100.5.0/24")
+            self.assertEqual(result.ipv6_range, "2001:db8::/64")
             self.assertEqual(result.purpose, "frontend")
 
     def test_backend_vpcs(self):
@@ -359,6 +362,7 @@ class NodeBalancerTest(ClientBaseCase):
             self.assertEqual(result[0].subnet_id, 6666)
             self.assertEqual(result[0].vpc_id, 222)
             self.assertEqual(result[0].ipv4_range, "10.200.1.0/24")
+            self.assertEqual(result[0].ipv6_range, "2001:db8:2::/64")
             self.assertEqual(result[0].purpose, "backend")
 
     def test_frontend_vpcs(self):
@@ -377,4 +381,5 @@ class NodeBalancerTest(ClientBaseCase):
             self.assertEqual(result[0].subnet_id, 5555)
             self.assertEqual(result[0].vpc_id, 111)
             self.assertEqual(result[0].ipv4_range, "10.100.5.0/24")
+            self.assertEqual(result[0].ipv6_range, "2001:db8::/64")
             self.assertEqual(result[0].purpose, "frontend")
