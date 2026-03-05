@@ -8,7 +8,9 @@
       "outbound":[],
       "outbound_policy":"DROP",
       "inbound":[],
-      "inbound_policy":"DROP"
+      "inbound_policy":"DROP",
+      "version":2,
+      "fingerprint":"4ef67a29"
    },
    "tags":[]
 }

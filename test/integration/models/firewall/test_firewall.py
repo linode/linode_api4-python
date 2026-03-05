@@ -29,6 +29,10 @@ def test_get_firewall_rules(test_linode_client, test_firewall):
 
     assert rules.inbound_policy in ["ACCEPT", "DROP"]
     assert rules.outbound_policy in ["ACCEPT", "DROP"]
+    assert isinstance(rules.version, int)
+    assert rules.version > 0
+    assert isinstance(rules.fingerprint, str)
+    assert len(rules.fingerprint) > 0
 
 
 @pytest.mark.smoke
@@ -61,6 +65,10 @@ def test_update_firewall_rules(test_linode_client, test_firewall):
 
     assert firewall.rules.inbound_policy == "ACCEPT"
     assert firewall.rules.outbound_policy == "DROP"
+    assert isinstance(firewall.rules.version, int)
+    assert firewall.rules.version > 0
+    assert isinstance(firewall.rules.fingerprint, str)
+    assert len(firewall.rules.fingerprint) > 0
 
 
 def test_get_devices(test_linode_client, linode_fw, test_firewall):
