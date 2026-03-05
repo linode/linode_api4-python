@@ -13,5 +13,8 @@
   ],
   "locks": [
     "cannot_delete_with_subresources"
-  ]
+  ],
+  "type": "common",
+  "frontend_address_type": "vpc",
+  "frontend_vpc_subnet_id": 5555
 }
