@@ -32,7 +32,7 @@ TEST_REGION = get_region(
 )
 
 
-def create_linode(test_linode_client):
+def create_linode_func(test_linode_client):
     client = test_linode_client
 
     label = get_test_label()
@@ -49,7 +49,7 @@ def create_linode(test_linode_client):
 
 @pytest.fixture
 def create_linode_for_ip_share(test_linode_client):
-    linode = create_linode(test_linode_client)
+    linode = create_linode_func(test_linode_client)
 
     yield linode
 
@@ -58,7 +58,7 @@ def create_linode_for_ip_share(test_linode_client):
 
 @pytest.fixture
 def create_linode_to_be_shared_with_ips(test_linode_client):
-    linode = create_linode(test_linode_client)
+    linode = create_linode_func(test_linode_client)
 
     yield linode
 
@@ -302,6 +302,8 @@ def test_create_and_delete_vlan(test_linode_client, linode_for_vlan_tests):
     wait_for_condition(3, 100, get_status, linode, "rebooting")
     assert linode.status == "rebooting"
 
+    wait_for_condition(3, 100, get_status, linode, "running")
+
     # Delete the VLAN
     is_deleted = test_linode_client.networking.delete_vlan(
         vlan_label, linode.region
@@ -334,6 +336,7 @@ def test_get_global_firewall_settings(test_linode_client):
 
 def test_ip_info(test_linode_client, create_linode):
     linode = create_linode
+    wait_for_condition(3, 100, get_status, linode, "running")
 
     ip_info = test_linode_client.load(IPAddress, linode.ipv4[0])
 

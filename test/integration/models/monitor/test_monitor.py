@@ -16,6 +16,7 @@ from linode_api4.objects import (
     MonitorService,
     MonitorServiceToken,
 )
+from linode_api4.objects.monitor import AlertStatus
 
 
 # List all dashboards
@@ -227,7 +228,8 @@ def test_integration_create_get_update_delete_alert_definition(
         interval = initial_timeout
         alert = client.load(AlertDefinition, alert_id, service_type)
         while (
-            getattr(alert, "status", None) == "in progress"
+            getattr(alert, "status", None)
+            != AlertStatus.AlertDefinitionStatusEnabled
             and (time.time() - start) < timeout
         ):
             time.sleep(interval)
