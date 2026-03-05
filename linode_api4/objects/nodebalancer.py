@@ -386,7 +386,7 @@ class NodeBalancer(Base):
         """
         View VPC information for VPCs associated with this NodeBalancer.
 
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-node-balancer-vpcs
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-node-balancer-vpc-config
 
         :returns: A List of NodeBalancerVPCConfig of the Linode NodeBalancer.
         :rtype: List[NodeBalancerVPCConfig]
