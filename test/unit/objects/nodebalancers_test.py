@@ -4,6 +4,7 @@ from linode_api4.objects import (
     NodeBalancer,
     NodeBalancerConfig,
     NodeBalancerNode,
+    NodeBalancerVPCConfig,
 )
 
 
@@ -266,3 +267,114 @@ class NodeBalancerTest(ClientBaseCase):
                 "linode.com - balancer12345 (12345) - day (5 min avg)",
             )
             self.assertEqual(m.call_url, statistics_url)
+
+    def test_list_nodebalancers(self):
+        """
+        Test that you can list all NodeBalancers.
+        """
+        nbs = self.client.nodebalancers()
+
+        self.assertEqual(len(nbs), 2)
+
+        self.assertEqual(nbs[0].id, 123456)
+        self.assertEqual(nbs[0].label, "balancer123456")
+        self.assertEqual(nbs[0].type, "common")
+        self.assertEqual(nbs[0].frontend_address_type, "vpc")
+        self.assertEqual(nbs[0].frontend_vpc_subnet_id, 5555)
+
+        self.assertEqual(nbs[1].id, 123457)
+        self.assertEqual(nbs[1].label, "balancer123457")
+        self.assertEqual(nbs[1].type, "premium_40gb")
+        self.assertEqual(nbs[1].frontend_address_type, "vpc")
+        self.assertEqual(nbs[1].frontend_vpc_subnet_id, 6666)
+
+    def test_get_nodebalancer(self):
+        """
+        Test that you can get a single NodeBalancer by ID.
+        """
+        nb = NodeBalancer(self.client, 123456)
+
+        self.assertEqual(nb.id, 123456)
+        self.assertEqual(nb.label, "balancer123456")
+        self.assertEqual(nb.type, "common")
+        self.assertEqual(nb.frontend_address_type, "vpc")
+        self.assertEqual(nb.frontend_vpc_subnet_id, 5555)
+
+    def test_vpcs(self):
+        """
+        Test that you can list VPC configurations for a NodeBalancer.
+        """
+        vpcs_url = "/nodebalancers/12345/vpcs"
+        with self.mock_get(vpcs_url) as m:
+            nb = NodeBalancer(self.client, 12345)
+            result = nb.vpcs()
+
+            self.assertEqual(m.call_url, vpcs_url)
+            self.assertEqual(len(result), 2)
+
+            self.assertIsInstance(result[0], NodeBalancerVPCConfig)
+            self.assertEqual(result[0].id, 99)
+            self.assertEqual(result[0].subnet_id, 5555)
+            self.assertEqual(result[0].vpc_id, 111)
+            self.assertEqual(result[0].ipv4_range, "10.100.5.0/24")
+            self.assertEqual(result[0].purpose, "frontend")
+
+            self.assertIsInstance(result[1], NodeBalancerVPCConfig)
+            self.assertEqual(result[1].id, 100)
+            self.assertEqual(result[1].subnet_id, 5556)
+            self.assertEqual(result[1].vpc_id, 112)
+            self.assertEqual(result[1].ipv4_range, "10.100.6.0/24")
+            self.assertEqual(result[1].purpose, "backend")
+
+    def test_vpc(self):
+        """
+        Test that you can get a single VPC configuration for a NodeBalancer.
+        """
+        vpc_url = "/nodebalancers/12345/vpcs/99"
+        with self.mock_get(vpc_url) as m:
+            nb = NodeBalancer(self.client, 12345)
+            result = nb.vpc(99)
+
+            self.assertEqual(m.call_url, vpc_url)
+            self.assertIsInstance(result, NodeBalancerVPCConfig)
+            self.assertEqual(result.id, 99)
+            self.assertEqual(result.subnet_id, 5555)
+            self.assertEqual(result.vpc_id, 111)
+            self.assertEqual(result.ipv4_range, "10.100.5.0/24")
+            self.assertEqual(result.purpose, "frontend")
+
+    def test_backend_vpcs(self):
+        """
+        Test that you can list backend VPC configurations for a NodeBalancer.
+        """
+        backend_vpcs_url = "/nodebalancers/12345/backend_vpcs"
+        with self.mock_get(backend_vpcs_url) as m:
+            nb = NodeBalancer(self.client, 12345)
+            result = nb.backend_vpcs()
+
+            self.assertEqual(m.call_url, backend_vpcs_url)
+            self.assertEqual(len(result), 1)
+            self.assertIsInstance(result[0], NodeBalancerVPCConfig)
+            self.assertEqual(result[0].id, 101)
+            self.assertEqual(result[0].subnet_id, 6666)
+            self.assertEqual(result[0].vpc_id, 222)
+            self.assertEqual(result[0].ipv4_range, "10.200.1.0/24")
+            self.assertEqual(result[0].purpose, "backend")
+
+    def test_frontend_vpcs(self):
+        """
+        Test that you can list frontend VPC configurations for a NodeBalancer.
+        """
+        frontend_vpcs_url = "/nodebalancers/12345/frontend_vpcs"
+        with self.mock_get(frontend_vpcs_url) as m:
+            nb = NodeBalancer(self.client, 12345)
+            result = nb.frontend_vpcs()
+
+            self.assertEqual(m.call_url, frontend_vpcs_url)
+            self.assertEqual(len(result), 1)
+            self.assertIsInstance(result[0], NodeBalancerVPCConfig)
+            self.assertEqual(result[0].id, 99)
+            self.assertEqual(result[0].subnet_id, 5555)
+            self.assertEqual(result[0].vpc_id, 111)
+            self.assertEqual(result[0].ipv4_range, "10.100.5.0/24")
+            self.assertEqual(result[0].purpose, "frontend")

@@ -1,0 +1,16 @@
+{
+    "data": [
+        {
+            "id": 101,
+            "nodebalancer_id": 12345,
+            "subnet_id": 6666,
+            "vpc_id": 222,
+            "ipv4_range": "10.200.1.0/24",
+            "ipv4_range_auto_assign": false,
+            "purpose": "backend"
+        }
+    ],
+    "page": 1,
+    "pages": 1,
+    "results": 1
+}
