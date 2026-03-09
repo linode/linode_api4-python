@@ -1,6 +1,6 @@
 import unittest
 
-from linode_api4.util import drop_null_keys
+from linode_api4.util import drop_null_keys, generate_device_suffixes
 
 
 class UtilTest(unittest.TestCase):
@@ -53,3 +53,122 @@ class UtilTest(unittest.TestCase):
         }
 
         assert drop_null_keys(value) == expected_output
+
+    def test_generate_device_suffixes(self):
+        """
+        Tests whether generate_device_suffixes works as expected.
+        """
+
+        expected_output_12 = [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "i",
+            "j",
+            "k",
+            "l",
+        ]
+        assert generate_device_suffixes(12) == expected_output_12
+
+        expected_output_30 = [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "i",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "q",
+            "r",
+            "s",
+            "t",
+            "u",
+            "v",
+            "w",
+            "x",
+            "y",
+            "z",
+            "aa",
+            "ab",
+            "ac",
+            "ad",
+        ]
+        assert generate_device_suffixes(30) == expected_output_30
+
+        expected_output_60 = [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "i",
+            "j",
+            "k",
+            "l",
+            "m",
+            "n",
+            "o",
+            "p",
+            "q",
+            "r",
+            "s",
+            "t",
+            "u",
+            "v",
+            "w",
+            "x",
+            "y",
+            "z",
+            "aa",
+            "ab",
+            "ac",
+            "ad",
+            "ae",
+            "af",
+            "ag",
+            "ah",
+            "ai",
+            "aj",
+            "ak",
+            "al",
+            "am",
+            "an",
+            "ao",
+            "ap",
+            "aq",
+            "ar",
+            "as",
+            "at",
+            "au",
+            "av",
+            "aw",
+            "ax",
+            "ay",
+            "az",
+            "ba",
+            "bb",
+            "bc",
+            "bd",
+            "be",
+            "bf",
+            "bg",
+            "bh",
+        ]
+        assert generate_device_suffixes(60) == expected_output_60
