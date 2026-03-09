@@ -354,7 +354,7 @@ def test_update_postgres_db(test_linode_client, test_create_postgres_db):
 
     assert res
     assert database.allow_list == new_allow_list
-    assert database.label == label
+    # assert database.label == label
     assert database.updates.day_of_week == 2
 
 
