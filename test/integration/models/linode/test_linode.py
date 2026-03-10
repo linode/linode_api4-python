@@ -234,6 +234,17 @@ def get_status(linode: Instance, status: str):
 def instance_type_condition(linode: Instance, type: str):
     return type in str(linode.type)
 
+def test_get_linodes_verify_alerts(test_linode_client):
+    linodes_list = test_linode_client.linode.instances().lists[0]
+    assert len(linodes_list) > 0
+    assert linodes_list[0].alerts.cpu >= 0
+    assert linodes_list[0].alerts.io >= 0
+    assert linodes_list[0].alerts.network_in >= 0
+    assert linodes_list[0].alerts.network_out >= 0
+    assert linodes_list[0].alerts.transfer_quota >= 0
+    assert isinstance(linodes_list[0].alerts.system_alerts, list)
+    assert isinstance(linodes_list[0].alerts.user_alerts, list)
+
 
 def test_get_linode(test_linode_client, linode_with_volume_firewall):
     linode = test_linode_client.load(Instance, linode_with_volume_firewall.id)
@@ -283,6 +294,8 @@ def test_linode_rebuild(test_linode_client):
 
     assert linode.status == "rebuilding"
     assert linode.image.id == "linode/debian12"
+    assert linode.alerts.cpu >= 0
+    assert linode.alerts.io >= 0
 
     assert linode.disk_encryption == InstanceDiskEncryptionType.disabled
 
@@ -344,6 +357,65 @@ def test_linode_reboot(create_linode):
 
     wait_for_condition(3, 100, get_status, linode, "running")
     assert linode.status == "running"
+
+
+def test_linode_alerts_workflow(test_linode_client, create_linode):
+    linode = create_linode
+    parent_linode_id = create_linode.id
+    assert linode.alerts.cpu == 90
+    assert linode.alerts.io == 10000
+    assert linode.alerts.network_in == 10
+    assert linode.alerts.network_out == 10
+    assert linode.alerts.transfer_quota == 80
+    assert isinstance(linode.alerts.system_alerts, list)
+    assert isinstance(linode.alerts.user_alerts, list)
+
+    linode = test_linode_client.load(Instance, parent_linode_id)
+    assert linode.alerts.cpu == 90
+    assert linode.alerts.io == 10000
+    assert linode.alerts.network_in == 10
+    assert linode.alerts.network_out == 10
+    assert linode.alerts.transfer_quota == 80
+    assert isinstance(linode.alerts.system_alerts, list)
+    assert isinstance(linode.alerts.user_alerts, list)
+
+    linode.alerts={
+        "cpu": 50,
+        "io": 6000,
+        "network_in": 20,
+        "network_out": 20,
+        "transfer": 80,
+    }
+    linode.save()
+
+    wait_for_condition(10, 100, get_status, linode, "running")
+    new_linode = retry_sending_request(5, linode.clone, parent_linode_id)
+    assert new_linode.alerts.cpu == 50
+    assert new_linode.alerts.io == 6000
+    assert new_linode.alerts.network_in == 20
+    assert new_linode.alerts.network_out == 20
+    assert new_linode.alerts.transfer_quota == 80
+    assert isinstance(new_linode.alerts.system_alerts, list)
+    assert isinstance(new_linode.alerts.user_alerts, list)
+
+
+def test_try_to_update_linode_alerts_legacy_and_aclp_at_the_same_time(create_linode):
+    linode = create_linode
+
+    linode.alerts={
+        "cpu": 50,
+        "io": 6000,
+        "network_in": 20,
+        "network_out": 20,
+        "transfer": 50,
+        "system_alerts": [1,436],
+        "user_alerts": [555],
+    }
+
+    with pytest.raises(RuntimeError) as err:
+        linode.save()
+    assert "Cannot set both legacy and ACLP alerts simultaneously" in str(err.value)
+    assert "[400] alerts" in str(err.value)
 
 
 def test_linode_shutdown(create_linode):
