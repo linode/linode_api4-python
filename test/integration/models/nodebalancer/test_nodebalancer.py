@@ -355,14 +355,17 @@ def test_nb_with_frontend_ipv6_only_in_single_stack_vpc(
     subnet = create_vpc_with_subnet_ipv4[1].id
     label = get_test_label(8)
 
-    with pytest.raises(ApiError) as err:
+    with pytest.raises(ApiError) as excinfo:
         client.nodebalancer_create(
             region=vpc_region,
             label=label,
             frontend_vpcs=[{"subnet_id": subnet, "ipv6_range": "/62"}],
             type="premium",
         )
-        assert "No IPv6 subnets available in VPC" in str(err.json)
+
+    error_msg = str(excinfo.value.json)
+    assert excinfo.value.status == 400
+    assert "No IPv6 subnets available in VPC" in error_msg
 
 
 def test_nb_with_frontend_and_default_type(
@@ -373,15 +376,16 @@ def test_nb_with_frontend_and_default_type(
     subnet = create_vpc_with_subnet[1].id
     label = get_test_label(8)
 
-    with pytest.raises(ApiError) as err:
+    with pytest.raises(ApiError) as excinfo:
         client.nodebalancer_create(
             region=vpc_region,
             label=label,
             frontend_vpcs=[{"subnet_id": subnet}],
         )
-        assert "Nodebalancer with frontend VPC IP must be premium" in str(
-            err.json
-        )
+
+    error_msg = str(excinfo.value.json)
+    assert excinfo.value.status == 400
+    assert "NodeBalancer with frontend VPC IP must be premium" in error_msg
 
 
 def test_nb_with_frontend_and_premium40gb_type(test_linode_client):
@@ -466,12 +470,13 @@ def test_nb_with_frontend_and_backend_in_different_vpcs(
 
     nb_get = NodeBalancer(client, nb.id)
     nb_vpcs = nb_get.vpcs()
+    nb_vpcs.sort(key=lambda x: x.purpose)
 
     assert len(nb_vpcs) == 2
-    assert nb_vpcs[0].ipv4_range == f"{ipv4_address}/32"
-    assert nb_vpcs[0].ipv6_range == f"{ipv6_address[:-1]}/64"
-    assert nb_vpcs[0].purpose == "frontend"
-    assert nb_vpcs[1].purpose == "backend"
+    assert nb_vpcs[0].purpose == "backend"
+    assert nb_vpcs[1].ipv4_range == f"{ipv4_address}/32"
+    assert nb_vpcs[1].ipv6_range == f"{ipv6_address[:-1]}/64"
+    assert nb_vpcs[1].purpose == "frontend"
 
     # TODO: Uncomment when API implementation of /backend_vpcs and /frontend_vpcs endpoints is finished
     # nb_backend_vpcs = nb_get.backend_vpcs()
