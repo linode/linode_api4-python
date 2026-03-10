@@ -240,3 +240,40 @@ class IAMTest(ClientBaseCase):
         self.assertEqual(
             m.call_data["entity_access"][1]["roles"], ["firewall_admin"]
         )
+
+    def test_account_permissions_get(self):
+        """
+        Test that account permissions can be properly retrieved for a user
+        """
+        permissions_account = self.client.iam.account_permissions_get(
+            "myusername"
+        )
+
+        # Add assertions based on your fixture data
+        self.assertEqual(len(permissions_account), 6)
+        self.assertEqual(permissions_account[0], "list_events")
+        self.assertEqual(permissions_account[1], "list_entities")
+        self.assertEqual(permissions_account[2], "view_account_settings")
+        self.assertEqual(permissions_account[3], "view_invoice_item")
+        self.assertEqual(permissions_account[4], "cancel_account")
+        self.assertEqual(permissions_account[5], "create_vpc")
+
+    def test_entity_permissions_get(self):
+        """
+        Test that entity permissions can be properly retrieved for a user
+        and given entity type and id
+        """
+        permissions_entity = self.client.iam.entity_permissions_get(
+            "myusername", "linode", 1
+        )
+
+        # Add assertions based on your fixture data
+        self.assertEqual(len(permissions_entity), 6)
+        self.assertEqual(
+            permissions_entity[0], "generate_linode_lish_token_remote"
+        )
+        self.assertEqual(permissions_entity[1], "rebuild_linode")
+        self.assertEqual(permissions_entity[2], "shutdown_linode")
+        self.assertEqual(permissions_entity[3], "create_linode_config_profile")
+        self.assertEqual(permissions_entity[4], "rescue_linode")
+        self.assertEqual(permissions_entity[5], "list_linode_volumes")
