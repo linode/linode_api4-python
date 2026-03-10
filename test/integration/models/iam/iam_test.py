@@ -67,7 +67,7 @@ def test_get_account_permissions(test_linode_client):
     account_permissions = client.iam.account_permissions_get(username)
 
     if not account_permissions:
-        pytest.skip("No account permissions found for the user.")
+        pytest.fail("No account permissions found for the user.")
     else:
         assert len(account_permissions) > 0
 
@@ -78,15 +78,15 @@ def test_get_entity_permissions(test_linode_client):
 
     entities = client.iam.entities()
     if not entities:
-        pytest.skip("no entities")
+        pytest.fail("No entities found in IAM response.")
     else:
         entity = entities[0]
         entity_permissions = client.iam.entity_permissions_get(
             username, entity.type, entity.id
         )
         if not entity_permissions:
-            pytest.skip(
-                "no entity permissions found for the user and chosen entity."
+            pytest.fail(
+                "No entity permissions found for the user and chosen entity."
             )
         else:
             assert len(entity_permissions) > 0
