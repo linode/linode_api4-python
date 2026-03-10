@@ -301,7 +301,7 @@ def test_nb_with_backend_only(test_linode_client, create_vpc_with_subnet):
 
     assert nb_vpc.purpose == 'backend'
 
-    # TODO: There is no API implementation yet for /backend_vpcs and /frontend_vpcs
+    # TODO: Uncomment when API implementation of /backend_vpcs and /frontend_vpcs endpoints is finished
     # nb_backend_vpcs = nb_get.backend_vpcs()
     # assert len(nb_backend_vpcs) == 1
     # assert nb_backend_vpcs[0].purpose == 'backend'
@@ -330,7 +330,7 @@ def test_nb_with_frontend_ipv4_only_in_single_stack_vpc(test_linode_client, crea
     assert nb.frontend_address_type == 'vpc'
     assert nb.frontend_vpc_subnet_id == subnet
 
-    # TODO: There is no API implementation yet for /backend_vpcs and /frontend_vpcs
+    # TODO: Uncomment when API implementation of /backend_vpcs and /frontend_vpcs endpoints is finished
     # nb_frontend_vpcs = nb_get.frontend_vpcs()
     # assert len(nb_frontend_vpcs) == 1
     # assert nb_frontend_vpcs[0].purpose == 'frontend'
@@ -453,7 +453,7 @@ def test_nb_with_frontend_and_backend_in_different_vpcs(test_linode_client, crea
     assert nb_vpcs[0].purpose == 'frontend'
     assert nb_vpcs[1].purpose == 'backend'
 
-    # TODO: There is no API implementation yet for /backend_vpcs and /frontend_vpcs
+    # TODO: Uncomment when API implementation of /backend_vpcs and /frontend_vpcs endpoints is finished
     # nb_backend_vpcs = nb_get.backend_vpcs()
     # assert len(nb_backend_vpcs) == 1
     # assert nb_backend_vpcs[0].purpose == 'backend'
