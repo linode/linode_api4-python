@@ -283,23 +283,27 @@ def test_nb_with_backend_only(test_linode_client, create_vpc_with_subnet):
     label = get_test_label(8)
 
     nb = client.nodebalancer_create(
-        region=vpc_region, label=label, vpcs=[{"vpc_id": vpc,"subnet_id": subnet}]
+        region=vpc_region,
+        label=label,
+        vpcs=[{"vpc_id": vpc, "subnet_id": subnet}],
     )
 
-    assert isinstance(ipaddress.ip_address(nb.ipv4.address), ipaddress.IPv4Address)
+    assert isinstance(
+        ipaddress.ip_address(nb.ipv4.address), ipaddress.IPv4Address
+    )
     assert isinstance(ipaddress.ip_address(nb.ipv6), ipaddress.IPv6Address)
-    assert nb.frontend_address_type == 'public'
+    assert nb.frontend_address_type == "public"
     assert nb.frontend_vpc_subnet_id is None
 
     nb_get = NodeBalancer(client, nb.id)
     nb_vpcs = nb_get.vpcs()
 
     assert len(nb_vpcs) == 1
-    assert nb_vpcs[0].purpose == 'backend'
+    assert nb_vpcs[0].purpose == "backend"
 
     nb_vpc = nb_get.vpc(nb_vpcs[0].id)
 
-    assert nb_vpc.purpose == 'backend'
+    assert nb_vpc.purpose == "backend"
 
     # TODO: Uncomment when API implementation of /backend_vpcs and /frontend_vpcs endpoints is finished
     # nb_backend_vpcs = nb_get.backend_vpcs()
@@ -312,22 +316,24 @@ def test_nb_with_backend_only(test_linode_client, create_vpc_with_subnet):
     nb.delete()
 
 
-def test_nb_with_frontend_ipv4_only_in_single_stack_vpc(test_linode_client, create_vpc_with_subnet_ipv4):
+def test_nb_with_frontend_ipv4_only_in_single_stack_vpc(
+    test_linode_client, create_vpc_with_subnet_ipv4
+):
     client = test_linode_client
     vpc_region = create_vpc_with_subnet_ipv4[0].region
     subnet = create_vpc_with_subnet_ipv4[1].id
     label = get_test_label(8)
-    ipv4_address = "10.0.0.2" # first available address
+    ipv4_address = "10.0.0.2"  # first available address
 
     nb = client.nodebalancer_create(
         region=vpc_region,
         label=label,
         frontend_vpcs=[{"subnet_id": subnet, "ipv4_range": "10.0.0.0/24"}],
-        type="premium"
+        type="premium",
     )
     assert nb.ipv4.address == ipv4_address
     assert nb.ipv6 is None
-    assert nb.frontend_address_type == 'vpc'
+    assert nb.frontend_address_type == "vpc"
     assert nb.frontend_vpc_subnet_id == subnet
 
     # TODO: Uncomment when API implementation of /backend_vpcs and /frontend_vpcs endpoints is finished
@@ -341,7 +347,9 @@ def test_nb_with_frontend_ipv4_only_in_single_stack_vpc(test_linode_client, crea
     nb.delete()
 
 
-def test_nb_with_frontend_ipv6_only_in_single_stack_vpc(test_linode_client, create_vpc_with_subnet_ipv4):
+def test_nb_with_frontend_ipv6_only_in_single_stack_vpc(
+    test_linode_client, create_vpc_with_subnet_ipv4
+):
     client = test_linode_client
     vpc_region = create_vpc_with_subnet_ipv4[0].region
     subnet = create_vpc_with_subnet_ipv4[1].id
@@ -352,12 +360,14 @@ def test_nb_with_frontend_ipv6_only_in_single_stack_vpc(test_linode_client, crea
             region=vpc_region,
             label=label,
             frontend_vpcs=[{"subnet_id": subnet, "ipv6_range": "/62"}],
-            type="premium"
+            type="premium",
         )
         assert "No IPv6 subnets available in VPC" in str(err.json)
 
 
-def test_nb_with_frontend_and_default_type(test_linode_client, create_vpc_with_subnet):
+def test_nb_with_frontend_and_default_type(
+    test_linode_client, create_vpc_with_subnet
+):
     client = test_linode_client
     vpc_region = create_vpc_with_subnet[0].region
     subnet = create_vpc_with_subnet[1].id
@@ -369,7 +379,9 @@ def test_nb_with_frontend_and_default_type(test_linode_client, create_vpc_with_s
             label=label,
             frontend_vpcs=[{"subnet_id": subnet}],
         )
-        assert "Nodebalancer with frontend VPC IP must be premium" in str(err.json)
+        assert "Nodebalancer with frontend VPC IP must be premium" in str(
+            err.json
+        )
 
 
 def test_nb_with_frontend_and_premium40gb_type(test_linode_client):
@@ -393,28 +405,30 @@ def test_nb_with_frontend_and_premium40gb_type(test_linode_client):
         region=region,
         label=get_test_label(length=8),
         frontend_vpcs=[{"subnet_id": subnet.id}],
-        type="premium_40gb"
+        type="premium_40gb",
     )
-    assert nb.type == 'premium_40gb'
+    assert nb.type == "premium_40gb"
 
     nb_get = test_linode_client.load(
         NodeBalancer,
         nb.id,
     )
-    assert nb_get.type == 'premium_40gb'
+    assert nb_get.type == "premium_40gb"
 
     nb.delete()
     vpc.delete()
 
 
-def test_nb_with_frontend_and_backend_in_different_vpcs(test_linode_client, create_vpc_with_subnet):
+def test_nb_with_frontend_and_backend_in_different_vpcs(
+    test_linode_client, create_vpc_with_subnet
+):
     client = test_linode_client
     region = create_vpc_with_subnet[0].region
     vpc_backend = create_vpc_with_subnet[0].id
     subnet_backend = create_vpc_with_subnet[1].id
     label = get_test_label(8)
     ipv4_range = "10.0.0.0/24"
-    ipv4_address = "10.0.0.2" # first available address
+    ipv4_address = "10.0.0.2"  # first available address
 
     vpc_frontend = client.vpcs.create(
         label=get_test_label(length=10),
@@ -434,14 +448,20 @@ def test_nb_with_frontend_and_backend_in_different_vpcs(test_linode_client, crea
     nb = client.nodebalancer_create(
         region=region,
         label=label,
-        vpcs=[{"vpc_id": vpc_backend,"subnet_id": subnet_backend}],
-        frontend_vpcs=[{"subnet_id": subnet_frontend.id, "ipv4_range": ipv4_range, "ipv6_range": ipv6_range}],
-        type="premium"
+        vpcs=[{"vpc_id": vpc_backend, "subnet_id": subnet_backend}],
+        frontend_vpcs=[
+            {
+                "subnet_id": subnet_frontend.id,
+                "ipv4_range": ipv4_range,
+                "ipv6_range": ipv6_range,
+            }
+        ],
+        type="premium",
     )
 
     assert nb.ipv4.address == ipv4_address
     assert nb.ipv6 == ipv6_address
-    assert nb.frontend_address_type == 'vpc'
+    assert nb.frontend_address_type == "vpc"
     assert nb.frontend_vpc_subnet_id == subnet_frontend.id
 
     nb_get = NodeBalancer(client, nb.id)
@@ -450,8 +470,8 @@ def test_nb_with_frontend_and_backend_in_different_vpcs(test_linode_client, crea
     assert len(nb_vpcs) == 2
     assert nb_vpcs[0].ipv4_range == f"{ipv4_address}/32"
     assert nb_vpcs[0].ipv6_range == f"{ipv6_address[:-1]}/64"
-    assert nb_vpcs[0].purpose == 'frontend'
-    assert nb_vpcs[1].purpose == 'backend'
+    assert nb_vpcs[0].purpose == "frontend"
+    assert nb_vpcs[1].purpose == "backend"
 
     # TODO: Uncomment when API implementation of /backend_vpcs and /frontend_vpcs endpoints is finished
     # nb_backend_vpcs = nb_get.backend_vpcs()
