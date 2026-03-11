@@ -277,15 +277,17 @@ def test_nodebalancer_types(test_linode_client):
 
 def test_nb_with_backend_only(test_linode_client, create_vpc_with_subnet):
     client = test_linode_client
-    vpc = create_vpc_with_subnet[0].id
-    vpc_region = create_vpc_with_subnet[0].region
-    subnet = create_vpc_with_subnet[1].id
     label = get_test_label(8)
 
     nb = client.nodebalancer_create(
-        region=vpc_region,
+        region=create_vpc_with_subnet[0].region,
         label=label,
-        vpcs=[{"vpc_id": vpc, "subnet_id": subnet}],
+        vpcs=[
+            {
+                "vpc_id": create_vpc_with_subnet[0].id,
+                "subnet_id": create_vpc_with_subnet[1].id,
+            }
+        ],
     )
 
     assert isinstance(
@@ -320,13 +322,12 @@ def test_nb_with_frontend_ipv4_only_in_single_stack_vpc(
     test_linode_client, create_vpc_with_subnet_ipv4
 ):
     client = test_linode_client
-    vpc_region = create_vpc_with_subnet_ipv4[0].region
     subnet = create_vpc_with_subnet_ipv4[1].id
     label = get_test_label(8)
     ipv4_address = "10.0.0.2"  # first available address
 
     nb = client.nodebalancer_create(
-        region=vpc_region,
+        region=create_vpc_with_subnet_ipv4[0].region,
         label=label,
         frontend_vpcs=[{"subnet_id": subnet, "ipv4_range": "10.0.0.0/24"}],
         type="premium",
@@ -351,15 +352,18 @@ def test_nb_with_frontend_ipv6_only_in_single_stack_vpc(
     test_linode_client, create_vpc_with_subnet_ipv4
 ):
     client = test_linode_client
-    vpc_region = create_vpc_with_subnet_ipv4[0].region
-    subnet = create_vpc_with_subnet_ipv4[1].id
     label = get_test_label(8)
 
     with pytest.raises(ApiError) as excinfo:
         client.nodebalancer_create(
-            region=vpc_region,
+            region=create_vpc_with_subnet_ipv4[0].region,
             label=label,
-            frontend_vpcs=[{"subnet_id": subnet, "ipv6_range": "/62"}],
+            frontend_vpcs=[
+                {
+                    "subnet_id": create_vpc_with_subnet_ipv4[1].id,
+                    "ipv6_range": "/62",
+                }
+            ],
             type="premium",
         )
 
@@ -372,15 +376,13 @@ def test_nb_with_frontend_and_default_type(
     test_linode_client, create_vpc_with_subnet
 ):
     client = test_linode_client
-    vpc_region = create_vpc_with_subnet[0].region
-    subnet = create_vpc_with_subnet[1].id
     label = get_test_label(8)
 
     with pytest.raises(ApiError) as excinfo:
         client.nodebalancer_create(
-            region=vpc_region,
+            region=create_vpc_with_subnet[0].region,
             label=label,
-            frontend_vpcs=[{"subnet_id": subnet}],
+            frontend_vpcs=[{"subnet_id": create_vpc_with_subnet[1].id}],
         )
 
     error_msg = str(excinfo.value.json)
