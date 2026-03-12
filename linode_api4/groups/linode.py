@@ -1,5 +1,5 @@
 import base64
-import os
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from linode_api4.common import load_and_validate_keys
@@ -457,8 +457,9 @@ class LinodeGroup(Group):
         script_body = script
         if not script.startswith("#!"):
             # it doesn't look like a stackscript body, let's see if it's a file
-            if os.path.isfile(script):
-                with open(script) as f:
+            script_path = Path(script)
+            if script_path.is_file():
+                with open(script_path) as f:
                     script_body = f.read()
             else:
                 raise ValueError(
