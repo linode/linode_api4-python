@@ -1395,11 +1395,12 @@ class Instance(Base):
                            for the image deployed the disk will be used.  Required
                            if creating a disk without an image.
         :param read_only: If True, creates a read-only disk
-        :param image: The Image to deploy to the disk.
+        :param image: The Image to deploy to the disk.  If provided, at least one of
+                      root_pass or authorized_keys must also be given.
         :param root_pass: The password to configure for the root user when deploying an
                           image to this disk.  Not used if image is not given.  If an
-                          image is given and root_pass is not, a password will be
-                          generated and returned alongside the new disk.
+                          image is given and root_pass is provided, it will be returned
+                          alongside the new disk as a tuple.
         :param authorized_keys: A list of SSH keys to install as trusted for the root user.
         :param authorized_users: A list of usernames whose keys should be installed
                                  as trusted for the root user.  These user's keys
@@ -1412,12 +1413,17 @@ class Instance(Base):
                             disk.  Requires deploying a compatible image.
         :param **stackscript_args: Any arguments to pass to the StackScript, as defined
                                    by its User Defined Fields.
+
+        :returns: A new Disk object, or a tuple containing the new Disk and the
+                  password if both image and root_pass were provided.
+        :rtype: Disk or tuple(Disk, str)
         """
 
-        gen_pass = None
-        if image and not root_pass:
-            gen_pass = Instance.generate_root_password()
-            root_pass = gen_pass
+        if image and not root_pass and not authorized_keys:
+            raise ValueError(
+                "When creating a Disk from an Image, at least one of "
+                "root_pass or authorized_keys must be provided."
+            )
 
         authorized_keys = load_and_validate_keys(authorized_keys)
 
@@ -1466,8 +1472,8 @@ class Instance(Base):
 
         d = Disk(self._client, result["id"], self.id, result)
 
-        if gen_pass:
-            return d, gen_pass
+        if image and root_pass:
+            return d, root_pass
         return d
 
     def enable_backups(self):
@@ -1591,8 +1597,8 @@ class Instance(Base):
 
         :param image: The Image to deploy to this Instance
         :type image: str or Image
-        :param root_pass: The root password for the newly rebuilt Instance.  If
-                          omitted, a password will be generated and returned.
+        :param root_pass: The root password for the newly rebuilt Instance.  At least
+                          one of root_pass or authorized_keys must be provided.
         :type root_pass: str
         :param authorized_keys: The ssh public keys to install in the linode's
                                 /root/.ssh/authorized_keys file.  Each entry may
@@ -1603,14 +1609,14 @@ class Instance(Base):
                                 NOTE: Disk encryption may not currently be available to all users.
         :type disk_encryption: InstanceDiskEncryptionType or str
 
-        :returns: The newly generated password, if one was not provided
-                  (otherwise True)
+        :returns: The root_pass if provided, otherwise True.
         :rtype: str or bool
         """
-        ret_pass = None
-        if not root_pass:
-            ret_pass = Instance.generate_root_password()
-            root_pass = ret_pass
+        if not root_pass and not authorized_keys:
+            raise ValueError(
+                "When rebuilding an Instance, at least one of "
+                "root_pass or authorized_keys must be provided."
+            )
 
         authorized_keys = load_and_validate_keys(authorized_keys)
 
@@ -1639,10 +1645,9 @@ class Instance(Base):
         # update ourself with the newly-returned information
         self._populate(result)
 
-        if not ret_pass:
-            return True
-        else:
-            return ret_pass
+        if root_pass:
+            return root_pass
+        return True
 
     def rescue(self, *disks):
         """
