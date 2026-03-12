@@ -18,6 +18,28 @@ from linode_api4.objects import (
     RegionPrice,
 )
 
+# Lists of valid regions where NodeBalancers of type "premium" or "premium_40gb" can be created
+PREMIUM_REGIONS = [
+    "nl-ams",
+    "jp-tyo-3",
+    "sg-sin-2",
+    "de-fra-2",
+    "in-bom-2",
+    "gb-lon",
+    "us-lax",
+    "id-cgk",
+    "us-mia",
+    "it-mil",
+    "jp-osa",
+    "in-maa",
+    "se-sto",
+    "br-gru",
+    "us-sea",
+    "fr-par",
+    "us-iad",
+]
+PREMIUM_40GB_REGIONS = ["us-iad"]
+
 TEST_REGION = get_region(
     LinodeClient(
         token=get_token(),
@@ -390,27 +412,22 @@ def test_nb_with_frontend_and_default_type(
     assert "NodeBalancer with frontend VPC IP must be premium" in error_msg
 
 
-def test_nb_with_frontend_and_premium40gb_type(test_linode_client):
-    region = "us-iad"  # premium_40gb type can be used in specific regions only
+@pytest.mark.parametrize(
+    "create_vpc_with_subnet_in_premium_region",
+    [PREMIUM_40GB_REGIONS],
+    indirect=True,
+)
+def test_nb_with_frontend_and_premium40gb_type(
+    test_linode_client, create_vpc_with_subnet_in_premium_region
+):
     client = test_linode_client
 
-    vpc = client.vpcs.create(
-        label=get_test_label(length=10),
-        region=region,
-        description="test description",
-        ipv6=[{"range": "auto"}],
-    )
-
-    subnet = vpc.subnet_create(
-        label="test-subnet",
-        ipv4="10.0.0.0/24",
-        ipv6=[{"range": "auto"}],
-    )
-
     nb = client.nodebalancer_create(
-        region=region,
+        region=create_vpc_with_subnet_in_premium_region[0].region,
         label=get_test_label(length=8),
-        frontend_vpcs=[{"subnet_id": subnet.id}],
+        frontend_vpcs=[
+            {"subnet_id": create_vpc_with_subnet_in_premium_region[1].id}
+        ],
         type="premium_40gb",
     )
     assert nb.type == "premium_40gb"
@@ -422,16 +439,18 @@ def test_nb_with_frontend_and_premium40gb_type(test_linode_client):
     assert nb_get.type == "premium_40gb"
 
     nb.delete()
-    vpc.delete()
 
 
+@pytest.mark.parametrize(
+    "create_vpc_with_subnet_in_premium_region", [PREMIUM_REGIONS], indirect=True
+)
 def test_nb_with_frontend_and_backend_in_different_vpcs(
-    test_linode_client, create_vpc_with_subnet
+    test_linode_client, create_vpc_with_subnet_in_premium_region
 ):
     client = test_linode_client
-    region = create_vpc_with_subnet[0].region
-    vpc_backend = create_vpc_with_subnet[0].id
-    subnet_backend = create_vpc_with_subnet[1].id
+    region = create_vpc_with_subnet_in_premium_region[0].region
+    vpc_backend = create_vpc_with_subnet_in_premium_region[0].id
+    subnet_backend = create_vpc_with_subnet_in_premium_region[1].id
     label = get_test_label(8)
     ipv4_range = "10.0.0.0/24"
     ipv4_address = "10.0.0.2"  # first available address

@@ -9,7 +9,7 @@ from test.integration.helpers import (
     wait_for_condition,
 )
 from test.integration.models.database.helpers import get_db_engine_id
-from typing import Optional, Set
+from typing import List, Optional, Set
 
 import pytest
 import requests
@@ -112,9 +112,18 @@ def get_regions(
 
 
 def get_region(
-    client: LinodeClient, capabilities: Set[str] = None, site_type: str = "core"
+    client: LinodeClient,
+    capabilities: Set[str] = None,
+    site_type: str = "core",
+    valid_regions: List[str] = None,
 ):
-    return random.choice(get_regions(client, capabilities, site_type))
+    regions = get_regions(client, capabilities, site_type)
+
+    # To filter out regions that cannot be used for the Linode resource
+    if valid_regions:
+        regions = [reg for reg in regions if reg.id in valid_regions]
+
+    return random.choice(regions)
 
 
 def get_api_ca_file():
@@ -514,6 +523,41 @@ def create_vpc_with_subnet_ipv4(test_linode_client, create_vpc_ipv4):
     yield create_vpc_ipv4, subnet
 
     subnet.delete()
+
+
+@pytest.fixture(scope="function")
+def create_vpc_with_subnet_in_premium_region(request, test_linode_client):
+    premium_regions = getattr(request, "param", None)
+    client = test_linode_client
+    label = get_test_label(length=10)
+
+    vpc = client.vpcs.create(
+        label=label,
+        region=get_region(
+            client,
+            {
+                "VPCs",
+                "VPC IPv6 Stack",
+                "VPC Dual Stack",
+                "Linode Interfaces",
+                "NodeBalancers",
+            },
+            valid_regions=premium_regions,
+        ),
+        description="test description",
+        ipv6=[{"range": "auto"}],
+    )
+
+    subnet = vpc.subnet_create(
+        label="test-subnet",
+        ipv4="10.0.0.0/24",
+        ipv6=[{"range": "auto"}],
+    )
+
+    yield vpc, subnet
+
+    subnet.delete()
+    vpc.delete()
 
 
 @pytest.fixture(scope="session")
