@@ -686,11 +686,14 @@ class LinodeGroupTest(ClientBaseCase):
 
     def test_instance_create_with_image(self):
         """
-        Tests that a Linode Instance can be created with an image, and a password generated
+        Tests that a Linode Instance can be created with an image and root_pass
         """
         with self.mock_post("linode/instances/123") as m:
             l, pw = self.client.linode.instance_create(
-                "g6-standard-1", "us-east-1a", image="linode/debian9"
+                "g6-standard-1",
+                "us-east-1a",
+                image="linode/debian9",
+                root_pass="aComplex@Password123",
             )
 
             self.assertIsNotNone(l)
@@ -704,7 +707,133 @@ class LinodeGroupTest(ClientBaseCase):
                     "region": "us-east-1a",
                     "type": "g6-standard-1",
                     "image": "linode/debian9",
-                    "root_pass": pw,
+                    "root_pass": "aComplex@Password123",
+                },
+            )
+
+    def test_instance_create_with_image_authorized_keys(self):
+        """
+        Tests that a Linode Instance can be created with an image and authorized_keys only
+        """
+        with self.mock_post("linode/instances/123") as m:
+            l = self.client.linode.instance_create(
+                "g6-standard-1",
+                "us-east-1a",
+                image="linode/debian9",
+                authorized_keys="ssh-rsa AAAA",
+            )
+
+            self.assertIsNotNone(l)
+            self.assertEqual(l.id, 123)
+
+            self.assertEqual(m.call_url, "/linode/instances")
+
+            self.assertEqual(
+                m.call_data,
+                {
+                    "region": "us-east-1a",
+                    "type": "g6-standard-1",
+                    "image": "linode/debian9",
+                    "authorized_keys": ["ssh-rsa AAAA"],
+                },
+            )
+
+    def test_instance_create_with_image_requires_auth(self):
+        """
+        Tests that creating an Instance from an Image without root_pass or
+        authorized_keys raises a ValueError
+        """
+        with self.assertRaises(ValueError):
+            self.client.linode.instance_create(
+                "g6-standard-1", "us-east-1a", image="linode/debian9"
+            )
+
+    def test_instance_create_with_kernel(self):
+        """
+        Tests that a Linode Instance can be created with a kernel
+        """
+        with self.mock_post("linode/instances/123") as m:
+            l, pw = self.client.linode.instance_create(
+                "g6-standard-1",
+                "us-east-1a",
+                image="linode/debian9",
+                root_pass="aComplex@Password123",
+                kernel="linode/latest-64bit",
+            )
+
+            self.assertIsNotNone(l)
+            self.assertEqual(l.id, 123)
+
+            self.assertEqual(m.call_url, "/linode/instances")
+
+            self.assertEqual(
+                m.call_data,
+                {
+                    "region": "us-east-1a",
+                    "type": "g6-standard-1",
+                    "image": "linode/debian9",
+                    "root_pass": "aComplex@Password123",
+                    "kernel": "linode/latest-64bit",
+                },
+            )
+
+    def test_instance_create_with_boot_size(self):
+        """
+        Tests that a Linode Instance can be created with a boot_size
+        """
+        with self.mock_post("linode/instances/123") as m:
+            l, pw = self.client.linode.instance_create(
+                "g6-standard-1",
+                "us-east-1a",
+                image="linode/debian9",
+                root_pass="aComplex@Password123",
+                boot_size=5000,
+            )
+
+            self.assertIsNotNone(l)
+            self.assertEqual(l.id, 123)
+
+            self.assertEqual(m.call_url, "/linode/instances")
+
+            self.assertEqual(
+                m.call_data,
+                {
+                    "region": "us-east-1a",
+                    "type": "g6-standard-1",
+                    "image": "linode/debian9",
+                    "root_pass": "aComplex@Password123",
+                    "boot_size": 5000,
+                },
+            )
+
+    def test_instance_create_with_kernel_and_boot_size(self):
+        """
+        Tests that a Linode Instance can be created with both kernel and boot_size
+        """
+        with self.mock_post("linode/instances/123") as m:
+            l, pw = self.client.linode.instance_create(
+                "g6-standard-1",
+                "us-east-1a",
+                image="linode/debian9",
+                root_pass="aComplex@Password123",
+                kernel="linode/latest-64bit",
+                boot_size=5000,
+            )
+
+            self.assertIsNotNone(l)
+            self.assertEqual(l.id, 123)
+
+            self.assertEqual(m.call_url, "/linode/instances")
+
+            self.assertEqual(
+                m.call_data,
+                {
+                    "region": "us-east-1a",
+                    "type": "g6-standard-1",
+                    "image": "linode/debian9",
+                    "root_pass": "aComplex@Password123",
+                    "kernel": "linode/latest-64bit",
+                    "boot_size": 5000,
                 },
             )
 
