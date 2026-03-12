@@ -358,7 +358,7 @@ class LinodeGroup(Group):
         :type boot_size: int
 
         :returns: A new Instance object, or a tuple containing the new Instance and
-                  the password if root_pass was provided.
+                  the password if both image and root_pass were provided.
         :rtype: Instance or tuple(Instance, str)
         :raises ApiError: If contacting the API fails
         :raises UnexpectedResponseError: If the API response is somehow malformed.
@@ -412,7 +412,7 @@ class LinodeGroup(Group):
             )
 
         l = Instance(self.client, result["id"], result)
-        if not root_pass:
+        if not (image and root_pass):
             return l
         return l, root_pass
 
@@ -427,7 +427,7 @@ class LinodeGroup(Group):
                 "g6-standard-2",
                 "us-east",
                 image="linode/ubuntu22.04",
-                root_pass=""aComplex@Password123",
+                root_pass="aComplex@Password123",
                 metadata=client.linode.build_instance_metadata(user_data="myuserdata")
             )
         :param user_data: User-defined data to provide to the Linode Instance through

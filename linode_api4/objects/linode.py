@@ -1415,7 +1415,7 @@ class Instance(Base):
                                    by its User Defined Fields.
 
         :returns: A new Disk object, or a tuple containing the new Disk and the
-                  password if root_pass was provided.
+                  password if both image and root_pass were provided.
         :rtype: Disk or tuple(Disk, str)
         """
 
@@ -1472,7 +1472,7 @@ class Instance(Base):
 
         d = Disk(self._client, result["id"], self.id, result)
 
-        if root_pass:
+        if image and root_pass:
             return d, root_pass
         return d
 
