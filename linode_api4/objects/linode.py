@@ -1406,7 +1406,6 @@ class Instance(Base):
                                  should already be set up, see :any:`ProfileGroup.ssh_keys`
                                  for details.
         :param disk_encryption: The disk encryption policy for this Linode.
-                                NOTE: Disk encryption may not currently be available to all users.
         :type disk_encryption: InstanceDiskEncryptionType or str
         :param stackscript: A StackScript object, or the ID of one, to deploy to this
                             disk.  Requires deploying a compatible image.
@@ -1600,7 +1599,6 @@ class Instance(Base):
                                 the key.
         :type authorized_keys: list or str
         :param disk_encryption: The disk encryption policy for this Linode.
-                                NOTE: Disk encryption may not currently be available to all users.
         :type disk_encryption: InstanceDiskEncryptionType or str
 
         :returns: The newly generated password, if one was not provided
