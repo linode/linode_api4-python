@@ -527,7 +527,7 @@ def create_vpc_with_subnet_ipv4(test_linode_client, create_vpc_ipv4):
 
 @pytest.fixture(scope="function")
 def create_vpc_with_subnet_in_premium_region(request, test_linode_client):
-    premium_regions = getattr(request, "param", None)
+    premium_regions = getattr(request, "param")
     client = test_linode_client
     label = get_test_label(length=10)
 

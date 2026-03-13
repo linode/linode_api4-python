@@ -37,6 +37,7 @@ PREMIUM_REGIONS = [
     "us-sea",
     "fr-par",
     "us-iad",
+    "pl-labkrk-2"  # DevCloud
 ]
 PREMIUM_40GB_REGIONS = ["us-iad"]
 
