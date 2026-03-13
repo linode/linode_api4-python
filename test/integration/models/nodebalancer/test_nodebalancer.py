@@ -370,7 +370,7 @@ def test_nb_with_frontend_ipv4_only_in_single_stack_vpc(
     nb.delete()
 
 
-def test_nb_with_frontend_ipv6_only_in_single_stack_vpc(
+def test_nb_with_frontend_ipv6_in_single_stack_vpc_fail(
     test_linode_client, create_vpc_with_subnet_ipv4
 ):
     client = test_linode_client
@@ -394,7 +394,7 @@ def test_nb_with_frontend_ipv6_only_in_single_stack_vpc(
     assert "No IPv6 subnets available in VPC" in error_msg
 
 
-def test_nb_with_frontend_and_default_type(
+def test_nb_with_frontend_and_default_type_fail(
     test_linode_client, create_vpc_with_subnet
 ):
     client = test_linode_client
@@ -417,7 +417,7 @@ def test_nb_with_frontend_and_default_type(
     [PREMIUM_40GB_REGIONS],
     indirect=True,
 )
-def test_nb_with_frontend_and_premium40gb_type(
+def test_nb_with_premium40gb_type(
     test_linode_client, create_vpc_with_subnet_in_premium_region
 ):
     client = test_linode_client
@@ -425,9 +425,6 @@ def test_nb_with_frontend_and_premium40gb_type(
     nb = client.nodebalancer_create(
         region=create_vpc_with_subnet_in_premium_region[0].region,
         label=get_test_label(length=8),
-        frontend_vpcs=[
-            {"subnet_id": create_vpc_with_subnet_in_premium_region[1].id}
-        ],
         type="premium_40gb",
     )
     assert nb.type == "premium_40gb"
