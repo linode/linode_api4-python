@@ -39,7 +39,7 @@ PREMIUM_REGIONS = [
     "us-iad",
     "pl-labkrk-2",  # DevCloud
 ]
-PREMIUM_40GB_REGIONS = ["us-iad"]
+PREMIUM_40GB_REGIONS = ["us-iad"]  # No DevCloud region for premium_40gb type
 
 TEST_REGION = get_region(
     LinodeClient(
