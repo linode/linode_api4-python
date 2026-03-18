@@ -184,7 +184,7 @@ class LinodeGroup(Group):
            new_linode, password = client.linode.instance_create(
                "g6-standard-2",
                "us-east",
-               image="linode/debian9",
+               image="linode/debian13",
                root_pass="aComplex@Password123")
 
            ltype = client.linode.types().first()
@@ -219,7 +219,7 @@ class LinodeGroup(Group):
            new_linode, password = client.linode.instance_create(
               "g6-standard-2",
               "us-east",
-              image="linode/debian9",
+              image="linode/debian13",
               root_pass="aComplex@Password123",
               stackscript=stackscript,
               stackscript_data={"gh_username": "example"})
