@@ -8,6 +8,7 @@ from linode_api4.objects import (
     Base,
     DerivedBase,
     Instance,
+    InstanceDiskEncryptionType,
     JSONObject,
     MappedObject,
     Property,
@@ -422,7 +423,9 @@ class LKECluster(Base):
         ] = None,
         update_strategy: Optional[str] = None,
         label: str = None,
-        disk_encryption: Optional[str] = None,
+        disk_encryption: Optional[
+            Union[str, InstanceDiskEncryptionType]
+        ] = None,
         **kwargs,
     ):
         """
@@ -445,8 +448,8 @@ class LKECluster(Base):
                                 NOTE: This field is specific to enterprise clusters.
         :type update_strategy: str
         :param disk_encryption: Local disk encryption setting for this LKE node pool.
-                                One of 'enabled', or 'disabled'. Defaults to 'disabled'.
-        :type disk_encryption: str
+                                One of 'enabled' or 'disabled'. Defaults to 'disabled'.
+        :type disk_encryption: str or InstanceDiskEncryptionType
         :param kwargs: Any other arguments to pass to the API.  See the API docs
                        for possible values.
 

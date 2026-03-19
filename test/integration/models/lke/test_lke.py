@@ -210,18 +210,20 @@ def test_get_lke_pool(test_linode_client, lke_cluster):
         InstanceDiskEncryptionType.disabled,
     )
 
+
 def test_node_pool_create_with_disk_encryption(test_linode_client, lke_cluster):
     node_type = test_linode_client.linode.types()[1]
 
     pool = lke_cluster.node_pool_create(
         node_type,
         1,
-        disk_encryption="enabled",
+        disk_encryption=InstanceDiskEncryptionType.enabled,
     )
 
-    assert pool.disk_encryption == InstanceDiskEncryptionType.enabled
-
-    pool.delete()
+    try:
+        assert pool.disk_encryption == InstanceDiskEncryptionType.enabled
+    finally:
+        pool.delete()
 
 
 def test_cluster_dashboard_url_view(lke_cluster):
