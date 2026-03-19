@@ -422,6 +422,7 @@ class LKECluster(Base):
         ] = None,
         update_strategy: Optional[str] = None,
         label: str = None,
+        disk_encryption: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -443,6 +444,9 @@ class LKECluster(Base):
         :param update_strategy: The strategy to use when updating this node pool.
                                 NOTE: This field is specific to enterprise clusters.
         :type update_strategy: str
+        :param disk_encryption: Local disk encryption setting for this LKE node pool.
+                                One of 'enabled', or 'disabled'. Defaults to 'disabled'.
+        :type disk_encryption: str
         :param kwargs: Any other arguments to pass to the API.  See the API docs
                        for possible values.
 
@@ -459,6 +463,7 @@ class LKECluster(Base):
             "taints": taints,
             "k8s_version": k8s_version,
             "update_strategy": update_strategy,
+            "disk_encryption": disk_encryption,
         }
         params.update(kwargs)
 
