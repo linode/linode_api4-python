@@ -787,7 +787,7 @@ class LinodeGroupTest(ClientBaseCase):
                 "us-east-1a",
                 image="linode/debian9",
                 root_pass="aComplex@Password123",
-                boot_size=5000,
+                boot_size=8192,
             )
 
             self.assertIsNotNone(l)
@@ -802,7 +802,7 @@ class LinodeGroupTest(ClientBaseCase):
                     "type": "g6-standard-1",
                     "image": "linode/debian9",
                     "root_pass": "aComplex@Password123",
-                    "boot_size": 5000,
+                    "boot_size": 8192,
                 },
             )
 
@@ -817,7 +817,7 @@ class LinodeGroupTest(ClientBaseCase):
                 image="linode/debian9",
                 root_pass="aComplex@Password123",
                 kernel="linode/latest-64bit",
-                boot_size=5000,
+                boot_size=8192,
             )
 
             self.assertIsNotNone(l)
@@ -833,7 +833,7 @@ class LinodeGroupTest(ClientBaseCase):
                     "image": "linode/debian9",
                     "root_pass": "aComplex@Password123",
                     "kernel": "linode/latest-64bit",
-                    "boot_size": 5000,
+                    "boot_size": 8192,
                 },
             )
 
