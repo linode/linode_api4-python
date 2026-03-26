@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import copy
 import string
 import sys
@@ -40,7 +42,11 @@ from linode_api4.objects.region import Region
 from linode_api4.objects.serializable import JSONObject, StrEnum
 from linode_api4.objects.vpc import VPC, VPCSubnet
 from linode_api4.paginated_list import PaginatedList
-from linode_api4.util import drop_null_keys, generate_device_suffixes
+from linode_api4.util import (
+    drop_null_keys,
+    generate_device_suffixes,
+    normalize_as_list,
+)
 
 PASSWORD_CHARS = string.ascii_letters + string.digits + string.punctuation
 MIN_DEVICE_LIMIT = 8
@@ -1246,14 +1252,14 @@ class Instance(Base):
     # create derived objects
     def config_create(
         self,
-        kernel=None,
-        label=None,
-        devices=[],
-        disks=[],
-        volumes=[],
-        interfaces=[],
+        kernel: Kernel | str | None = None,
+        label: str | None = None,
+        devices: "Disk | Volume | dict[str, Any] | list[Disk | Volume | dict[str, Any]] | None" = None,
+        disks: Disk | int | list[Disk | int] | None = None,
+        volumes: "Volume | int | list[Volume | int] | None" = None,
+        interfaces: list[ConfigInterface | dict[str, Any]] | None = None,
         **kwargs,
-    ):
+    ) -> Config:
         """
         Creates a Linode Config with the given attributes.
 
@@ -1263,16 +1269,21 @@ class Instance(Base):
         :param label: The config label
         :param disks: The list of disks, starting at sda, to map to this config.
         :param volumes: The volumes, starting after the last disk, to map to this
-            config
+                        config.
         :param devices: A list of devices to assign to this config, in device
-            index order.  Values must be of type Disk or Volume. If this is
-            given, you may not include disks or volumes.
+                        index order, a raw device mapping dict to pass directly to the API
+                        (e.g. ``{"sda": {"disk_id": 123}, "sdb": Volume(...)}``), or
+                        a single Disk or Volume.
+                        If this is given, you may not include disks or volumes.
+        :param interfaces: A list of ConfigInterface objects or dicts to assign to this config.
         :param **kwargs: Any other arguments accepted by the api.
 
         :returns: A new Linode Config
         """
         # needed here to avoid circular imports
         from .volume import Volume  # pylint: disable=import-outside-toplevel
+
+        interfaces = [] if interfaces is None else interfaces
 
         hypervisor_prefix = "sd" if self.hypervisor == "kvm" else "xvd"
 
@@ -1288,52 +1299,77 @@ class Instance(Base):
             for suffix in generate_device_suffixes(device_limit)
         ]
 
-        device_map = {
-            device_names[i]: None for i in range(0, len(device_names))
-        }
+        def _flatten_device(device: Disk | Volume | None):
+            if device is None:
+                return None
+            elif isinstance(device, Disk):
+                return {"disk_id": device.id}
+            elif isinstance(device, Volume):
+                return {"volume_id": device.id}
 
+            raise TypeError("Disk or Volume expected!")
+
+        def _device_entry(device: Disk | Volume | int, key: str):
+            if isinstance(device, (Disk, Volume)):
+                return _flatten_device(device)
+
+            try:
+                device_id = int(device)
+            except (TypeError, ValueError):
+                raise TypeError(
+                    "Disk, Volume, or integer ID expected!"
+                ) from None
+
+            return {key: device_id}
+
+        def _build_devices():
+            # Devices is a dict, flatten and pass through
+            if isinstance(devices, dict):
+                return {
+                    k: (
+                        _flatten_device(v)
+                        if isinstance(v, (Disk, Volume))
+                        else v
+                    )
+                    for k, v in devices.items()
+                }
+
+            device_list = []
+
+            if devices:
+                device_list += [
+                    _flatten_device(device)
+                    for device in normalize_as_list(devices)
+                ]
+
+            if disks:
+                device_list += [
+                    _device_entry(disk, "disk_id")
+                    for disk in normalize_as_list(disks)
+                ]
+
+            if volumes:
+                device_list += [
+                    _device_entry(volume, "volume_id")
+                    for volume in normalize_as_list(volumes)
+                ]
+
+            return {
+                device_names[i]: device for i, device in enumerate(device_list)
+            }
+
+        # This validation is enforced for backwards compatibility but isn't
+        # technically needed anymore
         if devices and (disks or volumes):
             raise ValueError(
                 'You may not call config_create with "devices" and '
                 'either of "disks" or "volumes" specified!'
             )
 
-        if not devices:
-            if not isinstance(disks, list):
-                disks = [disks]
-            if not isinstance(volumes, list):
-                volumes = [volumes]
+        device_map = _build_devices()
 
-            devices = []
-
-            for d in disks:
-                if d is None:
-                    devices.append(None)
-                elif isinstance(d, Disk):
-                    devices.append(d)
-                else:
-                    devices.append(Disk(self._client, int(d), self.id))
-
-            for v in volumes:
-                if v is None:
-                    devices.append(None)
-                elif isinstance(v, Volume):
-                    devices.append(v)
-                else:
-                    devices.append(Volume(self._client, int(v)))
-
-        if not devices:
+        if len(device_map) < 1:
             raise ValueError("Must include at least one disk or volume!")
-
-        for i, d in enumerate(devices):
-            if d is None:
-                pass
-            elif isinstance(d, Disk):
-                device_map[device_names[i]] = {"disk_id": d.id}
-            elif isinstance(d, Volume):
-                device_map[device_names[i]] = {"volume_id": d.id}
-            else:
-                raise TypeError("Disk or Volume expected!")
 
         param_interfaces = []
         for interface in interfaces:
@@ -1845,8 +1881,8 @@ class Instance(Base):
         to_linode=None,
         region=None,
         instance_type=None,
-        configs=[],
-        disks=[],
+        configs=None,
+        disks=None,
         label=None,
         group=None,
         with_backups=None,
@@ -1902,7 +1938,10 @@ class Instance(Base):
                 'You may only specify one of "to_linode" and "region"'
             )
 
-        if region and not type:
+        configs = [] if configs is None else configs
+        disks = [] if disks is None else disks
+
+        if region and not instance_type:
             raise ValueError('Specifying a region requires a "service" as well')
 
         if not isinstance(configs, list) and not isinstance(
