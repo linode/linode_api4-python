@@ -57,6 +57,20 @@ class InstanceIPNAT1To1(JSONObject):
     vpc_id: int = 0
 
 
+@dataclass
+class ReservedIPAssignedEntity(JSONObject):
+    """
+    Represents the entity that a reserved IP is assigned to.
+
+    NOTE: Reserved IP feature may not currently be available to all users.
+    """
+
+    id: int = 0
+    label: str = ""
+    type: str = ""
+    url: str = ""
+
+
 class IPAddress(Base):
     """
     note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
@@ -90,6 +104,9 @@ class IPAddress(Base):
         "interface_id": Property(),
         "region": Property(slug_relationship=Region),
         "vpc_nat_1_1": Property(json_object=InstanceIPNAT1To1),
+        "reserved": Property(mutable=True),
+        "tags": Property(mutable=True, unordered=True),
+        "assigned_entity": Property(json_object=ReservedIPAssignedEntity),
     }
 
     @property
@@ -154,6 +171,38 @@ class IPAddress(Base):
             return False
         self.invalidate()
         return True
+
+
+class ReservedIPAddress(Base):
+    """
+    .. note:: This endpoint is in beta. This will only function if base_url is set to ``https://api.linode.com/v4beta``.
+
+    Represents a Linode Reserved IPv4 Address.
+
+    Update tags on a reserved IP by mutating the ``tags`` attribute and calling ``save()``.
+
+    NOTE: Reserved IP feature may not currently be available to all users.
+
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-reserved-ip
+    """
+
+    api_endpoint = "/networking/reserved/ips/{address}"
+    id_attribute = "address"
+
+    properties = {
+        "address": Property(identifier=True),
+        "gateway": Property(),
+        "linode_id": Property(),
+        "prefix": Property(),
+        "public": Property(),
+        "rdns": Property(),
+        "region": Property(slug_relationship=Region),
+        "reserved": Property(),
+        "subnet_mask": Property(),
+        "tags": Property(mutable=True, unordered=True),
+        "type": Property(),
+        "assigned_entity": Property(json_object=ReservedIPAssignedEntity),
+    }
 
 
 @dataclass
@@ -423,4 +472,21 @@ class NetworkTransferPrice(Base):
         "price": Property(json_object=Price),
         "region_prices": Property(json_object=RegionPrice),
         "transfer": Property(),
+    }
+
+
+class ReservedIPType(Base):
+    """
+    Represents a reserved IP type with pricing information.
+
+    NOTE: Reserved IP feature may not currently be available to all users.
+
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-reserved-iptype
+    """
+
+    properties = {
+        "id": Property(identifier=True),
+        "label": Property(),
+        "price": Property(json_object=Price),
+        "region_prices": Property(json_object=RegionPrice),
     }

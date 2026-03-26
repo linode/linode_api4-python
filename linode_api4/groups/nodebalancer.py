@@ -24,7 +24,7 @@ class NodeBalancerGroup(Group):
         """
         return self.client._get_and_filter(NodeBalancer, *filters)
 
-    def create(self, region, **kwargs):
+    def create(self, region, ipv4=None, **kwargs):
         """
         Creates a new NodeBalancer in the given Region.
 
@@ -32,6 +32,9 @@ class NodeBalancerGroup(Group):
 
         :param region: The Region in which to create the NodeBalancer.
         :type region: Region or str
+        :param ipv4: A reserved IPv4 address to assign to this NodeBalancer.
+                     NOTE: Reserved IP feature may not currently be available to all users.
+        :type ipv4: str
 
         :returns: The new NodeBalancer
         :rtype: NodeBalancer
@@ -39,6 +42,8 @@ class NodeBalancerGroup(Group):
         params = {
             "region": region.id if isinstance(region, Base) else region,
         }
+        if ipv4 is not None:
+            params["ipv4"] = ipv4
         params.update(kwargs)
 
         result = self.client.post("/nodebalancers", data=params)

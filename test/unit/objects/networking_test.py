@@ -1,7 +1,11 @@
-from test.unit.base import ClientBaseCase
+from test.unit.base import ClientBaseCase, MethodMock
 
 from linode_api4 import VLAN, ExplicitNullValue, Instance, Region
 from linode_api4.objects import Firewall, IPAddress, IPv6Range
+from linode_api4.objects.networking import (
+    ReservedIPAddress,
+    ReservedIPAssignedEntity,
+)
 
 
 class NetworkingTest(ClientBaseCase):
@@ -171,3 +175,283 @@ class NetworkingTest(ClientBaseCase):
             self.assertEqual(
                 m.call_url, "/networking/vlans/us-southeast/vlan-test"
             )
+
+    def test_ip_address_reserved_and_tags(self):
+        """
+        Tests that IPAddress exposes the reserved and tags fields.
+        """
+        with self.mock_get(
+            {
+                "address": "127.0.0.1",
+                "gateway": "127.0.0.1",
+                "linode_id": 123,
+                "interface_id": 456,
+                "prefix": 24,
+                "public": True,
+                "rdns": "test.example.org",
+                "region": "us-east",
+                "subnet_mask": "255.255.255.0",
+                "type": "ipv4",
+                "vpc_nat_1_1": None,
+                "reserved": True,
+                "tags": ["lb"],
+            }
+        ):
+            ip = IPAddress(self.client, "127.0.0.1")
+            assert ip.reserved is True
+            assert ip.tags == ["lb"]
+
+    def test_reserved_ip_address_save_tags(self):
+        """
+        Tests that saving a ReservedIPAddress sends tags in the PUT body.
+        """
+        reserved_ip = ReservedIPAddress(
+            self.client,
+            "66.175.209.100",
+            {
+                "address": "66.175.209.100",
+                "gateway": "66.175.209.1",
+                "linode_id": None,
+                "prefix": 24,
+                "public": True,
+                "rdns": "66-175-209-100.ip.linodeusercontent.com",
+                "region": "us-east",
+                "reserved": True,
+                "subnet_mask": "255.255.255.0",
+                "tags": ["lb"],
+                "type": "ipv4",
+            },
+        )
+
+        with MethodMock(
+            "put",
+            {
+                "address": "66.175.209.100",
+                "gateway": "66.175.209.1",
+                "linode_id": None,
+                "prefix": 24,
+                "public": True,
+                "rdns": "66-175-209-100.ip.linodeusercontent.com",
+                "region": "us-east",
+                "reserved": True,
+                "subnet_mask": "255.255.255.0",
+                "tags": ["lb", "team:infra"],
+                "type": "ipv4",
+                "assigned_entity": None,
+            },
+        ) as m:
+            reserved_ip.tags = ["lb", "team:infra"]
+            reserved_ip.save()
+
+            assert m.call_url == "/networking/reserved/ips/66.175.209.100"
+            body = m.call_data
+            assert body["tags"] == ["lb", "team:infra"]
+            assert reserved_ip.assigned_entity is None
+
+    def test_reserved_ip_address_delete(self):
+        """
+        Tests that deleting a ReservedIPAddress calls the correct endpoint.
+        """
+        with self.mock_delete() as m:
+            reserved_ip = ReservedIPAddress(self.client, "66.175.209.100")
+            reserved_ip.delete()
+
+            self.assertEqual(
+                m.call_url, "/networking/reserved/ips/66.175.209.100"
+            )
+
+    def test_ip_address_assigned_entity(self):
+        """
+        Tests that IPAddress deserializes the assigned_entity field.
+        """
+        with self.mock_get(
+            {
+                "address": "66.175.209.100",
+                "gateway": "66.175.209.1",
+                "linode_id": 123,
+                "interface_id": None,
+                "prefix": 24,
+                "public": True,
+                "rdns": "",
+                "region": "us-east",
+                "subnet_mask": "255.255.255.0",
+                "type": "ipv4",
+                "vpc_nat_1_1": None,
+                "reserved": True,
+                "tags": ["lb"],
+                "assigned_entity": {
+                    "id": 123,
+                    "label": "my-linode",
+                    "type": "linode",
+                    "url": "/v4/linode/instances/123",
+                },
+            }
+        ):
+            ip = IPAddress(self.client, "66.175.209.100")
+            assert ip.assigned_entity is not None
+            assert isinstance(ip.assigned_entity, ReservedIPAssignedEntity)
+            assert ip.assigned_entity.id == 123
+            assert ip.assigned_entity.label == "my-linode"
+            assert ip.assigned_entity.type == "linode"
+            assert ip.assigned_entity.url == "/v4/linode/instances/123"
+
+    def test_ip_address_assigned_entity_null(self):
+        """
+        Tests that IPAddress handles a null assigned_entity field.
+        """
+        with self.mock_get(
+            {
+                "address": "66.175.209.101",
+                "gateway": "66.175.209.1",
+                "linode_id": None,
+                "interface_id": None,
+                "prefix": 24,
+                "public": True,
+                "rdns": "",
+                "region": "us-east",
+                "subnet_mask": "255.255.255.0",
+                "type": "ipv4",
+                "vpc_nat_1_1": None,
+                "reserved": True,
+                "tags": [],
+                "assigned_entity": None,
+            }
+        ):
+            ip = IPAddress(self.client, "66.175.209.101")
+            assert ip.assigned_entity is None
+
+    def test_ip_address_reserved_mutable(self):
+        """
+        Tests that IPAddress.reserved can be set and saved (convert ephemeral <-> reserved).
+        """
+        with self.mock_get(
+            {
+                "address": "66.175.209.100",
+                "gateway": "66.175.209.1",
+                "linode_id": 123,
+                "interface_id": None,
+                "prefix": 24,
+                "public": True,
+                "rdns": "",
+                "region": "us-east",
+                "subnet_mask": "255.255.255.0",
+                "type": "ipv4",
+                "vpc_nat_1_1": None,
+                "reserved": False,
+                "tags": [],
+                "assigned_entity": None,
+            }
+        ):
+            ip = IPAddress(self.client, "66.175.209.100")
+            assert ip.reserved is False
+
+        with MethodMock(
+            "put",
+            {
+                "address": "66.175.209.100",
+                "gateway": "66.175.209.1",
+                "linode_id": 123,
+                "prefix": 24,
+                "public": True,
+                "rdns": "",
+                "region": "us-east",
+                "subnet_mask": "255.255.255.0",
+                "type": "ipv4",
+                "reserved": True,
+                "tags": [],
+            },
+        ) as m:
+            ip.reserved = True
+            ip.save()
+
+            assert m.call_url == "/networking/ips/66.175.209.100"
+            assert m.call_data["reserved"] is True
+
+    def test_reserved_ip_address_assigned_entity(self):
+        """
+        Tests that ReservedIPAddress deserializes the assigned_entity field.
+        """
+        reserved_ip = ReservedIPAddress(
+            self.client,
+            "66.175.209.100",
+            {
+                "address": "66.175.209.100",
+                "gateway": "66.175.209.1",
+                "linode_id": 5678,
+                "prefix": 24,
+                "public": True,
+                "rdns": "",
+                "region": "us-east",
+                "reserved": True,
+                "subnet_mask": "255.255.255.0",
+                "tags": ["lb"],
+                "type": "ipv4",
+                "assigned_entity": {
+                    "id": 5678,
+                    "label": "my-nodebalancer",
+                    "type": "nodebalancer",
+                    "url": "/v4/nodebalancers/5678",
+                },
+            },
+        )
+        assert reserved_ip.assigned_entity is not None
+        assert isinstance(reserved_ip.assigned_entity, ReservedIPAssignedEntity)
+        assert reserved_ip.assigned_entity.id == 5678
+        assert reserved_ip.assigned_entity.label == "my-nodebalancer"
+        assert reserved_ip.assigned_entity.type == "nodebalancer"
+        assert reserved_ip.assigned_entity.url == "/v4/nodebalancers/5678"
+
+    def test_instance_ip_allocate_with_address(self):
+        """
+        Tests that Instance.ip_allocate sends the address field when provided.
+        """
+        with MethodMock(
+            "post",
+            {
+                "address": "66.175.209.100",
+                "gateway": "66.175.209.1",
+                "linode_id": 123,
+                "prefix": 24,
+                "public": True,
+                "rdns": "",
+                "region": "us-east",
+                "subnet_mask": "255.255.255.0",
+                "type": "ipv4",
+                "reserved": True,
+                "tags": [],
+            },
+        ) as m:
+            instance = Instance(self.client, 123)
+            ip = instance.ip_allocate(public=True, address="66.175.209.100")
+
+            assert m.call_url == "/linode/instances/123/ips"
+            assert m.call_data["address"] == "66.175.209.100"
+            assert m.call_data["type"] == "ipv4"
+            assert m.call_data["public"] is True
+            assert ip.address == "66.175.209.100"
+
+    def test_instance_ip_allocate_without_address(self):
+        """
+        Tests that Instance.ip_allocate omits address when not provided.
+        """
+        with MethodMock(
+            "post",
+            {
+                "address": "198.51.100.5",
+                "gateway": "198.51.100.1",
+                "linode_id": 123,
+                "prefix": 24,
+                "public": True,
+                "rdns": "",
+                "region": "us-east",
+                "subnet_mask": "255.255.255.0",
+                "type": "ipv4",
+                "reserved": False,
+                "tags": [],
+            },
+        ) as m:
+            instance = Instance(self.client, 123)
+            instance.ip_allocate(public=True)
+
+            assert m.call_url == "/linode/instances/123/ips"
+            assert "address" not in m.call_data

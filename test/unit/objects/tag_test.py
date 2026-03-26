@@ -1,6 +1,7 @@
-from test.unit.base import ClientBaseCase
+from test.unit.base import ClientBaseCase, MethodMock
 
 from linode_api4.objects import Tag
+from linode_api4.objects.networking import ReservedIPAddress
 
 
 class TagTest(ClientBaseCase):
@@ -44,3 +45,59 @@ class TagTest(ClientBaseCase):
             self.assertEqual(result, True)
 
             self.assertEqual(m.call_url, "/tags/nothing")
+
+    def test_tagged_reserved_ipv4_address(self):
+        """
+        Tests that a tagged reserved_ipv4_address object is correctly resolved
+        to a ReservedIPAddress instance.
+        """
+        with self.mock_get(
+            {
+                "page": 1,
+                "pages": 1,
+                "results": 1,
+                "data": [
+                    {
+                        "type": "reserved_ipv4_address",
+                        "data": {
+                            "address": "66.175.209.100",
+                            "gateway": "66.175.209.1",
+                            "linode_id": None,
+                            "prefix": 24,
+                            "public": True,
+                            "rdns": "66-175-209-100.ip.linodeusercontent.com",
+                            "region": "us-east",
+                            "reserved": True,
+                            "subnet_mask": "255.255.255.0",
+                            "tags": ["lb"],
+                            "type": "ipv4",
+                        },
+                    }
+                ],
+            }
+        ):
+            tag = self.client.load(Tag, "lb")
+            objects = tag.objects
+
+            self.assertEqual(len(objects), 1)
+            self.assertIsInstance(objects[0], ReservedIPAddress)
+            self.assertEqual(objects[0].address, "66.175.209.100")
+            self.assertEqual(objects[0].region.id, "us-east")
+            self.assertTrue(objects[0].reserved)
+            self.assertEqual(objects[0].tags, ["lb"])
+
+    def test_create_tag_with_reserved_ipv4_addresses(self):
+        """
+        Tests that creating a tag with reserved_ipv4_addresses sends them in
+        the request body.
+        """
+        with MethodMock("post", {"label": "lb"}) as m:
+            self.client.tags.create(
+                "lb", reserved_ipv4_addresses=["66.175.209.100"]
+            )
+
+            body = m.call_data
+            self.assertEqual(body["label"], "lb")
+            self.assertEqual(
+                body["reserved_ipv4_addresses"], ["66.175.209.100"]
+            )
