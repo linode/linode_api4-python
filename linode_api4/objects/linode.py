@@ -1299,15 +1299,17 @@ class Instance(Base):
             for suffix in generate_device_suffixes(device_limit)
         ]
 
-        def _flatten_device(device: Disk | Volume | None):
+        def _flatten_device(device: Disk | Volume | dict | None):
             if device is None:
                 return None
             elif isinstance(device, Disk):
                 return {"disk_id": device.id}
             elif isinstance(device, Volume):
                 return {"volume_id": device.id}
+            elif isinstance(device, dict):
+                return device
 
-            raise TypeError("Disk or Volume expected!")
+            raise TypeError("Disk, Volume, or dict expected!")
 
         def _device_entry(device: Disk | Volume | int, key: str):
             if isinstance(device, (Disk, Volume)):
@@ -1350,7 +1352,11 @@ class Instance(Base):
 
             if volumes:
                 device_list += [
-                    _device_entry(volume, "volume_id") if volume is not None else None
+                    (
+                        _device_entry(volume, "volume_id")
+                        if volume is not None
+                        else None
+                    )
                     for volume in normalize_as_list(volumes)
                 ]
 
