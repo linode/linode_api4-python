@@ -1344,13 +1344,13 @@ class Instance(Base):
 
             if disks:
                 device_list += [
-                    _device_entry(disk, "disk_id")
+                    _device_entry(disk, "disk_id") if disk is not None else None
                     for disk in normalize_as_list(disks)
                 ]
 
             if volumes:
                 device_list += [
-                    _device_entry(volume, "volume_id")
+                    _device_entry(volume, "volume_id") if volume is not None else None
                     for volume in normalize_as_list(volumes)
                 ]
 
