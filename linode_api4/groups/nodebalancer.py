@@ -24,7 +24,7 @@ class NodeBalancerGroup(Group):
         """
         return self.client._get_and_filter(NodeBalancer, *filters)
 
-    def create(self, region, **kwargs):
+    def create(self, region, ipv4=None, **kwargs):
         """
         Creates a new NodeBalancer in the given Region.
 
