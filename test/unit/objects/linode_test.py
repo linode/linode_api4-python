@@ -487,6 +487,19 @@ class LinodeTest(ClientBaseCase):
 
         self.assertEqual(config.id, 456)
 
+    def test_create_config_without_devices_raises_error(self):
+        """
+        Tests that config_create raises ValueError when no devices, disks, or volumes are specified.
+        """
+        linode = Instance(self.client, 123)
+
+        with self.assertRaises(ValueError) as context:
+            linode.config_create(label="test-config")
+
+        assert "Must include at least one disk or volume!" in str(
+            context.exception
+        )
+
     def test_get_placement_group(self):
         """
         Tests that you can get the placement group for a Linode
