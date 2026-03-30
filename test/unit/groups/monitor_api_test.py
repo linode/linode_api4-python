@@ -4,6 +4,8 @@ from linode_api4 import PaginatedList
 from linode_api4.objects import (
     AggregateFunction,
     AlertDefinition,
+    AlertDefinitionChannel,
+    AlertDefinitionEntity,
     EntityMetricOptions,
 )
 
@@ -71,6 +73,20 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             # assert collection and element types
             assert isinstance(alert, PaginatedList)
             assert isinstance(alert[0], AlertDefinition)
+            assert alert[0].scope == "entity"
+            assert alert[0].regions == []
+            assert alert[0].entities.url.endswith(
+                "/alert-definitions/12345/entities"
+            )
+            assert alert[0].entities.count == 1
+            assert alert[0].entities.has_more_resources is False
+            assert isinstance(alert[0].alert_channels, list)
+            assert len(alert[0].alert_channels) == 1
+            assert isinstance(
+                alert[0].alert_channels[0], AlertDefinitionChannel
+            )
+            assert alert[0].alert_channels[0].id == 10000
+            assert alert[0].alert_channels[0]._type == "email"
 
             # fetch the raw JSON from the client and assert its fields
             raw = self.client.get(url)
@@ -90,6 +106,11 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             "service_type": service_type,
             "severity": 1,
             "status": "active",
+            "entities": {
+                "url": f"/monitor/services/dbaas/alert-definitions/67890/entities",
+                "count": 1,
+                "has_more_resources": False,
+            },
         }
 
         with self.mock_post(result) as mock_post:
@@ -100,6 +121,8 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
                 channel_ids=[1, 2],
                 rule_criteria={"rules": []},
                 trigger_conditions={"criteria_condition": "ALL"},
+                scope="entity",
+                regions=[],
                 entity_ids=["13217"],
                 description="created via test",
             )
@@ -109,10 +132,51 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             assert mock_post.call_data["label"] == "Created Alert"
             assert mock_post.call_data["severity"] == 1
             assert "channel_ids" in mock_post.call_data
+            assert mock_post.call_data["scope"] == "entity"
+            assert mock_post.call_data["regions"] == []
 
             assert isinstance(alert, AlertDefinition)
             assert alert.id == 67890
+            assert alert.entities.url.endswith(
+                "/alert-definitions/67890/entities"
+            )
+            assert alert.entities.count == 1
+            assert alert.entities.has_more_resources is False
 
             # fetch the same response from the client and assert
             resp = self.client.post(url, data={})
             assert resp["label"] == "Created Alert"
+
+    def test_alert_definition_entities(self):
+        service_type = "dbaas"
+        id = 12345
+        url = (
+            f"/monitor/services/{service_type}/alert-definitions/{id}/entities"
+        )
+
+        with self.mock_get(url) as mock_get:
+            entities = self.client.monitor.alert_definition_entities(
+                service_type, id
+            )
+
+            assert mock_get.call_url == url
+            assert isinstance(entities, PaginatedList)
+            assert len(entities) == 3
+
+            assert isinstance(entities[0], AlertDefinitionEntity)
+            assert entities[0].id == "1"
+            assert entities[0].label == "mydatabase-1"
+            assert entities[0].url == "/v4/databases/mysql/instances/1"
+            assert entities[0]._type == "dbaas"
+
+            assert isinstance(entities[1], AlertDefinitionEntity)
+            assert entities[1].id == "2"
+            assert entities[1].label == "mydatabase-2"
+            assert entities[1].url == "/v4/databases/mysql/instances/2"
+            assert entities[1]._type == "dbaas"
+
+            assert isinstance(entities[2], AlertDefinitionEntity)
+            assert entities[2].id == "3"
+            assert entities[2].label == "mydatabase-3"
+            assert entities[2].url == "/v4/databases/mysql/instances/3"
+            assert entities[2]._type == "dbaas"
