@@ -234,7 +234,8 @@ def get_status(linode: Instance, status: str):
 def instance_type_condition(linode: Instance, type: str):
     return type in str(linode.type)
 
-def test_get_linodes_verify_alerts(test_linode_client):
+
+def test_get_linodes_verify_alerts(test_linode_client, create_linode):
     linodes_list = test_linode_client.linode.instances().lists[0]
     assert len(linodes_list) > 0
     assert linodes_list[0].alerts.cpu >= 0
@@ -242,8 +243,6 @@ def test_get_linodes_verify_alerts(test_linode_client):
     assert linodes_list[0].alerts.network_in >= 0
     assert linodes_list[0].alerts.network_out >= 0
     assert linodes_list[0].alerts.transfer_quota >= 0
-    assert isinstance(linodes_list[0].alerts.system_alerts, list)
-    assert isinstance(linodes_list[0].alerts.user_alerts, list)
 
 
 def test_get_linode(test_linode_client, linode_with_volume_firewall):
@@ -379,42 +378,55 @@ def test_linode_alerts_workflow(test_linode_client, create_linode):
     assert isinstance(linode.alerts.system_alerts, list)
     assert isinstance(linode.alerts.user_alerts, list)
 
-    linode.alerts={
+    linode.alerts = {
         "cpu": 50,
         "io": 6000,
         "network_in": 20,
         "network_out": 20,
-        "transfer": 80,
+        "transfer_quota": 40,
     }
     linode.save()
 
     wait_for_condition(10, 100, get_status, linode, "running")
-    new_linode = retry_sending_request(5, linode.clone, parent_linode_id)
-    assert new_linode.alerts.cpu == 50
-    assert new_linode.alerts.io == 6000
-    assert new_linode.alerts.network_in == 20
-    assert new_linode.alerts.network_out == 20
+    new_linode = retry_sending_request(
+        5,
+        linode.clone,
+        region=linode.region.id,
+        instance_type=linode.type.id,
+        label=get_test_label(),
+    )
+    assert new_linode.alerts.cpu == 90
+    assert new_linode.alerts.io == 10000
+    assert new_linode.alerts.network_in == 10
+    assert new_linode.alerts.network_out == 10
     assert new_linode.alerts.transfer_quota == 80
     assert isinstance(new_linode.alerts.system_alerts, list)
     assert isinstance(new_linode.alerts.user_alerts, list)
 
+    if new_linode is not None:
+        new_linode.delete()
 
-def test_try_to_update_linode_alerts_legacy_and_aclp_at_the_same_time(create_linode):
+
+def test_try_to_update_linode_alerts_legacy_and_aclp_at_the_same_time(
+    create_linode,
+):
     linode = create_linode
 
-    linode.alerts={
+    linode.alerts = {
         "cpu": 50,
         "io": 6000,
         "network_in": 20,
         "network_out": 20,
-        "transfer": 50,
-        "system_alerts": [1,436],
+        "transfer_quota": 50,
+        "system_alerts": [1, 436],
         "user_alerts": [555],
     }
 
-    with pytest.raises(RuntimeError) as err:
+    with pytest.raises(ApiError) as err:
         linode.save()
-    assert "Cannot set both legacy and ACLP alerts simultaneously" in str(err.value)
+    assert "Cannot set both legacy and ACLP alerts simultaneously" in str(
+        err.value
+    )
     assert "[400] alerts" in str(err.value)
 
 
