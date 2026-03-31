@@ -305,7 +305,7 @@ def test_nb_with_backend_only(test_linode_client, create_vpc_with_subnet):
     nb = client.nodebalancer_create(
         region=create_vpc_with_subnet[0].region,
         label=label,
-        vpcs=[
+        backend_vpcs=[
             {
                 "vpc_id": create_vpc_with_subnet[0].id,
                 "subnet_id": create_vpc_with_subnet[1].id,
@@ -471,7 +471,7 @@ def test_nb_with_frontend_and_backend_in_different_vpcs(
     nb = client.nodebalancer_create(
         region=region,
         label=label,
-        vpcs=[{"vpc_id": vpc_backend, "subnet_id": subnet_backend}],
+        backend_vpcs=[{"vpc_id": vpc_backend, "subnet_id": subnet_backend}],
         frontend_vpcs=[
             {
                 "subnet_id": subnet_frontend.id,
