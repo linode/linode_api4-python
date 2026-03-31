@@ -1,6 +1,6 @@
 import ipaddress
 import time
-from test.integration.conftest import get_region
+from test.integration.conftest import get_region, get_system_alerts
 from test.integration.helpers import (
     get_test_label,
     retry_sending_request,
@@ -407,27 +407,19 @@ def test_linode_alerts_workflow(test_linode_client, create_linode):
         new_linode.delete()
 
 
-def test_try_to_update_linode_alerts_legacy_and_aclp_at_the_same_time(
-    create_linode,
+def test_update_linode_aclp_alerts(
+    test_linode_client, create_linode, create_alert_service_definition
 ):
     linode = create_linode
+    sample_system_alert = get_system_alerts(test_linode_client)[0].id
 
     linode.alerts = {
-        "cpu": 50,
-        "io": 6000,
-        "network_in": 20,
-        "network_out": 20,
-        "transfer_quota": 50,
-        "system_alerts": [1, 436],
-        "user_alerts": [555],
+        "user_alerts": [create_alert_service_definition.id],
+        "system_alerts": [sample_system_alert],
     }
-
-    with pytest.raises(ApiError) as err:
-        linode.save()
-    assert "Cannot set both legacy and ACLP alerts simultaneously" in str(
-        err.value
-    )
-    assert "[400] alerts" in str(err.value)
+    linode.save()
+    assert linode.alerts["user_alerts"] == [create_alert_service_definition.id]
+    assert linode.alerts["system_alerts"] == [sample_system_alert]
 
 
 def test_linode_shutdown(create_linode):

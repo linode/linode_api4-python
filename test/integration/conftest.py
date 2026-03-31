@@ -728,3 +728,64 @@ def test_monitor_client(get_monitor_token_for_db_entities):
     )
 
     return client, entity_ids
+
+
+@pytest.fixture(scope="session")
+def create_alert_service_definition(test_linode_client):
+    rule_criteria = {
+        "rules": [
+            {
+                "aggregate_function": "min",
+                "dimension_filters": [
+                    {
+                        "dimension_label": "node_type",
+                        "label": "Node Type",
+                        "operator": "eq",
+                        "value": "primary",
+                    }
+                ],
+                "label": "Memory Usage",
+                "metric": "memory_usage",
+                "operator": "eq",
+                "threshold": 95,
+                "unit": "percent",
+            }
+        ]
+    }
+    trigger_conditions = {
+        "criteria_condition": "ALL",
+        "evaluation_period_seconds": 300,
+        "polling_interval_seconds": 900,
+        "trigger_occurrences": 3,
+    }
+    channels = list(test_linode_client.monitor.alert_channels())
+    if len(channels) == 0:
+        raise Exception(
+            "No alert channels available for testing. Please create an alert channel and try again."
+        )
+    alert = test_linode_client.monitor.create_alert_definition(
+        service_type="dbaas",
+        label=get_test_label() + "-service-definition",
+        severity=1,
+        description="description",
+        channel_ids=[channels[0].id],
+        rule_criteria=rule_criteria,
+        trigger_conditions=trigger_conditions,
+    )
+
+    yield alert
+
+    alert.delete()
+
+
+def get_system_alerts(client: LinodeClient):
+    alerts = client.monitor.alert_definitions()
+    system_alerts = []
+    for alert in alerts.lists[0]:
+        if alert.type == "system":
+            system_alerts.append(alert)
+    if len(system_alerts) == 0:
+        raise Exception(
+            "No system alert definitions found. Cannot run tests dependent on system alert definitions."
+        )
+    return system_alerts
