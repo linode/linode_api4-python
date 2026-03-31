@@ -202,7 +202,7 @@ class MonitorGroup(Group):
 
         .. note:: This endpoint is in beta and requires using the v4beta base URL.
 
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-alert-channels
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-notification-channels
 
         :param filters: Optional filter expressions to apply to the collection.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>` for details.
