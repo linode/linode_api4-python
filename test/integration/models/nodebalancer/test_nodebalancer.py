@@ -508,3 +508,30 @@ def test_nb_with_frontend_and_backend_in_different_vpcs(
 
     nb.delete()
     vpc_frontend.delete()
+
+
+def test_nb_with_deprecated_vpcs_attribute(
+    test_linode_client, create_vpc_with_subnet
+):
+    # TODO: The test will be deleted when a deprecated vpcs attribute can no longer be used
+    client = test_linode_client
+    label = get_test_label(8)
+
+    nb = client.nodebalancer_create(
+        region=create_vpc_with_subnet[0].region,
+        label=label,
+        vpcs=[
+            {
+                "subnet_id": create_vpc_with_subnet[1].id,
+            }
+        ],
+    )
+
+    assert isinstance(
+        ipaddress.ip_address(nb.ipv4.address), ipaddress.IPv4Address
+    )
+    assert isinstance(ipaddress.ip_address(nb.ipv6), ipaddress.IPv6Address)
+    assert nb.frontend_address_type == "public"
+    assert nb.frontend_vpc_subnet_id is None
+
+    nb.delete()
