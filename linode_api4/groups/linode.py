@@ -372,7 +372,12 @@ class LinodeGroup(Group):
                                          an outdated library.
         """
 
-        if image and not root_pass and not authorized_keys and not authorized_users:
+        if (
+            image
+            and not root_pass
+            and not authorized_keys
+            and not authorized_users
+        ):
             raise ValueError(
                 "When creating an Instance from an Image, at least one of "
                 "root_pass, authorized_users, or authorized_keys must be provided."

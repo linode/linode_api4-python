@@ -1419,7 +1419,12 @@ class Instance(Base):
         :rtype: Disk or tuple(Disk, str)
         """
 
-        if image and not root_pass and not authorized_keys and not authorized_users:
+        if (
+            image
+            and not root_pass
+            and not authorized_keys
+            and not authorized_users
+        ):
             raise ValueError(
                 "When creating a Disk from an Image, at least one of "
                 "root_pass, authorized_users, or authorized_keys must be provided."
