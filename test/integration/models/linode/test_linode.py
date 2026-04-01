@@ -10,7 +10,7 @@ from test.integration.helpers import (
 
 import pytest
 
-from linode_api4.errors import ApiError
+from linode_api4.errors import ApiError, UnexpectedResponseError
 from linode_api4.objects import (
     Config,
     ConfigInterface,
@@ -231,6 +231,23 @@ def get_status(linode: Instance, status: str):
     return linode.status == status
 
 
+def wait_for_clone_complete_and_delete_linode(
+    interval: int, timeout: int, linode: Instance
+) -> object:
+    end_time = time.time() + timeout
+    while time.time() < end_time:
+        try:
+            linode.delete()
+            return True
+        except ApiError as err:
+            if "[400] Linode is the target of an ongoing clone" not in str(err):
+                raise UnexpectedResponseError(f"Unexpected delete linode error")
+        time.sleep(interval)
+    raise TimeoutError(
+        f"Timeout Error: not possible to delete just cloned linode in {timeout} seconds"
+    )
+
+
 def instance_type_condition(linode: Instance, type: str):
     return type in str(linode.type)
 
@@ -385,7 +402,13 @@ def test_linode_alerts_workflow(test_linode_client, create_linode):
         "network_out": 20,
         "transfer_quota": 40,
     }
-    linode.save()
+    linode_save_status = linode.save()
+    assert linode_save_status == True
+    assert linode.alerts["cpu"] == 50
+    assert linode.alerts["io"] == 6000
+    assert linode.alerts["network_in"] == 20
+    assert linode.alerts["network_out"] == 20
+    assert linode.alerts["transfer_quota"] == 40
 
     wait_for_condition(10, 100, get_status, linode, "running")
     new_linode = retry_sending_request(
@@ -403,8 +426,7 @@ def test_linode_alerts_workflow(test_linode_client, create_linode):
     assert isinstance(new_linode.alerts.system_alerts, list)
     assert isinstance(new_linode.alerts.user_alerts, list)
 
-    if new_linode is not None:
-        new_linode.delete()
+    wait_for_clone_complete_and_delete_linode(10, 100, new_linode)
 
 
 def test_update_linode_aclp_alerts(
