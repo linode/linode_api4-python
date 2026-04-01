@@ -165,6 +165,7 @@ class LinodeGroup(Group):
         root_pass: Optional[str] = None,
         kernel: Optional[str] = None,
         boot_size: Optional[int] = None,
+        authorized_users: Optional[List[str]] = None,
         **kwargs,
     ):
         """
@@ -175,7 +176,7 @@ class LinodeGroup(Group):
         To create an Instance from an :any:`Image`, call `instance_create` with
         a :any:`Type`, a :any:`Region`, and an :any:`Image`.  All three of
         these fields may be provided as either the ID or the appropriate object.
-        When an Image is provided, at least one of ``root_pass`` or
+        When an Image is provided, at least one of ``root_pass``, ``authorized_users``, or
         ``authorized_keys`` must also be given.  If ``root_pass`` is provided,
         the Instance and the password are returned as a tuple.
 
@@ -314,6 +315,11 @@ class LinodeGroup(Group):
                                 be a single key, or a path to a file containing
                                 the key.
         :type authorized_keys: list or str
+        :param authorized_users: A list of usernames whose keys should be installed
+                                 as trusted for the root user.  These user's keys
+                                 should already be set up, see :any:`ProfileGroup.ssh_keys`
+                                 for details.
+        :type authorized_users: list[str]
         :param label: The display label for the new Instance
         :type label: str
         :param group: The display group for the new Instance
@@ -366,10 +372,10 @@ class LinodeGroup(Group):
                                          an outdated library.
         """
 
-        if image and not root_pass and not authorized_keys:
+        if image and not root_pass and not authorized_keys and not authorized_users:
             raise ValueError(
                 "When creating an Instance from an Image, at least one of "
-                "root_pass or authorized_keys must be provided."
+                "root_pass, authorized_users, or authorized_keys must be provided."
             )
 
         params = {
@@ -378,6 +384,7 @@ class LinodeGroup(Group):
             "image": image,
             "root_pass": root_pass,
             "authorized_keys": load_and_validate_keys(authorized_keys),
+            "authorized_users": authorized_users,
             # These will automatically be flattened below
             "firewall_id": firewall,
             "backup_id": backup,

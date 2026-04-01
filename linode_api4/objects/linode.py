@@ -1396,7 +1396,7 @@ class Instance(Base):
                            if creating a disk without an image.
         :param read_only: If True, creates a read-only disk
         :param image: The Image to deploy to the disk.  If provided, at least one of
-                      root_pass or authorized_keys must also be given.
+                      root_pass, authorized_users or authorized_keys must also be given.
         :param root_pass: The password to configure for the root user when deploying an
                           image to this disk.  Not used if image is not given.  If an
                           image is given and root_pass is provided, it will be returned
@@ -1419,10 +1419,10 @@ class Instance(Base):
         :rtype: Disk or tuple(Disk, str)
         """
 
-        if image and not root_pass and not authorized_keys:
+        if image and not root_pass and not authorized_keys and not authorized_users:
             raise ValueError(
                 "When creating a Disk from an Image, at least one of "
-                "root_pass or authorized_keys must be provided."
+                "root_pass, authorized_users, or authorized_keys must be provided."
             )
 
         authorized_keys = load_and_validate_keys(authorized_keys)
@@ -1586,6 +1586,7 @@ class Instance(Base):
         disk_encryption: Optional[
             Union[InstanceDiskEncryptionType, str]
         ] = None,
+        authorized_users: Optional[List[str]] = None,
         **kwargs,
     ):
         """
@@ -1598,13 +1599,18 @@ class Instance(Base):
         :param image: The Image to deploy to this Instance
         :type image: str or Image
         :param root_pass: The root password for the newly rebuilt Instance.  At least
-                          one of root_pass or authorized_keys must be provided.
+                          one of root_pass, authorized_users, or authorized_keys must be provided.
         :type root_pass: str
         :param authorized_keys: The ssh public keys to install in the linode's
                                 /root/.ssh/authorized_keys file.  Each entry may
                                 be a single key, or a path to a file containing
                                 the key.
         :type authorized_keys: list or str
+        :param authorized_users: A list of usernames whose keys should be installed
+                                 as trusted for the root user.  These user's keys
+                                 should already be set up, see :any:`ProfileGroup.ssh_keys`
+                                 for details.
+        :type authorized_users: list[str]
         :param disk_encryption: The disk encryption policy for this Linode.
                                 NOTE: Disk encryption may not currently be available to all users.
         :type disk_encryption: InstanceDiskEncryptionType or str
@@ -1612,10 +1618,10 @@ class Instance(Base):
         :returns: The root_pass if provided, otherwise True.
         :rtype: str or bool
         """
-        if not root_pass and not authorized_keys:
+        if not root_pass and not authorized_keys and not authorized_users:
             raise ValueError(
                 "When rebuilding an Instance, at least one of "
-                "root_pass or authorized_keys must be provided."
+                "root_pass, authorized_users, or authorized_keys must be provided."
             )
 
         authorized_keys = load_and_validate_keys(authorized_keys)
@@ -1627,6 +1633,7 @@ class Instance(Base):
             "disk_encryption": (
                 str(disk_encryption) if disk_encryption else None
             ),
+            "authorized_users": authorized_users,
         }
 
         params.update(kwargs)
