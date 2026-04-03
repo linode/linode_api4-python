@@ -290,13 +290,13 @@ class LinodeGroup(Group):
         :param region: The Region in which we are creating the Instance
         :type region: str or Region
         :param image: The Image to deploy to this Instance. If this is provided,
-                      at least one of root_pass or authorized_keys must also be
+                      at least one of root_pass, authorized_users, or authorized_keys must also be
                       provided.
         :type image: str or Image
         :param root_pass: The root password for the new Instance. If an image is
                           provided and root_pass is given, the Instance and password
-                          will be returned as a tuple. If neither root_pass nor
-                          authorized_keys is provided when an image is specified,
+                          will be returned as a tuple. If all of root_pass, authorized_users,and
+                          authorized_keys are not provided when an image is specified,
                           a ValueError will be raised.
         :type root_pass: str
         :param stackscript: The StackScript to deploy to the new Instance.  If
