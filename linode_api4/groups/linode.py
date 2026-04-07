@@ -295,7 +295,7 @@ class LinodeGroup(Group):
         :type image: str or Image
         :param root_pass: The root password for the new Instance. If an image is
                           provided and root_pass is given, the Instance and password
-                          will be returned as a tuple. If all of root_pass, authorized_users,and
+                          will be returned as a tuple. If all of root_pass, authorized_users, and
                           authorized_keys are not provided when an image is specified,
                           a ValueError will be raised.
         :type root_pass: str
