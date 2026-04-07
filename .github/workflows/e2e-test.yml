@@ -55,8 +55,8 @@ on:
       - dev
 
 env:
-  DEFAULT_PYTHON_VERSION: "3.10"
-  EOL_PYTHON_VERSION: "3.9"
+  DEFAULT_PYTHON_VERSION: "3.13"
+  EOL_PYTHON_VERSION: "3.10"
   EXIT_STATUS: 0
 
 jobs:
@@ -105,7 +105,7 @@ jobs:
 
       - name: Upload Test Report as Artifact
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: test-report-file
           if-no-files-found: ignore
