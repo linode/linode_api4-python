@@ -275,14 +275,15 @@ class MonitorGroup(Group):
             "rule_criteria": rule_criteria,
             "trigger_conditions": trigger_conditions,
         }
+
+        if entity_ids is not None:
+            params["entity_ids"] = entity_ids
+        if description is not None:
+            params["description"] = description
         if scope is not None:
             params["scope"] = scope
         if regions is not None:
             params["regions"] = regions
-        if description is not None:
-            params["description"] = description
-        if entity_ids is not None:
-            params["entity_ids"] = entity_ids
 
         # API will validate service_type and return an error if missing
         result = self.client.post(
