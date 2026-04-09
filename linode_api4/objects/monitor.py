@@ -433,7 +433,6 @@ class AlertDefinition(DerivedBase):
         "severity": Property(mutable=True),
         "type": Property(mutable=True),
         "status": Property(mutable=True),
-        "has_more_resources": Property(),  # Deprecated; use entities.has_more_resources.
         "rule_criteria": Property(mutable=True, json_object=RuleCriteria),
         "trigger_conditions": Property(
             mutable=True, json_object=TriggerConditions
