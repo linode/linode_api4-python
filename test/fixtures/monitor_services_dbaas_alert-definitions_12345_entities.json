@@ -1,0 +1,25 @@
+{
+  "data": [
+    {
+      "id": "1",
+      "label": "mydatabase-1",
+      "url": "/v4/databases/mysql/instances/1",
+      "type": "dbaas"
+    },
+    {
+      "id": "2",
+      "label": "mydatabase-2",
+      "url": "/v4/databases/mysql/instances/2",
+      "type": "dbaas"
+    },
+    {
+      "id": "3",
+      "label": "mydatabase-3",
+      "url": "/v4/databases/mysql/instances/3",
+      "type": "dbaas"
+    }
+  ],
+  "page": 1,
+  "pages": 1,
+  "results": 3
+}

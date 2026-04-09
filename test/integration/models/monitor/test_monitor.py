@@ -7,9 +7,10 @@ from test.integration.helpers import (
 
 import pytest
 
-from linode_api4 import LinodeClient
+from linode_api4 import LinodeClient, PaginatedList
 from linode_api4.objects import (
     AlertDefinition,
+    AlertDefinitionEntity,
     ApiError,
     MonitorDashboard,
     MonitorMetricsDefinition,
@@ -256,12 +257,14 @@ def test_integration_create_get_update_delete_alert_definition(
 
         assert created.id
         assert getattr(created, "label", None) == label
+        assert getattr(created, "entities", None) is not None
 
         created = wait_for_alert_ready(created.id, service_type)
 
         updated = client.load(AlertDefinition, created.id, service_type)
         updated.label = f"{label}-updated"
         updated.save()
+        assert getattr(updated, "entities", None) is not None
 
         updated = wait_for_alert_ready(updated.id, service_type)
 
@@ -275,3 +278,36 @@ def test_integration_create_get_update_delete_alert_definition(
                 AlertDefinition, created.id, service_type
             )
             delete_alert.delete()
+
+
+def test_alert_definition_entities(test_linode_client):
+    """Test listing entities associated with an alert definition.
+
+    This test first retrieves alert definitions for a service type, then lists entities for the first alert definition.
+    It asserts that the returned entities have expected fields.
+    """
+    client = test_linode_client
+    service_type = "dbaas"
+
+    alert_definitions = client.monitor.alert_definitions(
+        service_type=service_type
+    )
+
+    if len(alert_definitions) == 0:
+        pytest.fail("No alert definitions available for dbaas service type")
+
+    assert getattr(alert_definitions[0], "entities", None) is not None
+
+    alert_def = alert_definitions[0]
+    entities = client.monitor.alert_definition_entities(
+        service_type, alert_def.id
+    )
+
+    assert isinstance(entities, PaginatedList)
+    if len(entities) > 0:
+        entity = entities[0]
+        assert isinstance(entity, AlertDefinitionEntity)
+        assert entity.id
+        assert entity.label
+        assert entity.url
+        assert entity._type == service_type
