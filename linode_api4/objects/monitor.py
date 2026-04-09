@@ -433,10 +433,7 @@ class AlertDefinition(DerivedBase):
         "severity": Property(mutable=True),
         "type": Property(mutable=True),
         "status": Property(mutable=True),
-        "scope": Property(AlertScope),
-        "regions": Property(mutable=True),
-        "has_more_resources": Property(),  # Deprecated; use entities.has_more_resources
-        "entities": Property(json_object=AlertEntities),
+        "has_more_resources": Property(),  # Deprecated; use entities.has_more_resources.
         "rule_criteria": Property(mutable=True, json_object=RuleCriteria),
         "trigger_conditions": Property(
             mutable=True, json_object=TriggerConditions
@@ -446,11 +443,12 @@ class AlertDefinition(DerivedBase):
         "updated": Property(is_datetime=True),
         "updated_by": Property(),
         "created_by": Property(),
-        "entity_ids": Property(
-            mutable=True
-        ),  # Deprecated; use entities.url to fetch associated entities
+        "entity_ids": Property(mutable=True),
         "description": Property(mutable=True),
         "service_class": Property(alias_of="class"),
+        "scope": Property(AlertScope),
+        "regions": Property(mutable=True),
+        "entities": Property(json_object=AlertEntities),
     }
 
 
