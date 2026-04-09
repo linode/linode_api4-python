@@ -453,25 +453,6 @@ class AlertDefinition(DerivedBase):
 
 
 @dataclass
-class EmailChannelContent(JSONObject):
-    """
-    Represents the content for an email alert channel.
-    """
-
-    email_addresses: Optional[List[str]] = None
-
-
-@dataclass
-class ChannelContent(JSONObject):
-    """
-    Represents the content block for an AlertChannel, which varies by channel type.
-    """
-
-    email: Optional[EmailChannelContent] = None
-    # Other channel types like 'webhook', 'slack' could be added here as Optional fields.
-
-
-@dataclass
 class EmailDetails(JSONObject):
     """
     Represents email-specific details for an alert channel.
@@ -511,7 +492,7 @@ class AlertChannel(Base):
     fire. Alert channels define a destination and configuration for
     notifications (for example: email lists, webhooks, PagerDuty, Slack, etc.).
 
-    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-alert-channels
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-notification-channels
 
     This class maps to the Monitor API's `/monitor/alert-channels` resource
     and is used by the SDK to list, load, and inspect channels.
@@ -529,7 +510,6 @@ class AlertChannel(Base):
         "channel_type": Property(),
         "details": Property(mutable=False, json_object=ChannelDetails),
         "alerts": Property(mutable=False, json_object=AlertInfo),
-        "content": Property(mutable=False, json_object=ChannelContent),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),
         "created_by": Property(),
