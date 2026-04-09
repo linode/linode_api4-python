@@ -29,8 +29,12 @@ def test_set_user_role_permissions(test_linode_client, test_firewall):
     firewall_id = test_firewall.id
 
     username = client.profile().username
-    user_permissions = client.iam.role_permissions_user_get(username)["account_access"]
-    entity_access = EntityAccess(id=firewall_id, type="firewall", roles=["firewall_admin"]).dict
+    user_permissions = client.iam.role_permissions_user_get(username)[
+        "account_access"
+    ]
+    entity_access = EntityAccess(
+        id=firewall_id, type="firewall", roles=["firewall_admin"]
+    ).dict
 
     updated_perms = client.iam.role_permissions_user_set(
         username,
