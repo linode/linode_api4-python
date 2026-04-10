@@ -1,0 +1,8 @@
+[
+    "list_events",
+    "list_entities",
+    "view_account_settings",
+    "view_invoice_item",
+    "cancel_account",
+    "create_vpc"
+]

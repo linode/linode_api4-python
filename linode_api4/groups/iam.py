@@ -96,3 +96,49 @@ class IAMGroup(Group):
         return self.client._get_and_filter(
             LinodeEntity, *filters, endpoint="/entities"
         )
+
+    def account_permissions_get(self, username):
+        """
+        Returns the account-level permissions for the specified user.
+
+        This is intended to be called off of the :any:`LinodeClient`
+        class, like this::
+
+           permissions_account = client.account_permissions_get("myusername")
+
+        API Documentation: TODO
+
+        :param username: The username to get permissions for.
+        :type username: str
+
+        :returns: The account-level permissions for the user.
+        :rtype: List[str]
+        """
+        return self.client.get(
+            f"/iam/users/{username}/permissions/account",
+        )
+
+    def entity_permissions_get(self, username, entity_type, entity_id):
+        """
+        Returns the entity-level permissions for the specified user on a specific entity.
+
+        This is intended to be called off of the :any:`LinodeClient`
+        class, like this::
+
+           permissions_entity = client.entity_permissions_get("myusername", "linode", 123456)
+
+        API Documentation: TODO
+
+        :param username: The username to get permissions for.
+        :type username: str
+        :param entity_type: The type of entity (e.g., "linode", "firewall").
+        :type entity_type: str
+        :param entity_id: The ID of the specific entity.
+        :type entity_id: int
+
+        :returns: The entity-level permissions for the user on the specified entity.
+        :rtype: List[str]
+        """
+        return self.client.get(
+            f"/iam/users/{username}/permissions/{entity_type}/{entity_id}"
+        )
