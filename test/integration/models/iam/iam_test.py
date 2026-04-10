@@ -24,24 +24,28 @@ def test_get_user_role_permissions(test_linode_client):
     assert isinstance(user_permissions["account_access"], list)
 
 
-@pytest.mark.skip(
-    reason="Updating IAM role permissions may require elevated privileges."
-)
-def test_set_user_role_permissions(test_linode_client):
+def test_set_user_role_permissions(test_linode_client, test_firewall):
     client = test_linode_client
-    iam = client.iam
+    firewall_id = test_firewall.id
 
     username = client.profile().username
-    entity_access = [EntityAccess(id=1, type="linode", roles=["read_only"])]
+    user_permissions = client.iam.role_permissions_user_get(username)[
+        "account_access"
+    ]
+    entity_access = EntityAccess(
+        id=firewall_id, type="firewall", roles=["firewall_admin"]
+    ).dict
 
-    updated = iam.role_permissions_user_set(
+    updated_perms = client.iam.role_permissions_user_set(
         username,
-        account_access=["read_only"],
-        entity_access=entity_access,
+        account_access=user_permissions,
+        entity_access=[entity_access],
     )
 
-    assert "account_access" in updated
-    assert "entity_access" in updated
+    assert "account_access" in updated_perms
+    assert updated_perms["entity_access"][0]["id"] == firewall_id
+    assert updated_perms["entity_access"][0]["roles"] == ["firewall_admin"]
+    assert updated_perms["entity_access"][0]["type"] == "firewall"
 
 
 def test_list_entities(test_linode_client):
