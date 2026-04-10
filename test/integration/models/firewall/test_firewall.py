@@ -14,7 +14,10 @@ def linode_fw(test_linode_client):
     label = get_test_label()
 
     linode_instance = client.linode.instance_create(
-        "g6-nanode-1", region, image="linode/debian12", label=label,
+        "g6-nanode-1",
+        region,
+        image="linode/debian12",
+        label=label,
         root_pass="aComplex@Password123",
     )
 

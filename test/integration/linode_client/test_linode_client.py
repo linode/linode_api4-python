@@ -22,7 +22,7 @@ def setup_client_and_linode(test_linode_client, e2e_test_firewall):
         image="linode/debian12",
         label=label,
         firewall=e2e_test_firewall,
-        root_pass="aComplex@Password123"
+        root_pass="aComplex@Password123",
     )
 
     yield client, linode_instance

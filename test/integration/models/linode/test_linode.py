@@ -275,7 +275,10 @@ def test_linode_rebuild(test_linode_client):
     label = get_test_label() + "_rebuild"
 
     linode = client.linode.instance_create(
-        "g6-nanode-1", region, image="linode/debian12", label=label,
+        "g6-nanode-1",
+        region,
+        image="linode/debian12",
+        label=label,
         root_pass="aComplex@Password123",
     )
 
@@ -921,9 +924,7 @@ class TestNetworkInterface:
         test_linode_client,
         linode_and_vpc_for_legacy_interface_tests_offline,
     ):
-        vpc, subnet, linode = (
-            linode_and_vpc_for_legacy_interface_tests_offline
-        )
+        vpc, subnet, linode = linode_and_vpc_for_legacy_interface_tests_offline
 
         config: Config = linode.configs[0]
 
@@ -1031,9 +1032,7 @@ class TestNetworkInterface:
         self,
         linode_and_vpc_for_legacy_interface_tests_offline,
     ):
-        vpc, subnet, linode = (
-            linode_and_vpc_for_legacy_interface_tests_offline
-        )
+        vpc, subnet, linode = linode_and_vpc_for_legacy_interface_tests_offline
 
         config: Config = linode.configs[0]
 
