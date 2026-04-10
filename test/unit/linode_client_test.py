@@ -689,7 +689,7 @@ class LinodeGroupTest(ClientBaseCase):
         Tests that a Linode Instance can be created with an image and root_pass
         """
         with self.mock_post("linode/instances/123") as m:
-            l, pw = self.client.linode.instance_create(
+            l = self.client.linode.instance_create(
                 "g6-standard-1",
                 "us-east-1a",
                 image="linode/debian9",
@@ -753,7 +753,7 @@ class LinodeGroupTest(ClientBaseCase):
         Tests that a Linode Instance can be created with a kernel
         """
         with self.mock_post("linode/instances/123") as m:
-            l, pw = self.client.linode.instance_create(
+            l = self.client.linode.instance_create(
                 "g6-standard-1",
                 "us-east-1a",
                 image="linode/debian9",
@@ -782,7 +782,7 @@ class LinodeGroupTest(ClientBaseCase):
         Tests that a Linode Instance can be created with a boot_size
         """
         with self.mock_post("linode/instances/123") as m:
-            l, pw = self.client.linode.instance_create(
+            l = self.client.linode.instance_create(
                 "g6-standard-1",
                 "us-east-1a",
                 image="linode/debian9",
@@ -811,7 +811,7 @@ class LinodeGroupTest(ClientBaseCase):
         Tests that a Linode Instance can be created with both kernel and boot_size
         """
         with self.mock_post("linode/instances/123") as m:
-            l, pw = self.client.linode.instance_create(
+            l = self.client.linode.instance_create(
                 "g6-standard-1",
                 "us-east-1a",
                 image="linode/debian9",

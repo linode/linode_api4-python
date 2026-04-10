@@ -98,12 +98,13 @@ def test_latest_get_event(test_linode_client, e2e_test_firewall):
     region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label()
 
-    linode, password = client.linode.instance_create(
+    linode = client.linode.instance_create(
         "g6-nanode-1",
         region,
         image="linode/debian12",
         label=label,
         firewall=e2e_test_firewall,
+        root_pass="aComplex@Password123",
     )
 
     def get_linode_status():

@@ -1398,9 +1398,7 @@ class Instance(Base):
         :param image: The Image to deploy to the disk.  If provided, at least one of
                       root_pass, authorized_users or authorized_keys must also be given.
         :param root_pass: The password to configure for the root user when deploying an
-                          image to this disk.  Not used if image is not given.  If an
-                          image is given and root_pass is provided, it will be returned
-                          alongside the new disk as a tuple.
+                          image to this disk.  Not used if image is not given.
         :param authorized_keys: A list of SSH keys to install as trusted for the root user.
         :param authorized_users: A list of usernames whose keys should be installed
                                  as trusted for the root user.  These user's keys
@@ -1414,9 +1412,8 @@ class Instance(Base):
         :param **stackscript_args: Any arguments to pass to the StackScript, as defined
                                    by its User Defined Fields.
 
-        :returns: A new Disk object, or a tuple containing the new Disk and the
-                  password if both image and root_pass were provided.
-        :rtype: Disk or tuple(Disk, str)
+        :returns: A new Disk object.
+        :rtype: Disk
         """
 
         if (
@@ -1475,11 +1472,7 @@ class Instance(Base):
                 "Unexpected response creating disk!", json=result
             )
 
-        d = Disk(self._client, result["id"], self.id, result)
-
-        if image and root_pass:
-            return d, root_pass
-        return d
+        return Disk(self._client, result["id"], self.id, result)
 
     def enable_backups(self):
         """
@@ -1620,8 +1613,8 @@ class Instance(Base):
                                 NOTE: Disk encryption may not currently be available to all users.
         :type disk_encryption: InstanceDiskEncryptionType or str
 
-        :returns: The root_pass if provided, otherwise True.
-        :rtype: str or bool
+        :returns: True.
+        :rtype: bool
         """
         if not root_pass and not authorized_keys and not authorized_users:
             raise ValueError(
@@ -1657,8 +1650,6 @@ class Instance(Base):
         # update ourself with the newly-returned information
         self._populate(result)
 
-        if root_pass:
-            return root_pass
         return True
 
     def rescue(self, *disks):

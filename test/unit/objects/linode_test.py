@@ -93,13 +93,11 @@ class LinodeTest(ClientBaseCase):
         linode = Instance(self.client, 123)
 
         with self.mock_post("/linode/instances/123") as m:
-            pw = linode.rebuild(
+            linode.rebuild(
                 "linode/debian9",
                 root_pass="aComplex@Password123",
                 disk_encryption=InstanceDiskEncryptionType.enabled,
             )
-
-            self.assertEqual(pw, "aComplex@Password123")
 
             self.assertEqual(m.call_url, "/linode/instances/123/rebuild")
 
@@ -471,7 +469,7 @@ class LinodeTest(ClientBaseCase):
         linode = Instance(self.client, 123)
 
         with self.mock_post("/linode/instances/123/disks/12345") as m:
-            disk, pw = linode.disk_create(
+            disk = linode.disk_create(
                 1234,
                 label="test",
                 authorized_users=["test"],
@@ -491,7 +489,6 @@ class LinodeTest(ClientBaseCase):
                 },
             )
 
-        assert pw == "aComplex@Password123"
         assert disk.id == 12345
         assert disk.disk_encryption == InstanceDiskEncryptionType.disabled
 
