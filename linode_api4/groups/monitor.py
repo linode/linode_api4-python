@@ -1,6 +1,6 @@
 from typing import Any, Optional, Union
 
-from linode_api4 import PaginatedList
+from linode_api4 import PaginatedList, Destination
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
@@ -332,3 +332,92 @@ class MonitorGroup(Group):
             *filters,
             endpoint=endpoint,
         )
+
+    def destinations(self, *filters) -> PaginatedList:
+        """
+        List available logs destinations.
+
+        Returns a paginated collection of :class:`Destination` objects which
+        describe logs destinations. By default this method returns all available
+        destinations; you can supply optional filter expressions to restrict
+        the results, for example::
+
+            # Get all active destinations
+            active_dests = client.monitor.destinations(Destination.status == "active")
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-destinations
+
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
+        :returns: A list of :class:`Destination` objects matching the query.
+        :rtype: PaginatedList of Destination
+        """
+        return self.client._get_and_filter(Destination, *filters)
+
+    def destination_create(
+            self,
+            label: str,
+            type: Union["DestinationType", str],
+            access_key_id: str,
+            secret_access_key: str,
+            bucket_name: str,
+            host: str,
+            path: Optional[str] = None,
+    ) -> Destination:
+        """
+        Creates a new :any:`Destination` for logs on this account with
+        the given label, type, and object storage details. For example::
+
+           client = LinodeClient(TOKEN)
+
+           new_destination = client.monitor.destination_create(
+               label="OBJ_logs_destination",
+               type="akamai_object_storage",
+               access_key_id="1ABCD23EFG4HIJKLMNO5",
+               secret_access_key="1aB2CD3e4fgHi5JK6lmnop7qR8STU9VxYzabcdefHh",
+               bucket_name="primary-bucket",
+               host="primary-bucket-1.us-east-12.linodeobjects.com",
+               path="audit-logs"
+            )
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-destination
+
+        :param label: The name for this logs destination
+        :type label: str
+        :param type: The type of destination for logs data sync. Currently, only akamai_object_storage is supported for use.
+        :type type: str or DestinationType
+        :param access_key_id: The unique identifier assigned to the Object Storage key required for authentication to the bucket.
+        :type access_key_id: str
+        :param secret_access_key: The Object Storage key's secret key.
+        :type secret_access_key: str
+        :param bucket_name: The name of the Object Storage bucket
+        :type bucket_name: str
+        :param host: The hostname where the Object Storage bucket can be accessed
+        :type host: str
+        :param path: (Optional Custom path for audit log storage in your Object Storage bucket.
+        :type path: Optional[str]
+        """
+        params = {
+            "label": label,
+            "type": type,
+            "details": {
+                "access_key_id": access_key_id,
+                "secret_access_key": secret_access_key,
+                "bucket_name": bucket_name,
+                "host": host,
+            }
+        }
+
+        if path is not None:
+            params["details"]["path"] = path
+
+        result = self.client.post("/monitor/streams/destinations", data=params)
+
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating destination!",
+                json=result,
+            )
+
+        return Destination(self.client, result["id"], result)
