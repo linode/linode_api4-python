@@ -20,6 +20,11 @@ __all__ = [
     "MonitorServiceToken",
     "RuleCriteria",
     "TriggerConditions",
+    "Destination",
+    "DestinationDetails",
+    "DestinationHistory",
+    "DestinationStatus",
+    "DestinationType"
 ]
 
 
@@ -129,6 +134,15 @@ class AlertStatus(StrEnum):
     AlertDefinitionStatusEnabled = "enabled"
     AlertDefinitionStatusDisabled = "disabled"
     AlertDefinitionStatusFailed = "failed"
+
+
+class DestinationType(StrEnum):
+    akamai_object_storage = "akamai_object_storage"
+
+
+class DestinationStatus(StrEnum):
+    active = "active"
+    inactive = "inactive"
 
 
 @dataclass
@@ -515,3 +529,72 @@ class AlertChannel(Base):
         "created_by": Property(),
         "updated_by": Property(),
     }
+
+@dataclass
+class DestinationDetails(JSONObject):
+    """
+    Represents the details block for Destination.
+    Fields:
+      - access_key_id: str - The unique identifier assigned to the Object Storage key required for authentication to the bucket.
+      - bucket_name: str - The name of the Object Storage bucket.
+      - host: str - The hostname where the Object Storage bucket can be accessed.
+      - path: str - The specific path in an Object Storage bucket where audit logs files are uploaded.
+    """
+    access_key_id: str = ""
+    secret_access_key: Optional[str] = None
+    bucket_name: str = ""
+    host: str = ""
+    path: str = ""
+
+class DestinationHistory(Base):
+    """
+    Represents a read-only historical snapshot of a Logs Destination.
+
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-destination-history
+    """
+    properties = {
+        "created": Property(is_datetime=True),
+        "created_by": Property(),
+        "details": Property(json_object=DestinationDetails),
+        "id": Property(identifier=True),
+        "label": Property(),
+        "status": Property(),
+        "type": Property(),
+        "updated": Property(is_datetime=True),
+        "updated_by": Property(),
+        "version": Property(),
+    }
+
+class Destination(Base):
+    """
+    Represents a logs destination object.
+
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-destination
+    """
+
+    api_endpoint = "/monitor/streams/destinations/{id}"
+
+    properties = {
+        "created": Property(is_datetime=True),
+        "created_by": Property(),
+        "details": Property(mutable=True, json_object=DestinationDetails),
+        "id": Property(identifier=True),
+        "label": Property(mutable=True),
+        "status": Property(),
+        "type": Property(mutable=True),
+        "updated": Property(is_datetime=True),
+        "updated_by": Property(),
+        "version": Property(),
+    }
+
+    @property
+    def history(self):
+        """
+        Retrieves the version history for this Destination.
+
+        API documentation: https://techdocs.akamai.com/linode-api/reference/get-destination-history
+        """
+        return self.client._get_objects(
+            "{}/history".format(Destination.api_endpoint.format(id=self.id)),
+            DestinationHistory
+        )
