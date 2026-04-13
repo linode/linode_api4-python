@@ -7,11 +7,13 @@ from linode_api4.objects.serializable import JSONObject, StrEnum
 
 __all__ = [
     "AggregateFunction",
-    "Alert",
     "AlertChannel",
     "AlertDefinition",
+    "AlertDefinitionChannel",
+    "AlertDefinitionEntity",
+    "AlertEntities",
+    "AlertScope",
     "AlertType",
-    "Alerts",
     "MonitorDashboard",
     "MonitorMetricsDefinition",
     "MonitorService",
@@ -341,33 +343,21 @@ class RuleCriteria(JSONObject):
 
 
 @dataclass
-class Alert(JSONObject):
+class AlertDefinitionChannel(JSONObject):
     """
-    Represents an alert definition reference within an AlertChannel.
+    Represents the notification channel set up for use with an alert.
 
     Fields:
-      - id: int - Unique identifier of the alert definition.
-      - label: str - Human-readable name for the alert definition.
-      - type: str - Type of the alert (e.g., 'alerts-definitions').
-      - url: str - API URL for the alert definition.
+      - id: int - Unique identifier for this notification channel.
+      - label: str - Human-readable name for the alert channel.
+      - type: str - Type of notification used with the channel. For a user alert definition, only `email` is supported.
+      - url: str - URL for the channel that ends in the channel's id.
     """
 
     id: int = 0
     label: str = ""
     _type: str = field(default="", metadata={"json_key": "type"})
     url: str = ""
-
-
-@dataclass
-class Alerts(JSONObject):
-    """
-    Represents a collection of alert definitions within an AlertChannel.
-
-    Fields:
-      - items: List[Alert] - List of alert definitions.
-    """
-
-    items: List[Alert] = field(default_factory=list)
 
 
 class AlertType(StrEnum):
@@ -385,6 +375,43 @@ class AlertType(StrEnum):
 
     system = "system"
     user = "user"
+
+
+class AlertScope(StrEnum):
+    """
+    Scope values supported for alert definitions.
+    """
+
+    entity = "entity"
+    region = "region"
+    account = "account"
+
+
+@dataclass
+class AlertEntities(JSONObject):
+    """
+    Represents entity metadata for an alert definition.
+
+    For entity scoped alerts, `entities` envelope contains the URL to list entities,
+    a count, and a has_more_resources flag.
+    For region/account scoped alerts, the `entities` are returned as an empty object.
+    """
+
+    url: str = ""
+    count: int = 0
+    has_more_resources: bool = False
+
+
+@dataclass
+class AlertDefinitionEntity(JSONObject):
+    """
+    Represents an entity associated with an alert definition.
+    """
+
+    id: str = ""
+    label: str = ""
+    url: str = ""
+    _type: str = field(default="", metadata={"json_key": "type"})
 
 
 class AlertDefinition(DerivedBase):
@@ -406,12 +433,12 @@ class AlertDefinition(DerivedBase):
         "severity": Property(mutable=True),
         "type": Property(mutable=True),
         "status": Property(mutable=True),
-        "has_more_resources": Property(mutable=True),
+        "has_more_resources": Property(),  # Deprecated; use entities.has_more_resources.
         "rule_criteria": Property(mutable=True, json_object=RuleCriteria),
         "trigger_conditions": Property(
             mutable=True, json_object=TriggerConditions
         ),
-        "alert_channels": Property(mutable=True, json_object=Alerts),
+        "alert_channels": Property(json_object=AlertDefinitionChannel),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),
         "updated_by": Property(),
@@ -419,26 +446,10 @@ class AlertDefinition(DerivedBase):
         "entity_ids": Property(mutable=True),
         "description": Property(mutable=True),
         "service_class": Property(alias_of="class"),
+        "scope": Property(AlertScope),
+        "regions": Property(mutable=True),
+        "entities": Property(json_object=AlertEntities),
     }
-
-
-@dataclass
-class EmailChannelContent(JSONObject):
-    """
-    Represents the content for an email alert channel.
-    """
-
-    email_addresses: Optional[List[str]] = None
-
-
-@dataclass
-class ChannelContent(JSONObject):
-    """
-    Represents the content block for an AlertChannel, which varies by channel type.
-    """
-
-    email: Optional[EmailChannelContent] = None
-    # Other channel types like 'webhook', 'slack' could be added here as Optional fields.
 
 
 @dataclass
@@ -481,7 +492,7 @@ class AlertChannel(Base):
     fire. Alert channels define a destination and configuration for
     notifications (for example: email lists, webhooks, PagerDuty, Slack, etc.).
 
-    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-alert-channels
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-notification-channels
 
     This class maps to the Monitor API's `/monitor/alert-channels` resource
     and is used by the SDK to list, load, and inspect channels.
@@ -499,7 +510,6 @@ class AlertChannel(Base):
         "channel_type": Property(),
         "details": Property(mutable=False, json_object=ChannelDetails),
         "alerts": Property(mutable=False, json_object=AlertInfo),
-        "content": Property(mutable=False, json_object=ChannelContent),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),
         "created_by": Property(),
