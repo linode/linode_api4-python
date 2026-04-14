@@ -360,7 +360,7 @@ class MonitorGroup(Group):
             label: str,
             type: Union["DestinationType", str],
             access_key_id: str,
-            secret_access_key: str,
+            access_key_secret: str,
             bucket_name: str,
             host: str,
             path: Optional[str] = None,
@@ -375,7 +375,7 @@ class MonitorGroup(Group):
                label="OBJ_logs_destination",
                type="akamai_object_storage",
                access_key_id="1ABCD23EFG4HIJKLMNO5",
-               secret_access_key="1aB2CD3e4fgHi5JK6lmnop7qR8STU9VxYzabcdefHh",
+               access_key_secret="1aB2CD3e4fgHi5JK6lmnop7qR8STU9VxYzabcdefHh",
                bucket_name="primary-bucket",
                host="primary-bucket-1.us-east-12.linodeobjects.com",
                path="audit-logs"
@@ -389,8 +389,8 @@ class MonitorGroup(Group):
         :type type: str or DestinationType
         :param access_key_id: The unique identifier assigned to the Object Storage key required for authentication to the bucket.
         :type access_key_id: str
-        :param secret_access_key: The Object Storage key's secret key.
-        :type secret_access_key: str
+        :param access_key_secret: The Object Storage key's secret key.
+        :type access_key_secret: str
         :param bucket_name: The name of the Object Storage bucket
         :type bucket_name: str
         :param host: The hostname where the Object Storage bucket can be accessed
@@ -403,7 +403,7 @@ class MonitorGroup(Group):
             "type": type,
             "details": {
                 "access_key_id": access_key_id,
-                "secret_access_key": secret_access_key,
+                "access_key_secret": access_key_secret,
                 "bucket_name": bucket_name,
                 "host": host,
             }

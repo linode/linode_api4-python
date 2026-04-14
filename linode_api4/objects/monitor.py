@@ -541,7 +541,7 @@ class DestinationDetails(JSONObject):
       - path: str - The specific path in an Object Storage bucket where audit logs files are uploaded.
     """
     access_key_id: str = ""
-    secret_access_key: Optional[str] = None
+    access_key_secret: Optional[str] = None
     bucket_name: str = ""
     host: str = ""
     path: str = ""
