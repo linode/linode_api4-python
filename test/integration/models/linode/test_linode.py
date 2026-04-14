@@ -237,8 +237,7 @@ def wait_for_clone_complete_and_delete_linode(
     end_time = time.time() + timeout
     while time.time() < end_time:
         try:
-            linode.delete()
-            return True
+            return linode.delete()
         except ApiError as err:
             if "[400] Linode is the target of an ongoing clone" not in str(err):
                 raise UnexpectedResponseError(f"Unexpected delete linode error")
@@ -255,11 +254,11 @@ def instance_type_condition(linode: Instance, type: str):
 def test_get_linodes_verify_alerts(test_linode_client, create_linode):
     linodes_list = test_linode_client.linode.instances().lists[0]
     assert len(linodes_list) > 0
-    assert linodes_list[0].alerts.cpu >= 0
-    assert linodes_list[0].alerts.io >= 0
-    assert linodes_list[0].alerts.network_in >= 0
-    assert linodes_list[0].alerts.network_out >= 0
-    assert linodes_list[0].alerts.transfer_quota >= 0
+    assert linodes_list[0].alerts.cpu
+    assert linodes_list[0].alerts.io
+    assert linodes_list[0].alerts.network_in
+    assert linodes_list[0].alerts.network_out
+    assert linodes_list[0].alerts.transfer_quota
 
 
 def test_get_linode(test_linode_client, linode_with_volume_firewall):
@@ -310,8 +309,8 @@ def test_linode_rebuild(test_linode_client):
 
     assert linode.status == "rebuilding"
     assert linode.image.id == "linode/debian12"
-    assert linode.alerts.cpu >= 0
-    assert linode.alerts.io >= 0
+    assert linode.alerts.cpu
+    assert linode.alerts.io
 
     assert linode.disk_encryption == InstanceDiskEncryptionType.disabled
 

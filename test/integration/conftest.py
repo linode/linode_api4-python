@@ -730,6 +730,16 @@ def test_monitor_client(get_monitor_token_for_db_entities):
     return client, entity_ids
 
 
+def get_alert_channels_list(test_linode_client):
+    channels = list(test_linode_client.monitor.alert_channels())
+    if len(channels) == 0:
+        pytest.fail(
+            "No alert channels available for testing. Please create an alert channel and try again."
+        )
+
+    return channels
+
+
 @pytest.fixture(scope="session")
 def create_alert_service_definition(test_linode_client):
     rule_criteria = {
@@ -758,17 +768,12 @@ def create_alert_service_definition(test_linode_client):
         "polling_interval_seconds": 900,
         "trigger_occurrences": 3,
     }
-    channels = list(test_linode_client.monitor.alert_channels())
-    if len(channels) == 0:
-        raise Exception(
-            "No alert channels available for testing. Please create an alert channel and try again."
-        )
     alert = test_linode_client.monitor.create_alert_definition(
         service_type="dbaas",
         label=get_test_label() + "-service-definition",
         severity=1,
         description="description",
-        channel_ids=[channels[0].id],
+        channel_ids=[get_alert_channels_list(test_linode_client)[0].id],
         rule_criteria=rule_criteria,
         trigger_conditions=trigger_conditions,
     )
