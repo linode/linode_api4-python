@@ -594,7 +594,7 @@ class Destination(Base):
 
         API documentation: https://techdocs.akamai.com/linode-api/reference/get-destination-history
         """
-        return self.client._get_objects(
+        return self._client._get_objects(
             "{}/history".format(Destination.api_endpoint.format(id=self.id)),
             DestinationHistory
         )
