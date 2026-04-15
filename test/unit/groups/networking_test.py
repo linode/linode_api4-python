@@ -199,3 +199,42 @@ class NetworkingGroupTest(ClientBaseCase):
             assert "reserved" not in body
             assert ip.linode_id == 456
             assert ip.reserved is False
+
+    def test_ip_allocate_requires_linode_when_not_reserved(self):
+        """
+        Tests that ip_allocate rejects ephemeral allocation without a linode.
+        """
+        with MethodMock("post", {}) as m:
+            with self.assertRaises(ValueError) as ctx:
+                self.client.networking.ip_allocate()
+
+            assert str(ctx.exception) == (
+                "linode is required when reserved is False."
+            )
+            assert m.called is False
+
+    def test_ip_allocate_requires_linode_or_region_when_reserved(self):
+        """
+        Tests that ip_allocate rejects reserved allocation without a linode or region.
+        """
+        with MethodMock("post", {}) as m:
+            with self.assertRaises(ValueError) as ctx:
+                self.client.networking.ip_allocate(reserved=True)
+
+            assert str(ctx.exception) == (
+                "Either linode or region must be provided when reserved is True."
+            )
+            assert m.called is False
+
+    def test_ip_allocate_rejects_region_when_not_reserved(self):
+        """
+        Tests that ip_allocate rejects region when reserved is False.
+        """
+        with MethodMock("post", {}) as m:
+            with self.assertRaises(ValueError) as ctx:
+                self.client.networking.ip_allocate(region="us-east", linode=456)
+
+            assert str(ctx.exception) == (
+                "region is only valid when reserved is True."
+            )
+            assert m.called is False

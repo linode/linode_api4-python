@@ -33,7 +33,7 @@ class TagGroup(Group):
         nodebalancers=None,
         volumes=None,
         reserved_ipv4_addresses=None,
-        entities=[],
+        entities=None,
     ):
         """
         Creates a new Tag and optionally applies it to the given entities.
@@ -69,6 +69,7 @@ class TagGroup(Group):
         :returns: The new Tag
         :rtype: Tag
         """
+        entities = entities or []
         linode_ids, nodebalancer_ids, domain_ids, volume_ids = [], [], [], []
 
         # filter input into lists of ids
