@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
@@ -18,6 +18,7 @@ from linode_api4.objects import (
 )
 from linode_api4.objects.base import _flatten_request_body_recursive
 from linode_api4.objects.networking import ReservedIPAddress, ReservedIPType
+from linode_api4.paginated_list import PaginatedList
 from linode_api4.util import drop_null_keys
 
 
@@ -330,8 +331,12 @@ class NetworkingGroup(Group):
         )
 
     def ip_allocate(
-        self, linode=None, public=True, reserved=False, region=None
-    ):
+        self,
+        linode: Optional[Union[Instance, int]] = None,
+        public: bool = True,
+        reserved: bool = False,
+        region: Optional[Union[Region, str]] = None,
+    ) -> IPAddress:
         """
         Allocates an IP to a Instance you own, or reserves a new IP address.
 
@@ -536,7 +541,7 @@ class NetworkingGroup(Group):
 
         return True
 
-    def reserved_ips(self, *filters):
+    def reserved_ips(self, *filters) -> PaginatedList:
         """
         Returns a list of reserved IPv4 addresses on your account.
 
@@ -553,7 +558,12 @@ class NetworkingGroup(Group):
         """
         return self.client._get_and_filter(ReservedIPAddress, *filters)
 
-    def reserved_ip_create(self, region, tags=None, **kwargs):
+    def reserved_ip_create(
+        self,
+        region: Union[Region, str],
+        tags: Optional[List[str]] = None,
+        **kwargs,
+    ) -> ReservedIPAddress:
         """
         Reserves a new IPv4 address in the given region.
 
@@ -585,7 +595,7 @@ class NetworkingGroup(Group):
 
         return ReservedIPAddress(self.client, result["address"], result)
 
-    def reserved_ip_types(self, *filters):
+    def reserved_ip_types(self, *filters) -> PaginatedList:
         """
         Returns a list of reserved IP types with pricing information.
 
