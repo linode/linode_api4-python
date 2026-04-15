@@ -365,17 +365,13 @@ class NetworkingGroup(Group):
         :rtype: IPAddress
         """
         if not reserved and linode is None:
-            raise ValueError(
-                "linode is required when reserved is False."
-            )
+            raise ValueError("linode is required when reserved is False.")
         if reserved and linode is None and region is None:
             raise ValueError(
                 "Either linode or region must be provided when reserved is True."
             )
         if not reserved and region is not None:
-            raise ValueError(
-                "region is only valid when reserved is True."
-            )
+            raise ValueError("region is only valid when reserved is True.")
 
         data = {
             "type": "ipv4",
