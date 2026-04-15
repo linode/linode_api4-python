@@ -1,6 +1,6 @@
 from typing import Any, Optional, Union
 
-from linode_api4 import PaginatedList, Destination
+from linode_api4 import PaginatedList
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
@@ -12,6 +12,8 @@ from linode_api4.objects import (
     MonitorMetricsDefinition,
     MonitorService,
     MonitorServiceToken,
+    LogsDestination,
+    LogsDestinationType
 )
 
 __all__ = [
@@ -337,36 +339,36 @@ class MonitorGroup(Group):
         """
         List available logs destinations.
 
-        Returns a paginated collection of :class:`Destination` objects which
+        Returns a paginated collection of :class:`LogsDestination` objects which
         describe logs destinations. By default this method returns all available
         destinations; you can supply optional filter expressions to restrict
         the results, for example::
 
             # Get all active destinations
-            active_dests = client.monitor.destinations(Destination.status == "active")
+            active_dests = client.monitor.destinations(LogsDestination.status == "active")
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/get-destinations
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
                         for more details on filtering.
-        :returns: A list of :class:`Destination` objects matching the query.
-        :rtype: PaginatedList of Destination
+        :returns: A list of :class:`LogsDestination` objects matching the query.
+        :rtype: PaginatedList of LogsDestination
         """
-        return self.client._get_and_filter(Destination, *filters)
+        return self.client._get_and_filter(LogsDestination, *filters)
 
     def destination_create(
             self,
             label: str,
-            type: Union["DestinationType", str],
+            type: Union[LogsDestinationType, str],
             access_key_id: str,
             access_key_secret: str,
             bucket_name: str,
             host: str,
             path: Optional[str] = None,
-    ) -> Destination:
+    ) -> LogsDestination:
         """
-        Creates a new :any:`Destination` for logs on this account with
+        Creates a new :any:`LogsDestination` for logs on this account with
         the given label, type, and object storage details. For example::
 
            client = LinodeClient(TOKEN)
@@ -386,7 +388,7 @@ class MonitorGroup(Group):
         :param label: The name for this logs destination
         :type label: str
         :param type: The type of destination for logs data sync. Currently, only akamai_object_storage is supported for use.
-        :type type: str or DestinationType
+        :type type: str or LogsDestinationType
         :param access_key_id: The unique identifier assigned to the Object Storage key required for authentication to the bucket.
         :type access_key_id: str
         :param access_key_secret: The Object Storage key's secret key.
@@ -420,4 +422,4 @@ class MonitorGroup(Group):
                 json=result,
             )
 
-        return Destination(self.client, result["id"], result)
+        return LogsDestination(self.client, result["id"], result)

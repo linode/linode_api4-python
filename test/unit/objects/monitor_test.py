@@ -1,7 +1,7 @@
 import datetime
 from test.unit.base import ClientBaseCase
 
-from linode_api4.objects import AlertChannel, MonitorDashboard, MonitorService, Destination
+from linode_api4.objects import AlertChannel, MonitorDashboard, MonitorService, LogsDestination
 
 
 class MonitorTest(ClientBaseCase):
@@ -170,20 +170,20 @@ class MonitorTest(ClientBaseCase):
         )
         self.assertEqual(channels[0].alerts.alert_count, 0)
 
-class DestinationTest(ClientBaseCase):
+class LogsDestinationTest(ClientBaseCase):
     """
-    Tests methods of the Destination class
+    Tests methods for LogsDestination class
     """
 
     def test_list_destinations(self):
         """
-        Test that listing destinations returns Destination objects with all fields populated.
+        Test that listing destinations returns LogsDestination objects with all fields populated.
         """
         destinations = self.client.monitor.destinations()
 
         self.assertEqual(len(destinations), 1)
         dest = destinations[0]
-        self.assertIsInstance(dest, Destination)
+        self.assertIsInstance(dest, LogsDestination)
         self.assertEqual(dest.id, 1)
         self.assertEqual(dest.label, "my-logs-destination")
         self.assertEqual(dest.type, "akamai_object_storage")
@@ -200,9 +200,9 @@ class DestinationTest(ClientBaseCase):
 
     def test_list_destinations_details(self):
         """
-        Test that the nested DestinationDetails are deserialized correctly.
+        Test that the nested LogsDestinationDetails are deserialized correctly.
         """
-        dest = self.client.load(Destination, 1)
+        dest = self.client.load(LogsDestination, 1)
 
         self.assertIsNotNone(dest.details)
         self.assertEqual(dest.details.access_key_id, "1ABCD23EFG4HIJKLMNO5")
@@ -216,9 +216,9 @@ class DestinationTest(ClientBaseCase):
 
     def test_destination_history(self):
         """
-        Test that the history property returns DestinationHistory objects.
+        Test that the history property returns LogsDestinationHistory objects.
         """
-        dest = self.client.load(Destination, 1)
+        dest = self.client.load(LogsDestination, 1)
         history = dest.history
 
         self.assertEqual(len(history), 1)
@@ -237,7 +237,7 @@ class DestinationTest(ClientBaseCase):
     def test_create_destination(self):
         """
         Test that destination_create sends the right payload and returns
-        a Destination object.
+        a LogsDestination object.
         """
         create_response = {
             "id": 2,
@@ -282,16 +282,16 @@ class DestinationTest(ClientBaseCase):
         )
         self.assertEqual(m.call_data["details"]["path"], "logs/audit")
 
-        self.assertIsInstance(result, Destination)
+        self.assertIsInstance(result, LogsDestination)
         self.assertEqual(result.id, 2)
         self.assertEqual(result.label, "new-dest")
 
     def test_update_destination(self):
         """
-        Test that mutating a Destination's mutable fields and calling save()
+        Test that mutating a LogsDestination's mutable fields and calling save()
         sends a PUT to the correct endpoint with the updated values.
         """
-        dest = self.client.load(Destination, 1)
+        dest = self.client.load(LogsDestination, 1)
 
         updated_response = {
             "id": 1,
@@ -320,9 +320,9 @@ class DestinationTest(ClientBaseCase):
 
     def test_delete_destination(self):
         """
-        Test that deleting a Destination issues a DELETE to the correct URL.
+        Test that deleting a LogsDestination issues a DELETE to the correct URL.
         """
-        dest = self.client.load(Destination, 1)
+        dest = self.client.load(LogsDestination, 1)
 
         with self.mock_delete() as m:
             dest.delete()

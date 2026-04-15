@@ -20,11 +20,11 @@ __all__ = [
     "MonitorServiceToken",
     "RuleCriteria",
     "TriggerConditions",
-    "Destination",
-    "DestinationDetails",
-    "DestinationHistory",
-    "DestinationStatus",
-    "DestinationType"
+    "LogsDestination",
+    "LogsDestinationDetails",
+    "LogsDestinationHistory",
+    "LogsDestinationStatus",
+    "LogsDestinationType"
 ]
 
 
@@ -136,11 +136,11 @@ class AlertStatus(StrEnum):
     AlertDefinitionStatusFailed = "failed"
 
 
-class DestinationType(StrEnum):
+class LogsDestinationType(StrEnum):
     akamai_object_storage = "akamai_object_storage"
 
 
-class DestinationStatus(StrEnum):
+class LogsDestinationStatus(StrEnum):
     active = "active"
     inactive = "inactive"
 
@@ -531,9 +531,9 @@ class AlertChannel(Base):
     }
 
 @dataclass
-class DestinationDetails(JSONObject):
+class LogsDestinationDetails(JSONObject):
     """
-    Represents the details block for Destination.
+    Represents the details block for LogsDestination.
     Fields:
       - access_key_id: str - The unique identifier assigned to the Object Storage key required for authentication to the bucket.
       - bucket_name: str - The name of the Object Storage bucket.
@@ -546,7 +546,7 @@ class DestinationDetails(JSONObject):
     host: str = ""
     path: str = ""
 
-class DestinationHistory(Base):
+class LogsDestinationHistory(Base):
     """
     Represents a read-only historical snapshot of a Logs Destination.
 
@@ -555,7 +555,7 @@ class DestinationHistory(Base):
     properties = {
         "created": Property(is_datetime=True),
         "created_by": Property(),
-        "details": Property(json_object=DestinationDetails),
+        "details": Property(json_object=LogsDestinationDetails),
         "id": Property(identifier=True),
         "label": Property(),
         "status": Property(),
@@ -565,7 +565,7 @@ class DestinationHistory(Base):
         "version": Property(),
     }
 
-class Destination(Base):
+class LogsDestination(Base):
     """
     Represents a logs destination object.
 
@@ -577,11 +577,11 @@ class Destination(Base):
     properties = {
         "created": Property(is_datetime=True),
         "created_by": Property(),
-        "details": Property(mutable=True, json_object=DestinationDetails),
+        "details": Property(mutable=True, json_object=LogsDestinationDetails),
         "id": Property(identifier=True),
         "label": Property(mutable=True),
         "status": Property(),
-        "type": Property(mutable=True),
+        "type": Property(),
         "updated": Property(is_datetime=True),
         "updated_by": Property(),
         "version": Property(),
@@ -590,11 +590,11 @@ class Destination(Base):
     @property
     def history(self):
         """
-        Retrieves the version history for this Destination.
+        Retrieves the version history for this LogsDestination.
 
         API documentation: https://techdocs.akamai.com/linode-api/reference/get-destination-history
         """
         return self._client._get_objects(
-            "{}/history".format(Destination.api_endpoint.format(id=self.id)),
-            DestinationHistory
+            "{}/history".format(LogsDestination.api_endpoint.format(id=self.id)),
+            LogsDestinationHistory
         )
