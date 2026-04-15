@@ -24,7 +24,7 @@ class NodeBalancerGroup(Group):
         """
         return self.client._get_and_filter(NodeBalancer, *filters)
 
-    def create(self, region, ipv4=None, **kwargs):
+    def create(self, region, **kwargs):
         """
         Creates a new NodeBalancer in the given Region.
 
@@ -39,6 +39,7 @@ class NodeBalancerGroup(Group):
         :returns: The new NodeBalancer
         :rtype: NodeBalancer
         """
+        ipv4 = kwargs.pop("ipv4", None)
         params = {
             "region": region.id if isinstance(region, Base) else region,
         }
@@ -50,7 +51,7 @@ class NodeBalancerGroup(Group):
 
         if not "id" in result:
             raise UnexpectedResponseError(
-                "Unexpected response when creating Nodebalaner!", json=result
+                "Unexpected response when creating NodeBalancer!", json=result
             )
 
         n = NodeBalancer(self.client, result["id"], result)

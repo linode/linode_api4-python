@@ -32,8 +32,8 @@ class TagGroup(Group):
         domains=None,
         nodebalancers=None,
         volumes=None,
-        reserved_ipv4_addresses=None,
         entities=None,
+        reserved_ipv4_addresses=None,
     ):
         """
         Creates a new Tag and optionally applies it to the given entities.
