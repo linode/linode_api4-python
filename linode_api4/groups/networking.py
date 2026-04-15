@@ -338,7 +338,7 @@ class NetworkingGroup(Group):
         region: Optional[Union[Region, str]] = None,
     ) -> IPAddress:
         """
-        Allocates an IP to a Instance you own, or reserves a new IP address.
+        Allocates an IP to an Instance you own, or reserves a new IP address.
 
         When ``reserved`` is False (default), ``linode`` is required and an
         ephemeral IP is allocated and assigned to that Instance.
