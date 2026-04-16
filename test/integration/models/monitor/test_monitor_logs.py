@@ -4,7 +4,8 @@ import pytest
 from linode_api4 import LinodeClient, PaginatedList
 from linode_api4.objects import (ObjectStorageACL,
                                  ObjectStorageKeys,
-                                 ObjectStorageBucket)
+                                 ObjectStorageBucket,
+                                 Capability)
 from linode_api4.objects.monitor import (
     LogsDestination,
 )
@@ -13,6 +14,14 @@ from test.integration.helpers import (
     send_request_when_resource_available,
     wait_for_condition,
 )
+
+
+@pytest.fixture(scope="session", autouse=True)
+def require_aclp_logs(test_linode_client: LinodeClient):
+    """Skip all tests in this module if the aclp_logs feature is not enabled for the account."""
+    account = test_linode_client.account()
+    if Capability.aclp_logs not in account.capabilities:
+        pytest.skip("aclp_logs feature is not enabled for this account")
 
 
 @pytest.fixture(scope="session")
@@ -100,7 +109,8 @@ def test_update_destination_label(
         test_object_storage_key: ObjectStorageKeys,
 ):
     """
-    Test that a LogsDestination label can be updated via save().
+    Test that a LogsDestination label can be updated via save(),
+    and that history reflects both states.
     """
     new_label = test_destination.label + "-upd"
     new_path = "updated/logs/path/"
@@ -115,25 +125,17 @@ def test_update_destination_label(
     assert updated.label == new_label
     assert updated.details.path == new_path
 
-
-def test_destination_history(test_linode_client: LinodeClient, test_destination: LogsDestination):
-    """
-    Test that LogsDestination.history returns version snapshots reflecting
-    the state before and after the label/path update performed in test_update_mutable_fields.
-    """
-    dest = test_linode_client.load(LogsDestination, test_destination.id)
-    history = dest.history
-
+    history = updated.history
     assert history is not None
     assert len(history) >= 2
 
     snapshot_original = next(snap for snap in history if snap.version == 1)
     snapshot_updated = next(snap for snap in history if snap.version == 2)
 
-    assert snapshot_updated.label == test_destination.label + "-upd"
-    assert snapshot_updated.details.path == "updated/logs/path/"
+    assert snapshot_updated.label == new_label
+    assert snapshot_updated.details.path == new_path
     assert snapshot_updated.id == test_destination.id
 
     assert snapshot_original.label == test_destination.label
-    assert snapshot_original.details.path == None
+    assert snapshot_original.details.path is None
     assert snapshot_original.id == test_destination.id
