@@ -344,14 +344,16 @@ class MonitorGroup(Group):
         destinations; you can supply optional filter expressions to restrict
         the results, for example::
 
-            # Get all active destinations
-            active_dests = client.monitor.destinations(LogsDestination.status == "active")
+            # Get destinations created by username and with id 111
+            destinations = client.monitor.destinations(LogsDestination.created_by == "username",
+                                                        LogsDestination.id == 111)
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/get-destinations
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
                         for more details on filtering.
+
         :returns: A list of :class:`LogsDestination` objects matching the query.
         :rtype: PaginatedList of LogsDestination
         """
@@ -387,7 +389,7 @@ class MonitorGroup(Group):
 
         :param label: The name for this logs destination
         :type label: str
-        :param type: The type of destination for logs data sync. Currently, only akamai_object_storage is supported for use.
+        :param type: The type of destination for logs data sync. Currently, only ``akamai_object_storage`` is supported for use.
         :type type: str or LogsDestinationType
         :param access_key_id: The unique identifier assigned to the Object Storage key required for authentication to the bucket.
         :type access_key_id: str
@@ -397,8 +399,11 @@ class MonitorGroup(Group):
         :type bucket_name: str
         :param host: The hostname where the Object Storage bucket can be accessed
         :type host: str
-        :param path: (Optional) Custom path for audit log storage in your Object Storage bucket.
+        :param path: (Optional) Custom path for log storage in your Object Storage bucket.
         :type path: Optional[str]
+
+        :returns: The newly created logs destination.
+        :rtype: LogsDestination
         """
         params = {
             "label": label,
