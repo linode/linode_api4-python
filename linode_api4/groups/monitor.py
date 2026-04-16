@@ -397,7 +397,7 @@ class MonitorGroup(Group):
         :type bucket_name: str
         :param host: The hostname where the Object Storage bucket can be accessed
         :type host: str
-        :param path: (Optional Custom path for audit log storage in your Object Storage bucket.
+        :param path: (Optional) Custom path for audit log storage in your Object Storage bucket.
         :type path: Optional[str]
         """
         params = {
