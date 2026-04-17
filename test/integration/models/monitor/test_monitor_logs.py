@@ -103,7 +103,7 @@ def test_get_destination_by_id(test_linode_client: LinodeClient, test_destinatio
     assert destination_by_id.type == test_destination.type
 
 
-def test_update_destination_label(
+def test_update_destination_label_and_version_history(
         test_linode_client: LinodeClient,
         test_destination: LogsDestination,
         test_object_storage_key: ObjectStorageKeys,
@@ -139,3 +139,65 @@ def test_update_destination_label(
     assert snapshot_original.label == test_destination.label
     assert snapshot_original.details.path is None
     assert snapshot_original.id == test_destination.id
+
+
+def test_fails_to_create_destination_invalid_secret(test_linode_client: LinodeClient):
+    """
+    Test that a destination create request with invalid access key results in a 400 ApiError.
+    """
+    from linode_api4.errors import ApiError
+
+    with pytest.raises(ApiError) as excinfo:
+        test_linode_client.monitor.destination_create(
+            label=get_test_label(),
+            type="akamai_object_storage",
+            access_key_id="1",
+            access_key_secret="1",
+            bucket_name="some-bucket",
+            host="some-bucket.us-southeast-1.linodeobjects.com",
+        )
+    assert excinfo.value.status == 400
+    assert excinfo.value.errors == ['Invalid access key id or secret key']
+
+
+def test_fails_to_create_destination_invalid_type(test_linode_client: LinodeClient):
+    """
+    Test that a destination create request with an unsupported type
+    results in a 400 ApiError.
+    """
+    from linode_api4.errors import ApiError
+
+    with pytest.raises(ApiError) as excinfo:
+        test_linode_client.monitor.destination_create(
+            label=get_test_label(),
+            type="invalid_type",
+            access_key_id="SOMEACCESSKEY",
+            access_key_secret="SOMESECRETKEY",
+            bucket_name="some-bucket",
+            host="some-bucket.us-southeast-1.linodeobjects.com",
+        )
+    assert excinfo.value.status == 400
+    assert excinfo.value.errors == ['Must be one of akamai_object_storage, custom_https']
+
+def test_fails_to_create_destination_empty_required_fields(test_linode_client: LinodeClient):
+    """
+    Test that a destination create request with missing required fields
+    results in a 400 ApiError.
+    """
+    from linode_api4.errors import ApiError
+
+    with pytest.raises(ApiError) as excinfo:
+        test_linode_client.monitor.destination_create(
+            label=get_test_label(),
+            type="akamai_object_storage",
+            access_key_id="",
+            access_key_secret="",
+            bucket_name="",
+            host="",
+        )
+    assert excinfo.value.status == 400
+    len(excinfo.value.errors) == 4
+    assert all(
+        error == "Length must be 1-255 characters"
+        for error in excinfo.value.errors
+    )
