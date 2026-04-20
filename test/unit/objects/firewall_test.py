@@ -20,6 +20,8 @@ class FirewallTest(ClientBaseCase):
         self.assertEqual(rules.inbound_policy, "DROP")
         self.assertEqual(len(rules.outbound), 0)
         self.assertEqual(rules.outbound_policy, "DROP")
+        self.assertEqual(rules.version, 2)
+        self.assertEqual(rules.fingerprint, "4ef67a29")
 
     def test_update_rules(self):
         """
