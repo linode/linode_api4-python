@@ -2055,8 +2055,6 @@ class Instance(Base):
         Creates a new interface under this Linode.
         Linode interfaces are not interchangeable with Config interfaces.
 
-        NOTE: Linode interfaces may not currently be available to all users.
-
         API Documentation: https://techdocs.akamai.com/linode-api/reference/post-linode-interface
 
         Example: Creating a simple public interface for this Linode::
@@ -2132,8 +2130,6 @@ class Instance(Base):
         """
         The settings for all interfaces under this Linode.
 
-        NOTE: Linode interfaces may not currently be available to all users.
-
         :returns: The settings for instance-level interface settings for this Linode.
         :rtype: LinodeInterfacesSettings
         """
@@ -2201,8 +2197,6 @@ class Instance(Base):
 
         NOTE: If dry_run is True, interfaces in the result will be
               of type MappedObject rather than LinodeInterface.
-
-        NOTE: Linode interfaces may not currently be available to all users.
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/post-upgrade-linode-interfaces
 
