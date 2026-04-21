@@ -24,7 +24,12 @@ __all__ = [
     "LogsDestinationDetails",
     "LogsDestinationHistory",
     "LogsDestinationStatus",
-    "LogsDestinationType"
+    "LogsDestinationType",
+    "LogsStream",
+    "LogsStreamHistory",
+    "LogsStreamType",
+    "LogsStreamStatus",
+    "LogsStreamDestination"
 ]
 
 
@@ -541,6 +546,7 @@ class LogsDestinationDetails(JSONObject):
       - host: str - The hostname where the Object Storage bucket can be accessed.
       - path: str - The specific path in an Object Storage bucket where audit logs files are uploaded.
     """
+
     access_key_id: str = ""
     access_key_secret: Optional[str] = None
     bucket_name: str = ""
@@ -554,6 +560,7 @@ class LogsDestinationHistory(Base):
 
     API documentation: https://techdocs.akamai.com/linode-api/reference/get-destination-history
     """
+
     properties = {
         "created": Property(is_datetime=True),
         "created_by": Property(),
@@ -597,7 +604,110 @@ class LogsDestination(Base):
 
         API documentation: https://techdocs.akamai.com/linode-api/reference/get-destination-history
         """
+
         return self._client._get_objects(
             "{}/history".format(LogsDestination.api_endpoint.format(id=self.id)),
             LogsDestinationHistory
+        )
+
+class LogsStreamStatus(StrEnum):
+    active = "active"
+    inactive = "inactive"
+    provisioning = "provisioning"
+
+class LogsStreamType(StrEnum):
+    audit_logs = "audit_logs"
+
+@dataclass
+class LogsStreamDestination(JSONObject):
+    """
+    Represents a destination attached to a LogsStream.
+    """
+
+    id: int = 0
+    label: str = ""
+    type: Optional[LogsDestinationType] = None
+    details: Optional[LogsDestinationDetails] = None
+
+class LogsStreamHistory(Base):
+    """
+    Represents a read-only historical snapshot of logs Stream.
+
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-stream-history
+    """
+
+    properties = {
+        "created": Property(is_datetime=True),
+        "created_by": Property(),
+        "destinations": Property(json_object=LogsStreamDestination),
+        "id": Property(identifier=True),
+        "label": Property(),
+        "status": Property(),
+        "type": Property(),
+        "updated": Property(is_datetime=True),
+        "updated_by": Property(),
+        "version": Property(),
+    }
+
+class LogsStream(Base):
+    """
+    Represents a logs stream object.
+
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-stream
+    """
+
+    api_endpoint = "/monitor/streams/{id}"
+
+    properties = {
+        "created": Property(is_datetime=True),
+        "created_by": Property(),
+        "destinations": Property(json_object=LogsStreamDestination),
+        "id": Property(identifier=True),
+        "label": Property(mutable=True),
+        "status": Property(mutable=True),
+        "type": Property(),
+        "updated": Property(is_datetime=True),
+        "updated_by": Property(),
+        "version": Property(),
+    }
+
+    def update_destinations(self, destinations: List[int]):
+        """
+        Updates the sync points that receive logs data for this stream.
+        Replaces existing destinations with the provided list.
+
+        :param destinations: A list of destination IDs.
+                            At the moment only single destination per stream is supported.
+                            Passing more than one element in the list will result in an error from the API.
+        :type destinations: list[int]
+
+        :returns: True if the update was successful.
+        :rtype: bool
+        """
+        destination_ids = [int(dest) for dest in destinations]
+
+        payload = {
+            "destinations": destination_ids
+        }
+
+        # The Linode API PUT request expects the flat list of IDs
+        result = self._client.put(
+            self.api_endpoint.format(id=self.id),
+            data=payload
+        )
+        self._populate(result)
+
+        return True
+
+    @property
+    def history(self):
+        """
+        Retrieves the version history for this LogsStream.
+
+        API documentation: https://techdocs.akamai.com/linode-api/reference/get-stream-history
+        """
+
+        return self._client._get_objects(
+            "{}/history".format(LogsStream.api_endpoint.format(id=self.id)),
+            LogsStreamHistory
         )

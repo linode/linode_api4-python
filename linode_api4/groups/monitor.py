@@ -13,7 +13,10 @@ from linode_api4.objects import (
     MonitorService,
     MonitorServiceToken,
     LogsDestination,
-    LogsDestinationType
+    LogsDestinationType,
+    LogsStream,
+    LogsStreamStatus,
+    LogsStreamType
 )
 
 __all__ = [
@@ -340,7 +343,7 @@ class MonitorGroup(Group):
         List available logs destinations.
 
         Returns a paginated collection of :class:`LogsDestination` objects which
-        describe logs destinations. By default this method returns all available
+        describe logs destinations. By default, this method returns all available
         destinations; you can supply optional filter expressions to restrict
         the results, for example::
 
@@ -357,6 +360,7 @@ class MonitorGroup(Group):
         :returns: A list of :class:`LogsDestination` objects matching the query.
         :rtype: PaginatedList of LogsDestination
         """
+
         return self.client._get_and_filter(LogsDestination, *filters)
 
     def destination_create(
@@ -405,6 +409,7 @@ class MonitorGroup(Group):
         :returns: The newly created logs destination.
         :rtype: LogsDestination
         """
+
         params = {
             "label": label,
             "type": type,
@@ -428,3 +433,84 @@ class MonitorGroup(Group):
             )
 
         return LogsDestination(self.client, result["id"], result)
+
+    def streams(self, *filters) -> PaginatedList:
+        """
+        List available logs streams.
+
+        Returns a paginated collection of :class:`LogsStream` objects which
+        describe logs stream. By default, this method returns all available
+        streams; you can supply optional filter expressions to restrict
+        the results, for example::
+
+            # Get all streams with status ``provisioning``
+            provisioning_streams = client.monitor.streams(LogsStream.status == "provisioning")
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-streams
+
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
+        :returns: A list of :class:`LogsStream` objects matching the query.
+        :rtype: PaginatedList of LogsStream
+        """
+
+        return self.client._get_and_filter(LogsStream, *filters)
+
+    def stream_create(
+            self,
+            destinations: list[int],
+            label: str,
+            type: Union[LogsStreamType, str],
+            status: Optional[Union[LogsStreamStatus, str]] = None
+    ) -> LogsStream:
+        """
+        Creates a new :any:`LogsStream` for logs on this account with
+        the given label, type, and object storage details. For example::
+
+           client = LinodeClient(TOKEN)
+
+           new_stream = client.monitor.stream_create(
+               destinations= [1234],
+               label="Linode_services",
+               status="active",
+               type="audit_logs",
+            )
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-stream
+
+        :param destinations: List of unique identifiers for the sync points that will receive logs data.
+                            Run the List destinations operation and store the id values for each applicable destination.
+                            At the moment only single destination is supported.
+        :type destinations: list[int]
+        :param label: The name of the stream. This is used for display purposes in Akamai Cloud Manager.
+        :type label: str
+        :param type: The type of stream. Set this to ``audit_logs`` for logs consisting of all the control plane
+                    operations for the services in your Linodes.
+        :type type: str
+        :param status: (Optional) The availability status of the stream. Possible values are: ``active``, ``inactive``.
+                        Defaults to ``active``.
+        :type status: str
+
+        :returns: The newly created logs stream.
+        :rtype: LogsStream
+        """
+
+        params = {
+            "label": label,
+            "type": type,
+            "destinations": destinations,
+        }
+
+        if status is not None:
+            params["status"] = status
+
+        result = self.client.post("/monitor/streams", data=params)
+
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating logs stream!",
+                json=result,
+            )
+
+        return LogsStream(self.client, result["id"], result)
