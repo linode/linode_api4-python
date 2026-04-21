@@ -12,7 +12,6 @@ from linode_api4.objects.monitor import (
 from test.integration.helpers import (
     get_test_label,
     send_request_when_resource_available,
-    wait_for_condition,
 )
 
 
@@ -196,7 +195,7 @@ def test_fails_to_create_destination_empty_required_fields(test_linode_client: L
             host="",
         )
     assert excinfo.value.status == 400
-    len(excinfo.value.errors) == 4
+    assert len(excinfo.value.errors) == 4
     assert all(
         error == "Length must be 1-255 characters"
         for error in excinfo.value.errors
