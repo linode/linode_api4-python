@@ -1,20 +1,26 @@
+import os
 import urllib.request
 
 import pytest
 
-from linode_api4 import LinodeClient, PaginatedList
+from linode_api4 import LinodeClient, PaginatedList, LogsStreamType
 from linode_api4.objects import (ObjectStorageACL,
                                  ObjectStorageKeys,
                                  ObjectStorageBucket,
                                  Capability)
 from linode_api4.objects.monitor import (
     LogsDestination,
+    LogsStream,
+    LogsStreamStatus,
 )
 
 from test.integration.helpers import (
     get_test_label,
     send_request_when_resource_available,
+    wait_for_condition,
 )
+
+RUN_ACLP_LOGS_STREAM_TESTS = "RUN_ACLP_LOGS_STREAM_TESTS"
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -39,26 +45,34 @@ def test_destination(
         test_linode_client: LinodeClient,
         test_object_storage_key: ObjectStorageKeys,
 ):
-    bucket = test_linode_client.object_storage.bucket_create(
+    dest, bucket = _create_destination_with_bucket(test_linode_client, test_object_storage_key)
+    yield dest
+    _delete_destination_with_bucket(test_linode_client, dest, bucket)
+
+
+def _create_destination_with_bucket(client: LinodeClient, key: ObjectStorageKeys):
+    """Helper that creates an OBJ bucket and a logs destination backed by it."""
+    bucket = client.object_storage.bucket_create(
         cluster_or_region="us-southeast",
         label=get_test_label(),
         acl=ObjectStorageACL.PRIVATE,
         cors_enabled=False,
     )
-
-    dest = test_linode_client.monitor.destination_create(
+    dest = client.monitor.destination_create(
         label=get_test_label(),
         type="akamai_object_storage",
-        access_key_id=test_object_storage_key.access_key,
-        access_key_secret=test_object_storage_key.secret_key,
+        access_key_id=key.access_key,
+        access_key_secret=key.secret_key,
         bucket_name=bucket.label,
         host=f"{bucket.label}.us-southeast-1.linodeobjects.com",
     )
+    return dest, bucket
 
-    yield dest
 
+def _delete_destination_with_bucket(client: LinodeClient, dest: LogsDestination, bucket: ObjectStorageBucket):
+    """Helper that deletes a logs destination and its backing OBJ bucket."""
     send_request_when_resource_available(timeout=100, func=dest.delete)
-    _empty_bucket(test_linode_client, bucket)
+    _empty_bucket(client, bucket)
     send_request_when_resource_available(timeout=100, func=bucket.delete)
 
 
@@ -117,6 +131,7 @@ def test_update_destination_label_and_version_history(
     new_path = "updated/logs/path/"
 
     dest = test_linode_client.load(LogsDestination, test_destination.id)
+    original_version = dest.version
     dest.label = new_label
     dest.details.path = new_path
     dest.details.access_key_secret = test_object_storage_key.secret_key
@@ -130,8 +145,8 @@ def test_update_destination_label_and_version_history(
     assert history is not None
     assert len(history) >= 2
 
-    snapshot_original = next(snap for snap in history if snap.version == 1)
-    snapshot_updated = next(snap for snap in history if snap.version == 2)
+    snapshot_original = next(snap for snap in history if snap.version == original_version)
+    snapshot_updated = next(snap for snap in history if snap.version == updated.version)
 
     assert snapshot_updated.label == new_label
     assert snapshot_updated.details.path == new_path
@@ -203,3 +218,200 @@ def test_fails_to_create_destination_empty_required_fields(test_linode_client: L
         error == "Length must be 1-255 characters"
         for error in excinfo.value.errors
     )
+
+
+@pytest.mark.skipif(
+    os.getenv(RUN_ACLP_LOGS_STREAM_TESTS, "").strip().lower() not in {"yes", "true"},
+    reason=f"{RUN_ACLP_LOGS_STREAM_TESTS} environment variable must be set to 'yes' or 'true'",
+    )
+def test_fails_to_create_stream_invalid_destination(test_linode_client: LinodeClient):
+    """
+    Test that creating a stream with a non-existent destination ID results in a 400 ApiError.
+    Requires no other streams to be present per account
+    """
+    from linode_api4.errors import ApiError
+
+    with pytest.raises(ApiError) as excinfo:
+        test_linode_client.monitor.stream_create(
+            label=get_test_label(),
+            type=LogsStreamType.audit_logs,
+            destinations=[999999999],
+        )
+    assert excinfo.value.status == 400
+    assert excinfo.value.errors == ['Destination not found']
+
+
+@pytest.fixture(scope="session")
+def test_secondary_destination(
+        test_linode_client: LinodeClient,
+        test_object_storage_key: ObjectStorageKeys,
+):
+    dest, bucket = _create_destination_with_bucket(test_linode_client, test_object_storage_key)
+    yield dest
+    _delete_destination_with_bucket(test_linode_client, dest, bucket)
+
+
+@pytest.fixture(scope="session")
+def test_stream_create(test_linode_client: LinodeClient, test_destination: LogsDestination):
+    stream = test_linode_client.monitor.stream_create(
+        label=get_test_label(),
+        destinations=[test_destination.id],
+        type=LogsStreamType.audit_logs
+    )
+    assert stream.id is not None
+    assert stream.status == LogsStreamStatus.provisioning
+    yield stream
+    send_request_when_resource_available(timeout=100, func=stream.delete)
+
+
+
+@pytest.fixture(scope="session")
+def test_stream_active(test_linode_client: LinodeClient, test_stream_create: LogsStream):
+    """
+    Waits until the stream transitions out of provisioning state.
+    NOTE: Stream provisioning can take up to 60 minutes to finish.
+    """
+    def is_stream_provisioned():
+        stream = test_linode_client.load(LogsStream, test_stream_create.id)
+        return stream.status in (LogsStreamStatus.active, LogsStreamStatus.inactive)
+
+    wait_for_condition(60, 3600, is_stream_provisioned)
+
+    return test_linode_client.load(LogsStream, test_stream_create.id)
+
+
+@pytest.mark.skipif(
+    os.getenv(RUN_ACLP_LOGS_STREAM_TESTS, "").strip().lower() not in {"yes", "true"},
+    reason=f"{RUN_ACLP_LOGS_STREAM_TESTS} environment variable must be set to 'yes' or 'true'",
+)
+def test_list_streams(test_linode_client: LinodeClient, test_stream_active: LogsStream):
+    """
+    Test that listing streams returns a PaginatedList containing the previously created stream.
+    """
+    streams = test_linode_client.monitor.streams()
+
+    assert isinstance(streams, PaginatedList)
+    assert len(streams) > 0
+    assert all(isinstance(s, LogsStream) for s in streams)
+
+    ids = [s.id for s in streams]
+    assert test_stream_active.id in ids
+
+
+@pytest.mark.skipif(
+    os.getenv(RUN_ACLP_LOGS_STREAM_TESTS, "").strip().lower() not in {"yes", "true"},
+    reason=f"{RUN_ACLP_LOGS_STREAM_TESTS} environment variable must be set to 'yes' or 'true'",
+)
+def test_get_stream_by_id(test_linode_client: LinodeClient, test_stream_active: LogsStream):
+    """
+    Test that loading a stream by ID returns the correct stream with expected fields.
+    """
+    stream = test_linode_client.load(LogsStream, test_stream_active.id)
+
+    assert isinstance(stream, LogsStream)
+    assert stream.id == test_stream_active.id
+    assert stream.label == test_stream_active.label
+    assert stream.status in (LogsStreamStatus.active, LogsStreamStatus.inactive)
+    assert len(stream.destinations) == 1
+
+
+@pytest.mark.skipif(
+    os.getenv(RUN_ACLP_LOGS_STREAM_TESTS, "").strip().lower() not in {"yes", "true"},
+    reason=f"{RUN_ACLP_LOGS_STREAM_TESTS} environment variable must be set to 'yes' or 'true'",
+)
+def test_update_stream_label(test_linode_client: LinodeClient, test_stream_active: LogsStream):
+    """
+    Test that a LogsStream label can be updated via save() and that the version
+    history reflects the change.
+    """
+    new_label = test_stream_active.label + "-upd"
+
+    stream = test_linode_client.load(LogsStream, test_stream_active.id)
+    original_label = stream.label
+    version_before = stream.version
+
+    stream.label = new_label
+    result = stream.save()
+
+    assert result is True
+
+    updated = test_linode_client.load(LogsStream, test_stream_active.id)
+    assert updated.label == new_label
+
+    history = updated.history
+    snapshot_original = next(h for h in history if h.version == version_before)
+    snapshot_updated = next(h for h in history if h.version == updated.version)
+
+    assert snapshot_original.label == original_label
+    assert snapshot_updated.label == new_label
+    assert snapshot_updated.id == test_stream_active.id
+
+    # Revert to original label
+    updated.label = original_label
+    updated.save()
+
+
+
+@pytest.mark.skipif(
+    os.getenv(RUN_ACLP_LOGS_STREAM_TESTS, "").strip().lower() not in {"yes", "true"},
+    reason=f"{RUN_ACLP_LOGS_STREAM_TESTS} environment variable must be set to 'yes' or 'true'",
+)
+def test_update_stream_status(test_linode_client: LinodeClient, test_stream_active: LogsStream):
+    """
+    Test that a LogsStream status can be toggled between active and inactive via save().
+    """
+    stream = test_linode_client.load(LogsStream, test_stream_active.id)
+    original_status = stream.status
+
+    new_status = (
+        LogsStreamStatus.inactive
+        if original_status == LogsStreamStatus.active
+        else LogsStreamStatus.active
+    )
+
+    stream.status = new_status
+    result = stream.save()
+    assert result is True
+
+    updated = test_linode_client.load(LogsStream, test_stream_active.id)
+    assert updated.status == new_status
+
+    #Revert to original status
+    stream.status=original_status
+    stream.save()
+
+
+@pytest.mark.skipif(
+    os.getenv(RUN_ACLP_LOGS_STREAM_TESTS, "").strip().lower() not in {"yes", "true"},
+    reason=f"{RUN_ACLP_LOGS_STREAM_TESTS} environment variable must be set to 'yes' or 'true'",
+)
+def test_update_stream_destinations(
+        test_linode_client: LinodeClient,
+        test_stream_active: LogsStream,
+        test_destination: LogsDestination,
+        test_secondary_destination: LogsDestination,
+):
+    """
+    Test that a stream destination can be replaced via update_destinations(),
+    and that history reflects the change. The API allows exactly one destination per stream.
+    """
+    stream = test_linode_client.load(LogsStream, test_stream_active.id)
+    original_destinations = [stream.destinations[0].id]
+    version_before = stream.version
+
+    result = stream.update_destinations([test_secondary_destination.id])
+    assert result is True
+
+    updated = test_linode_client.load(LogsStream, test_stream_active.id)
+    assert len(updated.destinations) == 1
+    assert updated.destinations[0].id == test_secondary_destination.id
+
+    history = updated.history
+    snapshot_original = next(h for h in history if h.version == version_before)
+    snapshot_updated = next(h for h in history if h.version == updated.version)
+
+    assert snapshot_original.destinations[0].id == original_destinations[0]
+    assert snapshot_updated.destinations[0].id == test_secondary_destination.id
+
+    # Revert to original destination
+    updated.update_destinations(original_destinations)
