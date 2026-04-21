@@ -223,7 +223,7 @@ def test_fails_to_create_destination_empty_required_fields(test_linode_client: L
 @pytest.mark.skipif(
     os.getenv(RUN_ACLP_LOGS_STREAM_TESTS, "").strip().lower() not in {"yes", "true"},
     reason=f"{RUN_ACLP_LOGS_STREAM_TESTS} environment variable must be set to 'yes' or 'true'",
-    )
+)
 def test_fails_to_create_stream_invalid_destination(test_linode_client: LinodeClient):
     """
     Test that creating a stream with a non-existent destination ID results in a 400 ApiError.
@@ -264,13 +264,13 @@ def test_stream_create(test_linode_client: LinodeClient, test_destination: LogsD
     send_request_when_resource_available(timeout=100, func=stream.delete)
 
 
-
 @pytest.fixture(scope="session")
 def test_stream_active(test_linode_client: LinodeClient, test_stream_create: LogsStream):
     """
     Waits until the stream transitions out of provisioning state.
     NOTE: Stream provisioning can take up to 60 minutes to finish.
     """
+
     def is_stream_provisioned():
         stream = test_linode_client.load(LogsStream, test_stream_create.id)
         return stream.status in (LogsStreamStatus.active, LogsStreamStatus.inactive)
@@ -350,7 +350,6 @@ def test_update_stream_label(test_linode_client: LinodeClient, test_stream_activ
         # Revert to original label
         updated.label = original_label
         updated.save()
-
 
 
 @pytest.mark.skipif(

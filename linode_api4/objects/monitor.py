@@ -610,13 +610,16 @@ class LogsDestination(Base):
             LogsDestinationHistory
         )
 
+
 class LogsStreamStatus(StrEnum):
     active = "active"
     inactive = "inactive"
     provisioning = "provisioning"
 
+
 class LogsStreamType(StrEnum):
     audit_logs = "audit_logs"
+
 
 @dataclass
 class LogsStreamDestination(JSONObject):
@@ -628,6 +631,7 @@ class LogsStreamDestination(JSONObject):
     label: str = ""
     type: Optional[LogsDestinationType] = None
     details: Optional[LogsDestinationDetails] = None
+
 
 class LogsStreamHistory(Base):
     """
@@ -648,6 +652,7 @@ class LogsStreamHistory(Base):
         "updated_by": Property(),
         "version": Property(),
     }
+
 
 class LogsStream(Base):
     """
