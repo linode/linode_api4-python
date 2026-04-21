@@ -338,17 +338,18 @@ def test_update_stream_label(test_linode_client: LinodeClient, test_stream_activ
     updated = test_linode_client.load(LogsStream, test_stream_active.id)
     assert updated.label == new_label
 
-    history = updated.history
-    snapshot_original = next(h for h in history if h.version == version_before)
-    snapshot_updated = next(h for h in history if h.version == updated.version)
+    try:
+        history = updated.history
+        snapshot_original = next(h for h in history if h.version == version_before)
+        snapshot_updated = next(h for h in history if h.version == updated.version)
 
-    assert snapshot_original.label == original_label
-    assert snapshot_updated.label == new_label
-    assert snapshot_updated.id == test_stream_active.id
-
-    # Revert to original label
-    updated.label = original_label
-    updated.save()
+        assert snapshot_original.label == original_label
+        assert snapshot_updated.label == new_label
+        assert snapshot_updated.id == test_stream_active.id
+    finally:
+        # Revert to original label
+        updated.label = original_label
+        updated.save()
 
 
 
@@ -373,12 +374,13 @@ def test_update_stream_status(test_linode_client: LinodeClient, test_stream_acti
     result = stream.save()
     assert result is True
 
-    updated = test_linode_client.load(LogsStream, test_stream_active.id)
-    assert updated.status == new_status
-
-    #Revert to original status
-    stream.status=original_status
-    stream.save()
+    try:
+        updated = test_linode_client.load(LogsStream, test_stream_active.id)
+        assert updated.status == new_status
+    finally:
+        # Revert to original status
+        stream.status = original_status
+        stream.save()
 
 
 @pytest.mark.skipif(
@@ -402,16 +404,17 @@ def test_update_stream_destinations(
     result = stream.update_destinations([test_secondary_destination.id])
     assert result is True
 
-    updated = test_linode_client.load(LogsStream, test_stream_active.id)
-    assert len(updated.destinations) == 1
-    assert updated.destinations[0].id == test_secondary_destination.id
+    try:
+        updated = test_linode_client.load(LogsStream, test_stream_active.id)
+        assert len(updated.destinations) == 1
+        assert updated.destinations[0].id == test_secondary_destination.id
 
-    history = updated.history
-    snapshot_original = next(h for h in history if h.version == version_before)
-    snapshot_updated = next(h for h in history if h.version == updated.version)
+        history = updated.history
+        snapshot_original = next(h for h in history if h.version == version_before)
+        snapshot_updated = next(h for h in history if h.version == updated.version)
 
-    assert snapshot_original.destinations[0].id == original_destinations[0]
-    assert snapshot_updated.destinations[0].id == test_secondary_destination.id
-
-    # Revert to original destination
-    updated.update_destinations(original_destinations)
+        assert snapshot_original.destinations[0].id == original_destinations[0]
+        assert snapshot_updated.destinations[0].id == test_secondary_destination.id
+    finally:
+        # Revert to original destination
+        stream.update_destinations(original_destinations)
