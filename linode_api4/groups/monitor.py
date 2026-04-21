@@ -16,7 +16,7 @@ from linode_api4.objects import (
     LogsDestinationType,
     LogsStream,
     LogsStreamStatus,
-    LogsStreamType
+    LogsStreamType,
 )
 
 __all__ = [
@@ -439,7 +439,7 @@ class MonitorGroup(Group):
         List available logs streams.
 
         Returns a paginated collection of :class:`LogsStream` objects which
-        describe logs stream. By default, this method returns all available
+        describe logs streams. By default, this method returns all available
         streams; you can supply optional filter expressions to restrict
         the results, for example::
 

@@ -29,7 +29,7 @@ __all__ = [
     "LogsStreamHistory",
     "LogsStreamType",
     "LogsStreamStatus",
-    "LogsStreamDestination"
+    "LogsStreamDestination",
 ]
 
 
@@ -635,7 +635,7 @@ class LogsStreamDestination(JSONObject):
 
 class LogsStreamHistory(Base):
     """
-    Represents a read-only historical snapshot of logs Stream.
+    Represents a read-only historical snapshot of a logs stream.
 
     API documentation: https://techdocs.akamai.com/linode-api/reference/get-stream-history
     """

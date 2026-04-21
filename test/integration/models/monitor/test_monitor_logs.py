@@ -32,7 +32,7 @@ def require_aclp_logs(test_linode_client: LinodeClient):
 
 
 @pytest.fixture(scope="session")
-def test_object_storage_key(test_linode_client: LinodeClient):
+def create_object_storage_key(test_linode_client: LinodeClient):
     key = test_linode_client.object_storage.keys_create(
         label=get_test_label(),
     )
@@ -43,9 +43,9 @@ def test_object_storage_key(test_linode_client: LinodeClient):
 @pytest.fixture(scope="session")
 def test_destination(
         test_linode_client: LinodeClient,
-        test_object_storage_key: ObjectStorageKeys,
+        create_object_storage_key: ObjectStorageKeys,
 ):
-    dest, bucket = _create_destination_with_bucket(test_linode_client, test_object_storage_key)
+    dest, bucket = _create_destination_with_bucket(test_linode_client, create_object_storage_key)
     yield dest
     _delete_destination_with_bucket(test_linode_client, dest, bucket)
 
@@ -121,7 +121,7 @@ def test_get_destination_by_id(test_linode_client: LinodeClient, test_destinatio
 def test_update_destination_label_and_version_history(
         test_linode_client: LinodeClient,
         test_destination: LogsDestination,
-        test_object_storage_key: ObjectStorageKeys,
+        create_object_storage_key: ObjectStorageKeys,
 ):
     """
     Test that a LogsDestination label can be updated via save(),
@@ -134,7 +134,7 @@ def test_update_destination_label_and_version_history(
     original_version = dest.version
     dest.label = new_label
     dest.details.path = new_path
-    dest.details.access_key_secret = test_object_storage_key.secret_key
+    dest.details.access_key_secret = create_object_storage_key.secret_key
     dest.save()
 
     updated = test_linode_client.load(LogsDestination, test_destination.id)
@@ -250,17 +250,17 @@ def test_fails_to_create_stream_invalid_destination(test_linode_client: LinodeCl
 
 
 @pytest.fixture(scope="session")
-def test_secondary_destination(
+def create_secondary_destination(
         test_linode_client: LinodeClient,
-        test_object_storage_key: ObjectStorageKeys,
+        create_object_storage_key: ObjectStorageKeys,
 ):
-    dest, bucket = _create_destination_with_bucket(test_linode_client, test_object_storage_key)
+    dest, bucket = _create_destination_with_bucket(test_linode_client, create_object_storage_key)
     yield dest
     _delete_destination_with_bucket(test_linode_client, dest, bucket)
 
 
 @pytest.fixture(scope="session")
-def test_stream_create(test_linode_client: LinodeClient, test_destination: LogsDestination):
+def create_stream(test_linode_client: LinodeClient, test_destination: LogsDestination):
     stream = test_linode_client.monitor.stream_create(
         label=get_test_label(),
         destinations=[test_destination.id],
@@ -273,26 +273,26 @@ def test_stream_create(test_linode_client: LinodeClient, test_destination: LogsD
 
 
 @pytest.fixture(scope="session")
-def test_stream_active(test_linode_client: LinodeClient, test_stream_create: LogsStream):
+def provisioned_stream(test_linode_client: LinodeClient, create_stream: LogsStream):
     """
     Waits until the stream transitions out of provisioning state.
     NOTE: Stream provisioning can take up to 60 minutes to finish.
     """
 
     def is_stream_provisioned():
-        stream = test_linode_client.load(LogsStream, test_stream_create.id)
+        stream = test_linode_client.load(LogsStream, create_stream.id)
         return stream.status in (LogsStreamStatus.active, LogsStreamStatus.inactive)
 
     wait_for_condition(60, 3600, is_stream_provisioned)
 
-    return test_linode_client.load(LogsStream, test_stream_create.id)
+    yield test_linode_client.load(LogsStream, create_stream.id)
 
 
 @pytest.mark.skipif(
     os.getenv(RUN_ACLP_LOGS_STREAM_TESTS, "").strip().lower() not in {"yes", "true"},
     reason=f"{RUN_ACLP_LOGS_STREAM_TESTS} environment variable must be set to 'yes' or 'true'",
 )
-def test_list_streams(test_linode_client: LinodeClient, test_stream_active: LogsStream):
+def test_list_streams(test_linode_client: LinodeClient, provisioned_stream: LogsStream):
     """
     Test that listing streams returns a PaginatedList containing the previously created stream.
     """
@@ -303,23 +303,23 @@ def test_list_streams(test_linode_client: LinodeClient, test_stream_active: Logs
     assert all(isinstance(s, LogsStream) for s in streams)
 
     ids = [s.id for s in streams]
-    assert test_stream_active.id in ids
+    assert provisioned_stream.id in ids
 
 
 @pytest.mark.skipif(
     os.getenv(RUN_ACLP_LOGS_STREAM_TESTS, "").strip().lower() not in {"yes", "true"},
     reason=f"{RUN_ACLP_LOGS_STREAM_TESTS} environment variable must be set to 'yes' or 'true'",
 )
-def test_get_stream_by_id(test_linode_client: LinodeClient, test_stream_active: LogsStream):
+def test_get_stream_by_id(test_linode_client: LinodeClient, provisioned_stream: LogsStream):
     """
     Test that loading a stream by ID returns the correct stream with expected fields.
     """
-    stream = test_linode_client.load(LogsStream, test_stream_active.id)
+    stream = test_linode_client.load(LogsStream, provisioned_stream.id)
 
     assert isinstance(stream, LogsStream)
-    assert stream.id == test_stream_active.id
-    assert stream.label == test_stream_active.label
-    assert stream.status in (LogsStreamStatus.active, LogsStreamStatus.inactive)
+    assert stream.id == provisioned_stream.id
+    assert stream.label == provisioned_stream.label
+    assert stream.status == provisioned_stream.status
     assert len(stream.destinations) == 1
 
 
@@ -327,14 +327,14 @@ def test_get_stream_by_id(test_linode_client: LinodeClient, test_stream_active: 
     os.getenv(RUN_ACLP_LOGS_STREAM_TESTS, "").strip().lower() not in {"yes", "true"},
     reason=f"{RUN_ACLP_LOGS_STREAM_TESTS} environment variable must be set to 'yes' or 'true'",
 )
-def test_update_stream_label(test_linode_client: LinodeClient, test_stream_active: LogsStream):
+def test_update_stream_label(test_linode_client: LinodeClient, provisioned_stream: LogsStream):
     """
     Test that a LogsStream label can be updated via save() and that the version
     history reflects the change.
     """
-    new_label = test_stream_active.label + "-upd"
+    new_label = provisioned_stream.label + "-upd"
 
-    stream = test_linode_client.load(LogsStream, test_stream_active.id)
+    stream = test_linode_client.load(LogsStream, provisioned_stream.id)
     original_label = stream.label
     version_before = stream.version
 
@@ -343,7 +343,7 @@ def test_update_stream_label(test_linode_client: LinodeClient, test_stream_activ
     assert result is True
 
     try:
-        updated = test_linode_client.load(LogsStream, test_stream_active.id)
+        updated = test_linode_client.load(LogsStream, provisioned_stream.id)
         assert updated.label == new_label
         history = updated.history
         snapshot_original = next(h for h in history if h.version == version_before)
@@ -351,7 +351,7 @@ def test_update_stream_label(test_linode_client: LinodeClient, test_stream_activ
 
         assert snapshot_original.label == original_label
         assert snapshot_updated.label == new_label
-        assert snapshot_updated.id == test_stream_active.id
+        assert snapshot_updated.id == provisioned_stream.id
     finally:
         # Revert to original label
         stream.label = original_label
@@ -362,11 +362,11 @@ def test_update_stream_label(test_linode_client: LinodeClient, test_stream_activ
     os.getenv(RUN_ACLP_LOGS_STREAM_TESTS, "").strip().lower() not in {"yes", "true"},
     reason=f"{RUN_ACLP_LOGS_STREAM_TESTS} environment variable must be set to 'yes' or 'true'",
 )
-def test_update_stream_status(test_linode_client: LinodeClient, test_stream_active: LogsStream):
+def test_update_stream_status(test_linode_client: LinodeClient, provisioned_stream: LogsStream):
     """
     Test that a LogsStream status can be toggled between active and inactive via save().
     """
-    stream = test_linode_client.load(LogsStream, test_stream_active.id)
+    stream = test_linode_client.load(LogsStream, provisioned_stream.id)
     original_status = stream.status
 
     new_status = (
@@ -380,7 +380,7 @@ def test_update_stream_status(test_linode_client: LinodeClient, test_stream_acti
     assert result is True
 
     try:
-        updated = test_linode_client.load(LogsStream, test_stream_active.id)
+        updated = test_linode_client.load(LogsStream, provisioned_stream.id)
         assert updated.status == new_status
     finally:
         # Revert to original status
@@ -394,32 +394,32 @@ def test_update_stream_status(test_linode_client: LinodeClient, test_stream_acti
 )
 def test_update_stream_destinations(
         test_linode_client: LinodeClient,
-        test_stream_active: LogsStream,
+        provisioned_stream: LogsStream,
         test_destination: LogsDestination,
-        test_secondary_destination: LogsDestination,
+        create_secondary_destination: LogsDestination,
 ):
     """
     Test that a stream destination can be replaced via update_destinations(),
     and that history reflects the change. The API allows exactly one destination per stream.
     """
-    stream = test_linode_client.load(LogsStream, test_stream_active.id)
+    stream = test_linode_client.load(LogsStream, provisioned_stream.id)
     original_destinations = [stream.destinations[0].id]
     version_before = stream.version
 
-    result = stream.update_destinations([test_secondary_destination.id])
+    result = stream.update_destinations([create_secondary_destination.id])
     assert result is True
 
     try:
-        updated = test_linode_client.load(LogsStream, test_stream_active.id)
+        updated = test_linode_client.load(LogsStream, provisioned_stream.id)
         assert len(updated.destinations) == 1
-        assert updated.destinations[0].id == test_secondary_destination.id
+        assert updated.destinations[0].id == create_secondary_destination.id
 
         history = updated.history
         snapshot_original = next(h for h in history if h.version == version_before)
         snapshot_updated = next(h for h in history if h.version == updated.version)
 
         assert snapshot_original.destinations[0].id == original_destinations[0]
-        assert snapshot_updated.destinations[0].id == test_secondary_destination.id
+        assert snapshot_updated.destinations[0].id == create_secondary_destination.id
     finally:
         # Revert to original destination
         stream.update_destinations(original_destinations)

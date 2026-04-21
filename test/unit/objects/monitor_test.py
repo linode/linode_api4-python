@@ -8,7 +8,7 @@ from linode_api4.objects import (
     LogsDestination,
     LogsDestinationHistory,
     LogsStream,
-    LogsStreamDestination
+    LogsStreamDestination,
 )
 
 
@@ -489,9 +489,7 @@ class LogsStreamTest(ClientBaseCase):
                 stream.update_destinations([])
 
         self.assertFalse(m.called)
-        assert "A destination id must be provided." in str(
-            context.exception
-        )
+        self.assertIn("A destination id must be provided.", str(context.exception))
 
     def test_delete_stream(self):
         """
