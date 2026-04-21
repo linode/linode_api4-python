@@ -227,9 +227,17 @@ def test_fails_to_create_destination_empty_required_fields(test_linode_client: L
 def test_fails_to_create_stream_invalid_destination(test_linode_client: LinodeClient):
     """
     Test that creating a stream with a non-existent destination ID results in a 400 ApiError.
-    Requires no other streams to be present per account
+    Requires no other streams to be present on account. If a stream is already present test is skipped.
     """
     from linode_api4.errors import ApiError
+
+    existing_streams = test_linode_client.monitor.streams()
+    if len(existing_streams) > 0:
+        stream_ids = [s.id for s in existing_streams]
+        pytest.skip(
+            f"Skipping: existing stream(s) found on this account "
+            f"(ID: {stream_ids}). Only one stream can be present per account. "
+        )
 
     with pytest.raises(ApiError) as excinfo:
         test_linode_client.monitor.stream_create(
@@ -332,13 +340,11 @@ def test_update_stream_label(test_linode_client: LinodeClient, test_stream_activ
 
     stream.label = new_label
     result = stream.save()
-
     assert result is True
 
-    updated = test_linode_client.load(LogsStream, test_stream_active.id)
-    assert updated.label == new_label
-
     try:
+        updated = test_linode_client.load(LogsStream, test_stream_active.id)
+        assert updated.label == new_label
         history = updated.history
         snapshot_original = next(h for h in history if h.version == version_before)
         snapshot_updated = next(h for h in history if h.version == updated.version)
@@ -348,8 +354,8 @@ def test_update_stream_label(test_linode_client: LinodeClient, test_stream_activ
         assert snapshot_updated.id == test_stream_active.id
     finally:
         # Revert to original label
-        updated.label = original_label
-        updated.save()
+        stream.label = original_label
+        stream.save()
 
 
 @pytest.mark.skipif(

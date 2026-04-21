@@ -689,10 +689,10 @@ class LogsStream(Base):
         :returns: True if the update was successful.
         :rtype: bool
         """
-        destination_ids = [int(dest) for dest in destinations]
-
+        if not destinations:
+            raise ValueError("A destination id must be provided.")
         payload = {
-            "destinations": destination_ids
+            "destinations": destinations
         }
 
         # The Linode API PUT request expects the flat list of IDs

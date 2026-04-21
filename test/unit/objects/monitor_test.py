@@ -489,7 +489,7 @@ class LogsStreamTest(ClientBaseCase):
                 stream.update_destinations([])
 
         self.assertFalse(m.called)
-        assert "A Stream must have at least one destination attached." in str(
+        assert "A destination id must be provided." in str(
             context.exception
         )
 
