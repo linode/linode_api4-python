@@ -1,6 +1,7 @@
 import urllib.request
 
 import pytest
+
 from linode_api4 import LinodeClient, PaginatedList
 from linode_api4.objects import (ObjectStorageACL,
                                  ObjectStorageKeys,
@@ -9,6 +10,7 @@ from linode_api4.objects import (ObjectStorageACL,
 from linode_api4.objects.monitor import (
     LogsDestination,
 )
+
 from test.integration.helpers import (
     get_test_label,
     send_request_when_resource_available,
@@ -177,6 +179,7 @@ def test_fails_to_create_destination_invalid_type(test_linode_client: LinodeClie
         )
     assert excinfo.value.status == 400
     assert excinfo.value.errors == ['Must be one of akamai_object_storage, custom_https']
+
 
 def test_fails_to_create_destination_empty_required_fields(test_linode_client: LinodeClient):
     """

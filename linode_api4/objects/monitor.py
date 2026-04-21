@@ -530,6 +530,7 @@ class AlertChannel(Base):
         "updated_by": Property(),
     }
 
+
 @dataclass
 class LogsDestinationDetails(JSONObject):
     """
@@ -545,6 +546,7 @@ class LogsDestinationDetails(JSONObject):
     bucket_name: str = ""
     host: str = ""
     path: str = ""
+
 
 class LogsDestinationHistory(Base):
     """
@@ -564,6 +566,7 @@ class LogsDestinationHistory(Base):
         "updated_by": Property(),
         "version": Property(),
     }
+
 
 class LogsDestination(Base):
     """

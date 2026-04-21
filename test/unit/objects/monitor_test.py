@@ -170,6 +170,7 @@ class MonitorTest(ClientBaseCase):
         )
         self.assertEqual(channels[0].alerts.alert_count, 0)
 
+
 class LogsDestinationTest(ClientBaseCase):
     """
     Tests methods for LogsDestination class
