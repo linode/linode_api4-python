@@ -474,7 +474,7 @@ class MonitorGroup(Group):
                destinations= [1234],
                label="Linode_services",
                status="active",
-               type="audit_logs",
+               type="audit_logs"
             )
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/post-stream
