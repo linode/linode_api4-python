@@ -80,6 +80,18 @@ def _delete_destination_with_bucket(client: LinodeClient, dest: LogsDestination,
     send_request_when_resource_available(timeout=100, func=bucket.delete)
 
 
+def _skip_if_streams_exist(client: LinodeClient):
+    """Skip the current test if any streams already exist on the account.
+    Only one stream can be present per account at a time."""
+    existing_streams = client.monitor.streams()
+    if len(existing_streams) > 0:
+        stream_labels = [s.label for s in existing_streams]
+        pytest.skip(
+            f"Skipping: existing stream(s) found on this account "
+            f"(labels: {stream_labels}). Only one stream can be present per account."
+        )
+
+
 def _empty_bucket(client: LinodeClient, bucket: ObjectStorageBucket):
     """
     Helper function clearing objects in the test bucket so it can be deleted.
@@ -232,13 +244,7 @@ def test_fails_to_create_stream_invalid_destination(test_linode_client: LinodeCl
     """
     from linode_api4.errors import ApiError
 
-    existing_streams = test_linode_client.monitor.streams()
-    if len(existing_streams) > 0:
-        stream_ids = [s.id for s in existing_streams]
-        pytest.skip(
-            f"Skipping: existing stream(s) found on this account "
-            f"(ID: {stream_ids}). Only one stream can be present per account. "
-        )
+    _skip_if_streams_exist(test_linode_client)
 
     with pytest.raises(ApiError) as excinfo:
         test_linode_client.monitor.stream_create(
@@ -262,6 +268,8 @@ def create_secondary_destination(
 
 @pytest.fixture(scope="session")
 def create_stream(test_linode_client: LinodeClient, test_destination: LogsDestination):
+    _skip_if_streams_exist(test_linode_client)
+
     stream = test_linode_client.monitor.stream_create(
         label=get_test_label(),
         destinations=[test_destination.id],
@@ -319,60 +327,45 @@ def test_get_stream_by_id(test_linode_client: LinodeClient, provisioned_stream: 
 
 
 @_SKIP_STREAM_TESTS
-def test_update_stream_label(test_linode_client: LinodeClient, provisioned_stream: LogsStream):
+def test_update_stream_label_and_status(test_linode_client: LinodeClient, provisioned_stream: LogsStream):
     """
-    Test that a LogsStream label can be updated via save() and that the version
-    history reflects the change.
+    Test that a LogsStream label and status can both be updated via save(), and that
+    the version history reflects both the label and status changes across versions.
     """
-    new_label = provisioned_stream.label + "-upd"
-
     stream = test_linode_client.load(LogsStream, provisioned_stream.id)
     original_label = stream.label
+    original_status = stream.status
     version_before = stream.version
 
-    stream.label = new_label
-    result = stream.save()
-    assert result is True
-
-    try:
-        updated = test_linode_client.load(LogsStream, provisioned_stream.id)
-        assert updated.label == new_label
-        history = updated.history
-        snapshot_original = next(h for h in history if h.version == version_before)
-        snapshot_updated = next(h for h in history if h.version == updated.version)
-
-        assert snapshot_original.label == original_label
-        assert snapshot_updated.label == new_label
-        assert snapshot_updated.id == provisioned_stream.id
-    finally:
-        # Revert to original label
-        stream.label = original_label
-        stream.save()
-
-
-@_SKIP_STREAM_TESTS
-def test_update_stream_status(test_linode_client: LinodeClient, provisioned_stream: LogsStream):
-    """
-    Test that a LogsStream status can be toggled between active and inactive via save().
-    """
-    stream = test_linode_client.load(LogsStream, provisioned_stream.id)
-    original_status = stream.status
-
+    new_label = original_label + "-upd"
     new_status = (
         LogsStreamStatus.inactive
         if original_status == LogsStreamStatus.active
         else LogsStreamStatus.active
     )
 
+    stream.label = new_label
     stream.status = new_status
     result = stream.save()
     assert result is True
 
     try:
         updated = test_linode_client.load(LogsStream, provisioned_stream.id)
+        assert updated.label == new_label
         assert updated.status == new_status
+
+        history = updated.history
+        snapshot_original = next(h for h in history if h.version == version_before)
+        snapshot_updated = next(h for h in history if h.version == updated.version)
+
+        assert snapshot_original.label == original_label
+        assert snapshot_original.status == original_status
+        assert snapshot_updated.label == new_label
+        assert snapshot_updated.status == new_status
+        assert snapshot_updated.id == provisioned_stream.id
     finally:
-        # Revert to original status
+        # Revert to original label and status
+        stream.label = original_label
         stream.status = original_status
         stream.save()
 
