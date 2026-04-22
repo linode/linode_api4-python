@@ -20,7 +20,11 @@ from test.integration.helpers import (
     wait_for_condition,
 )
 
-RUN_ACLP_LOGS_STREAM_TESTS = "RUN_ACLP_LOGS_STREAM_TESTS"
+_RUN_ACLP_LOGS_STREAM_TESTS = "RUN_ACLP_LOGS_STREAM_TESTS"
+_SKIP_STREAM_TESTS = pytest.mark.skipif(
+    os.getenv(_RUN_ACLP_LOGS_STREAM_TESTS, "").strip().lower() not in {"yes", "true"},
+    reason=f"{_RUN_ACLP_LOGS_STREAM_TESTS} environment variable must be set to 'yes' or 'true'",
+)
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -220,10 +224,7 @@ def test_fails_to_create_destination_empty_required_fields(test_linode_client: L
     )
 
 
-@pytest.mark.skipif(
-    os.getenv(RUN_ACLP_LOGS_STREAM_TESTS, "").strip().lower() not in {"yes", "true"},
-    reason=f"{RUN_ACLP_LOGS_STREAM_TESTS} environment variable must be set to 'yes' or 'true'",
-)
+@_SKIP_STREAM_TESTS
 def test_fails_to_create_stream_invalid_destination(test_linode_client: LinodeClient):
     """
     Test that creating a stream with a non-existent destination ID results in a 400 ApiError.
@@ -288,10 +289,7 @@ def provisioned_stream(test_linode_client: LinodeClient, create_stream: LogsStre
     yield test_linode_client.load(LogsStream, create_stream.id)
 
 
-@pytest.mark.skipif(
-    os.getenv(RUN_ACLP_LOGS_STREAM_TESTS, "").strip().lower() not in {"yes", "true"},
-    reason=f"{RUN_ACLP_LOGS_STREAM_TESTS} environment variable must be set to 'yes' or 'true'",
-)
+@_SKIP_STREAM_TESTS
 def test_list_streams(test_linode_client: LinodeClient, provisioned_stream: LogsStream):
     """
     Test that listing streams returns a PaginatedList containing the previously created stream.
@@ -306,10 +304,7 @@ def test_list_streams(test_linode_client: LinodeClient, provisioned_stream: Logs
     assert provisioned_stream.id in ids
 
 
-@pytest.mark.skipif(
-    os.getenv(RUN_ACLP_LOGS_STREAM_TESTS, "").strip().lower() not in {"yes", "true"},
-    reason=f"{RUN_ACLP_LOGS_STREAM_TESTS} environment variable must be set to 'yes' or 'true'",
-)
+@_SKIP_STREAM_TESTS
 def test_get_stream_by_id(test_linode_client: LinodeClient, provisioned_stream: LogsStream):
     """
     Test that loading a stream by ID returns the correct stream with expected fields.
@@ -323,10 +318,7 @@ def test_get_stream_by_id(test_linode_client: LinodeClient, provisioned_stream: 
     assert len(stream.destinations) == 1
 
 
-@pytest.mark.skipif(
-    os.getenv(RUN_ACLP_LOGS_STREAM_TESTS, "").strip().lower() not in {"yes", "true"},
-    reason=f"{RUN_ACLP_LOGS_STREAM_TESTS} environment variable must be set to 'yes' or 'true'",
-)
+@_SKIP_STREAM_TESTS
 def test_update_stream_label(test_linode_client: LinodeClient, provisioned_stream: LogsStream):
     """
     Test that a LogsStream label can be updated via save() and that the version
@@ -358,10 +350,7 @@ def test_update_stream_label(test_linode_client: LinodeClient, provisioned_strea
         stream.save()
 
 
-@pytest.mark.skipif(
-    os.getenv(RUN_ACLP_LOGS_STREAM_TESTS, "").strip().lower() not in {"yes", "true"},
-    reason=f"{RUN_ACLP_LOGS_STREAM_TESTS} environment variable must be set to 'yes' or 'true'",
-)
+@_SKIP_STREAM_TESTS
 def test_update_stream_status(test_linode_client: LinodeClient, provisioned_stream: LogsStream):
     """
     Test that a LogsStream status can be toggled between active and inactive via save().
@@ -388,14 +377,10 @@ def test_update_stream_status(test_linode_client: LinodeClient, provisioned_stre
         stream.save()
 
 
-@pytest.mark.skipif(
-    os.getenv(RUN_ACLP_LOGS_STREAM_TESTS, "").strip().lower() not in {"yes", "true"},
-    reason=f"{RUN_ACLP_LOGS_STREAM_TESTS} environment variable must be set to 'yes' or 'true'",
-)
+@_SKIP_STREAM_TESTS
 def test_update_stream_destinations(
         test_linode_client: LinodeClient,
         provisioned_stream: LogsStream,
-        test_destination: LogsDestination,
         create_secondary_destination: LogsDestination,
 ):
     """
