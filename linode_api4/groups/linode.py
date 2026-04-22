@@ -162,6 +162,10 @@ class LinodeGroup(Group):
         interface_generation: Optional[Union[InterfaceGeneration, str]] = None,
         network_helper: Optional[bool] = None,
         maintenance_policy: Optional[str] = None,
+        root_pass: Optional[str] = None,
+        kernel: Optional[str] = None,
+        boot_size: Optional[int] = None,
+        authorized_users: Optional[List[str]] = None,
         **kwargs,
     ):
         """
@@ -172,27 +176,26 @@ class LinodeGroup(Group):
         To create an Instance from an :any:`Image`, call `instance_create` with
         a :any:`Type`, a :any:`Region`, and an :any:`Image`.  All three of
         these fields may be provided as either the ID or the appropriate object.
-        In this mode, a root password will be generated and returned with the
-        new Instance object.
+        When an Image is provided, at least one of ``root_pass``, ``authorized_users``, or
+        ``authorized_keys`` must also be given.
 
         For example::
 
-           new_linode, password = client.linode.instance_create(
+           new_linode = client.linode.instance_create(
                "g6-standard-2",
                "us-east",
-               image="linode/debian9")
+               image="linode/debian13",
+               root_pass="aComplex@Password123")
 
            ltype = client.linode.types().first()
            region = client.regions().first()
            image = client.images().first()
 
-           another_linode, password = client.linode.instance_create(
+           another_linode = client.linode.instance_create(
                ltype,
                region,
-               image=image)
-
-        To output the password from the above example:
-            print(password)
+               image=image,
+               authorized_keys="ssh-rsa AAAA")
 
         To output the first IPv4 address of the new Linode:
             print(new_linode.ipv4[0])
@@ -210,10 +213,11 @@ class LinodeGroup(Group):
 
            stackscript = StackScript(client, 10079)
 
-           new_linode, password = client.linode.instance_create(
+           new_linode = client.linode.instance_create(
               "g6-standard-2",
               "us-east",
-              image="linode/debian9",
+              image="linode/debian13",
+              root_pass="aComplex@Password123",
               stackscript=stackscript,
               stackscript_data={"gh_username": "example"})
 
@@ -244,10 +248,11 @@ class LinodeGroup(Group):
         To create a new Instance with explicit interfaces, provide list of
         LinodeInterfaceOptions objects or dicts to the "interfaces" field::
 
-        linode, password = client.linode.instance_create(
+        linode = client.linode.instance_create(
             "g6-standard-1",
             "us-mia",
             image="linode/ubuntu24.04",
+            root_pass="aComplex@Password123",
 
             # This can be configured as an account-wide default
             interface_generation=InterfaceGeneration.LINODE,
@@ -280,10 +285,14 @@ class LinodeGroup(Group):
         :type ltype: str or Type
         :param region: The Region in which we are creating the Instance
         :type region: str or Region
-        :param image: The Image to deploy to this Instance. If this is provided
-                      and no root_pass is given, a password will be generated
-                      and returned along with the new Instance.
+        :param image: The Image to deploy to this Instance. If this is provided,
+                      at least one of root_pass, authorized_users, or authorized_keys must also be
+                      provided.
         :type image: str or Image
+        :param root_pass: The root password for the new Instance. Required when
+                          an image is provided and neither authorized_users nor
+                          authorized_keys are given.
+        :type root_pass: str
         :param stackscript: The StackScript to deploy to the new Instance.  If
                             provided, "image" is required and must be compatible
                             with the chosen StackScript.
@@ -300,6 +309,11 @@ class LinodeGroup(Group):
                                 be a single key, or a path to a file containing
                                 the key.
         :type authorized_keys: list or str
+        :param authorized_users: A list of usernames whose keys should be installed
+                                 as trusted for the root user.  These user's keys
+                                 should already be set up, see :any:`ProfileGroup.ssh_keys`
+                                 for details.
+        :type authorized_users: list[str]
         :param label: The display label for the new Instance
         :type label: str
         :param group: The display group for the new Instance
@@ -336,26 +350,39 @@ class LinodeGroup(Group):
         :param maintenance_policy: The slug of the maintenance policy to apply during maintenance.
                                       If not provided, the default policy (linode/migrate) will be applied.
         :type maintenance_policy: str
+        :param kernel: The kernel to boot the Instance with. If provided, this will be used as the
+                       kernel for the default configuration profile.
+        :type kernel: str
+        :param boot_size: The size of the boot disk in MB. If provided, this will be used to create
+                          the boot disk for the Instance.
+        :type boot_size: int
 
-        :returns: A new Instance object, or a tuple containing the new Instance and
-                  the generated password.
-        :rtype: Instance or tuple(Instance, str)
+        :returns: A new Instance object
+        :rtype: Instance
         :raises ApiError: If contacting the API fails
         :raises UnexpectedResponseError: If the API response is somehow malformed.
                                          This usually indicates that you are using
                                          an outdated library.
         """
 
-        ret_pass = None
-        if image and not "root_pass" in kwargs:
-            ret_pass = Instance.generate_root_password()
-            kwargs["root_pass"] = ret_pass
+        if (
+            image
+            and not root_pass
+            and not authorized_keys
+            and not authorized_users
+        ):
+            raise ValueError(
+                "When creating an Instance from an Image, at least one of "
+                "root_pass, authorized_users, or authorized_keys must be provided."
+            )
 
         params = {
             "type": ltype,
             "region": region,
             "image": image,
+            "root_pass": root_pass,
             "authorized_keys": load_and_validate_keys(authorized_keys),
+            "authorized_users": authorized_users,
             # These will automatically be flattened below
             "firewall_id": firewall,
             "backup_id": backup,
@@ -373,6 +400,8 @@ class LinodeGroup(Group):
             "interfaces": interfaces,
             "interface_generation": interface_generation,
             "network_helper": network_helper,
+            "kernel": kernel,
+            "boot_size": boot_size,
         }
 
         params.update(kwargs)
@@ -387,10 +416,7 @@ class LinodeGroup(Group):
                 "Unexpected response when creating linode!", json=result
             )
 
-        l = Instance(self.client, result["id"], result)
-        if not ret_pass:
-            return l
-        return l, ret_pass
+        return Instance(self.client, result["id"], result)
 
     @staticmethod
     def build_instance_metadata(user_data=None, encode_user_data=True):
@@ -399,10 +425,11 @@ class LinodeGroup(Group):
         the :any:`instance_create` method. This helper can also be used
         when cloning and rebuilding Instances.
         **Creating an Instance with User Data**::
-            new_linode, password = client.linode.instance_create(
+            new_linode = client.linode.instance_create(
                 "g6-standard-2",
                 "us-east",
                 image="linode/ubuntu22.04",
+                root_pass="aComplex@Password123",
                 metadata=client.linode.build_instance_metadata(user_data="myuserdata")
             )
         :param user_data: User-defined data to provide to the Linode Instance through

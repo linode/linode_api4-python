@@ -223,12 +223,13 @@ def create_linode(test_linode_client, e2e_test_firewall):
     region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label(length=8)
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         region,
         image="linode/debian12",
         label=label,
         firewall=e2e_test_firewall,
+        root_pass="aComplex@Password123",
     )
 
     yield linode_instance
@@ -242,13 +243,15 @@ def create_linode_for_pass_reset(test_linode_client, e2e_test_firewall):
 
     region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label(length=8)
+    password = "aComplex@Password123"
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         region,
         image="linode/debian12",
         label=label,
         firewall=e2e_test_firewall,
+        root_pass=password,
     )
 
     yield linode_instance, password
@@ -488,15 +491,16 @@ def create_vpc_with_subnet_and_linode(
 
     label = get_test_label(length=8)
 
-    instance, password = test_linode_client.linode.instance_create(
+    instance = test_linode_client.linode.instance_create(
         "g6-standard-1",
         vpc.region,
         image="linode/debian11",
         label=label,
         firewall=e2e_test_firewall,
+        root_pass="aComplex@Password123",
     )
 
-    yield vpc, subnet, instance, password
+    yield vpc, subnet, instance
 
     instance.delete()
 
@@ -579,12 +583,13 @@ def linode_for_vlan_tests(test_linode_client, e2e_test_firewall):
     region = get_region(client, {"Linodes", "Vlans"}, site_type="core")
     label = get_test_label(length=8)
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         region,
         image="linode/debian12",
         label=label,
         firewall=e2e_test_firewall,
+        root_pass="aComplex@Password123",
     )
 
     yield linode_instance
@@ -628,13 +633,14 @@ def linode_with_linode_interfaces(
     region = vpc.region
     label = get_test_label()
 
-    instance, _ = client.linode.instance_create(
+    instance = client.linode.instance_create(
         "g6-nanode-1",
         region,
         image="linode/debian12",
         label=label,
         booted=False,
         interface_generation=InterfaceGeneration.LINODE,
+        root_pass="aComplex@Password123",
         interfaces=[
             LinodeInterfaceOptions(
                 firewall_id=e2e_test_firewall.id,

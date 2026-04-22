@@ -88,18 +88,16 @@ class LinodeTest(ClientBaseCase):
 
     def test_rebuild(self):
         """
-        Tests that you can rebuild with an image
+        Tests that you can rebuild with an image and root_pass
         """
         linode = Instance(self.client, 123)
 
         with self.mock_post("/linode/instances/123") as m:
-            pw = linode.rebuild(
+            linode.rebuild(
                 "linode/debian9",
+                root_pass="aComplex@Password123",
                 disk_encryption=InstanceDiskEncryptionType.enabled,
             )
-
-            self.assertIsNotNone(pw)
-            self.assertTrue(isinstance(pw, str))
 
             self.assertEqual(m.call_url, "/linode/instances/123/rebuild")
 
@@ -107,10 +105,44 @@ class LinodeTest(ClientBaseCase):
                 m.call_data,
                 {
                     "image": "linode/debian9",
-                    "root_pass": pw,
+                    "root_pass": "aComplex@Password123",
                     "disk_encryption": "enabled",
                 },
             )
+
+    def test_rebuild_with_authorized_keys(self):
+        """
+        Tests that you can rebuild with an image and authorized_keys only
+        """
+        linode = Instance(self.client, 123)
+
+        with self.mock_post("/linode/instances/123") as m:
+            result = linode.rebuild(
+                "linode/debian9",
+                authorized_keys="ssh-rsa AAAA",
+            )
+
+            self.assertTrue(result)
+
+            self.assertEqual(m.call_url, "/linode/instances/123/rebuild")
+
+            self.assertEqual(
+                m.call_data,
+                {
+                    "image": "linode/debian9",
+                    "authorized_keys": ["ssh-rsa AAAA"],
+                },
+            )
+
+    def test_rebuild_requires_auth(self):
+        """
+        Tests that rebuild raises ValueError when neither root_pass nor
+        authorized_keys is provided
+        """
+        linode = Instance(self.client, 123)
+
+        with self.assertRaises(ValueError):
+            linode.rebuild("linode/debian9")
 
     def test_available_backups(self):
         """
@@ -437,11 +469,12 @@ class LinodeTest(ClientBaseCase):
         linode = Instance(self.client, 123)
 
         with self.mock_post("/linode/instances/123/disks/12345") as m:
-            disk, gen_pass = linode.disk_create(
+            disk = linode.disk_create(
                 1234,
                 label="test",
                 authorized_users=["test"],
                 image="linode/debian12",
+                root_pass="aComplex@Password123",
             )
             self.assertEqual(m.call_url, "/linode/instances/123/disks")
             self.assertEqual(
@@ -449,7 +482,7 @@ class LinodeTest(ClientBaseCase):
                 {
                     "size": 1234,
                     "label": "test",
-                    "root_pass": gen_pass,
+                    "root_pass": "aComplex@Password123",
                     "image": "linode/debian12",
                     "authorized_users": ["test"],
                     "read_only": False,
@@ -458,6 +491,47 @@ class LinodeTest(ClientBaseCase):
 
         assert disk.id == 12345
         assert disk.disk_encryption == InstanceDiskEncryptionType.disabled
+
+    def test_create_disk_with_authorized_keys(self):
+        """
+        Tests that disk_create works with authorized_keys and no root_pass
+        """
+        linode = Instance(self.client, 123)
+
+        with self.mock_post("/linode/instances/123/disks/12345") as m:
+            disk = linode.disk_create(
+                1234,
+                label="test",
+                image="linode/debian12",
+                authorized_keys="ssh-rsa AAAA",
+            )
+            self.assertEqual(m.call_url, "/linode/instances/123/disks")
+            self.assertEqual(
+                m.call_data,
+                {
+                    "size": 1234,
+                    "label": "test",
+                    "image": "linode/debian12",
+                    "authorized_keys": ["ssh-rsa AAAA"],
+                    "read_only": False,
+                },
+            )
+
+        assert disk.id == 12345
+
+    def test_create_disk_with_image_requires_auth(self):
+        """
+        Tests that disk_create raises ValueError when image is provided
+        without root_pass or authorized_keys
+        """
+        linode = Instance(self.client, 123)
+
+        with self.assertRaises(ValueError):
+            linode.disk_create(
+                1234,
+                label="test",
+                image="linode/debian12",
+            )
 
     def test_get_placement_group(self):
         """

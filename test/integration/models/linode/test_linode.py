@@ -37,11 +37,12 @@ def linode_with_volume_firewall(test_linode_client):
         "inbound_policy": "DROP",
     }
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         region,
         image="linode/debian12",
         label=label + "_modlinode",
+        root_pass="aComplex@Password123",
     )
 
     volume = client.volume_create(
@@ -75,13 +76,14 @@ def linode_for_legacy_interface_tests(test_linode_client, e2e_test_firewall):
     region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label(length=8)
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         region,
         image="linode/debian12",
         label=label,
         firewall=e2e_test_firewall,
         interface_generation=InterfaceGeneration.LEGACY_CONFIG,
+        root_pass="aComplex@Password123",
     )
 
     yield linode_instance
@@ -97,7 +99,7 @@ def linode_and_vpc_for_legacy_interface_tests_offline(
 
     label = get_test_label(length=8)
 
-    instance, password = test_linode_client.linode.instance_create(
+    instance = test_linode_client.linode.instance_create(
         "g6-standard-1",
         vpc.region,
         booted=False,
@@ -105,9 +107,10 @@ def linode_and_vpc_for_legacy_interface_tests_offline(
         label=label,
         firewall=e2e_test_firewall,
         interface_generation=InterfaceGeneration.LEGACY_CONFIG,
+        root_pass="aComplex@Password123",
     )
 
-    yield vpc, subnet, instance, password
+    yield vpc, subnet, instance
 
     instance.delete()
 
@@ -119,12 +122,13 @@ def linode_for_vpu_tests(test_linode_client, e2e_test_firewall):
 
     label = get_test_label(length=8)
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g1-accelerated-netint-vpu-t1u1-s",
         region,
         image="linode/debian12",
         label=label,
         firewall=e2e_test_firewall,
+        root_pass="aComplex@Password123",
     )
 
     yield linode_instance
@@ -138,12 +142,13 @@ def linode_for_disk_tests(test_linode_client, e2e_test_firewall):
     region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label()
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         region,
         image="linode/alpine3.19",
         label=label + "_long_tests",
         firewall=e2e_test_firewall,
+        root_pass="aComplex@Password123",
     )
 
     # Provisioning time
@@ -171,12 +176,13 @@ def linode_with_block_storage_encryption(test_linode_client, e2e_test_firewall):
     region = get_region(client, {"Linodes", "Block Storage Encryption"})
     label = get_test_label()
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         region,
         image="linode/alpine3.19",
         label=label + "block-storage-encryption",
         firewall=e2e_test_firewall,
+        root_pass="aComplex@Password123",
     )
 
     yield linode_instance
@@ -190,12 +196,13 @@ def create_linode_for_long_running_tests(test_linode_client, e2e_test_firewall):
     region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label()
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         region,
         image="linode/debian12",
         label=label + "_long_tests",
         firewall=e2e_test_firewall,
+        root_pass="aComplex@Password123",
     )
 
     yield linode_instance
@@ -212,13 +219,14 @@ def linode_with_disk_encryption(test_linode_client, request):
 
     disk_encryption = request.param
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         target_region,
         image="linode/ubuntu24.10",
         label=label,
         booted=False,
         disk_encryption=disk_encryption,
+        root_pass="aComplex@Password123",
     )
 
     yield linode_instance
@@ -266,8 +274,12 @@ def test_linode_rebuild(test_linode_client):
 
     label = get_test_label() + "_rebuild"
 
-    linode, password = client.linode.instance_create(
-        "g6-nanode-1", region, image="linode/debian12", label=label
+    linode = client.linode.instance_create(
+        "g6-nanode-1",
+        region,
+        image="linode/debian12",
+        label=label,
+        root_pass="aComplex@Password123",
     )
 
     wait_for_condition(10, 100, get_status, linode, "running")
@@ -276,6 +288,7 @@ def test_linode_rebuild(test_linode_client):
         3,
         linode.rebuild,
         "linode/debian12",
+        root_pass="aComplex@Password123",
         disk_encryption=InstanceDiskEncryptionType.disabled,
     )
 
@@ -322,11 +335,12 @@ def test_delete_linode(test_linode_client):
     region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label()
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         region,
         image="linode/debian12",
         label=label + "_linode",
+        root_pass="aComplex@Password123",
     )
 
     linode_instance.delete()
@@ -595,12 +609,13 @@ def test_linode_initate_migration(test_linode_client, e2e_test_firewall):
     region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label() + "_migration"
 
-    linode, _ = client.linode.instance_create(
+    linode = client.linode.instance_create(
         "g6-nanode-1",
         region,
         image="linode/debian12",
         label=label,
         firewall=e2e_test_firewall,
+        root_pass="aComplex@Password123",
     )
 
     # Says it could take up to ~6 hrs for migration to fully complete
@@ -626,7 +641,7 @@ def test_linode_upgrade_interfaces(
     linode_for_legacy_interface_tests,
     linode_and_vpc_for_legacy_interface_tests_offline,
 ):
-    vpc, subnet, linode, _ = linode_and_vpc_for_legacy_interface_tests_offline
+    vpc, subnet, linode = linode_and_vpc_for_legacy_interface_tests_offline
     config = linode.configs[0]
 
     new_interfaces = [
@@ -909,9 +924,7 @@ class TestNetworkInterface:
         test_linode_client,
         linode_and_vpc_for_legacy_interface_tests_offline,
     ):
-        vpc, subnet, linode, _ = (
-            linode_and_vpc_for_legacy_interface_tests_offline
-        )
+        vpc, subnet, linode = linode_and_vpc_for_legacy_interface_tests_offline
 
         config: Config = linode.configs[0]
 
@@ -1019,9 +1032,7 @@ class TestNetworkInterface:
         self,
         linode_and_vpc_for_legacy_interface_tests_offline,
     ):
-        vpc, subnet, linode, _ = (
-            linode_and_vpc_for_legacy_interface_tests_offline
-        )
+        vpc, subnet, linode = linode_and_vpc_for_legacy_interface_tests_offline
 
         config: Config = linode.configs[0]
 
@@ -1082,7 +1093,7 @@ class TestNetworkInterface:
     def test_delete_interface_containing_vpc(
         self, create_vpc_with_subnet_and_linode
     ):
-        vpc, subnet, linode, _ = create_vpc_with_subnet_and_linode
+        vpc, subnet, linode = create_vpc_with_subnet_and_linode
 
         config: Config = linode.configs[0]
 
@@ -1116,12 +1127,13 @@ def test_create_linode_with_maintenance_policy(test_linode_client):
     non_default_policy = next((p for p in policies if not p.is_default), None)
     assert non_default_policy, "No non-default maintenance policy available"
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         region,
         image="linode/debian12",
         label=label + "_with_policy",
         maintenance_policy=non_default_policy.slug,
+        root_pass="aComplex@Password123",
     )
 
     assert linode_instance.id is not None
