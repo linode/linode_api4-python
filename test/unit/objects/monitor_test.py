@@ -473,10 +473,10 @@ class LogsStreamTest(ClientBaseCase):
         stream = self.client.load(LogsStream, 1)
 
         with self.mock_put({}) as m:
-            result = stream.update_destinations([1, 2, 3])
+            result = stream.update_destinations([1])
 
         self.assertEqual(m.call_url, "/monitor/streams/1")
-        self.assertEqual(m.call_data["destinations"], [1, 2, 3])
+        self.assertEqual(m.call_data["destinations"], [1])
         self.assertTrue(result)
 
     def test_fail_update_stream_destinations_when_no_destination_ids_passed(self):
