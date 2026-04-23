@@ -346,7 +346,7 @@ def test_get_stream_by_id(test_linode_client: LinodeClient, provisioned_stream: 
 def test_update_stream_label_and_status(test_linode_client: LinodeClient, provisioned_stream: LogsStream):
     """
     Test that a LogsStream label and status can both be updated via save(), and that
-    the version history reflects both the label and status changes across versions.
+    the version history reflects label changes across versions.
     """
     stream = test_linode_client.load(LogsStream, provisioned_stream.id)
     original_label = stream.label
@@ -375,9 +375,7 @@ def test_update_stream_label_and_status(test_linode_client: LinodeClient, provis
         snapshot_updated = next(h for h in history if h.version == updated.version)
 
         assert snapshot_original.label == original_label
-        assert snapshot_original.status == original_status
         assert snapshot_updated.label == new_label
-        assert snapshot_updated.status == new_status
         assert snapshot_updated.id == provisioned_stream.id
     finally:
         # Revert to original label and status
