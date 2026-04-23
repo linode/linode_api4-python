@@ -236,24 +236,37 @@ def test_fails_to_create_destination_empty_required_fields(test_linode_client: L
     )
 
 
-@_SKIP_STREAM_TESTS
-def test_fails_to_create_stream_invalid_destination(test_linode_client: LinodeClient):
+@pytest.fixture(scope="session")
+def invalid_destination_error(test_linode_client: LinodeClient):
     """
-    Test that creating a stream with a non-existent destination ID results in a 400 ApiError.
-    Requires no other streams to be present on account. If a stream is already present test is skipped.
+    Session-scoped fixture to attempt invalid stream creation deterministically
+    before any valid streams are created. Yields the resulting exception so
+    assertions can be handled safely within the test case.
     """
     from linode_api4.errors import ApiError
 
     _skip_if_streams_exist(test_linode_client)
 
-    with pytest.raises(ApiError) as excinfo:
+    try:
         test_linode_client.monitor.stream_create(
             label=get_test_label(),
             type=LogsStreamType.audit_logs,
             destinations=[999999999],
         )
-    assert excinfo.value.status == 400
-    assert excinfo.value.errors == ['Destination not found']
+        yield None
+    except ApiError as excinfo:
+        yield excinfo
+
+@_SKIP_STREAM_TESTS
+def test_fails_to_create_stream_invalid_destination(invalid_destination_error):
+    """
+    Test that creating a stream with a non-existent destination ID results in a 400 ApiError.
+    Requires no other streams to be present on account.
+    """
+    assert invalid_destination_error is not None, "Expected an ApiError but none was raised"
+
+    assert invalid_destination_error.status == 400
+    assert invalid_destination_error.errors == ['Destination not found']
 
 
 @pytest.fixture(scope="session")
@@ -267,7 +280,10 @@ def create_secondary_destination(
 
 
 @pytest.fixture(scope="session")
-def create_stream(test_linode_client: LinodeClient, test_destination: LogsDestination):
+def create_stream(test_linode_client: LinodeClient,
+                  test_destination: LogsDestination,
+                  invalid_destination_error #This ensures run order to keep negative test case deterministic
+):
     _skip_if_streams_exist(test_linode_client)
 
     stream = test_linode_client.monitor.stream_create(
