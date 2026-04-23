@@ -3,6 +3,14 @@ name: Integration Tests
 on:
   workflow_dispatch:
     inputs:
+      run_aclp_logs_stream_tests:
+        description: 'Set this parameter to "true" to run ACLP logs stream related test cases'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
       run_db_fork_tests:
         description: 'Set this parameter to "true" to run fork database related test cases'
         required: false
@@ -18,7 +26,7 @@ on:
         type: choice
         options:
           - 'true'
-          - 'false'
+          - 'false'tox
       test_suite:
         description: 'Enter specific test suite. E.g. domain, linode_client'
         required: false
@@ -99,7 +107,7 @@ jobs:
         run: |
           timestamp=$(date +'%Y%m%d%H%M')
           report_filename="${timestamp}_sdk_test_report.xml"
-          make test-int RUN_DB_FORK_TESTS=${{ github.event.inputs.run_db_fork_tests }} RUN_DB_TESTS=${{ github.event.inputs.run_db_tests }} TEST_SUITE="${{ github.event.inputs.test_suite }}" TEST_ARGS="--junitxml=${report_filename}"
+          make test-int RUN_DB_FORK_TESTS=${{ github.event.inputs.run_db_fork_tests }} RUN_DB_TESTS=${{ github.event.inputs.run_db_tests }} RUN_ACLP_LOGS_STREAM_TESTS=${{ github.event.inputs.run_aclp_logs_stream_tests }} TEST_SUITE="${{ github.event.inputs.test_suite }}" TEST_ARGS="--junitxml=${report_filename}"
         env:
           LINODE_TOKEN: ${{ env.LINODE_TOKEN }}
 
