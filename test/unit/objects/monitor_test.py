@@ -1,7 +1,15 @@
 import datetime
 from test.unit.base import ClientBaseCase
 
-from linode_api4.objects import AlertChannel, MonitorDashboard, MonitorService
+from linode_api4.objects import (
+    AlertChannel,
+    MonitorDashboard,
+    MonitorService,
+    LogsDestination,
+    LogsDestinationHistory,
+    LogsStream,
+    LogsStreamDestination,
+)
 
 
 class MonitorTest(ClientBaseCase):
@@ -169,3 +177,327 @@ class MonitorTest(ClientBaseCase):
             "/monitor/alert-channels/123/alerts",
         )
         self.assertEqual(channels[0].alerts.alert_count, 0)
+
+
+class LogsDestinationTest(ClientBaseCase):
+    """
+    Tests methods for LogsDestination class
+    """
+
+    def test_list_destinations(self):
+        """
+        Test that listing destinations returns LogsDestination objects with all fields populated.
+        """
+        destinations = self.client.monitor.destinations()
+
+        self.assertEqual(len(destinations), 1)
+        dest = destinations[0]
+        self.assertIsInstance(dest, LogsDestination)
+        self.assertEqual(dest.id, 1)
+        self.assertEqual(dest.label, "my-logs-destination")
+        self.assertEqual(dest.type, "akamai_object_storage")
+        self.assertEqual(dest.status, "active")
+        self.assertEqual(dest.version, 1)
+        self.assertEqual(
+            dest.created, datetime.datetime(2024, 6, 1, 12, 0, 0)
+        )
+        self.assertEqual(
+            dest.updated, datetime.datetime(2024, 6, 1, 12, 0, 0)
+        )
+        self.assertEqual(dest.created_by, "tester")
+        self.assertEqual(dest.updated_by, "tester")
+
+    def test_list_destinations_details(self):
+        """
+        Test that the nested LogsDestinationDetails are deserialized correctly.
+        """
+        dest = self.client.load(LogsDestination, 1)
+
+        self.assertIsNotNone(dest.details)
+        self.assertEqual(dest.details.access_key_id, "1ABCD23EFG4HIJKLMNO5")
+        self.assertEqual(dest.details.bucket_name, "primary-bucket")
+        self.assertEqual(
+            dest.details.host, "primary-bucket.us-east-1.linodeobjects.com"
+        )
+        self.assertEqual(dest.details.path, "audit-logs")
+
+        self.assertIsNone(dest.details.access_key_secret)
+
+    def test_destination_history(self):
+        """
+        Test that the history property returns LogsDestinationHistory objects.
+        """
+        dest = self.client.load(LogsDestination, 1)
+        history = dest.history
+
+        self.assertEqual(len(history), 1)
+        snapshot = history[0]
+        self.assertIsInstance(snapshot, LogsDestinationHistory)
+        self.assertEqual(snapshot.id, 1)
+        self.assertEqual(snapshot.label, "my-logs-destination")
+        self.assertEqual(snapshot.type, "akamai_object_storage")
+        self.assertEqual(snapshot.status, "active")
+        self.assertEqual(snapshot.version, 2)
+        self.assertEqual(
+            snapshot.updated, datetime.datetime(2024, 6, 2, 9, 0, 0)
+        )
+        self.assertIsNotNone(snapshot.details)
+        self.assertEqual(snapshot.details.bucket_name, "primary-bucket")
+
+    def test_create_destination(self):
+        """
+        Test that destination_create sends the right payload and returns
+        a LogsDestination object.
+        """
+        create_response = {
+            "id": 2,
+            "label": "new-dest",
+            "type": "akamai_object_storage",
+            "status": "active",
+            "details": {
+                "access_key_id": "KEYID999",
+                "bucket_name": "new-bucket",
+                "host": "new-bucket.us-east-1.linodeobjects.com",
+                "path": "logs/audit",
+            },
+            "created": "2024-07-01T00:00:00",
+            "updated": "2024-07-01T00:00:00",
+            "created_by": "tester",
+            "updated_by": "tester",
+            "version": 1,
+        }
+
+        with self.mock_post(create_response) as m:
+            result = self.client.monitor.destination_create(
+                label="new-dest",
+                type="akamai_object_storage",
+                access_key_id="KEYID999",
+                access_key_secret="SUPERSECRET",
+                bucket_name="new-bucket",
+                host="new-bucket.us-east-1.linodeobjects.com",
+                path="logs/audit",
+            )
+
+        self.assertEqual(m.call_url, "/monitor/streams/destinations")
+        self.assertEqual(m.call_data["label"], "new-dest")
+        self.assertEqual(m.call_data["type"], "akamai_object_storage")
+        self.assertEqual(m.call_data["details"]["access_key_id"], "KEYID999")
+        self.assertEqual(
+            m.call_data["details"]["access_key_secret"], "SUPERSECRET"
+        )
+        self.assertEqual(m.call_data["details"]["bucket_name"], "new-bucket")
+        self.assertEqual(
+            m.call_data["details"]["host"],
+            "new-bucket.us-east-1.linodeobjects.com",
+        )
+        self.assertEqual(m.call_data["details"]["path"], "logs/audit")
+
+        self.assertIsInstance(result, LogsDestination)
+        self.assertEqual(result.id, 2)
+        self.assertEqual(result.label, "new-dest")
+
+    def test_update_destination(self):
+        """
+        Test that mutating a LogsDestination's mutable fields and calling save()
+        sends a PUT to the correct endpoint with the updated values.
+        """
+        dest = self.client.load(LogsDestination, 1)
+
+        updated_response = {
+            "id": 1,
+            "label": "renamed-destination",
+            "type": "akamai_object_storage",
+            "status": "active",
+            "details": {
+                "access_key_id": "1ABCD23EFG4HIJKLMNO5",
+                "bucket_name": "primary-bucket",
+                "host": "primary-bucket.us-east-1.linodeobjects.com",
+                "path": "audit-logs",
+            },
+            "created": "2024-06-01T12:00:00",
+            "updated": "2024-06-03T08:00:00",
+            "created_by": "tester",
+            "updated_by": "tester",
+            "version": 2,
+        }
+
+        with self.mock_put(updated_response) as m:
+            dest.label = "renamed-destination"
+            dest.save()
+
+        self.assertEqual(m.call_url, "/monitor/streams/destinations/1")
+        self.assertEqual(m.call_data["label"], "renamed-destination")
+
+    def test_delete_destination(self):
+        """
+        Test that deleting a LogsDestination issues a DELETE to the correct URL.
+        """
+        dest = self.client.load(LogsDestination, 1)
+
+        with self.mock_delete() as m:
+            dest.delete()
+
+        self.assertEqual(
+            m.call_url, "/monitor/streams/destinations/1"
+        )
+
+
+class LogsStreamTest(ClientBaseCase):
+    """
+    Tests methods for LogsStream class.
+    """
+
+    def test_list_streams(self):
+        """
+        Test that listing streams returns LogsStream objects with all fields populated.
+        """
+        streams = self.client.monitor.streams()
+
+        self.assertEqual(len(streams), 1)
+        stream = streams[0]
+        self.assertIsInstance(stream, LogsStream)
+        self.assertEqual(stream.id, 1)
+        self.assertEqual(stream.label, "my-logs-stream")
+        self.assertEqual(stream.type, "audit_logs")
+        self.assertEqual(stream.status, "active")
+        self.assertEqual(stream.version, 1)
+        self.assertEqual(stream.created, datetime.datetime(2024, 6, 1, 12, 0, 0))
+        self.assertEqual(stream.updated, datetime.datetime(2024, 6, 1, 12, 0, 0))
+        self.assertEqual(stream.created_by, "tester")
+        self.assertEqual(stream.updated_by, "tester")
+
+    def test_list_streams_destinations(self):
+        """
+        Test that the nested destinations are deserialized as LogsStreamDestination objects.
+        """
+        stream = self.client.load(LogsStream, 1)
+
+        self.assertIsNotNone(stream.destinations)
+        self.assertEqual(len(stream.destinations), 1)
+        dest = stream.destinations[0]
+        self.assertIsInstance(dest, LogsStreamDestination)
+        self.assertEqual(dest.id, 1)
+        self.assertEqual(dest.label, "my-logs-destination")
+        self.assertEqual(dest.type, "akamai_object_storage")
+        self.assertIsNotNone(dest.details)
+        self.assertEqual(dest.details.bucket_name, "primary-bucket")
+        self.assertEqual(dest.details.access_key_id, "1ABCD23EFG4HIJKLMNO5")
+        self.assertEqual(dest.details.host, "primary-bucket.us-east-1.linodeobjects.com")
+        self.assertEqual(dest.details.path, "audit-logs")
+
+    def test_stream_history(self):
+        """
+        Test that the history property returns LogsStreamHistory objects.
+        """
+        stream = self.client.load(LogsStream, 1)
+        history = stream.history
+
+        self.assertEqual(len(history), 1)
+        snapshot = history[0]
+        self.assertEqual(snapshot.id, 1)
+        self.assertEqual(snapshot.label, "my-logs-stream")
+        self.assertEqual(snapshot.type, "audit_logs")
+        self.assertEqual(snapshot.status, "active")
+        self.assertEqual(snapshot.version, 2)
+        self.assertEqual(snapshot.updated, datetime.datetime(2024, 6, 2, 9, 0, 0))
+        self.assertIsNotNone(snapshot.destinations)
+
+    def test_create_stream(self):
+        """
+        Test that stream_create sends the correct payload and returns a LogsStream object.
+        """
+        create_response = {
+            "id": 2,
+            "label": "new-stream",
+            "type": "audit_logs",
+            "status": "active",
+            "destinations": [{"id": 1, "label": "my-logs-destination", "type": "akamai_object_storage", "details": {}}],
+            "created": "2024-07-01T00:00:00",
+            "updated": "2024-07-01T00:00:00",
+            "created_by": "tester",
+            "updated_by": "tester",
+            "version": 1,
+        }
+
+        with self.mock_post(create_response) as m:
+            result = self.client.monitor.stream_create(
+                destinations=[1],
+                label="new-stream",
+                status="active",
+                type="audit_logs",
+            )
+
+        self.assertEqual(m.call_url, "/monitor/streams")
+        self.assertEqual(m.call_data["label"], "new-stream")
+        self.assertEqual(m.call_data["type"], "audit_logs")
+        self.assertEqual(m.call_data["status"], "active")
+        self.assertEqual(m.call_data["destinations"], [1])
+
+        self.assertIsInstance(result, LogsStream)
+        self.assertEqual(result.id, 2)
+        self.assertEqual(result.label, "new-stream")
+
+    def test_update_stream_save(self):
+        """
+        Test that mutating a LogsStream's mutable fields and calling save()
+        sends a PUT with correct payload.
+        """
+        stream = self.client.load(LogsStream, 1)
+
+        updated_response = {
+            "id": 1,
+            "label": "renamed-stream",
+            "type": "audit_logs",
+            "status": "inactive",
+            "destinations": [{"id": 1, "label": "my-logs-destination", "type": "akamai_object_storage", "details": {}}],
+            "created": "2024-06-01T12:00:00",
+            "updated": "2024-06-03T08:00:00",
+            "created_by": "tester",
+            "updated_by": "tester",
+            "version": 2,
+        }
+
+        with self.mock_put(updated_response) as m:
+            stream.label = "renamed-stream"
+            stream.status = "inactive"
+            stream.save()
+
+        self.assertEqual(m.call_url, "/monitor/streams/1")
+        self.assertEqual(m.call_data["label"], "renamed-stream")
+        self.assertEqual(m.call_data["status"], "inactive")
+
+    def test_update_stream_destinations(self):
+        """
+        Test that update_destinations sends PUT request with flat destination ids list.
+        """
+        stream = self.client.load(LogsStream, 1)
+
+        with self.mock_put({}) as m:
+            result = stream.update_destinations([1])
+
+        self.assertEqual(m.call_url, "/monitor/streams/1")
+        self.assertEqual(m.call_data["destinations"], [1])
+        self.assertTrue(result)
+
+    def test_fail_update_stream_destinations_when_no_destination_ids_passed(self):
+        """
+        Test that update_destinations raises exception and doesn't send PUT request when id list is empty.
+        """
+        stream = self.client.load(LogsStream, 1)
+        with self.mock_put({}) as m:
+            with self.assertRaises(ValueError) as context:
+                stream.update_destinations([])
+
+        self.assertFalse(m.called)
+        self.assertIn("A destination id must be provided.", str(context.exception))
+
+    def test_delete_stream(self):
+        """
+        Test that deleting a LogsStream issues a DELETE to the correct URL.
+        """
+        stream = self.client.load(LogsStream, 1)
+
+        with self.mock_delete() as m:
+            stream.delete()
+
+        self.assertEqual(m.call_url, "/monitor/streams/1")
