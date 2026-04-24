@@ -390,6 +390,28 @@ def create_reserved_ip_assigned(test_linode_client, create_linode):
         reserved_ip.delete()
 
 
+def verify_reserved_ip(reserved_ip):
+    assert isinstance(ipaddress.ip_address(reserved_ip.address), ipaddress.IPv4Address)
+    assert reserved_ip.type == "ipv4"
+    assert reserved_ip.public == True
+    assert reserved_ip.reserved == True
+    assert reserved_ip.linode_id is None
+    assert reserved_ip.assigned_entity is None
+
+
+def verify_reserved_ip_assigned(reserved_ip, resource):
+    assert isinstance(ipaddress.ip_address(reserved_ip.address), ipaddress.IPv4Address)
+    assert reserved_ip.type == "ipv4"
+    assert reserved_ip.public == True
+    assert reserved_ip.reserved == True
+    assert reserved_ip.linode_id == resource.id
+    assert reserved_ip.region.id == resource.region.id
+    assert reserved_ip.assigned_entity.id == resource.id
+    assert reserved_ip.assigned_entity.type == "linode"
+    assert reserved_ip.assigned_entity.label == resource.label
+    assert reserved_ip.assigned_entity.url == f"/v4/linode/instances/{resource.id}"
+
+
 @pytest.mark.smoke
 @pytest.mark.parametrize("region, tags", [
     (TEST_REGION, ["test"]),
@@ -401,16 +423,10 @@ def test_create_reserved_ip(request, test_linode_client, region, tags):
         region=region,
         tags=tags
     )
-
     request.addfinalizer(reserved_ip.delete)
 
-    assert isinstance(ipaddress.ip_address(reserved_ip.address), ipaddress.IPv4Address)
-    assert reserved_ip.type == "ipv4"
-    assert reserved_ip.public == True
-    assert reserved_ip.linode_id is None
-    assert reserved_ip.reserved == True
+    verify_reserved_ip(reserved_ip)
     # assert reserved_ip.tags == tags  # NOTE: Skipped as tags not available in the API yet
-    assert reserved_ip.assigned_entity is None
 
 
 def test_create_reserved_ip_wo_region_fail(test_linode_client):
@@ -430,9 +446,11 @@ def test_create_reserved_ip_wo_region_fail(test_linode_client):
 @pytest.mark.skip   # NOTE: Skipped as tags not available in the API yet
 def test_update_reserved_ip_tags(create_reserved_ip):
     reserved_ip = create_reserved_ip
+    verify_reserved_ip(reserved_ip)
     assert reserved_ip.tags == ["test"]
 
     reserved_ip.save(tags=["updated"])
+    verify_reserved_ip(reserved_ip)
     assert reserved_ip.tags == ["updated"]
 
 
@@ -440,13 +458,8 @@ def test_create_reserved_ip_assigned(test_linode_client, create_reserved_ip_assi
     client = test_linode_client
     linode, reserved_ip = create_reserved_ip_assigned
 
-    assert reserved_ip.reserved == True
+    verify_reserved_ip_assigned(reserved_ip, linode)
     # assert reserved_ip.tags == tags  # NOTE: Skipped as tags not available in the API yet
-    assert reserved_ip.linode_id == linode.id
-    assert reserved_ip.assigned_entity.id == linode.id
-    assert reserved_ip.assigned_entity.type == "linode"
-    assert reserved_ip.assigned_entity.label == linode.label
-    assert reserved_ip.assigned_entity.url == f"/v4/linode/instances/{linode.id}"
 
     ips_list = client.networking.ips()
     assert reserved_ip.address in [ip.address for ip in ips_list]
@@ -469,3 +482,61 @@ def test_create_reserved_ip_assigned(test_linode_client, create_reserved_ip_assi
     # linode_ips = linode.ips.ipv4.public
     # assert len(linode_ips) == 2
     # assert not any([ip.reserved for ip in linode_ips])
+    # assert not any([ip.tags for ip in linode_ips])  # Tags should be removed ???
+
+
+def test_get_reserved_ip_types(test_linode_client, create_reserved_ip):
+    # TODO: Currently it uses client (token), should not it be publicly accessible (no token required) ???
+    client = test_linode_client
+    types = client.networking.reserved_ip_types()
+    assert types.only
+
+    pricing = types.first()
+    assert pricing.id == "reserved-ipv4"
+    assert pricing.label == "Reserved IPv4"
+    assert pricing.price.hourly
+    # assert pricing.price.monthly is None
+    # assert pricing.region_prices == []
+
+
+@pytest.mark.smoke
+@pytest.mark.parametrize("reserved, region", [
+    (True, TEST_REGION),
+    (True, None),
+])
+def test_create_reserved_ip_with_allocate(test_linode_client, create_linode, reserved, region):
+    client = test_linode_client
+    linode = create_linode
+
+    if region:
+        reserved_ip = client.networking.ip_allocate(reserved=reserved, region=TEST_REGION)
+        verify_reserved_ip(reserved_ip)
+    else:
+        reserved_ip = client.networking.ip_allocate(reserved=reserved, linode=linode.id)
+        verify_reserved_ip_assigned(reserved_ip, linode)
+
+    # assert reserved_ip.tags == tags  # NOTE: Skipped as tags not available in the API yet
+
+
+def test_create_reserved_ip_with_allocate_fail(test_linode_client, create_linode):
+    client = test_linode_client
+    linode = create_linode
+    region = TEST_REGION
+
+    while region == linode.region:
+        region = get_region(
+            LinodeClient(
+                token=get_token(),
+                base_url=get_api_url(),
+                ca_path=get_api_ca_file(),
+            ),
+            {"Linodes", "Cloud Firewall"},
+            site_type="core",
+        )
+
+    with pytest.raises(ApiError) as exc_info:
+        client.networking.ip_allocate(reserved=True, region=region, linode=linode.id)
+
+    error_msg = str(exc_info.value.json)
+    assert exc_info.value.status == 400
+    assert "Region passed in must match Linode's region" in error_msg
