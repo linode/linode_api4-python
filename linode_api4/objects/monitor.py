@@ -142,6 +142,9 @@ class AlertStatus(StrEnum):
 
 
 class LogsDestinationType(StrEnum):
+    """
+    The type of destination for logs data sync. Currently, only ``akamai_object_storage`` is supported.
+    """
     akamai_object_storage = "akamai_object_storage"
 
 
