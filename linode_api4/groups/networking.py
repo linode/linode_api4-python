@@ -578,7 +578,7 @@ class NetworkingGroup(Group):
 
         NOTE: Reserved IP feature may not currently be available to all users.
 
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-reserve-ip
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-reserved-ip
 
         :param region: The region in which to reserve the IP.
         :type region: str or Region
@@ -610,7 +610,7 @@ class NetworkingGroup(Group):
 
         NOTE: Reserved IP feature may not currently be available to all users.
 
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-reserved-iptypes
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-reserved-ip-types
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`

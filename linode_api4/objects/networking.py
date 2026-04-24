@@ -202,6 +202,8 @@ class ReservedIPAddress(Base):
         "tags": Property(mutable=True, unordered=True),
         "type": Property(),
         "assigned_entity": Property(json_object=ReservedIPAssignedEntity),
+        "interface_id": Property(),
+        "vpc_nat_1_1": Property(json_object=InstanceIPNAT1To1),
     }
 
 
@@ -481,7 +483,7 @@ class ReservedIPType(Base):
 
     NOTE: Reserved IP feature may not currently be available to all users.
 
-    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-reserved-iptype
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-reserved-ip-types
     """
 
     properties = {
