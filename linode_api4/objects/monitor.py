@@ -544,14 +544,14 @@ class LogsDestinationDetails(JSONObject):
       - access_key_id: str - The unique identifier assigned to the Object Storage key required for authentication to the bucket.
       - bucket_name: str - The name of the Object Storage bucket.
       - host: str - The hostname where the Object Storage bucket can be accessed.
-      - path: str - The specific path in an Object Storage bucket where audit logs files are uploaded.
+      - path: Optional[str] - The specific path in an Object Storage bucket where audit logs files are uploaded. May be absent or None in API responses.
     """
 
     access_key_id: str = ""
     access_key_secret: Optional[str] = None
     bucket_name: str = ""
     host: str = ""
-    path: str = ""
+    path: Optional[str] = None
 
 
 class LogsDestinationHistory(Base):
