@@ -364,7 +364,9 @@ def create_reserved_ip(test_linode_client):
 
     yield reserved_ip
 
-    reserved_ip.delete()
+    # Delete only if IP exists (some tests delete it earlier)
+    if client.networking.reserved_ips(ReservedIPAddress.address==reserved_ip.address):
+        reserved_ip.delete()
 
 
 @pytest.fixture
@@ -386,7 +388,7 @@ def create_reserved_ip_assigned(test_linode_client, create_linode):
     yield linode, reserved_ip
 
     # Delete only if IP exists (some tests delete it earlier)
-    if reserved_ip.address in [ip.address for ip in client.networking.reserved_ips()]:
+    if client.networking.reserved_ips(ReservedIPAddress.address==reserved_ip.address):
         reserved_ip.delete()
 
 
@@ -444,12 +446,15 @@ def test_create_reserved_ip_wo_region_fail(test_linode_client):
 
 
 @pytest.mark.skip   # NOTE: Skipped as tags not available in the API yet
-def test_update_reserved_ip_tags(create_reserved_ip):
+def test_update_reserved_ip_tags(test_linode_client, create_reserved_ip):
+    client = test_linode_client
     reserved_ip = create_reserved_ip
     verify_reserved_ip(reserved_ip)
     assert reserved_ip.tags == ["test"]
 
-    reserved_ip.save(tags=["updated"])
+    reserved_ip.tags = ["updated"]
+    reserved_ip.save()
+    reserved_ip = client.networking.reserved_ips(ReservedIPAddress.address==reserved_ip.address)[0]
     verify_reserved_ip(reserved_ip)
     assert reserved_ip.tags == ["updated"]
 
@@ -540,3 +545,38 @@ def test_create_reserved_ip_with_allocate_fail(test_linode_client, create_linode
     error_msg = str(exc_info.value.json)
     assert exc_info.value.status == 400
     assert "Region passed in must match Linode's region" in error_msg
+
+
+def test_reserve_ephemeral_ip(test_linode_client, create_linode):
+    client = test_linode_client
+    linode = create_linode
+
+    ip_address = client.load(IPAddress, linode.ipv4[0])
+    assert ip_address.linode_id == linode.id
+    assert ip_address.reserved == False
+
+    ip_address.reserved = True
+    # ip_address.rdns = "test.example.org"  # TODO: Should be enabled ?
+    ip_address.save()
+    ip_address = client.load(IPAddress, linode.ipv4[0])
+    assert ip_address.linode_id == linode.id
+    assert ip_address.reserved == True
+
+    ip_address.reserved = False
+    ip_address.save()
+    ip_address = client.load(IPAddress, linode.ipv4[0])
+    assert ip_address.linode_id == linode.id
+    assert ip_address.reserved == False
+
+
+def test_convert_unassigned_reserved_ip_to_ephemeral(test_linode_client, create_reserved_ip):
+    client = test_linode_client
+    reserved_ip = create_reserved_ip
+    verify_reserved_ip(reserved_ip)
+
+    ip_address = client.load(IPAddress, reserved_ip.address)
+    ip_address.reserved = False
+    ip_address.save()
+
+    reserved_ips_list = client.networking.reserved_ips(ReservedIPAddress.address==reserved_ip.address)
+    assert len(reserved_ips_list) == 0
