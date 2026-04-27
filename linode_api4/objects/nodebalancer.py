@@ -1,7 +1,7 @@
 import os
 from urllib import parse
 
-from linode_api4.common import Price, RegionPrice, LKECluster
+from linode_api4.common import LKECluster, Price, RegionPrice
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects.base import Base, MappedObject, Property
 from linode_api4.objects.dbase import DerivedBase
