@@ -31,3 +31,5 @@ def test_get_tag_with_reserved_ip(test_linode_client, create_reserved_ip):
     tag = test_linode_client.load(Tag, tag.id)
     assert tag.type == "reserved_ipv4_address"
     # assert tag.data...
+
+    tag.delete()

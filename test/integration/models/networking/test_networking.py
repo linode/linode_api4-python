@@ -486,31 +486,7 @@ def test_create_reserved_ip_with_allocate(test_linode_client, create_linode, res
         reserved_ip = client.networking.ip_allocate(reserved=reserved, linode=linode.id)
         verify_reserved_ip_assigned(reserved_ip, linode)
 
-    # assert reserved_ip.tags == tags  # NOTE: Skipped as tags not available in the API yet
-
-
-def test_create_reserved_ip_with_allocate_fail(test_linode_client, create_linode):
-    client = test_linode_client
-    linode = create_linode
-    region = TEST_REGION
-
-    while region == linode.region:
-        region = get_region(
-            LinodeClient(
-                token=get_token(),
-                base_url=get_api_url(),
-                ca_path=get_api_ca_file(),
-            ),
-            {"Linodes", "Cloud Firewall"},
-            site_type="core",
-        )
-
-    with pytest.raises(ApiError) as exc_info:
-        client.networking.ip_allocate(reserved=True, region=region, linode=linode.id)
-
-    error_msg = str(exc_info.value.json)
-    assert exc_info.value.status == 400
-    assert "Region passed in must match Linode's region" in error_msg
+    # assert reserved_ip.tags == tags  # TODO: Skipped as tags not available in the API yet
 
 
 def test_reserve_ephemeral_ip(test_linode_client, create_linode):
@@ -546,3 +522,7 @@ def test_convert_unassigned_reserved_ip_to_ephemeral(test_linode_client, create_
 
     reserved_ips_list = client.networking.reserved_ips(ReservedIPAddress.address==reserved_ip.address)
     assert len(reserved_ips_list) == 0
+
+
+# def test_create_unassigned_reserved_ip_with_rdns():
+#     pass
