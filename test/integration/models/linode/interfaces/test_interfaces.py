@@ -8,6 +8,8 @@ from linode_api4 import (
     Instance,
     LinodeInterface,
     LinodeInterfaceDefaultRouteOptions,
+    InterfaceGeneration,
+    LinodeInterfaceOptions,
     LinodeInterfacePublicIPv4AddressOptions,
     LinodeInterfacePublicIPv4Options,
     LinodeInterfacePublicIPv6Options,
@@ -18,7 +20,27 @@ from linode_api4 import (
     LinodeInterfaceVPCIPv4Options,
     LinodeInterfaceVPCIPv4RangeOptions,
     LinodeInterfaceVPCOptions,
+    ReservedIPAddress,
 )
+from test.integration.helpers import get_test_label
+
+
+def build_interface_public_ipv4(firewall, ip_address):
+    return LinodeInterfaceOptions(
+        firewall_id=firewall,
+        default_route=LinodeInterfaceDefaultRouteOptions(
+            ipv4=True,
+        ),
+        public=LinodeInterfacePublicOptions(
+            ipv4=LinodeInterfacePublicIPv4Options(
+                addresses=[
+                    LinodeInterfacePublicIPv4AddressOptions(
+                        address=ip_address, primary=True
+                    )
+                ],
+            ),
+        ),
+    )
 
 
 def test_linode_create_with_linode_interfaces(
@@ -359,3 +381,51 @@ def test_linode_interface_firewalls(e2e_test_firewall, linode_interface_public):
     firewall = firewalls[0]
     assert firewall.id == e2e_test_firewall.id
     assert firewall.label == e2e_test_firewall.label
+
+
+@pytest.mark.parametrize("iface_type", [
+    InterfaceGeneration.LEGACY_CONFIG,
+    InterfaceGeneration.LINODE
+])
+def test_linode_interfaces_with_reserved_ips(test_linode_client, e2e_test_firewall, create_reserved_ip, iface_type):
+    client = test_linode_client
+    reserved_ip = create_reserved_ip
+    label = get_test_label(length=8)
+
+    if iface_type == InterfaceGeneration.LEGACY_CONFIG:
+        linode, _ = client.linode.instance_create(
+            "g6-nanode-1",
+            reserved_ip.region,
+            image="linode/debian12",
+            label=label,
+            firewall=e2e_test_firewall,
+            interface_generation=iface_type,
+            ipv4=[reserved_ip.address]
+        )
+    else:
+        interface = build_interface_public_ipv4(e2e_test_firewall.id, reserved_ip.address)
+        linode, _ = client.linode.instance_create(
+            "g6-nanode-1",
+            reserved_ip.region,
+            image="linode/debian12",
+            label=label,
+            interface_generation=iface_type,
+            interfaces=[interface],
+        )
+
+    linode_ips = linode.ips.ipv4.public
+    assert len(linode_ips) == 1
+    assert linode_ips[0].address == reserved_ip.address
+    assert linode_ips[0].reserved == True
+    assert linode_ips[0].linode_id == linode.id
+    assert linode_ips[0].assigned_entity.id == linode.id
+    assert linode_ips[0].assigned_entity.type == "linode"
+    assert linode_ips[0].assigned_entity.label == linode.label
+    assert linode_ips[0].assigned_entity.url == f"/v4/linode/instances/{linode.id}"
+
+    linode.delete()
+    reserved_ips_list = client.networking.reserved_ips(ReservedIPAddress.address==reserved_ip.address)
+    assert len(reserved_ips_list) == 1
+    assert reserved_ips_list[0].reserved == True
+    assert reserved_ips_list[0].linode_id is None
+    assert reserved_ips_list[0].assigned_entity is None

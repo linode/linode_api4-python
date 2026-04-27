@@ -14,8 +14,12 @@ from test.integration.helpers import (
 
 import pytest
 
-from linode_api4 import Instance, LinodeClient, ApiError
-from linode_api4.objects import Config, ConfigInterfaceIPv4, Firewall, InterfaceGeneration, IPAddress, ReservedIPAddress
+from linode_api4 import (
+    Instance,
+    LinodeClient,
+    ApiError,
+)
+from linode_api4.objects import Config, ConfigInterfaceIPv4, Firewall, IPAddress, ReservedIPAddress
 from linode_api4.objects.networking import (
     FirewallCreateDevicesOptions,
     NetworkTransferPrice,
@@ -354,44 +358,6 @@ def test_ip_info(test_linode_client, create_linode):
     assert ip_info.vpc_nat_1_1 is None
 
 
-@pytest.fixture
-def create_reserved_ip(test_linode_client):
-    client = test_linode_client
-    reserved_ip = client.networking.reserved_ip_create(
-        region=TEST_REGION,
-        tags=["test1"]
-    )
-
-    yield reserved_ip
-
-    # Delete only if IP exists (some tests delete it earlier)
-    if client.networking.reserved_ips(ReservedIPAddress.address==reserved_ip.address):
-        reserved_ip.delete()
-
-
-@pytest.fixture
-def create_reserved_ip_assigned(test_linode_client, create_linode):
-    client = test_linode_client
-    linode = create_linode
-    reserved_ip = client.networking.reserved_ip_create(
-        region=linode.region,
-        tags=["test", "assigned"],
-    )
-
-    client.networking.ip_addresses_assign(
-        assignments=[{"address": reserved_ip.address, "linode_id": linode.id}],
-        region=linode.region,
-    )
-
-    reserved_ip = test_linode_client.load(ReservedIPAddress, reserved_ip.address)
-
-    yield linode, reserved_ip
-
-    # Delete only if IP exists (some tests delete it earlier)
-    if client.networking.reserved_ips(ReservedIPAddress.address==reserved_ip.address):
-        reserved_ip.delete()
-
-
 def verify_reserved_ip(reserved_ip):
     assert isinstance(ipaddress.ip_address(reserved_ip.address), ipaddress.IPv4Address)
     assert reserved_ip.type == "ipv4"
@@ -580,36 +546,3 @@ def test_convert_unassigned_reserved_ip_to_ephemeral(test_linode_client, create_
 
     reserved_ips_list = client.networking.reserved_ips(ReservedIPAddress.address==reserved_ip.address)
     assert len(reserved_ips_list) == 0
-
-
-# TODO: move to linode's tests file
-@pytest.mark.parametrize("interface", [
-    InterfaceGeneration.LEGACY_CONFIG,
-    # InterfaceGeneration.LINODE
-])
-def test_create_linode_with_reserved_ip_in_legacy_config(test_linode_client, e2e_test_firewall, create_reserved_ip, interface):
-    client = test_linode_client
-    reserved_ip = create_reserved_ip
-    label = get_test_label(length=8)
-
-    # if interface == InterfaceGeneration.LINODE:
-    #     interface = "POST /v4beta/linode/instances: [400] ipv4: Reserved IPs must be assigned directly in interface configurations when using Linode Interfaces"
-
-    linode, _ = client.linode.instance_create(
-        "g6-nanode-1",
-        TEST_REGION,
-        image="linode/debian12",
-        label=label,
-        firewall=e2e_test_firewall,
-        interface_generation=interface,
-        ipv4=[reserved_ip.address]
-    )
-
-    linode_ips = linode.ips.ipv4.public
-    assert len(linode_ips) == 1
-    verify_reserved_ip_assigned(linode_ips[0], linode)
-
-    linode.delete()
-    reserved_ips_list = client.networking.reserved_ips(ReservedIPAddress.address==reserved_ip.address)
-    assert len(reserved_ips_list) == 1
-    verify_reserved_ip(reserved_ips_list[0])
