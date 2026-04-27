@@ -1,7 +1,7 @@
 import os
 from urllib import parse
 
-from linode_api4.common import Price, RegionPrice
+from linode_api4.common import Price, RegionPrice, LKECluster
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects.base import Base, MappedObject, Property
 from linode_api4.objects.dbase import DerivedBase
@@ -276,6 +276,7 @@ class NodeBalancer(Base):
         "client_udp_sess_throttle": Property(mutable=True),
         "locks": Property(unordered=True),
         "type": Property(),
+        "lke_cluster": Property(json_object=LKECluster),
         "frontend_address_type": Property(),
         "frontend_vpc_subnet_id": Property(),
     }

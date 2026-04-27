@@ -13,6 +13,12 @@
       "tags": ["something"],
       "locks": ["cannot_delete_with_subresources"],
       "type": "common",
+      "lke_cluster": {
+        "id": 1234,
+        "type": "lkecluster",
+        "label": "test-cluster",
+        "url": "/v4/lke/clusters/1234"
+      },
       "frontend_address_type": "vpc",
       "frontend_vpc_subnet_id": 5555
     },
@@ -29,6 +35,7 @@
       "tags": [],
       "locks": [],
       "type": "premium_40gb",
+      "lke_cluster": null,
       "frontend_address_type": "vpc",
       "frontend_vpc_subnet_id": 6666
     }
