@@ -81,3 +81,15 @@ class RegionPrice(JSONObject):
     id: int = 0
     hourly: int = 0
     monthly: int = 0
+
+
+@dataclass
+class LKECluster(JSONObject):
+    """
+    LKECluster contains the core fields of a lke_Cluster object returned by various node balancer endpoints.
+    """
+
+    id: int = 0
+    label: str = ""
+    type: str = ""
+    url: str = ""

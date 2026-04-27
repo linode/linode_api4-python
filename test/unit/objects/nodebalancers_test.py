@@ -208,7 +208,7 @@ class NodeBalancerTest(ClientBaseCase):
 
     def test_config_rebuild(self):
         """
-        Test that you can rebuild the cofig of a node balancer.
+        Test that you can rebuild the config of a node balancer.
         """
         config_rebuild_url = "/nodebalancers/12345/configs/4567/rebuild"
         with self.mock_post(config_rebuild_url) as m:
@@ -279,12 +279,17 @@ class NodeBalancerTest(ClientBaseCase):
         self.assertEqual(nbs[0].id, 123456)
         self.assertEqual(nbs[0].label, "balancer123456")
         self.assertEqual(nbs[0].type, "common")
+        self.assertEqual(nbs[0].lke_cluster.id, 1234)
+        self.assertEqual(nbs[0].lke_cluster.type, "lkecluster")
+        self.assertEqual(nbs[0].lke_cluster.label, "test-cluster")
+        self.assertEqual(nbs[0].lke_cluster.url, "/v4/lke/clusters/1234")
         self.assertEqual(nbs[0].frontend_address_type, "vpc")
         self.assertEqual(nbs[0].frontend_vpc_subnet_id, 5555)
 
         self.assertEqual(nbs[1].id, 123457)
         self.assertEqual(nbs[1].label, "balancer123457")
         self.assertEqual(nbs[1].type, "premium_40gb")
+        self.assertEqual(nbs[1].lke_cluster, None)
         self.assertEqual(nbs[1].frontend_address_type, "vpc")
         self.assertEqual(nbs[1].frontend_vpc_subnet_id, 6666)
 
@@ -297,6 +302,10 @@ class NodeBalancerTest(ClientBaseCase):
         self.assertEqual(nb.id, 123456)
         self.assertEqual(nb.label, "balancer123456")
         self.assertEqual(nb.type, "common")
+        self.assertEqual(nb.lke_cluster.id, 1234)
+        self.assertEqual(nb.lke_cluster.type, "lkecluster")
+        self.assertEqual(nb.lke_cluster.label, "test-cluster")
+        self.assertEqual(nb.lke_cluster.url, "/v4/lke/clusters/1234")
         self.assertEqual(nb.frontend_address_type, "vpc")
         self.assertEqual(nb.frontend_vpc_subnet_id, 5555)
 
