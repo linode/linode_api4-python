@@ -9,9 +9,6 @@
       "description": "A test alert for dbaas service",
       "scope": "entity",
       "regions": [],
-      "entity_ids": [
-        "13217"
-      ],
       "entities": {
         "url": "/monitor/services/dbaas/alert-definitions/12345/entities",
         "count": 1,
@@ -25,7 +22,6 @@
           "url": "/monitor/alert-channels/10000"
         }
       ],
-      "has_more_resources": false,
       "rule_criteria": {
         "rules": [
           {
