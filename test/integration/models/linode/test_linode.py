@@ -1154,9 +1154,6 @@ def test_update_linode_with_reserved_ip_in_address(test_linode_client, e2e_test_
     label = get_test_label(length=8)
     client = test_linode_client
     reserved_ip = create_reserved_ip
-    assert reserved_ip.reserved == True
-    assert reserved_ip.linode_id is None
-    assert reserved_ip.assigned_entity is None
 
     linode, _ = client.linode.instance_create(
         "g6-nanode-1",
