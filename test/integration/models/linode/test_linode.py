@@ -19,6 +19,7 @@ from linode_api4.objects import (
     Instance,
     InterfaceGeneration,
     LinodeInterface,
+    ReservedIPAddress,
     Type,
 )
 from linode_api4.objects.linode import InstanceDiskEncryptionType, MigrationType
@@ -1147,3 +1148,36 @@ def test_update_linode_maintenance_policy(create_linode, test_linode_client):
     linode.invalidate()
     assert result
     assert linode.maintenance_policy_id == non_default_policy.slug
+
+
+def test_update_linode_with_reserved_ip_in_address(test_linode_client, e2e_test_firewall, create_reserved_ip):
+    label = get_test_label(length=8)
+    client = test_linode_client
+    reserved_ip = create_reserved_ip
+
+    linode, _ = client.linode.instance_create(
+        "g6-nanode-1",
+        reserved_ip.region,
+        image="linode/debian12",
+        label=label,
+        firewall=e2e_test_firewall,
+    )
+
+    linode_ips = linode.ips.ipv4.public
+    assert len(linode_ips) == 1
+    assert linode_ips[0].address != reserved_ip.address
+
+    linode.ip_allocate(True, reserved_ip.address)
+    delattr(linode, "_ips")
+    linode_ips = linode.ips.ipv4.public
+    assert len(linode_ips) == 2
+    assert reserved_ip.address in [ip.address for ip in linode_ips]
+
+    reserved_ip = client.networking.reserved_ips(ReservedIPAddress.address==reserved_ip.address)[0]
+    assert reserved_ip.linode_id == linode.id
+    assert reserved_ip.assigned_entity.id == linode.id
+    assert reserved_ip.assigned_entity.type == "linode"
+    assert reserved_ip.assigned_entity.label == linode.label
+    assert reserved_ip.assigned_entity.url == f"/v4/linode/instances/{linode.id}"
+
+    linode.delete()

@@ -15,6 +15,7 @@ from linode_api4.objects import (
     NodeBalancerNode,
     NodeBalancerType,
     RegionPrice,
+    ReservedIPAddress,
 )
 
 TEST_REGION = get_region(
@@ -111,6 +112,31 @@ def test_create_nb(test_linode_client, e2e_test_firewall):
     assert 5 == nb.client_udp_sess_throttle
 
     nb.delete()
+
+
+@pytest.mark.skip(reason="Currently it fails to assign ReservedIP via ipv4 param")
+def test_create_nb_with_reserved_ip(test_linode_client, e2e_test_firewall, create_reserved_ip):
+    client = test_linode_client
+    reserved_ip = create_reserved_ip
+    label = get_test_label(8)
+
+    nb = client.nodebalancer_create(
+        region=TEST_REGION,
+        label=label,
+        firewall=e2e_test_firewall.id,
+        client_udp_sess_throttle=5,
+        ipv4=reserved_ip.address,
+    )
+
+    assert TEST_REGION, nb.region
+    assert label == nb.label
+    assert nb.ipv4.address == reserved_ip.address
+    assert nb.ipv4.public == True
+    assert nb.ipv4.reserved == True
+
+    nb.delete()
+    reserved_ip = client.networking.reserved_ips(ReservedIPAddress.address==reserved_ip.address)[0]
+    assert reserved_ip.assigned_entity is None
 
 
 def test_get_nodebalancer_config(test_linode_client, create_nb_config):
