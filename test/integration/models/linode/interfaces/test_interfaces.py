@@ -1,14 +1,15 @@
 import copy
 import ipaddress
+from test.integration.helpers import get_test_label
 
 import pytest
 
 from linode_api4 import (
     ApiError,
     Instance,
+    InterfaceGeneration,
     LinodeInterface,
     LinodeInterfaceDefaultRouteOptions,
-    InterfaceGeneration,
     LinodeInterfaceOptions,
     LinodeInterfacePublicIPv4AddressOptions,
     LinodeInterfacePublicIPv4Options,
@@ -22,7 +23,6 @@ from linode_api4 import (
     LinodeInterfaceVPCOptions,
     ReservedIPAddress,
 )
-from test.integration.helpers import get_test_label
 
 
 def build_interface_public_ipv4(firewall, ip_address):

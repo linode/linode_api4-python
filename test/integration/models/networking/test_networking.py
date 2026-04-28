@@ -1,5 +1,4 @@
 import ipaddress
-import requests
 import time
 from test.integration.conftest import (
     get_api_ca_file,
@@ -14,13 +13,20 @@ from test.integration.helpers import (
 )
 
 import pytest
+import requests
 
 from linode_api4 import (
+    ApiError,
     Instance,
     LinodeClient,
-    ApiError,
 )
-from linode_api4.objects import Config, ConfigInterfaceIPv4, Firewall, IPAddress, ReservedIPAddress
+from linode_api4.objects import (
+    Config,
+    ConfigInterfaceIPv4,
+    Firewall,
+    IPAddress,
+    ReservedIPAddress,
+)
 from linode_api4.objects.networking import (
     FirewallCreateDevicesOptions,
     NetworkTransferPrice,
