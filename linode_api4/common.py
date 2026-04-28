@@ -86,7 +86,7 @@ class RegionPrice(JSONObject):
 @dataclass
 class LKECluster(JSONObject):
     """
-    LKECluster contains the core fields of a lke_Cluster object returned by various node balancer endpoints.
+    LKECluster contains the core fields of a lke_cluster object returned by various node balancer endpoints.
     """
 
     id: int = 0
