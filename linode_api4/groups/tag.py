@@ -32,7 +32,8 @@ class TagGroup(Group):
         domains=None,
         nodebalancers=None,
         volumes=None,
-        entities=[],
+        entities=None,
+        reserved_ipv4_addresses=None,
     ):
         """
         Creates a new Tag and optionally applies it to the given entities.
@@ -61,10 +62,14 @@ class TagGroup(Group):
         :param volumes: A list of Volumes to apply this Tag to upon
                         creation
         :type volumes: list of Volumes or list of int
+        :param reserved_ipv4_addresses: A list of reserved IPv4 addresses to apply
+                        this Tag to upon creation.
+        :type reserved_ipv4_addresses: list of str
 
         :returns: The new Tag
         :rtype: Tag
         """
+        entities = entities or []
         linode_ids, nodebalancer_ids, domain_ids, volume_ids = [], [], [], []
 
         # filter input into lists of ids
@@ -103,6 +108,7 @@ class TagGroup(Group):
             "nodebalancers": nodebalancer_ids or None,
             "domains": domain_ids or None,
             "volumes": volume_ids or None,
+            "reserved_ipv4_addresses": reserved_ipv4_addresses or None,
         }
 
         result = self.client.post("/tags", data=params)

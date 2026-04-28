@@ -32,20 +32,26 @@ class NodeBalancerGroup(Group):
 
         :param region: The Region in which to create the NodeBalancer.
         :type region: Region or str
+        :param ipv4: A reserved IPv4 address to assign to this NodeBalancer.
+                     NOTE: Reserved IP feature may not currently be available to all users.
+        :type ipv4: str
 
         :returns: The new NodeBalancer
         :rtype: NodeBalancer
         """
+        ipv4 = kwargs.pop("ipv4", None)
         params = {
             "region": region.id if isinstance(region, Base) else region,
         }
+        if ipv4 is not None:
+            params["ipv4"] = ipv4
         params.update(kwargs)
 
         result = self.client.post("/nodebalancers", data=params)
 
         if not "id" in result:
             raise UnexpectedResponseError(
-                "Unexpected response when creating Nodebalaner!", json=result
+                "Unexpected response when creating NodeBalancer!", json=result
             )
 
         n = NodeBalancer(self.client, result["id"], result)
