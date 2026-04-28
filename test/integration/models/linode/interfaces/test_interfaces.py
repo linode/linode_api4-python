@@ -421,7 +421,6 @@ def test_linode_interfaces_with_reserved_ips(
     assert len(linode_ips) == 1
     assert linode_ips[0].address == reserved_ip.address
     assert linode_ips[0].reserved == True
-    # assert linode_ips[0].tags == ["test"]  # TODO Does not work at the moment - during clarifications with API Team
     assert linode_ips[0].linode_id == linode.id
     assert linode_ips[0].assigned_entity.id == linode.id
     assert linode_ips[0].assigned_entity.type == "linode"
@@ -436,6 +435,5 @@ def test_linode_interfaces_with_reserved_ips(
     )
     assert len(reserved_ips_list) == 1
     assert reserved_ips_list[0].reserved == True
-    # assert linode_ips[0].tags == ["test"]  # TODO Does not work at the moment - during clarifications with API Team
     assert reserved_ips_list[0].linode_id is None
     assert reserved_ips_list[0].assigned_entity is None
