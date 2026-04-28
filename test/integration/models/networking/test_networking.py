@@ -366,7 +366,9 @@ def test_ip_info(test_linode_client, create_linode):
 
 
 def verify_reserved_ip(reserved_ip):
-    assert isinstance(ipaddress.ip_address(reserved_ip.address), ipaddress.IPv4Address)
+    assert isinstance(
+        ipaddress.ip_address(reserved_ip.address), ipaddress.IPv4Address
+    )
     assert reserved_ip.type == "ipv4"
     assert reserved_ip.public == True
     assert reserved_ip.reserved == True
@@ -375,7 +377,9 @@ def verify_reserved_ip(reserved_ip):
 
 
 def verify_reserved_ip_assigned(reserved_ip, resource):
-    assert isinstance(ipaddress.ip_address(reserved_ip.address), ipaddress.IPv4Address)
+    assert isinstance(
+        ipaddress.ip_address(reserved_ip.address), ipaddress.IPv4Address
+    )
     assert reserved_ip.type == "ipv4"
     assert reserved_ip.public == True
     assert reserved_ip.reserved == True
@@ -384,20 +388,22 @@ def verify_reserved_ip_assigned(reserved_ip, resource):
     assert reserved_ip.assigned_entity.id == resource.id
     assert reserved_ip.assigned_entity.type == "linode"
     assert reserved_ip.assigned_entity.label == resource.label
-    assert reserved_ip.assigned_entity.url == f"/v4/linode/instances/{resource.id}"
+    assert (
+        reserved_ip.assigned_entity.url == f"/v4/linode/instances/{resource.id}"
+    )
 
 
 @pytest.mark.smoke
-@pytest.mark.parametrize("region, tags", [
-    (TEST_REGION, ["test"]),
-    (TEST_REGION, None),
-])
+@pytest.mark.parametrize(
+    "region, tags",
+    [
+        (TEST_REGION, ["test"]),
+        (TEST_REGION, None),
+    ],
+)
 def test_create_reserved_ip(request, test_linode_client, region, tags):
     client = test_linode_client
-    reserved_ip = client.networking.reserved_ip_create(
-        region=region,
-        tags=tags
-    )
+    reserved_ip = client.networking.reserved_ip_create(region=region, tags=tags)
     request.addfinalizer(reserved_ip.delete)
 
     verify_reserved_ip(reserved_ip)
@@ -408,10 +414,7 @@ def test_create_reserved_ip_wo_region_fail(test_linode_client):
     client = test_linode_client
 
     with pytest.raises(ApiError) as exc_info:
-        client.networking.reserved_ip_create(
-            region=None,
-            tags=["test"]
-        )
+        client.networking.reserved_ip_create(region=None, tags=["test"])
 
     error_msg = str(exc_info.value.json)
     assert exc_info.value.status == 400
@@ -426,12 +429,16 @@ def test_update_reserved_ip_tags(test_linode_client, create_reserved_ip):
 
     reserved_ip.tags = ["updated"]
     reserved_ip.save()
-    reserved_ip = client.networking.reserved_ips(ReservedIPAddress.address==reserved_ip.address)[0]
+    reserved_ip = client.networking.reserved_ips(
+        ReservedIPAddress.address == reserved_ip.address
+    )[0]
     verify_reserved_ip(reserved_ip)
     assert reserved_ip.tags == ["updated"]
 
 
-def test_create_reserved_ip_assigned(test_linode_client, create_reserved_ip_assigned):
+def test_create_reserved_ip_assigned(
+    test_linode_client, create_reserved_ip_assigned
+):
     client = test_linode_client
     linode, reserved_ip = create_reserved_ip_assigned
     verify_reserved_ip_assigned(reserved_ip, linode)
@@ -451,7 +458,9 @@ def test_create_reserved_ip_assigned(test_linode_client, create_reserved_ip_assi
     reserved_ips_list = client.networking.reserved_ips()
     assert reserved_ip.address not in [ip.address for ip in reserved_ips_list]
 
-    reserved_ips_list = client.networking.reserved_ips(ReservedIPAddress.address==reserved_ip.address)
+    reserved_ips_list = client.networking.reserved_ips(
+        ReservedIPAddress.address == reserved_ip.address
+    )
     assert len(reserved_ips_list) == 0
 
     delattr(linode, "_ips")
@@ -464,7 +473,9 @@ def test_create_reserved_ip_assigned(test_linode_client, create_reserved_ip_assi
 def test_get_reserved_ip_types(test_linode_client, create_reserved_ip):
     client = test_linode_client
     endpoint = client.base_url + "/networking/reserved/ips/types"
-    types = requests.get(endpoint).json()["data"]  # Pricing should be publicly available
+    types = requests.get(endpoint).json()[
+        "data"
+    ]  # Pricing should be publicly available
 
     assert isinstance(types, list)
     assert types[0]["id"] == "reserved-ipv4"
@@ -476,19 +487,28 @@ def test_get_reserved_ip_types(test_linode_client, create_reserved_ip):
 
 
 @pytest.mark.smoke
-@pytest.mark.parametrize("reserved, region", [
-    (True, TEST_REGION),
-    (True, None),
-])
-def test_create_reserved_ip_with_allocate(test_linode_client, create_linode, reserved, region):
+@pytest.mark.parametrize(
+    "reserved, region",
+    [
+        (True, TEST_REGION),
+        (True, None),
+    ],
+)
+def test_create_reserved_ip_with_allocate(
+    test_linode_client, create_linode, reserved, region
+):
     client = test_linode_client
     linode = create_linode
 
     if region:
-        reserved_ip = client.networking.ip_allocate(reserved=reserved, region=TEST_REGION)
+        reserved_ip = client.networking.ip_allocate(
+            reserved=reserved, region=TEST_REGION
+        )
         verify_reserved_ip(reserved_ip)
     else:
-        reserved_ip = client.networking.ip_allocate(reserved=reserved, linode=linode.id)
+        reserved_ip = client.networking.ip_allocate(
+            reserved=reserved, linode=linode.id
+        )
         verify_reserved_ip_assigned(reserved_ip, linode)
 
     assert reserved_ip.tags == []
@@ -515,7 +535,9 @@ def test_reserve_ephemeral_ip(test_linode_client, create_linode):
     assert ip_address.reserved == False
 
 
-def test_convert_unassigned_reserved_ip_to_ephemeral(test_linode_client, create_reserved_ip):
+def test_convert_unassigned_reserved_ip_to_ephemeral(
+    test_linode_client, create_reserved_ip
+):
     client = test_linode_client
     reserved_ip = create_reserved_ip
     verify_reserved_ip(reserved_ip)
@@ -524,5 +546,7 @@ def test_convert_unassigned_reserved_ip_to_ephemeral(test_linode_client, create_
     ip_address.reserved = False
     ip_address.save()
 
-    reserved_ips_list = client.networking.reserved_ips(ReservedIPAddress.address==reserved_ip.address)
+    reserved_ips_list = client.networking.reserved_ips(
+        ReservedIPAddress.address == reserved_ip.address
+    )
     assert len(reserved_ips_list) == 0

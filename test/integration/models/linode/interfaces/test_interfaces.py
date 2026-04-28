@@ -383,11 +383,13 @@ def test_linode_interface_firewalls(e2e_test_firewall, linode_interface_public):
     assert firewall.label == e2e_test_firewall.label
 
 
-@pytest.mark.parametrize("iface_type", [
-    InterfaceGeneration.LEGACY_CONFIG,
-    InterfaceGeneration.LINODE
-])
-def test_linode_interfaces_with_reserved_ips(test_linode_client, e2e_test_firewall, create_reserved_ip, iface_type):
+@pytest.mark.parametrize(
+    "iface_type",
+    [InterfaceGeneration.LEGACY_CONFIG, InterfaceGeneration.LINODE],
+)
+def test_linode_interfaces_with_reserved_ips(
+    test_linode_client, e2e_test_firewall, create_reserved_ip, iface_type
+):
     client = test_linode_client
     reserved_ip = create_reserved_ip
     label = get_test_label(length=8)
@@ -400,10 +402,12 @@ def test_linode_interfaces_with_reserved_ips(test_linode_client, e2e_test_firewa
             label=label,
             firewall=e2e_test_firewall,
             interface_generation=iface_type,
-            ipv4=[reserved_ip.address]
+            ipv4=[reserved_ip.address],
         )
     else:
-        interface = build_interface_public_ipv4(e2e_test_firewall.id, reserved_ip.address)
+        interface = build_interface_public_ipv4(
+            e2e_test_firewall.id, reserved_ip.address
+        )
         linode, _ = client.linode.instance_create(
             "g6-nanode-1",
             reserved_ip.region,
@@ -422,10 +426,14 @@ def test_linode_interfaces_with_reserved_ips(test_linode_client, e2e_test_firewa
     assert linode_ips[0].assigned_entity.id == linode.id
     assert linode_ips[0].assigned_entity.type == "linode"
     assert linode_ips[0].assigned_entity.label == linode.label
-    assert linode_ips[0].assigned_entity.url == f"/v4/linode/instances/{linode.id}"
+    assert (
+        linode_ips[0].assigned_entity.url == f"/v4/linode/instances/{linode.id}"
+    )
 
     linode.delete()
-    reserved_ips_list = client.networking.reserved_ips(ReservedIPAddress.address==reserved_ip.address)
+    reserved_ips_list = client.networking.reserved_ips(
+        ReservedIPAddress.address == reserved_ip.address
+    )
     assert len(reserved_ips_list) == 1
     assert reserved_ips_list[0].reserved == True
     # assert linode_ips[0].tags == ["test"]  # TODO Does not work at the moment - during clarifications with API Team

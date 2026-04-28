@@ -114,7 +114,9 @@ def test_create_nb(test_linode_client, e2e_test_firewall):
     nb.delete()
 
 
-def test_create_nb_with_reserved_ip(test_linode_client, e2e_test_firewall, create_reserved_ip):
+def test_create_nb_with_reserved_ip(
+    test_linode_client, e2e_test_firewall, create_reserved_ip
+):
     client = test_linode_client
     reserved_ip = create_reserved_ip
     label = get_test_label(8)
@@ -134,7 +136,9 @@ def test_create_nb_with_reserved_ip(test_linode_client, e2e_test_firewall, creat
     assert nb.ipv4.reserved == True
 
     nb.delete()
-    reserved_ip = client.networking.reserved_ips(ReservedIPAddress.address==reserved_ip.address)[0]
+    reserved_ip = client.networking.reserved_ips(
+        ReservedIPAddress.address == reserved_ip.address
+    )[0]
     assert reserved_ip.assigned_entity is None
 
 

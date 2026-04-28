@@ -20,8 +20,12 @@ def create_tag_with_reserved_ip(test_linode_client, create_reserved_ip):
     unique_tag = get_test_label() + "_tag"
     reserved_ip = create_reserved_ip
 
-    tag = test_linode_client.tags.create(unique_tag, reserved_ipv4_addresses=[reserved_ip.address])
-    reserved_ip = test_linode_client.networking.reserved_ips(ReservedIPAddress.address==reserved_ip.address)[0]
+    tag = test_linode_client.tags.create(
+        unique_tag, reserved_ipv4_addresses=[reserved_ip.address]
+    )
+    reserved_ip = test_linode_client.networking.reserved_ips(
+        ReservedIPAddress.address == reserved_ip.address
+    )[0]
 
     yield tag, reserved_ip
 
@@ -35,7 +39,9 @@ def test_get_tag(test_linode_client, test_tag):
     assert tag.id == test_tag.id
 
 
-def test_get_tag_with_reserved_ip(test_linode_client, create_tag_with_reserved_ip):
+def test_get_tag_with_reserved_ip(
+    test_linode_client, create_tag_with_reserved_ip
+):
     tag, reserved_ip = create_tag_with_reserved_ip
     tag = test_linode_client.load(Tag, tag.id).objects[0]
 
@@ -45,5 +51,7 @@ def test_get_tag_with_reserved_ip(test_linode_client, create_tag_with_reserved_i
     assert tag.tags == reserved_ip.tags
 
     tag.delete()
-    reserved_ip = test_linode_client.networking.reserved_ips(ReservedIPAddress.address==reserved_ip.address)
+    reserved_ip = test_linode_client.networking.reserved_ips(
+        ReservedIPAddress.address == reserved_ip.address
+    )
     assert len(reserved_ip) == 0

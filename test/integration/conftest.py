@@ -735,14 +735,15 @@ def create_reserved_ip(test_linode_client):
     client = test_linode_client
     region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     reserved_ip = client.networking.reserved_ip_create(
-        region=region,
-        tags=["test"]
+        region=region, tags=["test"]
     )
 
     yield reserved_ip
 
     # Delete only if IP exists (some tests delete it earlier)
-    if client.networking.reserved_ips(ReservedIPAddress.address==reserved_ip.address):
+    if client.networking.reserved_ips(
+        ReservedIPAddress.address == reserved_ip.address
+    ):
         reserved_ip.delete()
 
 
@@ -760,10 +761,14 @@ def create_reserved_ip_assigned(test_linode_client, create_linode):
         region=linode.region,
     )
 
-    reserved_ip = test_linode_client.load(ReservedIPAddress, reserved_ip.address)
+    reserved_ip = test_linode_client.load(
+        ReservedIPAddress, reserved_ip.address
+    )
 
     yield linode, reserved_ip
 
     # Delete only if IP exists (some tests delete it earlier)
-    if client.networking.reserved_ips(ReservedIPAddress.address==reserved_ip.address):
+    if client.networking.reserved_ips(
+        ReservedIPAddress.address == reserved_ip.address
+    ):
         reserved_ip.delete()
