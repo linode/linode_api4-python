@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
@@ -17,6 +17,8 @@ from linode_api4.objects import (
     Region,
 )
 from linode_api4.objects.base import _flatten_request_body_recursive
+from linode_api4.objects.networking import ReservedIPAddress, ReservedIPType
+from linode_api4.paginated_list import PaginatedList
 from linode_api4.util import drop_null_keys
 
 
@@ -328,10 +330,23 @@ class NetworkingGroup(Group):
             },
         )
 
-    def ip_allocate(self, linode, public=True):
+    def ip_allocate(
+        self,
+        linode: Optional[Union[Instance, int]] = None,
+        public: bool = True,
+        reserved: bool = False,
+        region: Optional[Union[Region, str]] = None,
+    ) -> IPAddress:
         """
-        Allocates an IP to a Instance you own.  Additional IPs must be requested
-        by opening a support ticket first.
+        Allocates an IP to an Instance you own, or reserves a new IP address.
+
+        When ``reserved`` is False (default), ``linode`` is required and an
+        ephemeral IP is allocated and assigned to that Instance.
+
+        When ``reserved`` is True, either ``region`` or ``linode`` must be
+        provided.  Passing only ``region`` creates an unassigned reserved IP.
+        Passing ``linode`` (with or without ``region``) creates a reserved IP
+        in the Instance's region and assigns it to that Instance.
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/post-allocate-ip
 
@@ -339,18 +354,42 @@ class NetworkingGroup(Group):
         :type linode: Instance or int
         :param public: If True, allocate a public IP address.  Defaults to True.
         :type public: bool
+        :param reserved: If True, reserve the new IP address.
+                         NOTE: Reserved IP feature may not currently be available to all users.
+        :type reserved: bool
+        :param region: The region for the reserved IP (required when reserved=True and linode is not set).
+                       NOTE: Reserved IP feature may not currently be available to all users.
+        :type region: str or Region
 
         :returns: The new IPAddress.
         :rtype: IPAddress
         """
-        result = self.client.post(
-            "/networking/ips/",
-            data={
-                "linode_id": linode.id if isinstance(linode, Base) else linode,
-                "type": "ipv4",
-                "public": public,
-            },
-        )
+        if not reserved and linode is None:
+            raise ValueError("linode is required when reserved is False.")
+        if reserved and linode is None and region is None:
+            raise ValueError(
+                "Either linode or region must be provided when reserved is True."
+            )
+        if not reserved and region is not None:
+            raise ValueError("region is only valid when reserved is True.")
+
+        data = {
+            "type": "ipv4",
+            "public": public,
+        }
+
+        if linode is not None:
+            data["linode_id"] = (
+                linode.id if isinstance(linode, Base) else linode
+            )
+
+        if reserved:
+            data["reserved"] = True
+
+        if region is not None:
+            data["region"] = region.id if isinstance(region, Base) else region
+
+        result = self.client.post("/networking/ips/", data=data)
 
         if not "address" in result:
             raise UnexpectedResponseError(
@@ -510,3 +549,76 @@ class NetworkingGroup(Group):
             return False
 
         return True
+
+    def reserved_ips(self, *filters) -> PaginatedList:
+        """
+        Returns a list of reserved IPv4 addresses on your account.
+
+        NOTE: Reserved IP feature may not currently be available to all users.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-reserved-ips
+
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
+
+        :returns: A list of reserved IP addresses on the account.
+        :rtype: PaginatedList of ReservedIPAddress
+        """
+        return self.client._get_and_filter(ReservedIPAddress, *filters)
+
+    def reserved_ip_create(
+        self,
+        region: Union[Region, str],
+        tags: Optional[List[str]] = None,
+        **kwargs,
+    ) -> ReservedIPAddress:
+        """
+        Reserves a new IPv4 address in the given region.
+
+        NOTE: Reserved IP feature may not currently be available to all users.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-reserved-ip
+
+        :param region: The region in which to reserve the IP.
+        :type region: str or Region
+        :param tags: Tags to apply to the reserved IP.
+        :type tags: list of str
+
+        :returns: The new reserved IP address.
+        :rtype: ReservedIPAddress
+        """
+        params = {
+            "region": region.id if isinstance(region, Region) else region,
+        }
+        if tags is not None:
+            params["tags"] = tags
+        params.update(kwargs)
+
+        result = self.client.post("/networking/reserved/ips", data=params)
+
+        if "address" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when reserving IP address!", json=result
+            )
+
+        return ReservedIPAddress(self.client, result["address"], result)
+
+    def reserved_ip_types(self, *filters) -> PaginatedList:
+        """
+        Returns a list of reserved IP types with pricing information.
+
+        NOTE: Reserved IP feature may not currently be available to all users.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-reserved-ip-types
+
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
+
+        :returns: A list of reserved IP types.
+        :rtype: PaginatedList of ReservedIPType
+        """
+        return self.client._get_and_filter(
+            ReservedIPType, *filters, endpoint="/networking/reserved/ips/types"
+        )

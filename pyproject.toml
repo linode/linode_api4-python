@@ -90,6 +90,8 @@ remove-all-unused-imports = true
 remove-duplicate-keys = false
 
 [tool.pytest.ini_options]
+testpaths = ["test"]
+python_files = ["*_test.py", "test_*.py"]
 markers = [
     "smoke: mark a test as a smoke test",
     "flaky: mark a test as a flaky test for rerun"

@@ -1539,7 +1539,7 @@ class Instance(Base):
         b = Backup(self._client, result["id"], self.id, result)
         return b
 
-    def ip_allocate(self, public=False):
+    def ip_allocate(self, public=False, address=None):
         """
         Allocates a new :any:`IPAddress` for this Instance.  Additional public
         IPs require justification, and you may need to open a :any:`SupportTicket`
@@ -1551,17 +1551,26 @@ class Instance(Base):
         :param public: If the new IP should be public or private.  Defaults to
                        private.
         :type public: bool
+        :param address: A reserved IPv4 address to assign to this Instance instead
+                        of allocating a new ephemeral IP.  The address must be an
+                        unassigned reserved IP owned by this account.
+                        NOTE: Reserved IP feature may not currently be available to all users.
+        :type address: str
 
         :returns: The new IPAddress
         :rtype: IPAddress
         """
+        data = {
+            "type": "ipv4",
+            "public": public,
+        }
+        if address is not None:
+            data["address"] = address
+
         result = self._client.post(
             "{}/ips".format(Instance.api_endpoint),
             model=self,
-            data={
-                "type": "ipv4",
-                "public": public,
-            },
+            data=data,
         )
 
         if not "address" in result:

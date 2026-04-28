@@ -162,6 +162,7 @@ class LinodeGroup(Group):
         interface_generation: Optional[Union[InterfaceGeneration, str]] = None,
         network_helper: Optional[bool] = None,
         maintenance_policy: Optional[str] = None,
+        ipv4: Optional[List[str]] = None,
         **kwargs,
     ):
         """
@@ -336,6 +337,9 @@ class LinodeGroup(Group):
         :param maintenance_policy: The slug of the maintenance policy to apply during maintenance.
                                       If not provided, the default policy (linode/migrate) will be applied.
         :type maintenance_policy: str
+        :param ipv4: A list of reserved IPv4 addresses to assign to this Instance.
+                     NOTE: Reserved IP feature may not currently be available to all users.
+        :type ipv4: list[str]
 
         :returns: A new Instance object, or a tuple containing the new Instance and
                   the generated password.
@@ -373,6 +377,7 @@ class LinodeGroup(Group):
             "interfaces": interfaces,
             "interface_generation": interface_generation,
             "network_helper": network_helper,
+            "ipv4": ipv4,
         }
 
         params.update(kwargs)
