@@ -114,7 +114,6 @@ def test_create_nb(test_linode_client, e2e_test_firewall):
     nb.delete()
 
 
-@pytest.mark.skip(reason="Currently it fails to assign ReservedIP via ipv4 param")
 def test_create_nb_with_reserved_ip(test_linode_client, e2e_test_firewall, create_reserved_ip):
     client = test_linode_client
     reserved_ip = create_reserved_ip

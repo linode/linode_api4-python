@@ -736,7 +736,7 @@ def create_reserved_ip(test_linode_client):
     region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     reserved_ip = client.networking.reserved_ip_create(
         region=region,
-        tags=["test1"]
+        tags=["test"]
     )
 
     yield reserved_ip
