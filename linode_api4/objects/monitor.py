@@ -448,6 +448,7 @@ class AlertDefinition(DerivedBase):
         "scope": Property(AlertScope),
         "regions": Property(mutable=True),
         "entities": Property(json_object=AlertEntities),
+        "channel_ids": Property(mutable=True),
     }
 
 
