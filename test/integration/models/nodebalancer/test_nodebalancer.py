@@ -122,7 +122,7 @@ def test_create_nb_with_reserved_ip(
     label = get_test_label(8)
 
     nb = client.nodebalancer_create(
-        region=TEST_REGION,
+        region=reserved_ip.region,
         label=label,
         firewall=e2e_test_firewall.id,
         client_udp_sess_throttle=5,
