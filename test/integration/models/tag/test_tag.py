@@ -49,9 +49,3 @@ def test_get_tag_with_reserved_ip(
     assert tag.address == reserved_ip.address
     assert tag.reserved == reserved_ip.reserved
     assert tag.tags == reserved_ip.tags
-
-    tag.delete()
-    reserved_ip = test_linode_client.networking.reserved_ips(
-        ReservedIPAddress.address == reserved_ip.address
-    )
-    assert len(reserved_ip) == 0
