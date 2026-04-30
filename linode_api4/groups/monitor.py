@@ -8,15 +8,15 @@ from linode_api4.objects import (
     AlertDefinition,
     AlertDefinitionEntity,
     AlertScope,
-    MonitorDashboard,
-    MonitorMetricsDefinition,
-    MonitorService,
-    MonitorServiceToken,
     LogsDestination,
     LogsDestinationType,
     LogsStream,
     LogsStreamStatus,
     LogsStreamType,
+    MonitorDashboard,
+    MonitorMetricsDefinition,
+    MonitorService,
+    MonitorServiceToken,
 )
 
 __all__ = [
@@ -364,14 +364,14 @@ class MonitorGroup(Group):
         return self.client._get_and_filter(LogsDestination, *filters)
 
     def destination_create(
-            self,
-            label: str,
-            type: Union[LogsDestinationType, str],
-            access_key_id: str,
-            access_key_secret: str,
-            bucket_name: str,
-            host: str,
-            path: Optional[str] = None,
+        self,
+        label: str,
+        type: Union[LogsDestinationType, str],
+        access_key_id: str,
+        access_key_secret: str,
+        bucket_name: str,
+        host: str,
+        path: Optional[str] = None,
     ) -> LogsDestination:
         """
         Creates a new :any:`LogsDestination` for logs on this account with
@@ -418,7 +418,7 @@ class MonitorGroup(Group):
                 "access_key_secret": access_key_secret,
                 "bucket_name": bucket_name,
                 "host": host,
-            }
+            },
         }
 
         if path is not None:
@@ -458,11 +458,11 @@ class MonitorGroup(Group):
         return self.client._get_and_filter(LogsStream, *filters)
 
     def stream_create(
-            self,
-            destinations: list[int],
-            label: str,
-            type: Union[LogsStreamType, str],
-            status: Optional[Union[LogsStreamStatus, str]] = None
+        self,
+        destinations: list[int],
+        label: str,
+        type: Union[LogsStreamType, str],
+        status: Optional[Union[LogsStreamStatus, str]] = None,
     ) -> LogsStream:
         """
         Creates a new :any:`LogsStream` for logs on this account with

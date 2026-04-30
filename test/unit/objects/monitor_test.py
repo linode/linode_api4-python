@@ -3,12 +3,12 @@ from test.unit.base import ClientBaseCase
 
 from linode_api4.objects import (
     AlertChannel,
-    MonitorDashboard,
-    MonitorService,
     LogsDestination,
     LogsDestinationHistory,
     LogsStream,
     LogsStreamDestination,
+    MonitorDashboard,
+    MonitorService,
 )
 
 
@@ -198,12 +198,8 @@ class LogsDestinationTest(ClientBaseCase):
         self.assertEqual(dest.type, "akamai_object_storage")
         self.assertEqual(dest.status, "active")
         self.assertEqual(dest.version, 1)
-        self.assertEqual(
-            dest.created, datetime.datetime(2024, 6, 1, 12, 0, 0)
-        )
-        self.assertEqual(
-            dest.updated, datetime.datetime(2024, 6, 1, 12, 0, 0)
-        )
+        self.assertEqual(dest.created, datetime.datetime(2024, 6, 1, 12, 0, 0))
+        self.assertEqual(dest.updated, datetime.datetime(2024, 6, 1, 12, 0, 0))
         self.assertEqual(dest.created_by, "tester")
         self.assertEqual(dest.updated_by, "tester")
 
@@ -337,9 +333,7 @@ class LogsDestinationTest(ClientBaseCase):
         with self.mock_delete() as m:
             dest.delete()
 
-        self.assertEqual(
-            m.call_url, "/monitor/streams/destinations/1"
-        )
+        self.assertEqual(m.call_url, "/monitor/streams/destinations/1")
 
 
 class LogsStreamTest(ClientBaseCase):
@@ -361,8 +355,12 @@ class LogsStreamTest(ClientBaseCase):
         self.assertEqual(stream.type, "audit_logs")
         self.assertEqual(stream.status, "active")
         self.assertEqual(stream.version, 1)
-        self.assertEqual(stream.created, datetime.datetime(2024, 6, 1, 12, 0, 0))
-        self.assertEqual(stream.updated, datetime.datetime(2024, 6, 1, 12, 0, 0))
+        self.assertEqual(
+            stream.created, datetime.datetime(2024, 6, 1, 12, 0, 0)
+        )
+        self.assertEqual(
+            stream.updated, datetime.datetime(2024, 6, 1, 12, 0, 0)
+        )
         self.assertEqual(stream.created_by, "tester")
         self.assertEqual(stream.updated_by, "tester")
 
@@ -382,7 +380,9 @@ class LogsStreamTest(ClientBaseCase):
         self.assertIsNotNone(dest.details)
         self.assertEqual(dest.details.bucket_name, "primary-bucket")
         self.assertEqual(dest.details.access_key_id, "1ABCD23EFG4HIJKLMNO5")
-        self.assertEqual(dest.details.host, "primary-bucket.us-east-1.linodeobjects.com")
+        self.assertEqual(
+            dest.details.host, "primary-bucket.us-east-1.linodeobjects.com"
+        )
         self.assertEqual(dest.details.path, "audit-logs")
 
     def test_stream_history(self):
@@ -399,7 +399,9 @@ class LogsStreamTest(ClientBaseCase):
         self.assertEqual(snapshot.type, "audit_logs")
         self.assertEqual(snapshot.status, "active")
         self.assertEqual(snapshot.version, 2)
-        self.assertEqual(snapshot.updated, datetime.datetime(2024, 6, 2, 9, 0, 0))
+        self.assertEqual(
+            snapshot.updated, datetime.datetime(2024, 6, 2, 9, 0, 0)
+        )
         self.assertIsNotNone(snapshot.destinations)
 
     def test_create_stream(self):
@@ -411,7 +413,14 @@ class LogsStreamTest(ClientBaseCase):
             "label": "new-stream",
             "type": "audit_logs",
             "status": "active",
-            "destinations": [{"id": 1, "label": "my-logs-destination", "type": "akamai_object_storage", "details": {}}],
+            "destinations": [
+                {
+                    "id": 1,
+                    "label": "my-logs-destination",
+                    "type": "akamai_object_storage",
+                    "details": {},
+                }
+            ],
             "created": "2024-07-01T00:00:00",
             "updated": "2024-07-01T00:00:00",
             "created_by": "tester",
@@ -449,7 +458,14 @@ class LogsStreamTest(ClientBaseCase):
             "label": "renamed-stream",
             "type": "audit_logs",
             "status": "inactive",
-            "destinations": [{"id": 1, "label": "my-logs-destination", "type": "akamai_object_storage", "details": {}}],
+            "destinations": [
+                {
+                    "id": 1,
+                    "label": "my-logs-destination",
+                    "type": "akamai_object_storage",
+                    "details": {},
+                }
+            ],
             "created": "2024-06-01T12:00:00",
             "updated": "2024-06-03T08:00:00",
             "created_by": "tester",
@@ -479,7 +495,9 @@ class LogsStreamTest(ClientBaseCase):
         self.assertEqual(m.call_data["destinations"], [1])
         self.assertTrue(result)
 
-    def test_fail_update_stream_destinations_when_no_destination_ids_passed(self):
+    def test_fail_update_stream_destinations_when_no_destination_ids_passed(
+        self,
+    ):
         """
         Test that update_destinations raises exception and doesn't send PUT request when id list is empty.
         """
@@ -489,7 +507,9 @@ class LogsStreamTest(ClientBaseCase):
                 stream.update_destinations([])
 
         self.assertFalse(m.called)
-        self.assertIn("A destination id must be provided.", str(context.exception))
+        self.assertIn(
+            "A destination id must be provided.", str(context.exception)
+        )
 
     def test_delete_stream(self):
         """

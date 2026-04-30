@@ -145,6 +145,7 @@ class LogsDestinationType(StrEnum):
     """
     The type of destination for logs data sync. Currently, only ``akamai_object_storage`` is supported.
     """
+
     akamai_object_storage = "akamai_object_storage"
 
 
@@ -609,8 +610,10 @@ class LogsDestination(Base):
         """
 
         return self._client._get_objects(
-            "{}/history".format(LogsDestination.api_endpoint.format(id=self.id)),
-            LogsDestinationHistory
+            "{}/history".format(
+                LogsDestination.api_endpoint.format(id=self.id)
+            ),
+            LogsDestinationHistory,
         )
 
 
@@ -694,14 +697,11 @@ class LogsStream(Base):
         """
         if not destinations:
             raise ValueError("A destination id must be provided.")
-        payload = {
-            "destinations": destinations
-        }
+        payload = {"destinations": destinations}
 
         # The Linode API PUT request expects the flat list of IDs
         result = self._client.put(
-            self.api_endpoint.format(id=self.id),
-            data=payload
+            self.api_endpoint.format(id=self.id), data=payload
         )
         self._populate(result)
 
@@ -717,5 +717,5 @@ class LogsStream(Base):
 
         return self._client._get_objects(
             "{}/history".format(LogsStream.api_endpoint.format(id=self.id)),
-            LogsStreamHistory
+            LogsStreamHistory,
         )
