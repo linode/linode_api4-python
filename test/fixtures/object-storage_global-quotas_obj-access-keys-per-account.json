@@ -1,0 +1,9 @@
+{
+  "quota_id": "obj-access-keys-per-account",
+  "quota_type": "obj-access-keys",
+  "quota_name": "Object Storage Access Keys per Account",
+  "description": "Maximum number of access keys this customer is allowed to have on their account.",
+  "resource_metric": "access_key",
+  "quota_limit": 100,
+  "has_usage": true
+}
