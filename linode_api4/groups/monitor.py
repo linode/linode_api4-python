@@ -18,6 +18,10 @@ from linode_api4.objects import (
     MonitorService,
     MonitorServiceToken,
 )
+from linode_api4.objects.monitor import (
+    AkamaiObjectStorageLogsDestinationDetails,
+    CustomHTTPSLogsDestinationDetails,
+)
 
 __all__ = [
     "MonitorGroup",
@@ -367,44 +371,60 @@ class MonitorGroup(Group):
         self,
         label: str,
         type: Union[LogsDestinationType, str],
-        access_key_id: str,
-        access_key_secret: str,
-        bucket_name: str,
-        host: str,
-        path: Optional[str] = None,
+        details: Union[
+            AkamaiObjectStorageLogsDestinationDetails,
+            CustomHTTPSLogsDestinationDetails,
+        ],
     ) -> LogsDestination:
         """
-        Creates a new :any:`LogsDestination` for logs on this account with
-        the given label, type, and object storage details. For example::
+        Creates a new :any:`LogsDestination` for logs on this account.
+
+        For an ``akamai_object_storage`` destination::
 
            client = LinodeClient(TOKEN)
 
            new_destination = client.monitor.destination_create(
                label="OBJ_logs_destination",
                type="akamai_object_storage",
-               access_key_id="1ABCD23EFG4HIJKLMNO5",
-               access_key_secret="1aB2CD3e4fgHi5JK6lmnop7qR8STU9VxYzabcdefHh",
-               bucket_name="primary-bucket",
-               host="primary-bucket-1.us-east-12.linodeobjects.com",
-               path="audit-logs"
-            )
+               details=AkamaiObjectStorageLogsDestinationDetails(
+                   access_key_id="1ABCD23EFG4HIJKLMNO5",
+                   access_key_secret="1aB2CD3e4fgHi5JK6lmnop7qR8STU9VxYzabcdefHh",
+                   bucket_name="primary-bucket",
+                   host="primary-bucket-1.us-east-12.linodeobjects.com",
+                   path="audit-logs",
+               )
+           )
+
+        For a ``custom_https`` destination::
+
+           new_destination = client.monitor.destination_create(
+               label="custom_logs_destination",
+               type="custom_https",
+               details=CustomHTTPSLogsDestinationDetails(
+                   endpoint_url="https://my-site.com/log-storage/basicAuth",
+                   authentication=DestinationAuthentication(
+                       type="basic",
+                       details=BasicAuthenticationDetails(
+                           basic_authentication_user="user",
+                           basic_authentication_password="pass",
+                       ),
+                   ),
+                   data_compression="gzip",
+                   content_type="application/json",
+               )
+           )
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/post-destination
 
-        :param label: The name for this logs destination
+        :param label: The name for this logs destination.
         :type label: str
-        :param type: The type of destination for logs data sync. Currently, only ``akamai_object_storage`` is supported for use.
+        :param type: The type of destination — ``akamai_object_storage`` or ``custom_https``.
         :type type: str or LogsDestinationType
-        :param access_key_id: The unique identifier assigned to the Object Storage key required for authentication to the bucket.
-        :type access_key_id: str
-        :param access_key_secret: The Object Storage key's secret key.
-        :type access_key_secret: str
-        :param bucket_name: The name of the Object Storage bucket
-        :type bucket_name: str
-        :param host: The hostname where the Object Storage bucket can be accessed
-        :type host: str
-        :param path: (Optional) Custom path for log storage in your Object Storage bucket.
-        :type path: Optional[str]
+        :param details: A typed details object matching the destination type.
+                        Use :class:`AkamaiObjectStorageLogsDestinationDetails` for
+                        ``akamai_object_storage`` or :class:`CustomHTTPSLogsDestinationDetails`
+                        for ``custom_https``.
+        :type details: AkamaiObjectStorageLogsDestinationDetails or CustomHTTPSLogsDestinationDetails
 
         :returns: The newly created logs destination.
         :rtype: LogsDestination
@@ -413,16 +433,8 @@ class MonitorGroup(Group):
         params = {
             "label": label,
             "type": type,
-            "details": {
-                "access_key_id": access_key_id,
-                "access_key_secret": access_key_secret,
-                "bucket_name": bucket_name,
-                "host": host,
-            },
+            "details": details.dict,
         }
-
-        if path is not None:
-            params["details"]["path"] = path
 
         result = self.client.post("/monitor/streams/destinations", data=params)
 

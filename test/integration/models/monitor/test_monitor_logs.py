@@ -1,5 +1,6 @@
 import os
 import urllib.request
+from test.integration.conftest import get_region
 from test.integration.helpers import (
     get_test_label,
     send_request_when_resource_available,
@@ -16,6 +17,7 @@ from linode_api4.objects import (
     ObjectStorageKeys,
 )
 from linode_api4.objects.monitor import (
+    AkamaiObjectStorageLogsDestinationDetails,
     LogsDestination,
     LogsStream,
     LogsStreamStatus,
@@ -62,8 +64,9 @@ def _create_destination_with_bucket(
     client: LinodeClient, key: ObjectStorageKeys
 ):
     """Helper that creates an OBJ bucket and a logs destination backed by it."""
+    region = get_region(client, {"Object Storage"})
     bucket = client.object_storage.bucket_create(
-        cluster_or_region="us-southeast",
+        cluster_or_region=region.id,
         label=get_test_label(),
         acl=ObjectStorageACL.PRIVATE,
         cors_enabled=False,
@@ -71,10 +74,12 @@ def _create_destination_with_bucket(
     dest = client.monitor.destination_create(
         label=get_test_label(),
         type="akamai_object_storage",
-        access_key_id=key.access_key,
-        access_key_secret=key.secret_key,
-        bucket_name=bucket.label,
-        host=f"{bucket.label}.us-southeast-1.linodeobjects.com",
+        details=AkamaiObjectStorageLogsDestinationDetails(
+            access_key_id=key.access_key,
+            access_key_secret=key.secret_key,
+            bucket_name=bucket.label,
+            host=bucket.hostname,
+        ),
     )
     return dest, bucket
 
@@ -203,10 +208,12 @@ def test_fails_to_create_destination_invalid_secret(
         test_linode_client.monitor.destination_create(
             label=get_test_label(),
             type="akamai_object_storage",
-            access_key_id="1",
-            access_key_secret="1",
-            bucket_name="some-bucket",
-            host="some-bucket.us-southeast-1.linodeobjects.com",
+            details=AkamaiObjectStorageLogsDestinationDetails(
+                access_key_id="1",
+                access_key_secret="1",
+                bucket_name="some-bucket",
+                host="some-bucket.us-southeast-1.linodeobjects.com",
+            ),
         )
     assert excinfo.value.status == 400
     assert excinfo.value.errors == ["Invalid access key id or secret key"]
@@ -225,10 +232,12 @@ def test_fails_to_create_destination_invalid_type(
         test_linode_client.monitor.destination_create(
             label=get_test_label(),
             type="invalid_type",
-            access_key_id="SOMEACCESSKEY",
-            access_key_secret="SOMESECRETKEY",
-            bucket_name="some-bucket",
-            host="some-bucket.us-southeast-1.linodeobjects.com",
+            details=AkamaiObjectStorageLogsDestinationDetails(
+                access_key_id="SOMEACCESSKEY",
+                access_key_secret="SOMESECRETKEY",
+                bucket_name="some-bucket",
+                host="some-bucket.us-southeast-1.linodeobjects.com",
+            ),
         )
     assert excinfo.value.status == 400
     assert excinfo.value.errors == [
@@ -249,10 +258,12 @@ def test_fails_to_create_destination_empty_required_fields(
         test_linode_client.monitor.destination_create(
             label=get_test_label(),
             type="akamai_object_storage",
-            access_key_id="",
-            access_key_secret="",
-            bucket_name="",
-            host="",
+            details=AkamaiObjectStorageLogsDestinationDetails(
+                access_key_id="",
+                access_key_secret="",
+                bucket_name="",
+                host="",
+            ),
         )
     assert excinfo.value.status == 400
     assert len(excinfo.value.errors) == 4

@@ -1,0 +1,36 @@
+{
+  "id": 2,
+  "label": "my-custom-https-destination",
+  "type": "custom_https",
+  "status": "active",
+  "details": {
+    "endpoint_url": "https://my-site.com/log-storage/basicAuth",
+    "authentication": {
+      "type": "basic",
+      "details": {
+        "basic_authentication_user": "John_Q",
+        "basic_authentication_password": "p@$$w0Rd"
+      }
+    },
+    "data_compression": "gzip",
+    "content_type": "application/json",
+    "custom_headers": [
+      {
+        "name": "Cache-Control",
+        "value": "max-age=0"
+      }
+    ],
+    "client_certificate_details": {
+      "client_ca_certificate": "-----BEGIN CERTIFICATE-----\nMIIBIjANBgkq...\n-----END CERTIFICATE-----",
+      "client_certificate": "-----BEGIN CERTIFICATE-----\nMIIBIjANBgkq...\n-----END CERTIFICATE-----",
+      "client_private_key": "-----BEGIN PRIVATE KEY-----\nMIIBIjANBgkq...\n-----END PRIVATE KEY-----",
+      "tls_hostname": "my-site.com"
+    }
+  },
+  "created": "2024-08-01T12:00:00",
+  "updated": "2024-08-01T12:00:00",
+  "created_by": "tester",
+  "updated_by": "tester",
+  "version": 1
+}
+

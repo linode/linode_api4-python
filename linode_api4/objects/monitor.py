@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from linode_api4.objects import DerivedBase
 from linode_api4.objects.base import Base, Property
@@ -20,8 +20,10 @@ __all__ = [
     "MonitorServiceToken",
     "RuleCriteria",
     "TriggerConditions",
+    "AkamaiObjectStorageLogsDestinationDetails",
+    "CustomHTTPSLogsDestinationDetails",
+    "LogsDestinationDetailsBase",
     "LogsDestination",
-    "LogsDestinationDetails",
     "LogsDestinationHistory",
     "LogsDestinationStatus",
     "LogsDestinationType",
@@ -143,10 +145,26 @@ class AlertStatus(StrEnum):
 
 class LogsDestinationType(StrEnum):
     """
-    The type of destination for logs data sync. Currently, only ``akamai_object_storage`` is supported.
+    The type of destination for logs data sync.
     """
 
     akamai_object_storage = "akamai_object_storage"
+    custom_https = "custom_https"
+
+
+class AuthenticationType(StrEnum):
+    none = "none"
+    basic = "basic"
+
+
+class DataCompressionType(StrEnum):
+    gzip = "gzip"
+    none = "none"
+
+
+class ContentType(StrEnum):
+    json = "application/json"
+    json_utf8 = "application/json; charset=utf-8"
 
 
 class LogsDestinationStatus(StrEnum):
@@ -541,9 +559,97 @@ class AlertChannel(Base):
 
 
 @dataclass
-class LogsDestinationDetails(JSONObject):
+class BasicAuthenticationDetails(JSONObject):
     """
-    Represents the details block for LogsDestination.
+    Includes additional parameters necessary to define basic authentication.
+    """
+
+    basic_authentication_user: Optional[str] = None
+    basic_authentication_password: Optional[str] = None
+
+
+@dataclass
+class DestinationAuthentication(JSONObject):
+    """
+    Authentication details required to access the endpoint_url.
+    """
+
+    type: Optional[AuthenticationType] = None
+    details: Optional[BasicAuthenticationDetails] = None
+
+
+@dataclass
+class CustomHeader(JSONObject):
+    """
+    Pairs of parameters used to optionally include custom headers in the request.
+    """
+
+    name: str = ""
+    value: str = ""
+
+
+@dataclass
+class ClientCertificateDetails(JSONObject):
+    """
+    Contains TLS client certificate information to additionally secure the connection.
+    """
+
+    client_ca_certificate: Optional[str] = None
+    client_certificate: Optional[str] = None
+    client_private_key: Optional[str] = None
+    tls_hostname: Optional[str] = None
+
+
+@dataclass
+class LogsDestinationDetailsBase(JSONObject):
+    """
+    Base class for Logs Destination details.
+    Use the factory method to instantiate the correct subclass based on destination type.
+    """
+
+    @classmethod
+    def load_by_type(
+        cls, dest_type: str, json_dict: dict
+    ) -> Optional["LogsDestinationDetailsBase"]:
+        """
+        Factory method that instantiates the correct details subclass
+        based on the destination type string.
+
+        :param dest_type: The destination type (e.g. "akamai_object_storage", "custom_https").
+        :param json_dict: The raw JSON dict for the details block.
+        :returns: A populated subclass instance, or None if json_dict is empty/None.
+        """
+        if not json_dict:
+            return None
+
+        if dest_type == LogsDestinationType.akamai_object_storage:
+            return AkamaiObjectStorageLogsDestinationDetails.from_json(
+                json_dict
+            )
+        elif dest_type == LogsDestinationType.custom_https:
+            return CustomHTTPSLogsDestinationDetails.from_json(json_dict)
+
+        return None
+
+
+@dataclass
+class CustomHTTPSLogsDestinationDetails(LogsDestinationDetailsBase):
+    """
+    Represents the details block for custom_https LogsDestination type.
+    """
+
+    endpoint_url: str = ""
+    authentication: Optional[DestinationAuthentication] = None
+    data_compression: Optional[DataCompressionType] = None
+    content_type: Optional[ContentType] = None
+    custom_headers: Optional[List[CustomHeader]] = None
+    client_certificate_details: Optional[ClientCertificateDetails] = None
+
+
+@dataclass
+class AkamaiObjectStorageLogsDestinationDetails(LogsDestinationDetailsBase):
+    """
+    Represents the details block for Akamai Object Storage LogsDestination type.
     Fields:
       - access_key_id: str - The unique identifier assigned to the Object Storage key required for authentication to the bucket.
       - bucket_name: str - The name of the Object Storage bucket.
@@ -568,7 +674,7 @@ class LogsDestinationHistory(Base):
     properties = {
         "created": Property(is_datetime=True),
         "created_by": Property(),
-        "details": Property(json_object=LogsDestinationDetails),
+        "details": Property(),
         "id": Property(identifier=True),
         "label": Property(),
         "status": Property(),
@@ -577,6 +683,17 @@ class LogsDestinationHistory(Base):
         "updated_by": Property(),
         "version": Property(),
     }
+
+    def _populate(self, json):
+        super()._populate(json)
+
+        if json and "details" in json and "type" in json:
+            self._set(
+                "details",
+                LogsDestinationDetailsBase.load_by_type(
+                    json["type"], json["details"]
+                ),
+            )
 
 
 class LogsDestination(Base):
@@ -591,7 +708,7 @@ class LogsDestination(Base):
     properties = {
         "created": Property(is_datetime=True),
         "created_by": Property(),
-        "details": Property(mutable=True, json_object=LogsDestinationDetails),
+        "details": Property(mutable=True),
         "id": Property(identifier=True),
         "label": Property(mutable=True),
         "status": Property(),
@@ -600,6 +717,17 @@ class LogsDestination(Base):
         "updated_by": Property(),
         "version": Property(),
     }
+
+    def _populate(self, json):
+        super()._populate(json)
+
+        if json and "details" in json and "type" in json:
+            self._set(
+                "details",
+                LogsDestinationDetailsBase.load_by_type(
+                    json["type"], json["details"]
+                ),
+            )
 
     @property
     def history(self):
@@ -636,7 +764,23 @@ class LogsStreamDestination(JSONObject):
     id: int = 0
     label: str = ""
     type: Optional[LogsDestinationType] = None
-    details: Optional[LogsDestinationDetails] = None
+    details: Optional[LogsDestinationDetailsBase] = None
+
+    @classmethod
+    def from_json(
+        cls, json: Dict[str, Any]
+    ) -> Optional["LogsStreamDestination"]:
+        if json is None:
+            return None
+
+        obj = super().from_json(json)
+
+        if obj and json.get("type"):
+            obj.details = LogsDestinationDetailsBase.load_by_type(
+                json["type"], json.get("details")
+            )
+
+        return obj
 
 
 class LogsStreamHistory(Base):
