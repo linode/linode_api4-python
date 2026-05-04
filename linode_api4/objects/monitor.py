@@ -31,6 +31,7 @@ __all__ = [
     "LogsStreamHistory",
     "LogsStreamType",
     "LogsStreamStatus",
+    "LogsStreamDetails",
     "LogsStreamDestination",
 ]
 
@@ -753,6 +754,34 @@ class LogsStreamStatus(StrEnum):
 
 class LogsStreamType(StrEnum):
     audit_logs = "audit_logs"
+    lke_audit_logs = "lke_audit_logs"
+
+
+@dataclass
+class LogsStreamDetails(JSONObject):
+    """
+    Additional details for a logs stream.
+
+    This object only applies to streams with a ``type`` of ``lke_audit_logs``.
+    Leave it out of requests that use a ``type`` of ``audit_logs``.
+
+    .. note::
+        When updating a stream, any existing settings need to be included to
+        maintain them. For example, if you're adding new ``cluster_ids`` to the
+        stream, you also need to include any existing ones to maintain them.
+        Run the Get a stream operation to review the existing ``details``
+        settings for a stream before submitting an update.
+
+    Fields:
+      - cluster_ids: List of LKE enterprise cluster IDs to include in the stream.
+                     Cannot be used when ``is_auto_add_all_clusters_enabled`` is ``True``.
+      - is_auto_add_all_clusters_enabled: When ``True``, newly added LKE enterprise
+                                          clusters on the account are automatically
+                                          included in the stream.
+    """
+
+    cluster_ids: Optional[List[int]] = None
+    is_auto_add_all_clusters_enabled: bool = False
 
 
 @dataclass
@@ -794,6 +823,7 @@ class LogsStreamHistory(Base):
         "created": Property(is_datetime=True),
         "created_by": Property(),
         "destinations": Property(json_object=LogsStreamDestination),
+        "details": Property(json_object=LogsStreamDetails),
         "id": Property(identifier=True),
         "label": Property(),
         "status": Property(),
@@ -817,6 +847,7 @@ class LogsStream(Base):
         "created": Property(is_datetime=True),
         "created_by": Property(),
         "destinations": Property(json_object=LogsStreamDestination),
+        "details": Property(mutable=True, json_object=LogsStreamDetails),
         "id": Property(identifier=True),
         "label": Property(mutable=True),
         "status": Property(mutable=True),

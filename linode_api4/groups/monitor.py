@@ -21,6 +21,7 @@ from linode_api4.objects import (
 from linode_api4.objects.monitor import (
     AkamaiObjectStorageLogsDestinationDetails,
     CustomHTTPSLogsDestinationDetails,
+    LogsStreamDetails,
 )
 
 __all__ = [
@@ -475,34 +476,49 @@ class MonitorGroup(Group):
         label: str,
         type: Union[LogsStreamType, str],
         status: Optional[Union[LogsStreamStatus, str]] = None,
+        details: Optional[LogsStreamDetails] = None,
     ) -> LogsStream:
         """
-        Creates a new :any:`LogsStream` for logs on this account with
-        the given label, type, and object storage details. For example::
+        Creates a new :any:`LogsStream` for logs on this account. For example::
 
            client = LinodeClient(TOKEN)
 
+           # audit_logs stream (no details required)
            new_stream = client.monitor.stream_create(
-               destinations= [1234],
+               destinations=[1234],
                label="Linode_services",
                status="active",
                type="audit_logs"
-            )
+           )
+
+           # lke_audit_logs stream with specific clusters
+           lke_stream = client.monitor.stream_create(
+               destinations=[1234],
+               label="LKE_audit_stream",
+               type="lke_audit_logs",
+               details=LogsStreamDetails(
+                   cluster_ids=[1111, 2222],
+                   is_auto_add_all_clusters_enabled=False,
+               )
+           )
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/post-stream
 
-        :param destinations: List of unique identifiers for the sync points that will receive logs data.
+        :param destinations: The unique identifier for the sync point that will receive logs data.
                             Run the List destinations operation and store the id values for each applicable destination.
                             At the moment only single destination is supported.
         :type destinations: list[int]
         :param label: The name of the stream. This is used for display purposes in Akamai Cloud Manager.
         :type label: str
-        :param type: The type of stream. Set this to ``audit_logs`` for logs consisting of all the control plane
-                    operations for the services in your Linodes.
-        :type type: str
+        :param type: The type of stream — ``audit_logs`` for Linode control plane logs,
+                     or ``lke_audit_logs`` for LKE enterprise cluster audit logs.
+        :type type: str or LogsStreamType
         :param status: (Optional) The availability status of the stream. Possible values are: ``active``, ``inactive``.
                         Defaults to ``active``.
         :type status: str
+        :param details: (Optional) Additional stream details. Only applicable for
+                        ``lke_audit_logs`` streams. Omit for ``audit_logs`` streams.
+        :type details: LogsStreamDetails
 
         :returns: The newly created logs stream.
         :rtype: LogsStream
@@ -516,6 +532,9 @@ class MonitorGroup(Group):
 
         if status is not None:
             params["status"] = status
+
+        if details is not None:
+            params["details"] = details.dict
 
         result = self.client.post("/monitor/streams", data=params)
 

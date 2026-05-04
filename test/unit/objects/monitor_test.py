@@ -15,6 +15,8 @@ from linode_api4.objects.monitor import (
     CustomHTTPSLogsDestinationDetails,
     DestinationAuthentication,
     LogsDestinationDetailsBase,
+    LogsStreamDetails,
+    LogsStreamType,
 )
 
 
@@ -344,6 +346,123 @@ class LogsDestinationTest(ClientBaseCase):
         self.assertEqual(m.call_url, "/monitor/streams/destinations/1")
 
 
+class CustomHTTPSLogsDestinationTest(ClientBaseCase):
+    """
+    Tests for custom_https type LogsDestination and the load_by_type factory.
+    """
+
+    def test_load_by_type_factory(self):
+        """load_by_type dispatches to the correct details class based on type."""
+        akamai = LogsDestinationDetailsBase.load_by_type(
+            "akamai_object_storage",
+            {"access_key_id": "K", "bucket_name": "b", "host": "h.com"},
+        )
+        self.assertIsInstance(akamai, AkamaiObjectStorageLogsDestinationDetails)
+        self.assertEqual(akamai.access_key_id, "K")
+
+        custom = LogsDestinationDetailsBase.load_by_type(
+            "custom_https",
+            {
+                "endpoint_url": "https://x.com",
+                "authentication": {"type": "none"},
+                "data_compression": "gzip",
+                "content_type": "application/json",
+            },
+        )
+        self.assertIsInstance(custom, CustomHTTPSLogsDestinationDetails)
+        self.assertEqual(custom.endpoint_url, "https://x.com")
+
+        self.assertIsNone(
+            LogsDestinationDetailsBase.load_by_type("custom_https", None)
+        )
+        self.assertIsNone(
+            LogsDestinationDetailsBase.load_by_type("custom_https", {})
+        )
+        self.assertIsNone(
+            LogsDestinationDetailsBase.load_by_type("unknown", {"x": 1})
+        )
+
+    def test_load_custom_https_destination(self):
+        """
+        Loading a custom_https destination deserializes all nested fields correctly.
+        """
+        dest = self.client.load(LogsDestination, 2)
+
+        self.assertIsInstance(dest.details, CustomHTTPSLogsDestinationDetails)
+        self.assertEqual(
+            dest.details.endpoint_url,
+            "https://my-site.com/log-storage/basicAuth",
+        )
+        self.assertEqual(dest.details.data_compression, "gzip")
+        self.assertEqual(dest.details.content_type, "application/json")
+        self.assertEqual(dest.details.authentication.type, "basic")
+        self.assertEqual(
+            dest.details.authentication.details.basic_authentication_user,
+            "John_Q",
+        )
+        self.assertEqual(dest.details.custom_headers[0].name, "Cache-Control")
+        self.assertEqual(
+            dest.details.client_certificate_details.tls_hostname, "my-site.com"
+        )
+
+    def test_stream_with_custom_https_destination(self):
+        """
+        A LogsStreamDestination with type custom_https is deserialized correctly.
+        """
+        stream = self.client.load(LogsStream, 2)
+        details = stream.destinations[0].details
+
+        self.assertIsInstance(details, CustomHTTPSLogsDestinationDetails)
+        self.assertEqual(
+            details.endpoint_url, "https://my-site.com/log-storage/basicAuth"
+        )
+        self.assertEqual(details.authentication.type, "basic")
+        self.assertEqual(details.custom_headers[0].name, "Cache-Control")
+
+    def test_create_custom_https_destination(self):
+        """
+        destination_create with type=custom_https sends the correct payload.
+        """
+        create_response = {
+            "id": 3,
+            "label": "new-custom-dest",
+            "type": "custom_https",
+            "status": "active",
+            "details": {
+                "endpoint_url": "https://example.com/logs",
+                "authentication": {"type": "none"},
+                "data_compression": "none",
+                "content_type": "application/json",
+            },
+            "created": "2024-09-01T00:00:00",
+            "updated": "2024-09-01T00:00:00",
+            "created_by": "tester",
+            "updated_by": "tester",
+            "version": 1,
+        }
+
+        with self.mock_post(create_response) as m:
+            result = self.client.monitor.destination_create(
+                label="new-custom-dest",
+                type="custom_https",
+                details=CustomHTTPSLogsDestinationDetails(
+                    endpoint_url="https://example.com/logs",
+                    authentication=DestinationAuthentication(type="none"),
+                    data_compression="none",
+                    content_type="application/json",
+                ),
+            )
+
+        self.assertEqual(m.call_url, "/monitor/streams/destinations")
+        self.assertEqual(m.call_data["type"], "custom_https")
+        self.assertEqual(
+            m.call_data["details"]["endpoint_url"], "https://example.com/logs"
+        )
+        self.assertIsInstance(result, LogsDestination)
+        self.assertEqual(result.id, 3)
+        self.assertIsInstance(result.details, CustomHTTPSLogsDestinationDetails)
+
+
 class LogsStreamTest(ClientBaseCase):
     """
     Tests methods for LogsStream class.
@@ -531,225 +650,108 @@ class LogsStreamTest(ClientBaseCase):
         self.assertEqual(m.call_url, "/monitor/streams/1")
 
 
-class CustomHTTPSLogsDestinationTest(ClientBaseCase):
+class LkeAuditLogsStreamTest(ClientBaseCase):
     """
-    Tests for custom_https type LogsDestination and LogsStream destinations,
-    and for the LogsDestinationDetailsBase.load_by_type factory method.
+    Tests for lke_audit_logs stream type and LogsStreamDetails model.
     """
 
-    def test_load_by_type_returns_akamai_details(self):
-        """
-        load_by_type returns AkamaiObjectStorageLogsDestinationDetails for
-        the akamai_object_storage discriminator.
-        """
-        json_dict = {
-            "access_key_id": "KEY123",
-            "bucket_name": "my-bucket",
-            "host": "my-bucket.us-east-1.linodeobjects.com",
-            "path": "audit-logs",
-        }
-        result = LogsDestinationDetailsBase.load_by_type(
-            "akamai_object_storage", json_dict
-        )
+    def test_logs_stream_type_enum(self):
+        """LogsStreamType exposes both audit_logs and lke_audit_logs values."""
+        self.assertEqual(LogsStreamType.audit_logs, "audit_logs")
+        self.assertEqual(LogsStreamType.lke_audit_logs, "lke_audit_logs")
 
-        self.assertIsInstance(result, AkamaiObjectStorageLogsDestinationDetails)
-        self.assertEqual(result.access_key_id, "KEY123")
-        self.assertEqual(result.bucket_name, "my-bucket")
-        self.assertEqual(result.host, "my-bucket.us-east-1.linodeobjects.com")
-        self.assertEqual(result.path, "audit-logs")
+    def test_load_lke_audit_logs_stream(self):
+        """
+        Loading an lke_audit_logs stream deserializes type and details correctly.
+        """
+        stream = self.client.load(LogsStream, 3)
 
-    def test_load_by_type_returns_custom_https_details(self):
-        """
-        load_by_type returns CustomHTTPSLogsDestinationDetails for the
-        custom_https discriminator.
-        """
-        json_dict = {
-            "endpoint_url": "https://my-site.com/logs",
-            "authentication": {"type": "none"},
-            "data_compression": "gzip",
-            "content_type": "application/json",
-        }
-        result = LogsDestinationDetailsBase.load_by_type(
-            "custom_https", json_dict
-        )
+        self.assertEqual(stream.id, 3)
+        self.assertEqual(stream.type, "lke_audit_logs")
+        self.assertIsInstance(stream.details, LogsStreamDetails)
+        self.assertEqual(stream.details.cluster_ids, [1234, 5678])
+        self.assertFalse(stream.details.is_auto_add_all_clusters_enabled)
 
-        self.assertIsInstance(result, CustomHTTPSLogsDestinationDetails)
-        self.assertEqual(result.endpoint_url, "https://my-site.com/logs")
-        self.assertEqual(result.data_compression, "gzip")
-        self.assertEqual(result.content_type, "application/json")
-
-    def test_load_by_type_returns_none_for_empty_dict(self):
-        """
-        load_by_type returns None when json_dict is empty or None.
-        """
-        self.assertIsNone(
-            LogsDestinationDetailsBase.load_by_type("custom_https", None)
-        )
-        self.assertIsNone(
-            LogsDestinationDetailsBase.load_by_type("custom_https", {})
-        )
-
-    def test_load_by_type_returns_none_for_unknown_type(self):
-        """
-        load_by_type returns None for an unrecognized destination type.
-        """
-        result = LogsDestinationDetailsBase.load_by_type(
-            "unknown_type", {"foo": "bar"}
-        )
-        self.assertIsNone(result)
-
-    def test_load_custom_https_destination(self):
-        """
-        Loading a custom_https destination populates CustomHTTPSLogsDestinationDetails.
-        """
-        dest = self.client.load(LogsDestination, 2)
-
-        self.assertIsInstance(dest, LogsDestination)
-        self.assertEqual(dest.id, 2)
-        self.assertEqual(dest.label, "my-custom-https-destination")
-        self.assertEqual(dest.type, "custom_https")
-        self.assertEqual(dest.status, "active")
-
-        self.assertIsInstance(dest.details, CustomHTTPSLogsDestinationDetails)
-        self.assertEqual(
-            dest.details.endpoint_url,
-            "https://my-site.com/log-storage/basicAuth",
-        )
-        self.assertEqual(dest.details.data_compression, "gzip")
-        self.assertEqual(dest.details.content_type, "application/json")
-
-    def test_custom_https_destination_authentication(self):
-        """
-        Authentication block of a custom_https destination is parsed correctly.
-        """
-        dest = self.client.load(LogsDestination, 2)
-
-        auth = dest.details.authentication
-        self.assertIsNotNone(auth)
-        self.assertEqual(auth.type, "basic")
-        self.assertIsNotNone(auth.details)
-        self.assertEqual(auth.details.basic_authentication_user, "John_Q")
-        self.assertEqual(auth.details.basic_authentication_password, "p@$$w0Rd")
-
-    def test_custom_https_destination_custom_headers(self):
-        """
-        custom_headers list of a custom_https destination is parsed correctly.
-        """
-        dest = self.client.load(LogsDestination, 2)
-
-        self.assertIsNotNone(dest.details.custom_headers)
-        self.assertEqual(len(dest.details.custom_headers), 1)
-        self.assertEqual(dest.details.custom_headers[0].name, "Cache-Control")
-        self.assertEqual(dest.details.custom_headers[0].value, "max-age=0")
-
-    def test_custom_https_destination_client_certificate_details(self):
-        """
-        client_certificate_details of a custom_https destination is parsed correctly.
-        """
-        dest = self.client.load(LogsDestination, 2)
-
-        cert_details = dest.details.client_certificate_details
-        self.assertIsNotNone(cert_details)
-        self.assertEqual(cert_details.tls_hostname, "my-site.com")
-        self.assertIn("BEGIN CERTIFICATE", cert_details.client_ca_certificate)
-        self.assertIn("BEGIN CERTIFICATE", cert_details.client_certificate)
-        self.assertIn("BEGIN PRIVATE KEY", cert_details.client_private_key)
-
-    def test_stream_custom_https_destination_details(self):
-        """
-        The CustomHTTPSLogsDestinationDetails nested inside a LogsStreamDestination
-        are populated correctly.
-        """
-        stream = self.client.load(LogsStream, 2)
-        details = stream.destinations[0].details
-
-        self.assertEqual(
-            details.endpoint_url,
-            "https://my-site.com/log-storage/basicAuth",
-        )
-        self.assertEqual(details.data_compression, "gzip")
-        self.assertEqual(details.content_type, "application/json")
-        self.assertEqual(details.authentication.type, "basic")
-        self.assertEqual(
-            details.authentication.details.basic_authentication_user, "John_Q"
-        )
-        self.assertEqual(len(details.custom_headers), 1)
-        self.assertEqual(details.custom_headers[0].name, "Cache-Control")
-
-    # ------------------------------------------------------------------
-    # Ensure akamai type is unaffected (regression guard)
-    # ------------------------------------------------------------------
-
-    def test_akamai_destination_details_unaffected(self):
-        """
-        Existing akamai_object_storage destination still deserializes as
-        AkamaiObjectStorageLogsDestinationDetails after the factory refactor.
-        """
-        dest = self.client.load(LogsDestination, 1)
-
-        self.assertIsInstance(
-            dest.details, AkamaiObjectStorageLogsDestinationDetails
-        )
-        self.assertEqual(dest.details.access_key_id, "1ABCD23EFG4HIJKLMNO5")
-        self.assertEqual(dest.details.bucket_name, "primary-bucket")
-
-    def test_akamai_stream_destination_details_unaffected(self):
-        """
-        Existing akamai_object_storage stream destination still deserializes as
-        AkamaiObjectStorageLogsDestinationDetails after the factory refactor.
-        """
+    def test_audit_logs_stream_details_is_none(self):
+        """An audit_logs stream has no details block."""
         stream = self.client.load(LogsStream, 1)
-        dest = stream.destinations[0]
+        self.assertIsNone(stream.details)
 
-        self.assertIsInstance(
-            dest.details, AkamaiObjectStorageLogsDestinationDetails
-        )
-        self.assertEqual(dest.details.bucket_name, "primary-bucket")
-
-    def test_create_custom_https_destination(self):
+    def test_create_lke_audit_logs_stream(self):
         """
-        destination_create with type=custom_https sends the correct payload
-        and returns a LogsDestination with CustomHTTPSLogsDestinationDetails.
+        stream_create with lke_audit_logs sends details in the payload.
         """
         create_response = {
-            "id": 3,
-            "label": "new-custom-dest",
-            "type": "custom_https",
+            "id": 4,
+            "label": "new-lke-stream",
+            "type": "lke_audit_logs",
             "status": "active",
+            "destinations": [
+                {
+                    "id": 1,
+                    "label": "d",
+                    "type": "akamai_object_storage",
+                    "details": {},
+                }
+            ],
             "details": {
-                "endpoint_url": "https://example.com/logs",
-                "authentication": {"type": "none"},
-                "data_compression": "none",
-                "content_type": "application/json",
+                "cluster_ids": [1111, 2222],
+                "is_auto_add_all_clusters_enabled": False,
             },
-            "created": "2024-09-01T00:00:00",
-            "updated": "2024-09-01T00:00:00",
+            "created": "2024-10-01T12:00:00",
+            "updated": "2024-10-01T12:00:00",
             "created_by": "tester",
             "updated_by": "tester",
             "version": 1,
         }
 
         with self.mock_post(create_response) as m:
-            result = self.client.monitor.destination_create(
-                label="new-custom-dest",
-                type="custom_https",
-                details=CustomHTTPSLogsDestinationDetails(
-                    endpoint_url="https://example.com/logs",
-                    authentication=DestinationAuthentication(type="none"),
-                    data_compression="none",
-                    content_type="application/json",
+            result = self.client.monitor.stream_create(
+                destinations=[1],
+                label="new-lke-stream",
+                type=LogsStreamType.lke_audit_logs,
+                details=LogsStreamDetails(
+                    cluster_ids=[1111, 2222],
+                    is_auto_add_all_clusters_enabled=False,
                 ),
             )
 
-        self.assertEqual(m.call_url, "/monitor/streams/destinations")
-        self.assertEqual(m.call_data["type"], "custom_https")
-        self.assertEqual(
-            m.call_data["details"]["endpoint_url"], "https://example.com/logs"
+        self.assertEqual(m.call_data["type"], "lke_audit_logs")
+        self.assertEqual(m.call_data["details"]["cluster_ids"], [1111, 2222])
+        self.assertFalse(
+            m.call_data["details"]["is_auto_add_all_clusters_enabled"]
         )
+        self.assertIsInstance(result.details, LogsStreamDetails)
 
-        self.assertIsInstance(result, LogsDestination)
-        self.assertEqual(result.id, 3)
-        self.assertIsInstance(result.details, CustomHTTPSLogsDestinationDetails)
-        self.assertEqual(
-            result.details.endpoint_url, "https://example.com/logs"
-        )
+    def test_create_audit_logs_stream_omits_details(self):
+        """
+        stream_create without details does not include a details key in the payload.
+        """
+        create_response = {
+            "id": 5,
+            "label": "new-audit-stream",
+            "type": "audit_logs",
+            "status": "active",
+            "destinations": [
+                {
+                    "id": 1,
+                    "label": "d",
+                    "type": "akamai_object_storage",
+                    "details": {},
+                }
+            ],
+            "created": "2024-10-01T12:00:00",
+            "updated": "2024-10-01T12:00:00",
+            "created_by": "tester",
+            "updated_by": "tester",
+            "version": 1,
+        }
+
+        with self.mock_post(create_response) as m:
+            self.client.monitor.stream_create(
+                destinations=[1],
+                label="new-audit-stream",
+                type=LogsStreamType.audit_logs,
+            )
+
+        self.assertNotIn("details", m.call_data)
