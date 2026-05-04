@@ -734,7 +734,7 @@ def test_monitor_client(get_monitor_token_for_db_entities):
 def create_reserved_ip(test_linode_client):
     client = test_linode_client
     region = get_region(
-        client, {"Linodes", "Cloud Firewall", "Nodebalancers"}, site_type="core"
+        client, {"Linodes", "Cloud Firewall"}, site_type="core"
     )
     reserved_ip = client.networking.reserved_ip_create(
         region=region, tags=["test"]
