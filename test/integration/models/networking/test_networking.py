@@ -444,9 +444,6 @@ def test_create_reserved_ip_assigned(
     verify_reserved_ip_assigned(reserved_ip, linode)
     assert sorted(reserved_ip.tags) == ["assigned", "test"]
 
-    # ips_list = client.networking.ips()
-    # assert reserved_ip.address in [ip.address for ip in ips_list]
-
     reserved_ips_list = client.networking.reserved_ips()
     assert reserved_ip.address in [ip.address for ip in reserved_ips_list]
 
@@ -470,7 +467,7 @@ def test_create_reserved_ip_assigned(
     assert not any([ip.tags for ip in linode_ips])  # Tags should be removed
 
 
-def test_get_reserved_ip_types(test_linode_client, create_reserved_ip):
+def test_get_reserved_ip_types(test_linode_client):
     client = test_linode_client
     endpoint = client.base_url + "/networking/reserved/ips/types"
     types = requests.get(endpoint).json()[
@@ -512,6 +509,10 @@ def test_create_reserved_ip_with_allocate(
         verify_reserved_ip_assigned(reserved_ip, linode)
 
     assert reserved_ip.tags == []
+
+    # clean-up
+    reserved_ip = client.load(ReservedIPAddress, reserved_ip.address)
+    reserved_ip.delete()
 
 
 def test_reserve_ephemeral_ip(test_linode_client, create_linode):
