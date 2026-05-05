@@ -596,6 +596,8 @@ class ObjectStorageQuota(Base):
         "description": Property(),
         "quota_limit": Property(),
         "resource_metric": Property(),
+        "quota_type": Property(),
+        "has_usage": Property(),
     }
 
     def usage(self):
@@ -605,6 +607,44 @@ class ObjectStorageQuota(Base):
         API documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-quota-usage
 
         :returns: The Object Storage Quota usage.
+        :rtype: ObjectStorageQuotaUsage
+        """
+
+        result = self._client.get(
+            f"{type(self).api_endpoint}/usage",
+            model=self,
+        )
+
+        return ObjectStorageQuotaUsage.from_json(result)
+
+
+class ObjectStorageGlobalQuota(Base):
+    """
+    An account-level Object Storage quota.
+
+    API documentation: TBD
+    """
+
+    api_endpoint = "/object-storage/global-quotas/{quota_id}"
+    id_attribute = "quota_id"
+
+    properties = {
+        "quota_id": Property(identifier=True),
+        "quota_type": Property(),
+        "quota_name": Property(),
+        "description": Property(),
+        "resource_metric": Property(),
+        "quota_limit": Property(),
+        "has_usage": Property(),
+    }
+
+    def usage(self):
+        """
+        Gets usage data for a specific account-level Object Storage quota.
+
+        API documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-global-quota-usage
+
+        :returns: The Object Storage Global Quota usage.
         :rtype: ObjectStorageQuotaUsage
         """
 
