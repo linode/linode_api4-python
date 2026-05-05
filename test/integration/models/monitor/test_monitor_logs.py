@@ -337,7 +337,7 @@ def create_stream(
     assert stream.id is not None
     assert stream.status == LogsStreamStatus.provisioning
     yield stream
-    send_request_when_resource_available(timeout=100, func=stream.delete)
+    send_request_when_resource_available(timeout=1800, func=stream.delete)
 
 
 @pytest.fixture(scope="session")
@@ -359,6 +359,25 @@ def provisioned_stream(
     wait_for_condition(60, 3600, is_stream_provisioned)
 
     yield test_linode_client.load(LogsStream, create_stream.id)
+
+
+@pytest.fixture(scope="function")
+def wait_for_updatable_status(
+    test_linode_client: LinodeClient, provisioned_stream: LogsStream
+):
+    """
+    Waits for the stream to be in an active or inactive state before a test runs.
+    Streams can switch to `provisioning` state between updates. This makes sure the previous update is fully finished.
+    """
+
+    def is_stream_updatable():
+        stream = test_linode_client.load(LogsStream, provisioned_stream.id)
+        return stream.status in (
+            LogsStreamStatus.active,
+            LogsStreamStatus.inactive,
+        )
+
+    wait_for_condition(30, 1800, is_stream_updatable)
 
 
 @_SKIP_STREAM_TESTS
@@ -395,6 +414,7 @@ def test_get_stream_by_id(
 
 
 @_SKIP_STREAM_TESTS
+@pytest.mark.usefixtures("wait_for_updatable_status")
 def test_update_stream_label_and_status(
     test_linode_client: LinodeClient, provisioned_stream: LogsStream
 ):
@@ -443,6 +463,7 @@ def test_update_stream_label_and_status(
 
 
 @_SKIP_STREAM_TESTS
+@pytest.mark.usefixtures("wait_for_updatable_status")
 def test_update_stream_destinations(
     test_linode_client: LinodeClient,
     provisioned_stream: LogsStream,
