@@ -11,7 +11,6 @@ import pytest
 
 from linode_api4 import LinodeClient, LogsStreamType, PaginatedList
 from linode_api4.objects import (
-    Capability,
     ObjectStorageACL,
     ObjectStorageBucket,
     ObjectStorageKeys,
@@ -29,14 +28,6 @@ _SKIP_STREAM_TESTS = pytest.mark.skipif(
     not in {"yes", "true"},
     reason=f"{_RUN_ACLP_LOGS_STREAM_TESTS} environment variable must be set to 'yes' or 'true'",
 )
-
-
-@pytest.fixture(scope="session", autouse=True)
-def require_aclp_logs(test_linode_client: LinodeClient):
-    """Skip all tests in this module if the aclp_logs feature is not enabled for the account."""
-    account = test_linode_client.account()
-    if Capability.aclp_logs not in account.capabilities:
-        pytest.skip("aclp_logs feature is not enabled for this account")
 
 
 @pytest.fixture(scope="session")
