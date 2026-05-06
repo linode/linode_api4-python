@@ -757,6 +757,7 @@ class LogsStreamStatus(StrEnum):
     active = "active"
     inactive = "inactive"
     provisioning = "provisioning"
+    deactivating = "deactivating"
 
 
 class LogsStreamType(StrEnum):

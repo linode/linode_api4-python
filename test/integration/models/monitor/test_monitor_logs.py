@@ -420,19 +420,19 @@ def test_update_stream_label_and_status(
 
     new_label = original_label + "-upd"
     new_status = (
-        LogsStreamStatus.inactive
+        [LogsStreamStatus.inactive, LogsStreamStatus.deactivating]
         if original_status == LogsStreamStatus.active
-        else LogsStreamStatus.active
+        else [LogsStreamStatus.active, LogsStreamStatus.provisioning]
     )
 
     stream.label = new_label
-    stream.status = new_status
+    stream.status = new_status[0]
     result = stream.save()
     assert result is True
 
     updated = test_linode_client.load(LogsStream, provisioned_stream.id)
     assert updated.label == new_label
-    assert updated.status == new_status
+    assert updated.status in new_status
 
     history = updated.history
     snapshot_original = next(h for h in history if h.version == version_before)
