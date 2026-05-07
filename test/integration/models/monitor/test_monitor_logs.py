@@ -79,9 +79,9 @@ def _delete_destination_with_bucket(
     client: LinodeClient, dest: LogsDestination, bucket: ObjectStorageBucket
 ):
     """Helper that deletes a logs destination and its backing OBJ bucket."""
-    send_request_when_resource_available(timeout=600, func=dest.delete)
+    send_request_when_resource_available(timeout=1800, func=dest.delete)
     _empty_bucket(client, bucket)
-    send_request_when_resource_available(timeout=600, func=bucket.delete)
+    send_request_when_resource_available(timeout=1800, func=bucket.delete)
 
 
 def _skip_if_streams_exist(client: LinodeClient):
@@ -368,7 +368,7 @@ def wait_for_updatable_status(
             LogsStreamStatus.inactive,
         )
 
-    wait_for_condition(30, 1800, is_stream_updatable)
+    wait_for_condition(30, 3600, is_stream_updatable)
 
 
 @_SKIP_STREAM_TESTS
