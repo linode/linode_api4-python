@@ -116,9 +116,7 @@ def test_fails_to_create_image_with_non_existing_disk_id(
     disk_id = 111111
 
     try:
-        client.image_create(
-            disk=disk_id, label=label, description=description
-        )
+        client.image_create(disk=disk_id, label=label, description=description)
     except ApiError as e:
         assert 400 <= e.status < 500
 

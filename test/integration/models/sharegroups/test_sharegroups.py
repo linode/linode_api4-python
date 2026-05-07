@@ -1,8 +1,6 @@
 import datetime
 from test.integration.conftest import get_region
-from test.integration.helpers import (
-    get_test_label,
-)
+from test.integration.helpers import get_test_label
 
 import pytest
 
