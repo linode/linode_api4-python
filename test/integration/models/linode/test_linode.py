@@ -1,4 +1,5 @@
 import ipaddress
+import random
 import time
 from test.integration.conftest import get_region
 from test.integration.helpers import (
@@ -227,6 +228,28 @@ def linode_with_disk_encryption(test_linode_client, request):
         booted=False,
         disk_encryption=disk_encryption,
         root_pass="aComplex@Password123",
+    )
+
+    yield linode_instance
+
+    linode_instance.delete()
+
+
+@pytest.fixture(scope="session")
+def create_linode_with_authorization_key(test_linode_client, e2e_test_firewall):
+    client = test_linode_client
+
+    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    label = get_test_label(length=8)
+
+    linode_instance = client.linode.instance_create(
+        "g6-nanode-1",
+        region,
+        image="linode/debian12",
+        label=label,
+        kernel="linode/6.15.7-x86_64-linode169",
+        boot_size=9000,
+        authorized_keys="ssh-rsa",
     )
 
     yield linode_instance
@@ -1159,3 +1182,54 @@ def test_update_linode_maintenance_policy(create_linode, test_linode_client):
     linode.invalidate()
     assert result
     assert linode.maintenance_policy_id == non_default_policy.slug
+
+
+def test_expected_error_if_fields_authorized_users_authorized_keys_root_pass_are_not_set(
+    test_linode_client,
+):
+    client = test_linode_client
+    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    label = get_test_label(length=8)
+
+    with pytest.raises(ValueError) as create_instance_error:
+        client.linode.instance_create(
+            "g6-nanode-1",
+            region,
+            image="linode/debian12",
+            label=label,
+            kernel="linode/6.15.7-x86_64-linode169",
+            boot_size="9000",
+        )
+    assert (
+        "When creating an Instance from an Image, at least one of root_pass, authorized_users, or authorized_keys must be provided."
+        in str(create_instance_error.value)
+    )
+
+
+def test_create_linode_with_kernel_and_boot_size_then_add_disk_and_rebuild(
+    create_linode_with_authorization_key,
+):
+    linode_create = create_linode_with_authorization_key
+    assert linode_create.image.id == "linode/debian12"
+
+    wait_for_condition(10, 300, get_status, linode_create, "running")
+    disk_create = send_request_when_resource_available(
+        300,
+        linode_create.disk_create,
+        size=2000,
+        image="linode/debian12",
+        label="python-disk-test-" + random.randrange(100000, 999999).__str__(),
+        root_pass="aComplex@Password123",
+    )
+    wait_for_disk_status(disk_create, 120)
+    assert disk_create.status == "ready"
+
+    retry_sending_request(
+        3,
+        linode_create.rebuild,
+        "linode/debian12",
+        authorized_keys="ecdsa-sha2-nistp",
+    )
+    wait_for_condition(10, 300, get_status, linode_create, "rebuilding")
+    assert linode_create.status == "rebuilding"
+    assert linode_create.image.id == "linode/debian12"
