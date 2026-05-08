@@ -236,7 +236,7 @@ def linode_with_disk_encryption(test_linode_client, request):
 
 
 @pytest.fixture(scope="session")
-def create_linode_with_authorization_key(test_linode_client, e2e_test_firewall):
+def create_linode_with_authorized_key(test_linode_client, ssh_key_gen):
     client = test_linode_client
 
     region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
@@ -247,9 +247,9 @@ def create_linode_with_authorization_key(test_linode_client, e2e_test_firewall):
         region,
         image="linode/debian12",
         label=label,
-        kernel="linode/6.15.7-x86_64-linode169",
+        kernel="linode/latest-64bit",
         boot_size=9000,
-        authorized_keys="ssh-rsa",
+        authorized_keys=ssh_key_gen[0],
     )
 
     yield linode_instance
@@ -1197,8 +1197,8 @@ def test_expected_error_if_fields_authorized_users_authorized_keys_root_pass_are
             region,
             image="linode/debian12",
             label=label,
-            kernel="linode/6.15.7-x86_64-linode169",
-            boot_size="9000",
+            kernel="linode/latest-64bit",
+            boot_size=9000,
         )
     assert (
         "When creating an Instance from an Image, at least one of root_pass, authorized_users, or authorized_keys must be provided."
@@ -1207,9 +1207,10 @@ def test_expected_error_if_fields_authorized_users_authorized_keys_root_pass_are
 
 
 def test_create_linode_with_kernel_and_boot_size_then_add_disk_and_rebuild(
-    create_linode_with_authorization_key,
+    create_linode_with_authorized_key,
+    ssh_key_gen,
 ):
-    linode_create = create_linode_with_authorization_key
+    linode_create = create_linode_with_authorized_key
     assert linode_create.image.id == "linode/debian12"
 
     wait_for_condition(10, 300, get_status, linode_create, "running")
@@ -1228,8 +1229,9 @@ def test_create_linode_with_kernel_and_boot_size_then_add_disk_and_rebuild(
         3,
         linode_create.rebuild,
         "linode/debian12",
-        authorized_keys="ecdsa-sha2-nistp",
+        authorized_keys=ssh_key_gen[0],
     )
     wait_for_condition(10, 300, get_status, linode_create, "rebuilding")
     assert linode_create.status == "rebuilding"
+    wait_for_condition(10, 300, get_status, linode_create, "running")
     assert linode_create.image.id == "linode/debian12"
