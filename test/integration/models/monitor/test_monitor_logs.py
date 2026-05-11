@@ -9,7 +9,7 @@ from test.integration.helpers import (
 
 import pytest
 
-from linode_api4 import LinodeClient, LogsStreamType, PaginatedList
+from linode_api4 import LinodeClient, LogsStreamType, PaginatedList, Region
 from linode_api4.objects import (
     ObjectStorageACL,
     ObjectStorageBucket,
@@ -28,12 +28,20 @@ _SKIP_STREAM_TESTS = pytest.mark.skipif(
     not in {"yes", "true"},
     reason=f"{_RUN_ACLP_LOGS_STREAM_TESTS} environment variable must be set to 'yes' or 'true'",
 )
+_STREAM_FIXTURE_CLEANUP_WAIT = 2700
+_STREAM_FIXTURE_PROVISIONING_WAIT = 3600
 
 
 @pytest.fixture(scope="session")
-def create_object_storage_key(test_linode_client: LinodeClient):
+def region(test_linode_client: LinodeClient):
+    region = get_region(test_linode_client, {"Object Storage"})
+    yield region
+
+
+@pytest.fixture(scope="session")
+def create_object_storage_key(test_linode_client: LinodeClient, region: Region):
     key = test_linode_client.object_storage.keys_create(
-        label=get_test_label(),
+        label=get_test_label(), regions=[region.id]
     )
     yield key
     key.delete()
@@ -43,19 +51,19 @@ def create_object_storage_key(test_linode_client: LinodeClient):
 def test_destination(
     test_linode_client: LinodeClient,
     create_object_storage_key: ObjectStorageKeys,
+    region: Region,
 ):
     dest, bucket = _create_destination_with_bucket(
-        test_linode_client, create_object_storage_key
+        test_linode_client, create_object_storage_key, region
     )
     yield dest
     _delete_destination_with_bucket(test_linode_client, dest, bucket)
 
 
 def _create_destination_with_bucket(
-    client: LinodeClient, key: ObjectStorageKeys
+    client: LinodeClient, key: ObjectStorageKeys, region: Region
 ):
     """Helper that creates an OBJ bucket and a logs destination backed by it."""
-    region = get_region(client, {"Object Storage"})
     bucket = client.object_storage.bucket_create(
         cluster_or_region=region.id,
         label=get_test_label(),
@@ -79,9 +87,17 @@ def _delete_destination_with_bucket(
     client: LinodeClient, dest: LogsDestination, bucket: ObjectStorageBucket
 ):
     """Helper that deletes a logs destination and its backing OBJ bucket."""
-    send_request_when_resource_available(timeout=1800, func=dest.delete)
+
+    def no_stream_attached():
+        streams = client.monitor.streams()
+        return all(
+            all(d.id != dest.id for d in s.destinations) for s in streams
+        )
+
+    wait_for_condition(30, _STREAM_FIXTURE_CLEANUP_WAIT, no_stream_attached)
+    send_request_when_resource_available(timeout=100, func=dest.delete)
     _empty_bucket(client, bucket)
-    send_request_when_resource_available(timeout=1800, func=bucket.delete)
+    send_request_when_resource_available(timeout=100, func=bucket.delete)
 
 
 def _skip_if_streams_exist(client: LinodeClient):
@@ -304,9 +320,10 @@ def test_fails_to_create_stream_invalid_destination(invalid_destination_error):
 def create_secondary_destination(
     test_linode_client: LinodeClient,
     create_object_storage_key: ObjectStorageKeys,
+    region: Region,
 ):
     dest, bucket = _create_destination_with_bucket(
-        test_linode_client, create_object_storage_key
+        test_linode_client, create_object_storage_key, region
     )
     yield dest
     _delete_destination_with_bucket(test_linode_client, dest, bucket)
@@ -317,6 +334,7 @@ def create_stream(
     test_linode_client: LinodeClient,
     test_destination: LogsDestination,
     invalid_destination_error,  # This ensures run order to keep negative test case deterministic
+    create_secondary_destination: LogsDestination,  # This ensures teardown order - stream must be deleted before its destinations can be deleted
 ):
     _skip_if_streams_exist(test_linode_client)
 
@@ -328,7 +346,41 @@ def create_stream(
     assert stream.id is not None
     assert stream.status == LogsStreamStatus.provisioning
     yield stream
-    send_request_when_resource_available(timeout=1800, func=stream.delete)
+    _stream_teardown(test_linode_client, stream)
+
+
+def _wait_for_stream_updatable(client: LinodeClient, stream_id: int):
+    """
+    Blocks until the stream with the given id reaches active or inactive status.
+    Updating destinations or other attributes puts the stream
+    back into a transitional state, and attempting to delete or modify it while
+    transitioning results in [400] errors.
+    """
+
+    def is_stream_updatable():
+        stream = client.load(LogsStream, stream_id)
+        return stream.status in (
+            LogsStreamStatus.active,
+            LogsStreamStatus.inactive,
+        )
+
+    wait_for_condition(
+        30, _STREAM_FIXTURE_PROVISIONING_WAIT, is_stream_updatable
+    )
+
+
+def _stream_teardown(test_linode_client: LinodeClient, stream: LogsStream):
+    _wait_for_stream_updatable(test_linode_client, stream.id)
+    send_request_when_resource_available(timeout=100, func=stream.delete)
+
+    # The delete request returns 200 but stream deletion is async on the backend.
+    # Wait until the stream is fully gone before teardown continues, so that
+    # dependent fixtures (e.g. create_secondary_destination) can proceed with teardown.
+    def is_stream_deleted():
+        existing = test_linode_client.monitor.streams()
+        return all(s.id != stream.id for s in existing)
+
+    wait_for_condition(30, _STREAM_FIXTURE_CLEANUP_WAIT, is_stream_deleted)
 
 
 @pytest.fixture(scope="session")
@@ -347,7 +399,9 @@ def provisioned_stream(
             LogsStreamStatus.inactive,
         )
 
-    wait_for_condition(60, 3600, is_stream_provisioned)
+    wait_for_condition(
+        60, _STREAM_FIXTURE_PROVISIONING_WAIT, is_stream_provisioned
+    )
 
     yield test_linode_client.load(LogsStream, create_stream.id)
 
@@ -360,15 +414,7 @@ def wait_for_updatable_status(
     Waits for the stream to be in an active or inactive state before a test runs.
     Streams can switch to `provisioning` state between updates. This makes sure the previous update is fully finished.
     """
-
-    def is_stream_updatable():
-        stream = test_linode_client.load(LogsStream, provisioned_stream.id)
-        return stream.status in (
-            LogsStreamStatus.active,
-            LogsStreamStatus.inactive,
-        )
-
-    wait_for_condition(30, 3600, is_stream_updatable)
+    _wait_for_stream_updatable(test_linode_client, provisioned_stream.id)
 
 
 @_SKIP_STREAM_TESTS
