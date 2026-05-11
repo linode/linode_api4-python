@@ -459,6 +459,47 @@ class LinodeTest(ClientBaseCase):
         assert disk.id == 12345
         assert disk.disk_encryption == InstanceDiskEncryptionType.disabled
 
+    def test_create_config_with_device_map(self):
+        """
+        Tests that config_create passes through a raw device map unchanged.
+        """
+        linode = Instance(self.client, 123)
+        devices = {
+            "sda": {"disk_id": 111},
+            "sdb": {"volume_id": 222},
+            "sdc": None,
+        }
+
+        with self.mock_post(
+            {"id": 456, "devices": devices, "interfaces": []}
+        ) as m:
+            config = linode.config_create(label="test-config", devices=devices)
+
+            self.assertEqual(m.call_url, "/linode/instances/123/configs")
+            self.assertEqual(
+                m.call_data,
+                {
+                    "label": "test-config",
+                    "devices": devices,
+                    "interfaces": [],
+                },
+            )
+
+        self.assertEqual(config.id, 456)
+
+    def test_create_config_without_devices_raises_error(self):
+        """
+        Tests that config_create raises ValueError when no devices, disks, or volumes are specified.
+        """
+        linode = Instance(self.client, 123)
+
+        with self.assertRaises(ValueError) as context:
+            linode.config_create(label="test-config")
+
+        assert "Must include at least one disk or volume!" in str(
+            context.exception
+        )
+
     def test_get_placement_group(self):
         """
         Tests that you can get the placement group for a Linode

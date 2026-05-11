@@ -3,7 +3,7 @@ Contains various utility functions.
 """
 
 import string
-from typing import Any, Dict
+from typing import Any, Dict, List, Tuple, Union
 
 
 def drop_null_keys(data: Dict[Any, Any], recursive=True) -> Dict[Any, Any]:
@@ -28,6 +28,13 @@ def drop_null_keys(data: Dict[Any, Any], recursive=True) -> Dict[Any, Any]:
         return value
 
     return recursive_helper(data)
+
+
+def normalize_as_list(value: Any) -> Union[List, Tuple]:
+    """
+    Returns the value wrapped in a list if it isn't already a list or tuple.
+    """
+    return value if isinstance(value, (list, tuple)) else [value]
 
 
 def generate_device_suffixes(n: int) -> list[str]:

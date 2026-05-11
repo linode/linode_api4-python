@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from linode_api4 import PaginatedList
 from linode_api4.errors import UnexpectedResponseError
@@ -6,6 +6,8 @@ from linode_api4.groups import Group
 from linode_api4.objects import (
     AlertChannel,
     AlertDefinition,
+    AlertDefinitionEntity,
+    AlertScope,
     MonitorDashboard,
     MonitorMetricsDefinition,
     MonitorService,
@@ -202,7 +204,7 @@ class MonitorGroup(Group):
 
         .. note:: This endpoint is in beta and requires using the v4beta base URL.
 
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-alert-channels
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-notification-channels
 
         :param filters: Optional filter expressions to apply to the collection.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>` for details.
@@ -221,6 +223,8 @@ class MonitorGroup(Group):
         trigger_conditions: dict,
         entity_ids: Optional[list[str]] = None,
         description: Optional[str] = None,
+        scope: Optional[Union[AlertScope, str]] = None,
+        regions: Optional[list[str]] = None,
     ) -> AlertDefinition:
         """
         Create a new alert definition for a given service type.
@@ -252,6 +256,10 @@ class MonitorGroup(Group):
         :type entity_ids: Optional[list[str]]
         :param description: (Optional) Longer description for the alert definition.
         :type description: Optional[str]
+        :param scope: (Optional) Alert scope (for example: `account`, `entity`, or `region`). Defaults to `entity`.
+        :type scope: Optional[Union[AlertScope, str]]
+        :param regions: (Optional) Regions to monitor.
+        :type regions: Optional[list[str]]
 
         :returns: The newly created :class:`AlertDefinition`.
         :rtype: AlertDefinition
@@ -267,10 +275,15 @@ class MonitorGroup(Group):
             "rule_criteria": rule_criteria,
             "trigger_conditions": trigger_conditions,
         }
-        if description is not None:
-            params["description"] = description
+
         if entity_ids is not None:
             params["entity_ids"] = entity_ids
+        if description is not None:
+            params["description"] = description
+        if scope is not None:
+            params["scope"] = scope
+        if regions is not None:
+            params["regions"] = regions
 
         # API will validate service_type and return an error if missing
         result = self.client.post(
@@ -284,3 +297,38 @@ class MonitorGroup(Group):
             )
 
         return AlertDefinition(self.client, result["id"], service_type, result)
+
+    def alert_definition_entities(
+        self,
+        service_type: str,
+        id: int,
+        *filters,
+    ) -> PaginatedList:
+        """
+        List entities associated with a specific alert definition.
+
+        This endpoint supports pagination fields (`page`, `page_size`) in the API.
+
+        .. note:: This endpoint is in beta and requires using the v4beta base URL.
+
+        API Documentation: TODO
+
+        :param service_type: Service type for the alert definition (e.g. `dbaas`).
+        :type service_type: str
+        :param id: Alert definition identifier.
+        :type id: int
+        :param filters: Optional filter expressions to apply to the collection.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`.
+
+        :returns: A paginated list of entities associated with the alert definition.
+        :rtype: PaginatedList[AlertDefinitionEntity]
+        """
+
+        endpoint = (
+            f"/monitor/services/{service_type}/alert-definitions/{id}/entities"
+        )
+        return self.client._get_and_filter(
+            AlertDefinitionEntity,
+            *filters,
+            endpoint=endpoint,
+        )

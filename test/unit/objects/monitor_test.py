@@ -1,7 +1,7 @@
 import datetime
 from test.unit.base import ClientBaseCase
 
-from linode_api4.objects import MonitorDashboard, MonitorService
+from linode_api4.objects import AlertChannel, MonitorDashboard, MonitorService
 
 
 class MonitorTest(ClientBaseCase):
@@ -146,3 +146,26 @@ class MonitorTest(ClientBaseCase):
                 service_type="linode", entity_ids=["compute-instance-1"]
             )
             self.assertEqual(m.return_dct["token"], "abcdefhjigkfghh")
+
+    def test_alert_channels(self):
+        channels = self.client.monitor.alert_channels()
+
+        self.assertEqual(len(channels), 1)
+        self.assertIsInstance(channels[0], AlertChannel)
+        self.assertEqual(channels[0].id, 123)
+        self.assertEqual(channels[0].label, "alert notification channel")
+        self.assertEqual(channels[0].type, "user")
+        self.assertEqual(channels[0].channel_type, "email")
+        self.assertIsNotNone(channels[0].details)
+        self.assertIsNotNone(channels[0].details.email)
+        self.assertEqual(
+            channels[0].details.email.usernames,
+            ["admin-user1", "admin-user2"],
+        )
+        self.assertEqual(channels[0].details.email.recipient_type, "user")
+        self.assertIsNotNone(channels[0].alerts)
+        self.assertEqual(
+            channels[0].alerts.url,
+            "/monitor/alert-channels/123/alerts",
+        )
+        self.assertEqual(channels[0].alerts.alert_count, 0)

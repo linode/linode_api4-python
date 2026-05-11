@@ -790,6 +790,15 @@ def test_get_config(test_linode_client, create_linode):
     assert config.id == linode.configs[0].id
 
 
+def test_config_create_without_devices_raises_error(create_linode):
+    linode = create_linode
+
+    with pytest.raises(ValueError) as err:
+        linode.config_create(label="test-config-no-devices")
+
+    assert "Must include at least one disk or volume!" in str(err.value)
+
+
 def test_get_linode_types(test_linode_client):
     types = test_linode_client.linode.types()
 
