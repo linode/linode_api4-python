@@ -141,7 +141,7 @@ def linode_for_disk_tests(test_linode_client, e2e_test_firewall):
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
         region,
-        image="linode/alpine3.19",
+        image="linode/ubuntu24.04",
         label=label + "_long_tests",
         firewall=e2e_test_firewall,
     )
@@ -174,7 +174,7 @@ def linode_with_block_storage_encryption(test_linode_client, e2e_test_firewall):
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
         region,
-        image="linode/alpine3.19",
+        image="linode/ubuntu24.04",
         label=label + "block-storage-encryption",
         firewall=e2e_test_firewall,
     )
@@ -215,7 +215,7 @@ def linode_with_disk_encryption(test_linode_client, request):
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
         target_region,
-        image="linode/ubuntu24.10",
+        image="linode/ubuntu24.04",
         label=label,
         booted=False,
         disk_encryption=disk_encryption,

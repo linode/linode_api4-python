@@ -1,8 +1,6 @@
 import datetime
 from test.integration.conftest import get_region
-from test.integration.helpers import (
-    get_test_label,
-)
+from test.integration.helpers import get_test_label
 
 import pytest
 
@@ -44,7 +42,7 @@ def sample_linode(test_linode_client, e2e_test_firewall):
     linode_instance, password = client.linode.instance_create(
         "g6-nanode-1",
         region,
-        image="linode/alpine3.19",
+        image="linode/ubuntu24.04",
         label=label + "_modlinode",
     )
     yield linode_instance
