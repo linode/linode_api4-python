@@ -47,11 +47,12 @@ def test_config_create_with_device_map(test_linode_client):
     region = get_region(client, {"Linodes", "Block Storage"}, site_type="core")
     label = get_test_label()
 
-    linode, _ = client.linode.instance_create(
+    linode = client.linode.instance_create(
         "g6-standard-6",
         region,
         image="linode/debian12",
         label=label,
+        root_pass="aComplex@Password123",
     )
 
     disk_id = linode.disks[0].id
