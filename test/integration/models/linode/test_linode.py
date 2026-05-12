@@ -1,5 +1,4 @@
 import ipaddress
-import random
 import time
 from test.integration.conftest import get_region
 from test.integration.helpers import (
@@ -1219,7 +1218,7 @@ def test_create_linode_with_kernel_and_boot_size_then_add_disk_and_rebuild(
         linode_create.disk_create,
         size=2000,
         image="linode/debian12",
-        label="python-disk-test-" + random.randrange(100000, 999999).__str__(),
+        label="python-disk-test-" + get_test_label(),
         root_pass="aComplex@Password123",
     )
     wait_for_disk_status(disk_create, 120)
