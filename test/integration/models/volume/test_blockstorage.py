@@ -1,3 +1,4 @@
+from linode_api4 import Instance
 from test.integration.conftest import get_region
 from test.integration.helpers import get_test_label, retry_sending_request
 
@@ -52,7 +53,7 @@ def test_config_create_with_device_map(test_linode_client):
         region,
         image="linode/debian12",
         label=label,
-        root_pass="aComplex@Password123",
+        root_pass=Instance.generate_root_password(),
     )
 
     disk_id = linode.disks[0].id
