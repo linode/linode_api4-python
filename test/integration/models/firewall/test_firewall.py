@@ -13,8 +13,12 @@ def linode_fw(test_linode_client):
     region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label()
 
-    linode_instance, password = client.linode.instance_create(
-        "g6-nanode-1", region, image="linode/debian12", label=label
+    linode_instance = client.linode.instance_create(
+        "g6-nanode-1",
+        region,
+        image="linode/debian12",
+        label=label,
+        root_pass="aComplex@Password123",
     )
 
     yield linode_instance
