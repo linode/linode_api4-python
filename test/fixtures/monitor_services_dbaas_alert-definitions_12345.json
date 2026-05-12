@@ -5,11 +5,21 @@
   "severity": 1,
   "type": "user",
   "description": "A test alert for dbaas service",
-  "entity_ids": [
-    "13217"
+  "scope": "entity",
+  "regions": [],
+  "entities": {
+    "url": "/monitor/services/dbaas/alert-definitions/12345/entities",
+    "count": 1,
+    "has_more_resources": false
+  },
+  "alert_channels": [
+    {
+      "id": 10000,
+      "label": "Read-Write Channel",
+      "type": "email",
+      "url": "/monitor/alert-channels/10000"
+    }
   ],
-  "alert_channels": [],
-  "has_more_resources": false,
   "rule_criteria": {
     "rules": [
       {

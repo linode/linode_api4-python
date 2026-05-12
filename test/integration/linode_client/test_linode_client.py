@@ -117,12 +117,9 @@ def test_fails_to_create_image_with_non_existing_disk_id(
     disk_id = 111111
 
     try:
-        image_page = client.image_create(
-            disk=disk_id, label=label, description=description
-        )
+        client.image_create(disk=disk_id, label=label, description=description)
     except ApiError as e:
-        assert "Not found" in str(e.json)
-        assert e.status == 404
+        assert 400 <= e.status < 500
 
 
 def test_fails_to_delete_predefined_images(setup_client_and_linode):

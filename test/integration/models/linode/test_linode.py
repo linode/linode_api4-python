@@ -145,7 +145,7 @@ def linode_for_disk_tests(test_linode_client, e2e_test_firewall):
     linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         region,
-        image="linode/alpine3.19",
+        image="linode/ubuntu24.04",
         label=label + "_long_tests",
         firewall=e2e_test_firewall,
         root_pass="aComplex@Password123",
@@ -179,7 +179,7 @@ def linode_with_block_storage_encryption(test_linode_client, e2e_test_firewall):
     linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         region,
-        image="linode/alpine3.19",
+        image="linode/ubuntu24.04",
         label=label + "block-storage-encryption",
         firewall=e2e_test_firewall,
         root_pass="aComplex@Password123",
@@ -222,7 +222,7 @@ def linode_with_disk_encryption(test_linode_client, request):
     linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         target_region,
-        image="linode/ubuntu24.10",
+        image="linode/ubuntu24.04",
         label=label,
         booted=False,
         disk_encryption=disk_encryption,
@@ -825,6 +825,15 @@ def test_get_config(test_linode_client, create_linode):
     config = test_linode_client.load(Config, linode.configs[0].id, linode.id)
 
     assert config.id == linode.configs[0].id
+
+
+def test_config_create_without_devices_raises_error(create_linode):
+    linode = create_linode
+
+    with pytest.raises(ValueError) as err:
+        linode.config_create(label="test-config-no-devices")
+
+    assert "Must include at least one disk or volume!" in str(err.value)
 
 
 def test_get_linode_types(test_linode_client):

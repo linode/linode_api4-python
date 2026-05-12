@@ -105,7 +105,7 @@ def test_fails_update_subnet_invalid_data(create_vpc_with_subnet):
         subnet.save()
 
     assert excinfo.value.status == 400
-    assert "Label must include only ASCII" in str(excinfo.value.json)
+    assert "Must only use ASCII" in str(excinfo.value.json)
 
 
 def test_fails_create_subnet_with_invalid_ipv6_range(create_vpc):

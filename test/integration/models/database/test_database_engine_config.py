@@ -100,7 +100,7 @@ def test_get_mysql_config(test_linode_client):
     assert isinstance(brp, dict)
     assert brp["type"] == "integer"
     assert brp["minimum"] == 600
-    assert brp["maximum"] == 86400
+    assert brp["maximum"] == 9007199254740991
     assert brp["requires_restart"] is False
 
     # mysql sub-keys

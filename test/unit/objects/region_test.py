@@ -49,3 +49,15 @@ class RegionTest(ClientBaseCase):
             assert len(entry.plan) > 0
 
             assert entry.available is not None
+
+    def test_region_vpc_availability(self):
+        """
+        Tests that VPC availability for a specific region can be retrieved.
+        """
+        vpc_avail = Region(self.client, "us-east").vpc_availability
+
+        assert vpc_avail is not None
+        assert vpc_avail.region == "us-east"
+        assert vpc_avail.available is True
+        assert vpc_avail.available_ipv6_prefix_lengths is not None
+        assert isinstance(vpc_avail.available_ipv6_prefix_lengths, list)
