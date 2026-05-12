@@ -1,6 +1,7 @@
-from linode_api4 import Instance
 from test.integration.conftest import get_region
 from test.integration.helpers import get_test_label, retry_sending_request
+
+from linode_api4 import Instance
 
 
 def test_config_create_with_extended_volume_limit(test_linode_client):
