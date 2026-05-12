@@ -3,14 +3,16 @@
       {
          "id":123,
          "label":"test-firewall-1",
-         "created":"2018-01-01T00:01:01",
-         "updated":"2018-01-01T00:01:01",
+         "created":"2018-01-01T00:01:03",
+         "updated":"2018-01-01T00:01:03",
          "status":"enabled",
          "rules":{
             "outbound":[],
             "outbound_policy":"DROP",
             "inbound":[],
-            "inbound_policy":"DROP"
+            "inbound_policy":"DROP",
+            "version":2,
+            "fingerprint":"4ef67a29"
          },
          "tags":[]
       }
