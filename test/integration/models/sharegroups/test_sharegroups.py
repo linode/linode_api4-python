@@ -1,8 +1,6 @@
 import datetime
 from test.integration.conftest import get_region
-from test.integration.helpers import (
-    get_test_label,
-)
+from test.integration.helpers import get_test_label
 
 import pytest
 
@@ -41,11 +39,12 @@ def sample_linode(test_linode_client, e2e_test_firewall):
     region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label(length=8)
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         region,
-        image="linode/alpine3.19",
+        image="linode/ubuntu24.04",
         label=label + "_modlinode",
+        root_pass="aComplex@Password123",
     )
     yield linode_instance
     linode_instance.delete()

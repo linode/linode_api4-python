@@ -24,7 +24,7 @@ class LockGroup(Group):
 
            locks = client.locks()
 
-        API Documentation: TBD
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-resource-locks
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -44,7 +44,7 @@ class LockGroup(Group):
         """
         Creates a new Resource Lock for the specified entity.
 
-        API Documentation: TBD
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-resource-lock
 
         :param entity_type: The type of entity to lock (e.g., "linode").
         :type entity_type: str

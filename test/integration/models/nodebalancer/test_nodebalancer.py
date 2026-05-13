@@ -33,13 +33,14 @@ def linode_with_private_ip(test_linode_client, e2e_test_firewall):
     client = test_linode_client
     label = get_test_label(8)
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         TEST_REGION,
         image="linode/debian12",
         label=label,
         private_ip=True,
         firewall=e2e_test_firewall,
+        root_pass="aComplex@Password123",
     )
 
     yield linode_instance
