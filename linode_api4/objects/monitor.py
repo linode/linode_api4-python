@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from linode_api4.objects import DerivedBase
 from linode_api4.objects.base import Base, Property
@@ -20,6 +20,26 @@ __all__ = [
     "MonitorServiceToken",
     "RuleCriteria",
     "TriggerConditions",
+    "AkamaiObjectStorageLogsDestinationDetails",
+    "AuthenticationType",
+    "BasicAuthenticationDetails",
+    "ClientCertificateDetails",
+    "ContentType",
+    "CustomHeader",
+    "CustomHTTPSLogsDestinationDetails",
+    "DataCompressionType",
+    "DestinationAuthentication",
+    "LogsDestinationDetailsBase",
+    "LogsDestination",
+    "LogsDestinationHistory",
+    "LogsDestinationStatus",
+    "LogsDestinationType",
+    "LogsStream",
+    "LogsStreamHistory",
+    "LogsStreamType",
+    "LogsStreamStatus",
+    "LogsStreamDetails",
+    "LogsStreamDestination",
 ]
 
 
@@ -129,6 +149,35 @@ class AlertStatus(StrEnum):
     AlertDefinitionStatusEnabled = "enabled"
     AlertDefinitionStatusDisabled = "disabled"
     AlertDefinitionStatusFailed = "failed"
+
+
+class LogsDestinationType(StrEnum):
+    """
+    The type of destination for logs data sync.
+    """
+
+    akamai_object_storage = "akamai_object_storage"
+    custom_https = "custom_https"
+
+
+class AuthenticationType(StrEnum):
+    none = "none"
+    basic = "basic"
+
+
+class DataCompressionType(StrEnum):
+    gzip = "gzip"
+    none = "none"
+
+
+class ContentType(StrEnum):
+    json = "application/json"
+    json_utf8 = "application/json; charset=utf-8"
+
+
+class LogsDestinationStatus(StrEnum):
+    active = "active"
+    inactive = "inactive"
 
 
 @dataclass
@@ -515,3 +564,341 @@ class AlertChannel(Base):
         "created_by": Property(),
         "updated_by": Property(),
     }
+
+
+@dataclass
+class BasicAuthenticationDetails(JSONObject):
+    """
+    Includes additional parameters necessary to define basic authentication.
+    """
+
+    basic_authentication_user: Optional[str] = None
+    basic_authentication_password: Optional[str] = None
+
+
+@dataclass
+class DestinationAuthentication(JSONObject):
+    """
+    Authentication details required to access the endpoint_url.
+    """
+
+    type: Optional[AuthenticationType] = None
+    details: Optional[BasicAuthenticationDetails] = None
+
+
+@dataclass
+class CustomHeader(JSONObject):
+    """
+    Pairs of parameters used to optionally include custom headers in the request.
+    """
+
+    name: str = ""
+    value: str = ""
+
+
+@dataclass
+class ClientCertificateDetails(JSONObject):
+    """
+    Contains TLS client certificate information to additionally secure the connection.
+    """
+
+    client_ca_certificate: Optional[str] = None
+    client_certificate: Optional[str] = None
+    client_private_key: Optional[str] = None
+    tls_hostname: Optional[str] = None
+
+
+@dataclass
+class LogsDestinationDetailsBase(JSONObject):
+    """
+    Base class for Logs Destination details.
+    Use the factory method to instantiate the correct subclass based on destination type.
+    """
+
+    @classmethod
+    def load_by_type(
+        cls, dest_type: str, json_dict: dict
+    ) -> Optional["LogsDestinationDetailsBase"]:
+        """
+        Factory method that instantiates the correct details subclass
+        based on the destination type string.
+
+        :param dest_type: The destination type (e.g. "akamai_object_storage", "custom_https").
+        :param json_dict: The raw JSON dict for the details block.
+        :returns: A populated subclass instance, or None if json_dict is empty/None.
+        """
+        if not json_dict:
+            return None
+
+        if dest_type == LogsDestinationType.akamai_object_storage:
+            return AkamaiObjectStorageLogsDestinationDetails.from_json(
+                json_dict
+            )
+        elif dest_type == LogsDestinationType.custom_https:
+            return CustomHTTPSLogsDestinationDetails.from_json(json_dict)
+
+        return None
+
+
+@dataclass
+class CustomHTTPSLogsDestinationDetails(LogsDestinationDetailsBase):
+    """
+    Represents the details block for custom_https LogsDestination type.
+    """
+
+    endpoint_url: str = ""
+    authentication: Optional[DestinationAuthentication] = None
+    data_compression: Optional[DataCompressionType] = None
+    content_type: Optional[ContentType] = None
+    custom_headers: Optional[List[CustomHeader]] = None
+    client_certificate_details: Optional[ClientCertificateDetails] = None
+
+
+@dataclass
+class AkamaiObjectStorageLogsDestinationDetails(LogsDestinationDetailsBase):
+    """
+    Represents the details block for Akamai Object Storage LogsDestination type.
+    Fields:
+      - access_key_id: str - The unique identifier assigned to the Object Storage key required for authentication to the bucket.
+      - bucket_name: str - The name of the Object Storage bucket.
+      - host: str - The hostname where the Object Storage bucket can be accessed.
+      - path: Optional[str] - The specific path in an Object Storage bucket where audit logs files are uploaded. May be absent or None in API responses.
+    """
+
+    access_key_id: str = ""
+    access_key_secret: Optional[str] = None
+    bucket_name: str = ""
+    host: str = ""
+    path: Optional[str] = None
+
+
+class LogsDestinationHistory(Base):
+    """
+    Represents a read-only historical snapshot of a Logs Destination.
+
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-destination-history
+    """
+
+    properties = {
+        "created": Property(is_datetime=True),
+        "created_by": Property(),
+        "details": Property(),
+        "id": Property(identifier=True),
+        "label": Property(),
+        "status": Property(),
+        "type": Property(),
+        "updated": Property(is_datetime=True),
+        "updated_by": Property(),
+        "version": Property(),
+    }
+
+    def _populate(self, json):
+        super()._populate(json)
+
+        if json and "details" in json and "type" in json:
+            self._set(
+                "details",
+                LogsDestinationDetailsBase.load_by_type(
+                    json["type"], json["details"]
+                ),
+            )
+
+
+class LogsDestination(Base):
+    """
+    Represents a logs destination object.
+
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-destination
+    """
+
+    api_endpoint = "/monitor/streams/destinations/{id}"
+
+    properties = {
+        "created": Property(is_datetime=True),
+        "created_by": Property(),
+        "details": Property(mutable=True),
+        "id": Property(identifier=True),
+        "label": Property(mutable=True),
+        "status": Property(),
+        "type": Property(),
+        "updated": Property(is_datetime=True),
+        "updated_by": Property(),
+        "version": Property(),
+    }
+
+    def _populate(self, json):
+        super()._populate(json)
+
+        if json and "details" in json and "type" in json:
+            self._set(
+                "details",
+                LogsDestinationDetailsBase.load_by_type(
+                    json["type"], json["details"]
+                ),
+            )
+
+    @property
+    def history(self):
+        """
+        Retrieves the version history for this LogsDestination.
+
+        API documentation: https://techdocs.akamai.com/linode-api/reference/get-destination-history
+        """
+
+        return self._client._get_objects(
+            "{}/history".format(
+                LogsDestination.api_endpoint.format(id=self.id)
+            ),
+            LogsDestinationHistory,
+        )
+
+
+class LogsStreamStatus(StrEnum):
+    active = "active"
+    inactive = "inactive"
+    provisioning = "provisioning"
+    deactivating = "deactivating"
+
+
+class LogsStreamType(StrEnum):
+    audit_logs = "audit_logs"
+    lke_audit_logs = "lke_audit_logs"
+
+
+@dataclass
+class LogsStreamDetails(JSONObject):
+    """
+    Additional details for a logs stream.
+
+    This object only applies to streams with a ``type`` of ``lke_audit_logs``.
+    Leave it out of requests that use a ``type`` of ``audit_logs``.
+
+    .. note::
+        When updating a stream, any existing settings need to be included to
+        maintain them. For example, if you're adding new ``cluster_ids`` to the
+        stream, you also need to include any existing ones to maintain them.
+        Run the Get a stream operation to review the existing ``details``
+        settings for a stream before submitting an update.
+
+    Fields:
+      - cluster_ids: List of LKE enterprise cluster IDs to include in the stream.
+                     Cannot be used when ``is_auto_add_all_clusters_enabled`` is ``True``.
+      - is_auto_add_all_clusters_enabled: When ``True``, newly added LKE enterprise
+                                          clusters on the account are automatically
+                                          included in the stream.
+    """
+
+    cluster_ids: Optional[List[int]] = None
+    is_auto_add_all_clusters_enabled: bool = False
+
+
+@dataclass
+class LogsStreamDestination(JSONObject):
+    """
+    Represents a destination attached to a LogsStream.
+    """
+
+    id: int = 0
+    label: str = ""
+    type: Optional[LogsDestinationType] = None
+    details: Optional[LogsDestinationDetailsBase] = None
+
+    @classmethod
+    def from_json(
+        cls, json: Dict[str, Any]
+    ) -> Optional["LogsStreamDestination"]:
+        if json is None:
+            return None
+
+        obj = super().from_json(json)
+
+        if obj and json.get("type"):
+            obj.details = LogsDestinationDetailsBase.load_by_type(
+                json["type"], json.get("details")
+            )
+
+        return obj
+
+
+class LogsStreamHistory(Base):
+    """
+    Represents a read-only historical snapshot of a logs stream.
+
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-stream-history
+    """
+
+    properties = {
+        "created": Property(is_datetime=True),
+        "created_by": Property(),
+        "destinations": Property(json_object=LogsStreamDestination),
+        "details": Property(json_object=LogsStreamDetails),
+        "id": Property(identifier=True),
+        "label": Property(),
+        "status": Property(),
+        "type": Property(),
+        "updated": Property(is_datetime=True),
+        "updated_by": Property(),
+        "version": Property(),
+    }
+
+
+class LogsStream(Base):
+    """
+    Represents a logs stream object.
+
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-stream
+    """
+
+    api_endpoint = "/monitor/streams/{id}"
+
+    properties = {
+        "created": Property(is_datetime=True),
+        "created_by": Property(),
+        "destinations": Property(json_object=LogsStreamDestination),
+        "details": Property(mutable=True, json_object=LogsStreamDetails),
+        "id": Property(identifier=True),
+        "label": Property(mutable=True),
+        "status": Property(mutable=True),
+        "type": Property(),
+        "updated": Property(is_datetime=True),
+        "updated_by": Property(),
+        "version": Property(),
+    }
+
+    def update_destinations(self, destinations: List[int]):
+        """
+        Updates the sync points that receive logs data for this stream.
+        Replaces existing destinations with the provided list.
+
+        :param destinations: A list of destination IDs.
+                            At the moment only single destination per stream is supported.
+                            Passing more than one element in the list will result in an error from the API.
+        :type destinations: list[int]
+
+        :returns: True if the update was successful.
+        :rtype: bool
+        """
+        if not destinations:
+            raise ValueError("A destination id must be provided.")
+        payload = {"destinations": destinations}
+
+        # The Linode API PUT request expects the flat list of IDs
+        result = self._client.put(
+            self.api_endpoint.format(id=self.id), data=payload
+        )
+        self._populate(result)
+
+        return True
+
+    @property
+    def history(self):
+        """
+        Retrieves the version history for this LogsStream.
+
+        API documentation: https://techdocs.akamai.com/linode-api/reference/get-stream-history
+        """
+
+        return self._client._get_objects(
+            "{}/history".format(LogsStream.api_endpoint.format(id=self.id)),
+            LogsStreamHistory,
+        )
