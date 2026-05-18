@@ -111,7 +111,7 @@ def test_latest_get_event(test_linode_client, e2e_test_firewall):
         return linode.status == "running"
 
     # To ensure the Linode is running and the 'event' key has been populated
-    wait_for_condition(3, 100, get_linode_status)
+    wait_for_condition(5, 150, get_linode_status)
 
     events = client.load(Event, "")
     latest_events = events._raw_json.get("data")[:15]

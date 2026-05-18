@@ -9,6 +9,13 @@ from linode_api4 import ApiError
 from linode_api4.objects import ConfigInterface, ObjectStorageKeys, Region
 
 
+def is_tag_created(client, tag_label):
+    tags = client.tags()
+    tag_label_list = [i.label for i in tags]
+
+    return tag_label in tag_label_list
+
+
 @pytest.fixture(scope="session")
 def setup_client_and_linode(test_linode_client, e2e_test_firewall):
     client = test_linode_client
@@ -156,11 +163,7 @@ def test_get_tag(test_linode_client, test_tag):
     client = test_linode_client
     label = test_tag.label
 
-    tags = client.tags()
-
-    tag_label_list = [i.label for i in tags]
-
-    assert label in tag_label_list
+    assert wait_for_condition(3, 30, is_tag_created, client, label)
 
 
 def test_create_tag_with_id(
@@ -182,14 +185,9 @@ def test_create_tag_with_id(
         volumes=[volume.id, volume],
     )
 
-    # Get tags after creation
-    tags = client.tags()
-
-    tag_label_list = [i.label for i in tags]
+    assert wait_for_condition(3, 30, is_tag_created, client, label)
 
     tag.delete()
-
-    assert label in tag_label_list
 
 
 @pytest.mark.smoke
@@ -208,14 +206,9 @@ def test_create_tag_with_entities(
         label, entities=[linode, domain, nodebalancer, volume]
     )
 
-    # Get tags after creation
-    tags = client.tags()
-
-    tag_label_list = [i.label for i in tags]
+    assert wait_for_condition(3, 30, is_tag_created, client, label)
 
     tag.delete()
-
-    assert label in tag_label_list
 
 
 # AccountGroupTests
