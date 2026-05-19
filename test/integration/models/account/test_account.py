@@ -108,6 +108,7 @@ def test_latest_get_event(test_linode_client, e2e_test_firewall):
     )
 
     def get_linode_status():
+        linode.invalidate()
         return linode.status == "running"
 
     # To ensure the Linode is running and the 'event' key has been populated
