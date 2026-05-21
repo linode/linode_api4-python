@@ -254,6 +254,20 @@ class OAuthScopes:
                 return "longview:*"
             return "longview:{}".format(self.name)
 
+    class Images(Enum):
+        """
+        Access to Images
+        """
+
+        read_only = 0
+        read_write = 1
+        all = 2
+
+        def __repr__(self):
+            if self.name == "all":
+                return "images:*"
+            return "images:{}".format(self.name)
+
     _scope_families = {
         "linodes": Linodes,
         "domains": Domains,
@@ -271,6 +285,7 @@ class OAuthScopes:
         "object_storage": ObjectStorage,
         "nodebalancers": NodeBalancers,
         "longview": Longview,
+        "images": Images,
     }
 
     @staticmethod
