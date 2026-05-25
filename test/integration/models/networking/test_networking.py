@@ -395,19 +395,21 @@ def verify_reserved_ip_assigned(reserved_ip, resource):
 
 @pytest.mark.smoke
 @pytest.mark.parametrize(
-    "region, tags",
+    "region, tags, expected",
     [
-        (TEST_REGION, ["test"]),
-        (TEST_REGION, None),
+        (TEST_REGION, ["test"], ["test"]),
+        (TEST_REGION, None, []),
     ],
 )
-def test_create_reserved_ip(request, test_linode_client, region, tags):
+def test_create_reserved_ip(
+    request, test_linode_client, region, tags, expected
+):
     client = test_linode_client
     reserved_ip = client.networking.reserved_ip_create(region=region, tags=tags)
     request.addfinalizer(reserved_ip.delete)
 
     verify_reserved_ip(reserved_ip)
-    assert reserved_ip.tags == tags if tags else reserved_ip.tags == []
+    assert reserved_ip.tags == expected
 
 
 def test_create_reserved_ip_wo_region_fail(test_linode_client):
@@ -484,30 +486,29 @@ def test_get_reserved_ip_types(test_linode_client):
 
 
 @pytest.mark.smoke
-@pytest.mark.parametrize(
-    "reserved, region",
-    [
-        (True, TEST_REGION),
-        (True, None),
-    ],
-)
-def test_create_reserved_ip_with_allocate(
-    test_linode_client, create_linode, reserved, region
+def test_create_reserved_ip_with_allocate_and_region(test_linode_client):
+    client = test_linode_client
+    reserved_ip = client.networking.ip_allocate(
+        reserved=True, region=TEST_REGION
+    )
+
+    verify_reserved_ip(reserved_ip)
+    assert reserved_ip.tags == []
+
+    # clean-up
+    reserved_ip = client.load(ReservedIPAddress, reserved_ip.address)
+    reserved_ip.delete()
+
+
+@pytest.mark.smoke
+def test_create_reserved_ip_with_allocate_and_linode(
+    test_linode_client, create_linode
 ):
     client = test_linode_client
     linode = create_linode
+    reserved_ip = client.networking.ip_allocate(reserved=True, linode=linode.id)
 
-    if region:
-        reserved_ip = client.networking.ip_allocate(
-            reserved=reserved, region=TEST_REGION
-        )
-        verify_reserved_ip(reserved_ip)
-    else:
-        reserved_ip = client.networking.ip_allocate(
-            reserved=reserved, linode=linode.id
-        )
-        verify_reserved_ip_assigned(reserved_ip, linode)
-
+    verify_reserved_ip_assigned(reserved_ip, linode)
     assert reserved_ip.tags == []
 
     # clean-up
