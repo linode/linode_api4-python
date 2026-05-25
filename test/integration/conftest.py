@@ -16,7 +16,9 @@ import requests
 from requests.exceptions import ConnectionError, RequestException
 
 from linode_api4 import (
+    Instance,
     InterfaceGeneration,
+    IPAddress,
     LinodeInterfaceDefaultRouteOptions,
     LinodeInterfaceOptions,
     LinodeInterfacePublicOptions,
@@ -761,14 +763,15 @@ def create_reserved_ip_assigned(test_linode_client, create_linode):
         region=linode.region,
     )
 
+    linode = client.load(Instance, linode.id)
     reserved_ip = test_linode_client.load(
         ReservedIPAddress, reserved_ip.address
     )
 
     yield linode, reserved_ip
 
-    # Delete only if IP exists (some tests delete it earlier)
-    if client.networking.reserved_ips(
-        ReservedIPAddress.address == reserved_ip.address
+    # Delete assigned IP address completely
+    if address := client.networking.ips(
+        IPAddress.address == reserved_ip.address
     ):
-        reserved_ip.delete()
+        address[0].delete()

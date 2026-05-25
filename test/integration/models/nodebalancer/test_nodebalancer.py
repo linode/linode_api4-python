@@ -129,7 +129,6 @@ def test_create_nb_with_reserved_ip(
         ipv4=reserved_ip.address,
     )
 
-    assert TEST_REGION, nb.region
     assert label == nb.label
     assert nb.ipv4.address == reserved_ip.address
     assert nb.ipv4.public == True

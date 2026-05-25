@@ -514,6 +514,12 @@ def test_create_reserved_ip_with_allocate(
     reserved_ip = client.load(ReservedIPAddress, reserved_ip.address)
     reserved_ip.delete()
 
+    # Delete assigned IP address completely
+    if address := client.networking.ips(
+        IPAddress.address == reserved_ip.address
+    ):
+        address[0].delete()
+
 
 def test_reserve_ephemeral_ip(test_linode_client, create_linode):
     client = test_linode_client

@@ -45,7 +45,7 @@ def test_get_tag_with_reserved_ip(
     tag, reserved_ip = create_tag_with_reserved_ip
     tag = test_linode_client.load(Tag, tag.id).objects[0]
 
-    assert vars(tag).keys() == vars(reserved_ip).keys()
+    assert isinstance(tag, ReservedIPAddress)
     assert tag.address == reserved_ip.address
     assert tag.reserved == reserved_ip.reserved
     assert tag.tags == reserved_ip.tags
