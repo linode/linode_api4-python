@@ -48,7 +48,7 @@ def create_object_storage_key(test_linode_client: LinodeClient, region: Region):
 
 
 @pytest.fixture(scope="session")
-def test_destination(
+def create_destination(
     test_linode_client: LinodeClient,
     create_object_storage_key: ObjectStorageKeys,
     region: Region,
@@ -129,7 +129,7 @@ def _empty_bucket(client: LinodeClient, bucket: ObjectStorageBucket):
 
 
 def test_list_destinations(
-    test_linode_client: LinodeClient, test_destination: LogsDestination
+    test_linode_client: LinodeClient, create_destination: LogsDestination
 ):
     """
     Test that listing destinations returns a PaginatedList containing the previously created destination.
@@ -141,45 +141,45 @@ def test_list_destinations(
     assert all(isinstance(d, LogsDestination) for d in destinations)
 
     ids = [d.id for d in destinations]
-    assert test_destination.id in ids
+    assert create_destination.id in ids
 
 
 def test_get_destination_by_id(
-    test_linode_client: LinodeClient, test_destination: LogsDestination
+    test_linode_client: LinodeClient, create_destination: LogsDestination
 ):
     """
     Test that fetching destination with id filter returns correct destination.
     """
     destination_by_id = test_linode_client.load(
-        LogsDestination, test_destination.id
+        LogsDestination, create_destination.id
     )
 
     assert isinstance(destination_by_id, LogsDestination)
-    assert destination_by_id.id == test_destination.id
-    assert destination_by_id.label == test_destination.label
-    assert destination_by_id.type == test_destination.type
+    assert destination_by_id.id == create_destination.id
+    assert destination_by_id.label == create_destination.label
+    assert destination_by_id.type == create_destination.type
 
 
 def test_update_destination_label_and_version_history(
     test_linode_client: LinodeClient,
-    test_destination: LogsDestination,
+    create_destination: LogsDestination,
     create_object_storage_key: ObjectStorageKeys,
 ):
     """
     Test that a LogsDestination label can be updated via save(),
     and that history reflects both states.
     """
-    new_label = test_destination.label + "-upd"
+    new_label = create_destination.label + "-upd"
     new_path = "updated/logs/path/"
 
-    dest = test_linode_client.load(LogsDestination, test_destination.id)
+    dest = test_linode_client.load(LogsDestination, create_destination.id)
     original_version = dest.version
     dest.label = new_label
     dest.details.path = new_path
     dest.details.access_key_secret = create_object_storage_key.secret_key
     dest.save()
 
-    updated = test_linode_client.load(LogsDestination, test_destination.id)
+    updated = test_linode_client.load(LogsDestination, create_destination.id)
     assert updated.label == new_label
     assert updated.details.path == new_path
 
@@ -196,11 +196,11 @@ def test_update_destination_label_and_version_history(
 
     assert snapshot_updated.label == new_label
     assert snapshot_updated.details.path == new_path
-    assert snapshot_updated.id == test_destination.id
+    assert snapshot_updated.id == create_destination.id
 
-    assert snapshot_original.label == test_destination.label
+    assert snapshot_original.label == create_destination.label
     assert snapshot_original.details.path is None
-    assert snapshot_original.id == test_destination.id
+    assert snapshot_original.id == create_destination.id
 
 
 def test_fails_to_create_destination_invalid_secret(
@@ -332,7 +332,7 @@ def create_secondary_destination(
 @pytest.fixture(scope="session")
 def create_stream(
     test_linode_client: LinodeClient,
-    test_destination: LogsDestination,
+    create_destination: LogsDestination,
     invalid_destination_error,  # This ensures run order to keep negative test case deterministic
     create_secondary_destination: LogsDestination,  # This ensures teardown order - stream must be deleted before its destinations can be deleted
 ):
@@ -340,7 +340,7 @@ def create_stream(
 
     stream = test_linode_client.monitor.stream_create(
         label=get_test_label(),
-        destinations=[test_destination.id],
+        destinations=[create_destination.id],
         type=LogsStreamType.audit_logs,
     )
     assert stream.id is not None
