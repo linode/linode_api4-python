@@ -62,7 +62,6 @@ class ServiceType(StrEnum):
     aclb = "aclb"
     net_load_balancer = "netloadbalancer"
 
-
 class MetricType(StrEnum):
     """
     Enum for supported metric type
@@ -229,6 +228,7 @@ class MonitorDashboard(Base):
         "label": Property(),
         "service_type": Property(ServiceType),
         "type": Property(DashboardType),
+        "group_by": Property(),
         "widgets": Property(json_object=DashboardWidget),
         "updated": Property(is_datetime=True),
     }

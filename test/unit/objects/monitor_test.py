@@ -25,15 +25,17 @@ class MonitorTest(ClientBaseCase):
         dashboard = self.client.load(MonitorDashboard, 1)
         self.assertEqual(dashboard.type, "standard")
         self.assertEqual(
-            dashboard.created, datetime.datetime(2024, 10, 10, 5, 1, 58)
+            dashboard.created, datetime.datetime(2025, 2, 27, 7, 59, 40)
         )
         self.assertEqual(dashboard.id, 1)
         self.assertEqual(dashboard.label, "Resource Usage")
         self.assertEqual(dashboard.service_type, "dbaas")
         self.assertEqual(
-            dashboard.updated, datetime.datetime(2024, 10, 10, 5, 1, 58)
+            dashboard.updated, datetime.datetime(2025, 10, 7, 1, 16, 40)
         )
-        self.assertEqual(dashboard.widgets[0].aggregate_function, "sum")
+        self.assertEqual(dashboard.group_by, ["entity_id"])
+        self.assertEqual(len(dashboard.widgets), 7)
+        self.assertEqual(dashboard.widgets[0].aggregate_function, "avg")
         self.assertEqual(dashboard.widgets[0].chart_type, "area")
         self.assertEqual(dashboard.widgets[0].color, "default")
         self.assertEqual(dashboard.widgets[0].label, "CPU Usage")
@@ -41,22 +43,24 @@ class MonitorTest(ClientBaseCase):
         self.assertEqual(dashboard.widgets[0].size, 12)
         self.assertEqual(dashboard.widgets[0].unit, "%")
         self.assertEqual(dashboard.widgets[0].y_label, "cpu_usage")
-        self.assertEqual(dashboard.widgets[0].group_by, ["entity_id"])
+        self.assertIsNone(dashboard.widgets[0].group_by)
         self.assertIsNone(dashboard.widgets[0].filters)
 
     def test_dashboard_by_service_type(self):
         dashboards = self.client.monitor.dashboards(service_type="dbaas")
         self.assertEqual(dashboards[0].type, "standard")
         self.assertEqual(
-            dashboards[0].created, datetime.datetime(2024, 10, 10, 5, 1, 58)
+            dashboards[0].created, datetime.datetime(2025, 2, 27, 7, 59, 40)
         )
         self.assertEqual(dashboards[0].id, 1)
         self.assertEqual(dashboards[0].label, "Resource Usage")
         self.assertEqual(dashboards[0].service_type, "dbaas")
         self.assertEqual(
-            dashboards[0].updated, datetime.datetime(2024, 10, 10, 5, 1, 58)
+            dashboards[0].updated, datetime.datetime(2025, 10, 7, 1, 16, 40)
         )
-        self.assertEqual(dashboards[0].widgets[0].aggregate_function, "sum")
+        self.assertEqual(dashboards[0].group_by, ["entity_id"])
+        self.assertEqual(len(dashboards[0].widgets), 7)
+        self.assertEqual(dashboards[0].widgets[0].aggregate_function, "avg")
         self.assertEqual(dashboards[0].widgets[0].chart_type, "area")
         self.assertEqual(dashboards[0].widgets[0].color, "default")
         self.assertEqual(dashboards[0].widgets[0].label, "CPU Usage")
@@ -64,35 +68,30 @@ class MonitorTest(ClientBaseCase):
         self.assertEqual(dashboards[0].widgets[0].size, 12)
         self.assertEqual(dashboards[0].widgets[0].unit, "%")
         self.assertEqual(dashboards[0].widgets[0].y_label, "cpu_usage")
-        self.assertEqual(dashboards[0].widgets[0].group_by, ["entity_id"])
+        self.assertIsNone(dashboards[0].widgets[0].group_by)
         self.assertIsNone(dashboards[0].widgets[0].filters)
 
-        # Test the second widget which has filters
+        # Test the second widget (memory_usage, no filters)
         self.assertEqual(dashboards[0].widgets[1].label, "Memory Usage")
-        self.assertEqual(dashboards[0].widgets[1].group_by, ["entity_id"])
-        self.assertIsNotNone(dashboards[0].widgets[1].filters)
-        self.assertEqual(len(dashboards[0].widgets[1].filters), 1)
-        self.assertEqual(
-            dashboards[0].widgets[1].filters[0].dimension_label, "pattern"
-        )
-        self.assertEqual(dashboards[0].widgets[1].filters[0].operator, "in")
-        self.assertEqual(
-            dashboards[0].widgets[1].filters[0].value, "publicout,privateout"
-        )
+        self.assertEqual(dashboards[0].widgets[1].aggregate_function, "avg")
+        self.assertIsNone(dashboards[0].widgets[1].group_by)
+        self.assertIsNone(dashboards[0].widgets[1].filters)
 
     def test_get_all_dashboards(self):
         dashboards = self.client.monitor.dashboards()
+        self.assertEqual(len(dashboards), 11)
         self.assertEqual(dashboards[0].type, "standard")
         self.assertEqual(
-            dashboards[0].created, datetime.datetime(2024, 10, 10, 5, 1, 58)
+            dashboards[0].created, datetime.datetime(2025, 2, 27, 7, 59, 40)
         )
         self.assertEqual(dashboards[0].id, 1)
         self.assertEqual(dashboards[0].label, "Resource Usage")
         self.assertEqual(dashboards[0].service_type, "dbaas")
         self.assertEqual(
-            dashboards[0].updated, datetime.datetime(2024, 10, 10, 5, 1, 58)
+            dashboards[0].updated, datetime.datetime(2025, 10, 7, 1, 16, 40)
         )
-        self.assertEqual(dashboards[0].widgets[0].aggregate_function, "sum")
+        self.assertEqual(dashboards[0].group_by, ["entity_id"])
+        self.assertEqual(dashboards[0].widgets[0].aggregate_function, "avg")
         self.assertEqual(dashboards[0].widgets[0].chart_type, "area")
         self.assertEqual(dashboards[0].widgets[0].color, "default")
         self.assertEqual(dashboards[0].widgets[0].label, "CPU Usage")
@@ -100,8 +99,11 @@ class MonitorTest(ClientBaseCase):
         self.assertEqual(dashboards[0].widgets[0].size, 12)
         self.assertEqual(dashboards[0].widgets[0].unit, "%")
         self.assertEqual(dashboards[0].widgets[0].y_label, "cpu_usage")
-        self.assertEqual(dashboards[0].widgets[0].group_by, ["entity_id"])
+        self.assertIsNone(dashboards[0].widgets[0].group_by)
         self.assertIsNone(dashboards[0].widgets[0].filters)
+        # Verify a dashboard with multiple group_by values (id=4, firewall)
+        self.assertEqual(dashboards[3].id, 4)
+        self.assertEqual(dashboards[3].group_by, ["entity_id", "linode_id", "interface_id"])
 
     def test_specific_service_details(self):
         data = self.client.load(MonitorService, "dbaas")
