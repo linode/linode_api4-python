@@ -3,6 +3,14 @@ name: Integration Tests
 on:
   workflow_dispatch:
     inputs:
+      run_aclp_logs_stream_tests:
+        description: 'Set this parameter to "true" to run ACLP logs stream related test cases'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
       run_db_fork_tests:
         description: 'Set this parameter to "true" to run fork database related test cases'
         required: false
@@ -55,8 +63,8 @@ on:
       - dev
 
 env:
-  DEFAULT_PYTHON_VERSION: "3.10"
-  EOL_PYTHON_VERSION: "3.9"
+  DEFAULT_PYTHON_VERSION: "3.13"
+  EOL_PYTHON_VERSION: "3.10"
   EXIT_STATUS: 0
 
 jobs:
@@ -99,13 +107,13 @@ jobs:
         run: |
           timestamp=$(date +'%Y%m%d%H%M')
           report_filename="${timestamp}_sdk_test_report.xml"
-          make test-int RUN_DB_FORK_TESTS=${{ github.event.inputs.run_db_fork_tests }} RUN_DB_TESTS=${{ github.event.inputs.run_db_tests }} TEST_SUITE="${{ github.event.inputs.test_suite }}" TEST_ARGS="--junitxml=${report_filename}"
+          make test-int RUN_DB_FORK_TESTS=${{ github.event.inputs.run_db_fork_tests }} RUN_DB_TESTS=${{ github.event.inputs.run_db_tests }} RUN_ACLP_LOGS_STREAM_TESTS=${{ github.event.inputs.run_aclp_logs_stream_tests }} TEST_SUITE="${{ github.event.inputs.test_suite }}" TEST_ARGS="--junitxml=${report_filename}"
         env:
           LINODE_TOKEN: ${{ env.LINODE_TOKEN }}
 
       - name: Upload Test Report as Artifact
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: test-report-file
           if-no-files-found: ignore
@@ -241,7 +249,7 @@ jobs:
     steps:
       - name: Notify Slack
         id: main_message
-        uses: slackapi/slack-github-action@v2.1.1
+        uses: slackapi/slack-github-action@v3
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -273,7 +281,7 @@ jobs:
 
       - name: Test summary thread
         if: success()
-        uses: slackapi/slack-github-action@v2.1.1
+        uses: slackapi/slack-github-action@v3
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}

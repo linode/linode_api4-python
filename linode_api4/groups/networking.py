@@ -452,10 +452,10 @@ class NetworkingGroup(Group):
         :param assignments: Any number of assignments to make.  See
                             :any:`IPAddress.to` for details on how to construct
                             assignments.
-        :type assignments: dct
+        :type assignments: list
         """
 
-        for a in assignments["assignments"]:
+        for a in assignments:
             if not "address" in a or not "linode_id" in a:
                 raise ValueError("Invalid assignment: {}".format(a))
 

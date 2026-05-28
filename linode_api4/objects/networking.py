@@ -108,8 +108,6 @@ class IPAddress(Base):
 
         NOTE: This function will only return Linode interfaces, not Config interfaces.
 
-        NOTE: Linode interfaces may not currently be available to all users.
-
         :returns: The Linode Interface associated with this IP address.
         :rtype: LinodeInterface
         """

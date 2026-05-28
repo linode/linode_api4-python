@@ -1,0 +1,132 @@
+{
+  "data": [
+    {
+      "region": "us-east",
+      "available": true,
+      "available_ipv6_prefix_lengths": [52, 48]
+    },
+    {
+      "region": "us-west",
+      "available": true,
+      "available_ipv6_prefix_lengths": [56, 52, 48]
+    },
+    {
+      "region": "nl-ams",
+      "available": true,
+      "available_ipv6_prefix_lengths": []
+    },
+    {
+      "region": "us-ord",
+      "available": true,
+      "available_ipv6_prefix_lengths": []
+    },
+    {
+      "region": "us-iad",
+      "available": true,
+      "available_ipv6_prefix_lengths": []
+    },
+    {
+      "region": "fr-par",
+      "available": true,
+      "available_ipv6_prefix_lengths": []
+    },
+    {
+      "region": "us-sea",
+      "available": true,
+      "available_ipv6_prefix_lengths": []
+    },
+    {
+      "region": "br-gru",
+      "available": true,
+      "available_ipv6_prefix_lengths": []
+    },
+    {
+      "region": "se-sto",
+      "available": true,
+      "available_ipv6_prefix_lengths": []
+    },
+    {
+      "region": "es-mad",
+      "available": true,
+      "available_ipv6_prefix_lengths": []
+    },
+    {
+      "region": "in-maa",
+      "available": true,
+      "available_ipv6_prefix_lengths": []
+    },
+    {
+      "region": "jp-osa",
+      "available": true,
+      "available_ipv6_prefix_lengths": []
+    },
+    {
+      "region": "it-mil",
+      "available": true,
+      "available_ipv6_prefix_lengths": []
+    },
+    {
+      "region": "us-mia",
+      "available": true,
+      "available_ipv6_prefix_lengths": []
+    },
+    {
+      "region": "id-cgk",
+      "available": true,
+      "available_ipv6_prefix_lengths": []
+    },
+    {
+      "region": "us-lax",
+      "available": true,
+      "available_ipv6_prefix_lengths": []
+    },
+    {
+      "region": "gb-lon",
+      "available": true,
+      "available_ipv6_prefix_lengths": []
+    },
+    {
+      "region": "au-mel",
+      "available": true,
+      "available_ipv6_prefix_lengths": []
+    },
+    {
+      "region": "in-bom-2",
+      "available": true,
+      "available_ipv6_prefix_lengths": []
+    },
+    {
+      "region": "de-fra-2",
+      "available": true,
+      "available_ipv6_prefix_lengths": []
+    },
+    {
+      "region": "sg-sin-2",
+      "available": true,
+      "available_ipv6_prefix_lengths": []
+    },
+    {
+      "region": "jp-tyo-3",
+      "available": true,
+      "available_ipv6_prefix_lengths": []
+    },
+    {
+      "region": "fr-par-2",
+      "available": true,
+      "available_ipv6_prefix_lengths": []
+    },
+    {
+      "region": "ca-central",
+      "available": false,
+      "available_ipv6_prefix_lengths": []
+    },
+    {
+      "region": "ap-southeast",
+      "available": false,
+      "available_ipv6_prefix_lengths": []
+    }
+  ],
+  "page": 1,
+  "pages": 2,
+  "results": 50
+}

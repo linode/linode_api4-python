@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 from urllib import parse
 
 from linode_api4.common import Price, RegionPrice
@@ -220,12 +220,14 @@ class NodeBalancerConfig(DerivedBase):
 
         # we're disabling warnings here because these attributes are defined dynamically
         # through linode.objects.Base, and pylint isn't privy
-        if os.path.isfile(os.path.expanduser(cert_file)):
-            with open(os.path.expanduser(cert_file)) as f:
+        cert_path = Path(cert_file).expanduser()
+        if cert_path.is_file():
+            with open(cert_path) as f:
                 self.ssl_cert = f.read()
 
-        if os.path.isfile(os.path.expanduser(key_file)):
-            with open(os.path.expanduser(key_file)) as f:
+        key_path = Path(key_file).expanduser()
+        if key_path.is_file():
+            with open(key_path) as f:
                 self.ssl_key = f.read()
 
 

@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from linode_api4 import PaginatedList
 from linode_api4.errors import UnexpectedResponseError
@@ -6,10 +6,22 @@ from linode_api4.groups import Group
 from linode_api4.objects import (
     AlertChannel,
     AlertDefinition,
+    AlertDefinitionEntity,
+    AlertScope,
+    LogsDestination,
+    LogsDestinationType,
+    LogsStream,
+    LogsStreamStatus,
+    LogsStreamType,
     MonitorDashboard,
     MonitorMetricsDefinition,
     MonitorService,
     MonitorServiceToken,
+)
+from linode_api4.objects.monitor import (
+    AkamaiObjectStorageLogsDestinationDetails,
+    CustomHTTPSLogsDestinationDetails,
+    LogsStreamDetails,
 )
 
 __all__ = [
@@ -202,7 +214,7 @@ class MonitorGroup(Group):
 
         .. note:: This endpoint is in beta and requires using the v4beta base URL.
 
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-alert-channels
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-notification-channels
 
         :param filters: Optional filter expressions to apply to the collection.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>` for details.
@@ -221,6 +233,8 @@ class MonitorGroup(Group):
         trigger_conditions: dict,
         entity_ids: Optional[list[str]] = None,
         description: Optional[str] = None,
+        scope: Optional[Union[AlertScope, str]] = None,
+        regions: Optional[list[str]] = None,
     ) -> AlertDefinition:
         """
         Create a new alert definition for a given service type.
@@ -252,6 +266,10 @@ class MonitorGroup(Group):
         :type entity_ids: Optional[list[str]]
         :param description: (Optional) Longer description for the alert definition.
         :type description: Optional[str]
+        :param scope: (Optional) Alert scope (for example: `account`, `entity`, or `region`). Defaults to `entity`.
+        :type scope: Optional[Union[AlertScope, str]]
+        :param regions: (Optional) Regions to monitor.
+        :type regions: Optional[list[str]]
 
         :returns: The newly created :class:`AlertDefinition`.
         :rtype: AlertDefinition
@@ -267,10 +285,15 @@ class MonitorGroup(Group):
             "rule_criteria": rule_criteria,
             "trigger_conditions": trigger_conditions,
         }
-        if description is not None:
-            params["description"] = description
+
         if entity_ids is not None:
             params["entity_ids"] = entity_ids
+        if description is not None:
+            params["description"] = description
+        if scope is not None:
+            params["scope"] = scope
+        if regions is not None:
+            params["regions"] = regions
 
         # API will validate service_type and return an error if missing
         result = self.client.post(
@@ -284,3 +307,241 @@ class MonitorGroup(Group):
             )
 
         return AlertDefinition(self.client, result["id"], service_type, result)
+
+    def alert_definition_entities(
+        self,
+        service_type: str,
+        id: int,
+        *filters,
+    ) -> PaginatedList:
+        """
+        List entities associated with a specific alert definition.
+
+        This endpoint supports pagination fields (`page`, `page_size`) in the API.
+
+        .. note:: This endpoint is in beta and requires using the v4beta base URL.
+
+        API Documentation: TODO
+
+        :param service_type: Service type for the alert definition (e.g. `dbaas`).
+        :type service_type: str
+        :param id: Alert definition identifier.
+        :type id: int
+        :param filters: Optional filter expressions to apply to the collection.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`.
+
+        :returns: A paginated list of entities associated with the alert definition.
+        :rtype: PaginatedList[AlertDefinitionEntity]
+        """
+
+        endpoint = (
+            f"/monitor/services/{service_type}/alert-definitions/{id}/entities"
+        )
+        return self.client._get_and_filter(
+            AlertDefinitionEntity,
+            *filters,
+            endpoint=endpoint,
+        )
+
+    def destinations(self, *filters) -> PaginatedList:
+        """
+        List available logs destinations.
+
+        Returns a paginated collection of :class:`LogsDestination` objects which
+        describe logs destinations. By default, this method returns all available
+        destinations; you can supply optional filter expressions to restrict
+        the results, for example::
+
+            # Get destinations created by username and with id 111
+            destinations = client.monitor.destinations(LogsDestination.created_by == "username",
+                                                        LogsDestination.id == 111)
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-destinations
+
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
+
+        :returns: A list of :class:`LogsDestination` objects matching the query.
+        :rtype: PaginatedList of LogsDestination
+        """
+
+        return self.client._get_and_filter(LogsDestination, *filters)
+
+    def destination_create(
+        self,
+        label: str,
+        type: Union[LogsDestinationType, str],
+        details: Union[
+            AkamaiObjectStorageLogsDestinationDetails,
+            CustomHTTPSLogsDestinationDetails,
+        ],
+    ) -> LogsDestination:
+        """
+        Creates a new :any:`LogsDestination` for logs on this account.
+
+        For an ``akamai_object_storage`` destination::
+
+           client = LinodeClient(TOKEN)
+
+           new_destination = client.monitor.destination_create(
+               label="OBJ_logs_destination",
+               type="akamai_object_storage",
+               details=AkamaiObjectStorageLogsDestinationDetails(
+                   access_key_id="1ABCD23EFG4HIJKLMNO5",
+                   access_key_secret="1aB2CD3e4fgHi5JK6lmnop7qR8STU9VxYzabcdefHh",
+                   bucket_name="primary-bucket",
+                   host="primary-bucket-1.us-east-12.linodeobjects.com",
+                   path="audit-logs",
+               )
+           )
+
+        For a ``custom_https`` destination::
+
+           new_destination = client.monitor.destination_create(
+               label="custom_logs_destination",
+               type="custom_https",
+               details=CustomHTTPSLogsDestinationDetails(
+                   endpoint_url="https://my-site.com/log-storage/basicAuth",
+                   authentication=DestinationAuthentication(
+                       type="basic",
+                       details=BasicAuthenticationDetails(
+                           basic_authentication_user="user",
+                           basic_authentication_password="pass",
+                       ),
+                   ),
+                   data_compression="gzip",
+                   content_type="application/json",
+               )
+           )
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-destination
+
+        :param label: The name for this logs destination.
+        :type label: str
+        :param type: The type of destination — ``akamai_object_storage`` or ``custom_https``.
+        :type type: str or LogsDestinationType
+        :param details: A typed details object matching the destination type.
+                        Use :class:`AkamaiObjectStorageLogsDestinationDetails` for
+                        ``akamai_object_storage`` or :class:`CustomHTTPSLogsDestinationDetails`
+                        for ``custom_https``.
+        :type details: AkamaiObjectStorageLogsDestinationDetails or CustomHTTPSLogsDestinationDetails
+
+        :returns: The newly created logs destination.
+        :rtype: LogsDestination
+        """
+
+        params = {
+            "label": label,
+            "type": type,
+            "details": details.dict,
+        }
+
+        result = self.client.post("/monitor/streams/destinations", data=params)
+
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating destination!",
+                json=result,
+            )
+
+        return LogsDestination(self.client, result["id"], result)
+
+    def streams(self, *filters) -> PaginatedList:
+        """
+        List available logs streams.
+
+        Returns a paginated collection of :class:`LogsStream` objects which
+        describe logs streams. By default, this method returns all available
+        streams; you can supply optional filter expressions to restrict
+        the results, for example::
+
+            # Get all streams with status ``provisioning``
+            provisioning_streams = client.monitor.streams(LogsStream.status == "provisioning")
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-streams
+
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
+        :returns: A list of :class:`LogsStream` objects matching the query.
+        :rtype: PaginatedList of LogsStream
+        """
+
+        return self.client._get_and_filter(LogsStream, *filters)
+
+    def stream_create(
+        self,
+        destinations: list[int],
+        label: str,
+        type: Union[LogsStreamType, str],
+        status: Optional[Union[LogsStreamStatus, str]] = None,
+        details: Optional[LogsStreamDetails] = None,
+    ) -> LogsStream:
+        """
+        Creates a new :any:`LogsStream` for logs on this account. For example::
+
+           client = LinodeClient(TOKEN)
+
+           # audit_logs stream (no details required)
+           new_stream = client.monitor.stream_create(
+               destinations=[1234],
+               label="Linode_services",
+               status="active",
+               type="audit_logs"
+           )
+
+           # lke_audit_logs stream with specific clusters
+           lke_stream = client.monitor.stream_create(
+               destinations=[1234],
+               label="LKE_audit_stream",
+               type="lke_audit_logs",
+               details=LogsStreamDetails(
+                   cluster_ids=[1111, 2222],
+                   is_auto_add_all_clusters_enabled=False,
+               )
+           )
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-stream
+
+        :param destinations: The unique identifier for the sync point that will receive logs data.
+                            Run the List destinations operation and store the id values for each applicable destination.
+                            At the moment only single destination is supported.
+        :type destinations: list[int]
+        :param label: The name of the stream. This is used for display purposes in Akamai Cloud Manager.
+        :type label: str
+        :param type: The type of stream — ``audit_logs`` for Linode control plane logs,
+                     or ``lke_audit_logs`` for LKE enterprise cluster audit logs.
+        :type type: str or LogsStreamType
+        :param status: (Optional) The availability status of the stream. Possible values are: ``active``, ``inactive``.
+                        Defaults to ``active``.
+        :type status: str
+        :param details: (Optional) Additional stream details. Only applicable for
+                        ``lke_audit_logs`` streams. Omit for ``audit_logs`` streams.
+        :type details: LogsStreamDetails
+
+        :returns: The newly created logs stream.
+        :rtype: LogsStream
+        """
+
+        params = {
+            "label": label,
+            "type": type,
+            "destinations": destinations,
+        }
+
+        if status is not None:
+            params["status"] = status
+
+        if details is not None:
+            params["details"] = details.dict
+
+        result = self.client.post("/monitor/streams", data=params)
+
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating logs stream!",
+                json=result,
+            )
+
+        return LogsStream(self.client, result["id"], result)

@@ -10,7 +10,7 @@ class LockType(StrEnum):
     """
     LockType defines valid values for resource lock types.
 
-    API Documentation: TBD
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-resource-lock
     """
 
     cannot_delete = "cannot_delete"
@@ -22,7 +22,7 @@ class LockEntity(JSONObject):
     """
     Represents the entity that is locked.
 
-    API Documentation: TBD
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-resource-lock
     """
 
     id: int = 0
@@ -35,7 +35,7 @@ class Lock(Base):
     """
     A resource lock that prevents deletion or modification of a resource.
 
-    API Documentation: TBD
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-resource-lock
     """
 
     api_endpoint = "/locks/{id}"

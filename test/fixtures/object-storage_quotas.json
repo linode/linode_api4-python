@@ -7,7 +7,9 @@
       "endpoint_type": "E1",
       "s3_endpoint": "us-iad-1.linodeobjects.com",
       "quota_limit": 50,
-      "resource_metric": "object"
+      "resource_metric": "object",
+      "quota_type": "obj-objects",
+      "has_usage": true
     },
     {
       "quota_id": "obj-bucket-us-ord-1",
@@ -16,7 +18,9 @@
       "endpoint_type": "E1",
       "s3_endpoint": "us-iad-1.linodeobjects.com",
       "quota_limit": 50,
-      "resource_metric": "bucket"
+      "resource_metric": "bucket",
+      "quota_type": "obj-bucket",
+      "has_usage": true
     }
   ],
   "page": 1,

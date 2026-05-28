@@ -48,7 +48,6 @@ class VolumeGroup(Group):
         :type tags: list[str]
         :param encryption: Whether the new Volume should opt in or out of disk encryption.
         :type encryption: str
-            Note: Block Storage Disk Encryption is not currently available to all users.
         :returns: The new Volume.
         :rtype: Volume
         """

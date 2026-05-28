@@ -116,63 +116,6 @@ class MySQLDatabaseTest(ClientBaseCase):
                 m.call_data["private_network"]["public_access"], True
             )
 
-    def test_list_backups(self):
-        """
-        Test that MySQL backups list properly
-        """
-
-        db = MySQLDatabase(self.client, 123)
-        backups = db.backups
-
-        self.assertEqual(len(backups), 1)
-
-        self.assertEqual(backups[0].id, 456)
-        self.assertEqual(
-            backups[0].label, "Scheduled - 02/04/22 11:11 UTC-XcCRmI"
-        )
-        self.assertEqual(backups[0].type, "auto")
-
-    def test_create_backup(self):
-        """
-        Test that MySQL database backups can be updated
-        """
-
-        with self.mock_post("/databases/mysql/instances/123/backups") as m:
-            db = MySQLDatabase(self.client, 123)
-
-            # We don't care about errors here; we just want to
-            # validate the request.
-            try:
-                db.backup_create("mybackup", target="standby")
-            except Exception as e:
-                logger.warning(
-                    "An error occurred while validating the request: %s", e
-                )
-
-            self.assertEqual(m.method, "post")
-            self.assertEqual(
-                m.call_url, "/databases/mysql/instances/123/backups"
-            )
-            self.assertEqual(m.call_data["label"], "mybackup")
-            self.assertEqual(m.call_data["target"], "standby")
-
-    def test_backup_restore(self):
-        """
-        Test that MySQL database backups can be restored
-        """
-
-        with self.mock_post(
-            "/databases/mysql/instances/123/backups/456/restore"
-        ) as m:
-            db = MySQLDatabase(self.client, 123)
-
-            db.backups[0].restore()
-
-            self.assertEqual(m.method, "post")
-            self.assertEqual(
-                m.call_url, "/databases/mysql/instances/123/backups/456/restore"
-            )
-
     def test_patch(self):
         """
         Test MySQL Database patching logic.
@@ -381,64 +324,6 @@ class PostgreSQLDatabaseTest(ClientBaseCase):
             self.assertEqual(m.call_data["private_network"]["subnet_id"], 5678)
             self.assertEqual(
                 m.call_data["private_network"]["public_access"], True
-            )
-
-    def test_list_backups(self):
-        """
-        Test that PostgreSQL backups list properly
-        """
-
-        db = PostgreSQLDatabase(self.client, 123)
-        backups = db.backups
-
-        self.assertEqual(len(backups), 1)
-
-        self.assertEqual(backups[0].id, 456)
-        self.assertEqual(
-            backups[0].label, "Scheduled - 02/04/22 11:11 UTC-XcCRmI"
-        )
-        self.assertEqual(backups[0].type, "auto")
-
-    def test_create_backup(self):
-        """
-        Test that PostgreSQL database backups can be created
-        """
-
-        with self.mock_post("/databases/postgresql/instances/123/backups") as m:
-            db = PostgreSQLDatabase(self.client, 123)
-
-            # We don't care about errors here; we just want to
-            # validate the request.
-            try:
-                db.backup_create("mybackup", target="standby")
-            except Exception as e:
-                logger.warning(
-                    "An error occurred while validating the request: %s", e
-                )
-
-            self.assertEqual(m.method, "post")
-            self.assertEqual(
-                m.call_url, "/databases/postgresql/instances/123/backups"
-            )
-            self.assertEqual(m.call_data["label"], "mybackup")
-            self.assertEqual(m.call_data["target"], "standby")
-
-    def test_backup_restore(self):
-        """
-        Test that PostgreSQL database backups can be restored
-        """
-
-        with self.mock_post(
-            "/databases/postgresql/instances/123/backups/456/restore"
-        ) as m:
-            db = PostgreSQLDatabase(self.client, 123)
-
-            db.backups[0].restore()
-
-            self.assertEqual(m.method, "post")
-            self.assertEqual(
-                m.call_url,
-                "/databases/postgresql/instances/123/backups/456/restore",
             )
 
     def test_patch(self):

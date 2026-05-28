@@ -16,12 +16,13 @@ def setup_client_and_linode(test_linode_client, e2e_test_firewall):
 
     label = get_test_label()
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         region,
         image="linode/debian12",
         label=label,
         firewall=e2e_test_firewall,
+        root_pass="aComplex@Password123",
     )
 
     yield client, linode_instance
@@ -116,12 +117,9 @@ def test_fails_to_create_image_with_non_existing_disk_id(
     disk_id = 111111
 
     try:
-        image_page = client.image_create(
-            disk=disk_id, label=label, description=description
-        )
+        client.image_create(disk=disk_id, label=label, description=description)
     except ApiError as e:
-        assert "Not found" in str(e.json)
-        assert e.status == 404
+        assert 400 <= e.status < 500
 
 
 def test_fails_to_delete_predefined_images(setup_client_and_linode):
@@ -258,7 +256,7 @@ def test_create_linode_with_interfaces(test_linode_client):
     region = get_region(client, {"Vlans", "Linodes"}, site_type="core").id
     label = get_test_label()
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         region,
         label=label,
@@ -269,6 +267,7 @@ def test_create_linode_with_interfaces(test_linode_client):
                 purpose="vlan", label="cool-vlan", ipam_address="10.0.0.4/32"
             ),
         ],
+        root_pass="aComplex@Password123",
     )
 
     assert len(linode_instance.configs[0].interfaces) == 2

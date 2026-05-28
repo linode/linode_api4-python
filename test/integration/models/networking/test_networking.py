@@ -37,11 +37,12 @@ def create_linode_func(test_linode_client):
 
     label = get_test_label()
 
-    linode_instance, _ = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         TEST_REGION,
         image="linode/debian12",
         label=label,
+        root_pass="aComplex@Password123",
     )
 
     return linode_instance
@@ -220,7 +221,7 @@ def test_ip_addresses_unshare(
 
 
 def test_ip_info_vpc(test_linode_client, create_vpc_with_subnet_and_linode):
-    vpc, subnet, linode, _ = create_vpc_with_subnet_and_linode
+    vpc, subnet, linode = create_vpc_with_subnet_and_linode
 
     config: Config = linode.configs[0]
 
