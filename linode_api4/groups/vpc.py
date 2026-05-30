@@ -4,6 +4,7 @@ from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import VPC, Region, VPCIPAddress, VPCIPv6RangeOptions
 from linode_api4.objects.base import _flatten_request_body_recursive
+from linode_api4.objects.vpc import VPCType
 from linode_api4.paginated_list import PaginatedList
 from linode_api4.util import drop_null_keys
 
@@ -36,6 +37,7 @@ class VPCGroup(Group):
         description: Optional[str] = None,
         subnets: Optional[List[Dict[str, Any]]] = None,
         ipv6: Optional[List[Union[VPCIPv6RangeOptions, Dict[str, Any]]]] = None,
+        vpc_type: Optional[Union[VPCType, str]] = None,
         **kwargs,
     ) -> VPC:
         """
@@ -53,6 +55,11 @@ class VPCGroup(Group):
         :type subnets: List[Dict[str, Any]]
         :param ipv6: The IPv6 address ranges for this VPC.
         :type ipv6: List[Union[VPCIPv6RangeOptions, Dict[str, Any]]]
+        :param vpc_type: The type of VPC to create. Defaults to ``regular`` on
+                         the API side. Set to ``rdma`` to create a GPUDirect
+                         RDMA VPC (requires the ``GPUDirect RDMA`` account
+                         capability).
+        :type vpc_type: Optional[Union[VPCType, str]]
 
         :returns: The new VPC object.
         :rtype: VPC
@@ -63,6 +70,7 @@ class VPCGroup(Group):
             "description": description,
             "ipv6": ipv6,
             "subnets": subnets,
+            "vpc_type": vpc_type,
         }
 
         if subnets is not None and len(subnets) > 0:
