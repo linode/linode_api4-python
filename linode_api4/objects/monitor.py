@@ -62,6 +62,7 @@ class ServiceType(StrEnum):
     aclb = "aclb"
     net_load_balancer = "netloadbalancer"
 
+
 class MetricType(StrEnum):
     """
     Enum for supported metric type

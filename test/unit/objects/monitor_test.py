@@ -103,7 +103,9 @@ class MonitorTest(ClientBaseCase):
         self.assertIsNone(dashboards[0].widgets[0].filters)
         # Verify a dashboard with multiple group_by values (id=4, firewall)
         self.assertEqual(dashboards[3].id, 4)
-        self.assertEqual(dashboards[3].group_by, ["entity_id", "linode_id", "interface_id"])
+        self.assertEqual(
+            dashboards[3].group_by, ["entity_id", "linode_id", "interface_id"]
+        )
 
     def test_specific_service_details(self):
         data = self.client.load(MonitorService, "dbaas")

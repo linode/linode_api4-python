@@ -39,6 +39,7 @@ def test_get_all_dashboards(test_linode_client):
     assert isinstance(dashboards_by_svc[0], MonitorDashboard)
     assert dashboards_by_svc[0].service_type == get_service_type
 
+
 def test_filter_and_group_by(test_linode_client):
     client = test_linode_client
     dashboards_by_svc = client.monitor.dashboards(service_type="linode")
