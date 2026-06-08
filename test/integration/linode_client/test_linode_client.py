@@ -1,12 +1,19 @@
 import re
 import time
 from test.integration.conftest import get_region
-from test.integration.helpers import get_test_label
+from test.integration.helpers import get_test_label, wait_for_condition
 
 import pytest
 
 from linode_api4 import ApiError
 from linode_api4.objects import ConfigInterface, ObjectStorageKeys, Region
+
+
+def is_tag_created(client, tag_label):
+    tags = client.tags()
+    tag_label_list = [i.label for i in tags]
+
+    return tag_label in tag_label_list
 
 
 @pytest.fixture(scope="session")
@@ -55,10 +62,11 @@ def test_fails_to_create_domain_without_soa_email(setup_client_and_linode):
 
     timestamp = str(time.time_ns())
     domain_addr = timestamp + "example.com"
-    try:
-        domain = client.domain_create(domain=domain_addr)
-    except ApiError as e:
-        assert e.status == 400
+
+    with pytest.raises(ApiError) as exc_info:
+        client.domain_create(domain=domain_addr)
+
+    assert exc_info.value.status == 400
 
 
 @pytest.mark.smoke
@@ -90,11 +98,16 @@ def test_get_regions(test_linode_client):
 def test_image_create(setup_client_and_linode):
     client = setup_client_and_linode[0]
     linode = setup_client_and_linode[1]
-
     label = get_test_label()
     description = "Test description"
     tags = ["test"]
-    usable_disk = [v for v in linode.disks if v.filesystem != "swap"]
+
+    def linode_disks_are_ready(linode_instance):
+        linode_instance.invalidate()
+        disks = [d for d in linode_instance.disks if d.filesystem != "swap"]
+        return disks if disks else None
+
+    usable_disk = wait_for_condition(5, 120, linode_disks_are_ready, linode)
 
     image = client.image_create(
         disk=usable_disk[0].id, label=label, description=description, tags=tags
@@ -116,10 +129,11 @@ def test_fails_to_create_image_with_non_existing_disk_id(
     description = "Test description"
     disk_id = 111111
 
-    try:
+    with pytest.raises(ApiError) as exc_info:
         client.image_create(disk=disk_id, label=label, description=description)
-    except ApiError as e:
-        assert 400 <= e.status < 500
+
+    # TODO: Specific status code may be used when defect is solved: ARB-7797
+    assert 400 <= exc_info.value.status < 500
 
 
 def test_fails_to_delete_predefined_images(setup_client_and_linode):
@@ -127,12 +141,11 @@ def test_fails_to_delete_predefined_images(setup_client_and_linode):
 
     images = client.images()
 
-    try:
+    with pytest.raises(ApiError, match="Unauthorized") as exc_info:
         # new images go on top of the list thus choose last image
         images.last().delete()
-    except ApiError as e:
-        assert "Unauthorized" in str(e.json)
-        assert e.status == 403
+
+    assert exc_info.value.status == 403
 
 
 def test_get_volume(test_linode_client, test_volume):
@@ -150,11 +163,7 @@ def test_get_tag(test_linode_client, test_tag):
     client = test_linode_client
     label = test_tag.label
 
-    tags = client.tags()
-
-    tag_label_list = [i.label for i in tags]
-
-    assert label in tag_label_list
+    assert wait_for_condition(3, 30, is_tag_created, client, label)
 
 
 def test_create_tag_with_id(
@@ -176,14 +185,9 @@ def test_create_tag_with_id(
         volumes=[volume.id, volume],
     )
 
-    # Get tags after creation
-    tags = client.tags()
-
-    tag_label_list = [i.label for i in tags]
+    assert wait_for_condition(3, 30, is_tag_created, client, label)
 
     tag.delete()
-
-    assert label in tag_label_list
 
 
 @pytest.mark.smoke
@@ -202,14 +206,9 @@ def test_create_tag_with_entities(
         label, entities=[linode, domain, nodebalancer, volume]
     )
 
-    # Get tags after creation
-    tags = client.tags()
-
-    tag_label_list = [i.label for i in tags]
+    assert wait_for_condition(3, 30, is_tag_created, client, label)
 
     tag.delete()
-
-    assert label in tag_label_list
 
 
 # AccountGroupTests
@@ -345,16 +344,15 @@ def test_fails_to_create_cluster_with_invalid_version(test_linode_client):
     client = test_linode_client
     region = get_region(client, {"Kubernetes"}).id
 
-    try:
-        cluster = client.lke.cluster_create(
+    with pytest.raises(ApiError, match="not valid") as exc_info:
+        client.lke.cluster_create(
             region,
             "example-cluster",
             invalid_version,
             {"type": "g6-standard-1", "count": 3},
         )
-    except ApiError as e:
-        assert "not valid" in str(e.json)
-        assert e.status == 400
+
+    assert exc_info.value.status == 400
 
 
 # ObjectStorageGroupTests

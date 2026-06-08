@@ -310,6 +310,12 @@ def test_domain(test_linode_client):
         domain=domain_addr, soa_email=soa_email, tags=["test-tag"]
     )
 
+    def get_domain_status():
+        domain.invalidate()
+        return domain.status == "active"
+
+    wait_for_condition(3, 30, get_domain_status)
+
     # Create a SRV record
     domain.record_create(
         "SRV",
@@ -332,6 +338,12 @@ def test_volume(test_linode_client):
     label = get_test_label(length=8)
 
     volume = client.volume_create(label=label, region=region)
+
+    def get_volume_status():
+        volume.invalidate()
+        return volume.status == "active"
+
+    wait_for_condition(5, 45, get_volume_status)
 
     yield volume
 
