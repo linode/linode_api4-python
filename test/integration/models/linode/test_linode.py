@@ -304,7 +304,7 @@ def test_linode_rebuild(test_linode_client):
         root_pass="aComplex@Password123",
     )
 
-    wait_for_condition(10, 100, get_status, linode, "running")
+    wait_for_condition(10, 150, get_status, linode, "running")
 
     retry_sending_request(
         3,

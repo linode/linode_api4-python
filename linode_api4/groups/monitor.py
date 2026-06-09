@@ -47,8 +47,6 @@ class MonitorGroup(Group):
             dashboard = client.load(MonitorDashboard, 1)
             dashboards_by_service = client.monitor.dashboards(service_type="dbaas")
 
-        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
-
         API Documentation:
         - All Dashboards: https://techdocs.akamai.com/linode-api/reference/get-dashboards-all
         - Dashboards by Service: https://techdocs.akamai.com/linode-api/reference/get-dashboards
@@ -83,8 +81,6 @@ class MonitorGroup(Group):
             supported_services = client.monitor.services()
             service_details = client.monitor.load(MonitorService, "dbaas")
 
-        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
-
         API Documentation: https://techdocs.akamai.com/linode-api/reference/get-monitor-services
         API Documentation: https://techdocs.akamai.com/linode-api/reference/get-monitor-services-for-service-type
 
@@ -110,7 +106,6 @@ class MonitorGroup(Group):
         Returns metrics for a specific service type.
 
             metrics = client.monitor.list_metric_definitions(service_type="dbaas")
-        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/get-monitor-information
 
@@ -135,8 +130,6 @@ class MonitorGroup(Group):
         """
         Returns a JWE Token for a specific service type.
             token = client.monitor.create_token(service_type="dbaas", entity_ids=[1234])
-
-        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/post-get-token
 
@@ -175,7 +168,6 @@ class MonitorGroup(Group):
 
             alerts = client.monitor.alert_definitions()
             alerts_by_service = client.monitor.alert_definitions(service_type="dbaas")
-        .. note:: This endpoint is in beta and requires using the v4beta base URL.
 
         API Documentation:
             https://techdocs.akamai.com/linode-api/reference/get-alert-definitions
@@ -212,8 +204,6 @@ class MonitorGroup(Group):
         Examples:
             channels = client.monitor.alert_channels()
 
-        .. note:: This endpoint is in beta and requires using the v4beta base URL.
-
         API Documentation: https://techdocs.akamai.com/linode-api/reference/get-notification-channels
 
         :param filters: Optional filter expressions to apply to the collection.
@@ -242,8 +232,6 @@ class MonitorGroup(Group):
 
         The alert definition configures when alerts are fired and which channels
         are notified.
-
-        .. note:: This endpoint is in beta and requires using the v4beta base URL.
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/post-alert-definition-for-service-type
 
@@ -414,9 +402,7 @@ class MonitorGroup(Group):
 
         This endpoint supports pagination fields (`page`, `page_size`) in the API.
 
-        .. note:: This endpoint is in beta and requires using the v4beta base URL.
-
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-alert-definition-entities
 
         :param service_type: Service type for the alert definition (e.g. `dbaas`).
         :type service_type: str
