@@ -423,19 +423,22 @@ def test_linode_interfaces_with_reserved_ips(
 
     linode = create_linode_fn(client, reserved_ip, label, e2e_test_firewall)
 
-    linode_ips = linode.ips.ipv4.public
-    assert len(linode_ips) == 1
-    assert linode_ips[0].address == reserved_ip.address
-    assert linode_ips[0].reserved == True
-    assert linode_ips[0].linode_id == linode.id
-    assert linode_ips[0].assigned_entity.id == linode.id
-    assert linode_ips[0].assigned_entity.type == "linode"
-    assert linode_ips[0].assigned_entity.label == linode.label
-    assert (
-        linode_ips[0].assigned_entity.url == f"/v4/linode/instances/{linode.id}"
-    )
+    try:
+        linode_ips = linode.ips.ipv4.public
+        assert len(linode_ips) == 1
+        assert linode_ips[0].address == reserved_ip.address
+        assert linode_ips[0].reserved == True
+        assert linode_ips[0].linode_id == linode.id
+        assert linode_ips[0].assigned_entity.id == linode.id
+        assert linode_ips[0].assigned_entity.type == "linode"
+        assert linode_ips[0].assigned_entity.label == linode.label
+        assert (
+            linode_ips[0].assigned_entity.url
+            == f"/v4/linode/instances/{linode.id}"
+        )
+    finally:
+        linode.delete()
 
-    linode.delete()
     reserved_ips_list = client.networking.reserved_ips(
         ReservedIPAddress.address == reserved_ip.address
     )
