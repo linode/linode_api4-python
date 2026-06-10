@@ -98,19 +98,21 @@ def test_latest_get_event(test_linode_client, e2e_test_firewall):
     region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label()
 
-    linode, password = client.linode.instance_create(
+    linode = client.linode.instance_create(
         "g6-nanode-1",
         region,
         image="linode/debian12",
         label=label,
         firewall=e2e_test_firewall,
+        root_pass="aComplex@Password123",
     )
 
     def get_linode_status():
+        linode.invalidate()
         return linode.status == "running"
 
     # To ensure the Linode is running and the 'event' key has been populated
-    wait_for_condition(3, 100, get_linode_status)
+    wait_for_condition(5, 150, get_linode_status)
 
     events = client.load(Event, "")
     latest_events = events._raw_json.get("data")[:15]

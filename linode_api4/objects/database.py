@@ -1,12 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
-from linode_api4.objects import (
-    Base,
-    JSONObject,
-    MappedObject,
-    Property,
-)
+from linode_api4.objects import Base, JSONObject, MappedObject, Property
 
 
 class DatabaseType(Base):
