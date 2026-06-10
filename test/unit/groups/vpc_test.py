@@ -1,7 +1,7 @@
 import datetime
 from test.unit.base import ClientBaseCase
 
-from linode_api4 import DATE_FORMAT, VPC, VPCSubnet, VPCIPv4DefaultRange
+from linode_api4 import DATE_FORMAT, VPC, VPCIPv4DefaultRange, VPCSubnet
 
 
 class VPCTest(ClientBaseCase):
