@@ -16,7 +16,9 @@ import requests
 from requests.exceptions import ConnectionError, RequestException
 
 from linode_api4 import (
+    Instance,
     InterfaceGeneration,
+    IPAddress,
     LinodeInterfaceDefaultRouteOptions,
     LinodeInterfaceOptions,
     LinodeInterfacePublicOptions,
@@ -25,6 +27,7 @@ from linode_api4 import (
     PlacementGroupPolicy,
     PlacementGroupType,
     PostgreSQLDatabase,
+    ReservedIPAddress,
 )
 from linode_api4.errors import ApiError
 from linode_api4.linode_client import LinodeClient, MonitorClient
@@ -745,3 +748,48 @@ def test_monitor_client(get_monitor_token_for_db_entities):
     )
 
     return client, entity_ids
+
+
+@pytest.fixture
+def create_reserved_ip(test_linode_client):
+    client = test_linode_client
+    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    reserved_ip = client.networking.reserved_ip_create(
+        region=region, tags=["test"]
+    )
+
+    yield reserved_ip
+
+    # Delete only if IP exists (some tests delete it earlier)
+    if client.networking.reserved_ips(
+        ReservedIPAddress.address == reserved_ip.address
+    ):
+        reserved_ip.delete()
+
+
+@pytest.fixture
+def create_reserved_ip_assigned(test_linode_client, create_linode):
+    client = test_linode_client
+    linode = create_linode
+    reserved_ip = client.networking.reserved_ip_create(
+        region=linode.region,
+        tags=["test", "assigned"],
+    )
+
+    client.networking.ip_addresses_assign(
+        assignments=[{"address": reserved_ip.address, "linode_id": linode.id}],
+        region=linode.region,
+    )
+
+    linode = client.load(Instance, linode.id)
+    reserved_ip = test_linode_client.load(
+        ReservedIPAddress, reserved_ip.address
+    )
+
+    yield linode, reserved_ip
+
+    # Delete assigned IP address completely
+    if address := client.networking.ips(
+        IPAddress.address == reserved_ip.address
+    ):
+        address[0].delete()
