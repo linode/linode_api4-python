@@ -1,8 +1,9 @@
 from test.integration.conftest import get_region
+from test.integration.helpers import get_test_label
 
 import pytest
 
-from linode_api4 import VPC, ApiError, VPCSubnet
+from linode_api4 import VPC, ApiError, VPCIPv4DefaultRange, VPCSubnet
 
 
 @pytest.mark.smoke
@@ -138,3 +139,61 @@ def test_get_vpc_ipv6s(test_linode_client):
         assert "vpc_id" in ipv6
         assert isinstance(ipv6["ipv6_range"], str)
         assert isinstance(ipv6["ipv6_addresses"], list)
+
+
+def test_get_vpc_default_ranges(test_linode_client):
+    """
+    Tests that VPC default IPv4 ranges can be retrieved.
+    """
+    result = test_linode_client.vpcs.default_ranges()
+
+    assert isinstance(result, VPCIPv4DefaultRange)
+    assert isinstance(result.ipv4_ranges, list)
+    assert len(result.ipv4_ranges) > 0
+    assert isinstance(result.forbidden_ipv4_ranges, list)
+    assert len(result.forbidden_ipv4_ranges) > 0
+
+
+def test_vpc_with_ipv4(test_linode_client):
+    """
+    Tests creating a VPC with ipv4 ranges, getting/listing it,
+    updating the ipv4, and deleting it.
+    """
+    client = test_linode_client
+    label = get_test_label(length=10)
+    region = get_region(client, {"VPCs", "Custom VPC IPv4 Ranges"})
+
+    # Create
+    vpc = client.vpcs.create(
+        label=label,
+        region=region,
+        description="integration test vpc with ipv4",
+        ipv4=[{"range": "10.0.0.0/8"}],
+    )
+
+    try:
+        assert vpc.id is not None
+        assert vpc.label == label
+        assert len(vpc.ipv4) > 0
+        assert vpc.ipv4[0].range == "10.0.0.0/8"
+
+        # Get by ID
+        loaded_vpc = client.load(VPC, vpc.id)
+        assert loaded_vpc.id == vpc.id
+        assert loaded_vpc.ipv4[0].range == "10.0.0.0/8"
+
+        # List and verify present
+        all_vpcs = client.vpcs()
+        vpc_ids = [v.id for v in all_vpcs]
+        assert vpc.id in vpc_ids
+
+        # Update ipv4
+        vpc.ipv4 = [{"range": "192.168.0.0/17"}]
+        vpc.save()
+
+        updated_vpc = client.load(VPC, vpc.id)
+        assert updated_vpc.ipv4[0].range == "192.168.0.0/17"
+    finally:
+        # Delete
+        vpc.delete()
+
