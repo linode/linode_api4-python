@@ -1247,18 +1247,19 @@ def test_create_linode_with_kernel_and_boot_size_then_add_disk_and_rebuild(
 
 
 def test_update_linode_with_reserved_ip_in_address(
-    test_linode_client, e2e_test_firewall, create_reserved_ip
+    test_linode_client, e2e_test_firewall, create_reserved_ip, ssh_key_gen
 ):
     label = get_test_label(length=8)
     client = test_linode_client
     reserved_ip = create_reserved_ip
 
-    linode, _ = client.linode.instance_create(
+    linode = client.linode.instance_create(
         "g6-nanode-1",
         reserved_ip.region,
         image="linode/debian12",
         label=label,
         firewall=e2e_test_firewall,
+        authorized_keys=ssh_key_gen[0],
     )
 
     linode_ips = linode.ips.ipv4.public
