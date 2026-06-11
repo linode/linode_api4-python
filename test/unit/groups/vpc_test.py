@@ -120,4 +120,3 @@ class VPCTest(ClientBaseCase):
         self.assertIsInstance(result, VPCIPv4DefaultRange)
         self.assertEqual(result.ipv4_ranges, ["10.0.0.0/8", "192.168.0.0/17"])
         self.assertEqual(result.forbidden_ipv4_ranges, ["172.17.0.0/16"])
-

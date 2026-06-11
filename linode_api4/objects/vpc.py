@@ -19,6 +19,7 @@ class VPCIPv4DefaultRange(JSONObject):
     ipv4_ranges: Optional[List[str]] = None
     forbidden_ipv4_ranges: Optional[List[str]] = None
 
+
 @dataclass
 class VPCIPv4RangeOptions(JSONObject):
     """
@@ -37,6 +38,7 @@ class VPCIPv4Range(JSONObject):
     put_class = VPCIPv4RangeOptions
 
     range: str = ""
+
 
 @dataclass
 class VPCIPv6RangeOptions(JSONObject):
@@ -57,6 +59,7 @@ class VPCIPv6Range(JSONObject):
     put_class = VPCIPv6RangeOptions
 
     range: str = ""
+
 
 @dataclass
 class VPCSubnetIPv6RangeOptions(JSONObject):
@@ -135,7 +138,9 @@ class VPC(Base):
         "label": Property(mutable=True),
         "description": Property(mutable=True),
         "region": Property(slug_relationship=Region),
-        "ipv4": Property(json_object=VPCIPv4Range, mutable=True, unordered=True),
+        "ipv4": Property(
+            json_object=VPCIPv4Range, mutable=True, unordered=True
+        ),
         "ipv6": Property(json_object=VPCIPv6Range, unordered=True),
         "subnets": Property(derived_class=VPCSubnet),
         "created": Property(is_datetime=True),

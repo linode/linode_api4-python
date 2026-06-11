@@ -196,4 +196,3 @@ def test_vpc_with_ipv4(test_linode_client):
     finally:
         # Delete
         vpc.delete()
-
