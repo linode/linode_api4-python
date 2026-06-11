@@ -138,6 +138,7 @@ class VPC(Base):
         "label": Property(mutable=True),
         "description": Property(mutable=True),
         "region": Property(slug_relationship=Region),
+        # Note that IPv4 VPCs may not currently be available to all users.
         "ipv4": Property(
             json_object=VPCIPv4Range, mutable=True, unordered=True
         ),

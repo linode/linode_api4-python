@@ -61,7 +61,7 @@ class VPCGroup(Group):
         :type subnets: List[Dict[str, Any]]
         :param ipv6: The IPv6 address ranges for this VPC.
         :type ipv6: List[Union[VPCIPv6RangeOptions, Dict[str, Any]]]
-        :param ipv4: The IPv4 address ranges for this VPC.
+        :param ipv4: The IPv4 address ranges for this VPC. Note that IPv4 VPCs may not currently be available to all users.
         :type ipv4: List[Union[VPCIPv4RangeOptions, Dict[str, Any]]]
 
         :returns: The new VPC object.
