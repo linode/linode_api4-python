@@ -2,6 +2,7 @@ import ipaddress
 import logging
 import os
 import random
+import subprocess
 import time
 from test.integration.helpers import (
     get_test_label,
@@ -262,20 +263,18 @@ def create_linode_for_pass_reset(test_linode_client, e2e_test_firewall):
 
 
 @pytest.fixture(scope="session")
-def ssh_key_gen():
-    output = os.popen("ssh-keygen -q -t rsa -f ./sdk-sshkey  -q -N ''")
+def ssh_key_gen(tmp_path_factory):
+    key_path = tmp_path_factory.mktemp("ssh-key-gen") / "sdk-sshkey"
 
-    time.sleep(1)
+    subprocess.run(
+        ["ssh-keygen", "-q", "-t", "rsa", "-f", str(key_path), "-N", ""],
+        check=True,
+    )
 
-    pub_file = open("./sdk-sshkey.pub", "r")
-    pub_key = pub_file.read().rstrip()
-
-    priv_file = open("./sdk-sshkey", "r")
-    priv_key = priv_file.read().rstrip()
+    pub_key = key_path.with_suffix(".pub").read_text().rstrip()
+    priv_key = key_path.read_text().rstrip()
 
     yield pub_key, priv_key
-
-    os.popen("rm ./sdk-sshkey*")
 
 
 @pytest.fixture(scope="session")
