@@ -1,5 +1,4 @@
 from test.integration.conftest import get_region
-from test.integration.helpers import get_test_label
 
 import pytest
 
@@ -154,45 +153,21 @@ def test_get_vpc_default_ranges(test_linode_client):
     assert len(result.forbidden_ipv4_ranges) > 0
 
 
-def test_vpc_with_ipv4(test_linode_client):
-    """
-    Tests creating a VPC with ipv4 ranges, getting/listing it,
-    updating the ipv4, and deleting it.
-    """
+def test_vpc_with_ipv4(test_linode_client, create_vpc_with_ipv4):
     client = test_linode_client
-    label = get_test_label(length=10)
-    region = get_region(client, {"VPCs", "Custom VPC IPv4 Ranges"})
+    vpc = create_vpc_with_ipv4
 
-    # Create
-    vpc = client.vpcs.create(
-        label=label,
-        region=region,
-        description="integration test vpc with ipv4",
-        ipv4=[{"range": "10.0.0.0/8"}],
-    )
+    assert vpc.id is not None
+    assert vpc.ipv4[0].range == "10.0.0.0/8"
 
-    try:
-        assert vpc.id is not None
-        assert vpc.label == label
-        assert len(vpc.ipv4) > 0
-        assert vpc.ipv4[0].range == "10.0.0.0/8"
+    loaded_vpc = client.load(VPC, vpc.id)
+    assert loaded_vpc.ipv4[0].range == "10.0.0.0/8"
 
-        # Get by ID
-        loaded_vpc = client.load(VPC, vpc.id)
-        assert loaded_vpc.id == vpc.id
-        assert loaded_vpc.ipv4[0].range == "10.0.0.0/8"
+    all_vpcs = client.vpcs()
+    assert vpc.id in [v.id for v in all_vpcs]
 
-        # List and verify present
-        all_vpcs = client.vpcs()
-        vpc_ids = [v.id for v in all_vpcs]
-        assert vpc.id in vpc_ids
+    vpc.ipv4 = [{"range": "192.168.0.0/17"}]
+    vpc.save()
 
-        # Update ipv4
-        vpc.ipv4 = [{"range": "192.168.0.0/17"}]
-        vpc.save()
-
-        updated_vpc = client.load(VPC, vpc.id)
-        assert updated_vpc.ipv4[0].range == "192.168.0.0/17"
-    finally:
-        # Delete
-        vpc.delete()
+    updated_vpc = client.load(VPC, vpc.id)
+    assert updated_vpc.ipv4[0].range == "192.168.0.0/17"

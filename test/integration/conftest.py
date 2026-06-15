@@ -516,6 +516,22 @@ def create_vpc_with_subnet_and_linode(
     instance.delete()
 
 
+@pytest.fixture
+def create_vpc_with_ipv4(test_linode_client):
+    client = test_linode_client
+
+    vpc = client.vpcs.create(
+        label=get_test_label(length=10),
+        region=get_region(client, {"VPCs", "Custom VPC IPv4 Ranges"}),
+        description="integration test vpc with ipv4",
+        ipv4=[{"range": "10.0.0.0/8"}],
+    )
+
+    yield vpc
+
+    vpc.delete()
+
+
 @pytest.fixture(scope="session")
 def create_multiple_vpcs(test_linode_client):
     client = test_linode_client
