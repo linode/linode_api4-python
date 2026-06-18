@@ -2,6 +2,7 @@ import datetime
 from test.unit.base import ClientBaseCase
 
 from linode_api4.objects import AlertChannel, MonitorDashboard, MonitorService
+from linode_api4.objects.monitor import ChannelDetails, EmailDetails
 
 
 class MonitorTest(ClientBaseCase):
@@ -169,3 +170,59 @@ class MonitorTest(ClientBaseCase):
             "/monitor/alert-channels/123/alerts",
         )
         self.assertEqual(channels[0].alerts.alert_count, 0)
+
+    def test_create_channel(self):
+        
+        create_response = {
+            "id": 456,
+            "label": "Email channel for api change",
+            "type": "user",
+            "channel_type": "email",
+            "details": {
+                "email": {
+                    "recipient_type": "user",
+                    "usernames": ["mawasthy_tenant02_admin"],
+                }
+            },
+            "alerts": {
+                "url": "/monitor/alert-channels/456/alerts",
+                "type": "alerts-definitions",
+                "alert_count": 0,
+            },
+            "created": "2024-01-01T00:00:00",
+            "updated": "2024-01-01T00:00:00",
+            "created_by": "mawasthy_tenant02_admin",
+            "updated_by": "mawasthy_tenant02_admin",
+        }
+
+        with self.mock_post(create_response) as m:
+            result = self.client.monitor.channel_create(
+                label="Email channel for api change",
+                channel_type="email",
+                details=ChannelDetails(
+                    email=EmailDetails(
+                        recipient_type="user",
+                        usernames=["mawasthy_tenant02_admin"],
+                    )
+                ),
+            )
+
+        self.assertEqual(m.call_url, "/monitor/alert-channels")
+        self.assertEqual(m.call_data["label"], "Email channel for api change")
+        self.assertEqual(m.call_data["channel_type"], "email")
+        self.assertEqual(
+            m.call_data["details"]["email"]["recipient_type"], "user"
+        )
+        self.assertEqual(
+            m.call_data["details"]["email"]["usernames"], ["mawasthy_tenant02_admin"]
+        )
+
+        self.assertIsInstance(result, AlertChannel)
+        self.assertEqual(result.id, 456)
+        self.assertEqual(result.label, "Email channel for api change")
+        self.assertEqual(result.type, "user")
+        self.assertEqual(result.channel_type, "email")
+        self.assertIsNotNone(result.details)
+        self.assertIsNotNone(result.details.email)
+        self.assertEqual(result.details.email.recipient_type, "user")
+        self.assertEqual(result.details.email.usernames, ["mawasthy_tenant02_admin"])

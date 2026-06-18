@@ -9,6 +9,7 @@ import pytest
 
 from linode_api4 import LinodeClient, PaginatedList
 from linode_api4.objects import (
+    AlertChannel,
     AlertDefinition,
     AlertDefinitionEntity,
     ApiError,
@@ -17,7 +18,7 @@ from linode_api4.objects import (
     MonitorService,
     MonitorServiceToken,
 )
-from linode_api4.objects.monitor import AlertStatus
+from linode_api4.objects.monitor import AlertStatus, ChannelDetails, EmailDetails
 
 
 # List all dashboards
@@ -311,3 +312,61 @@ def test_alert_definition_entities(test_linode_client):
         assert entity.label
         assert entity.url
         assert entity._type == service_type
+
+
+def test_integration_create_get_delete_alert_channel(test_linode_client):
+    """E2E: create an alert channel, fetch it, then delete it.
+
+    This test creates an alert channel with email details, retrieves it,
+    and then deletes it. It ensures the feature is working end-to-end
+    against the actual API.
+    """
+    client = test_linode_client
+    label = get_test_label() + "-e2e-channel"
+    label = f"{label}-{int(time.time())}"
+
+    created_channel = None
+
+    try:
+        # Create an alert channel with email details
+        created_channel = client.monitor.channel_create(
+            label=label,
+            channel_type="email",
+            details=ChannelDetails(
+                email=EmailDetails(
+                    recipient_type="user",
+                    usernames=["mawasthy_tenant02_admin"],
+                )
+            ),
+        )
+
+        # Assert the created channel has expected properties
+        assert isinstance(created_channel, AlertChannel)
+        assert created_channel.id is not None
+        assert created_channel.label == label
+        assert created_channel.channel_type == "email"
+        assert created_channel.details is not None
+
+        # Fetch the channel to verify it exists
+        channels = list(client.monitor.alert_channels())
+        assert len(channels) > 0, "No channels found after creation"
+
+        # Find the created channel in the list
+        found_channel = None
+        for ch in channels:
+            if ch.id == created_channel.id:
+                found_channel = ch
+                break
+
+        assert found_channel is not None, "Created channel not found in list"
+        assert found_channel.label == label
+        assert found_channel.channel_type == "email"
+
+    finally:
+        if created_channel:
+            # Clean up: delete the created channel
+            try:
+                created_channel.delete()
+            except Exception as e:
+                # Log but don't fail if cleanup fails
+                print(f"Warning: Failed to delete channel {created_channel.id}: {e}")

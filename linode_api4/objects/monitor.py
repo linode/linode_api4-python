@@ -492,13 +492,12 @@ class AlertChannel(Base):
     fire. Alert channels define a destination and configuration for
     notifications (for example: email lists, webhooks, PagerDuty, Slack, etc.).
 
-    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-notification-channels
+    API Documentation:
+        List/Get: https://techdocs.akamai.com/linode-api/reference/get-alert-channels
+        Create:   https://techdocs.akamai.com/linode-api/reference/post-alert-channel
 
-    This class maps to the Monitor API's `/monitor/alert-channels` resource
-    and is used by the SDK to list, load, and inspect channels.
-
-    NOTE: Only read operations are supported for AlertChannel at this time.
-    Create, update, and delete (CRUD) operations are not allowed.
+    This class maps to the Monitor API's ``/monitor/alert-channels`` resource
+    and is used by the SDK to list, load, create, and inspect channels.
     """
 
     api_endpoint = "/monitor/alert-channels/{id}"

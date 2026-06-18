@@ -13,6 +13,7 @@ from linode_api4.objects import (
     MonitorService,
     MonitorServiceToken,
 )
+from linode_api4.objects.monitor import ChannelDetails
 
 __all__ = [
     "MonitorGroup",
@@ -332,3 +333,64 @@ class MonitorGroup(Group):
             *filters,
             endpoint=endpoint,
         )
+
+    def channel_create(
+        self,
+        label: str,
+        channel_type: str,
+        details: ChannelDetails,
+    ) -> AlertChannel:
+        """
+        Creates a new alert channel for the authenticated account.
+
+        An alert channel defines a notification destination (for example: an
+        email list) that can be associated with one or more alert definitions.
+        Currently only ``email`` is supported as a ``channel_type``.
+
+        Example usage::
+
+            from linode_api4.objects.monitor import ChannelDetails, EmailDetails
+
+            client = LinodeClient(TOKEN)
+
+            new_channel = client.monitor.channel_create(
+                label="Email channel for api change",
+                channel_type="email",
+                details=ChannelDetails(
+                    email=EmailDetails(
+                        recipient_type="user",
+                        usernames=["username-test"],
+                    )
+                ),
+            )
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-alert-channel
+
+        :param label: Human-readable name for the new alert channel.
+        :type label: str
+        :param channel_type: The type of notification channel (e.g. ``"email"``).
+        :type channel_type: str
+        :param details: Notification-type-specific configuration. Use
+                        :class:`~linode_api4.objects.monitor.ChannelDetails` with
+                        a nested :class:`~linode_api4.objects.monitor.EmailDetails`
+                        for email channels.
+        :type details: ChannelDetails
+
+        :returns: The newly created :class:`AlertChannel`.
+        :rtype: AlertChannel
+        """
+        params = {
+            "label": label,
+            "channel_type": channel_type,
+            "details": details.dict,
+        }
+
+        result = self.client.post("/monitor/alert-channels", data=params)
+
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating alert channel!",
+                json=result,
+            )
+
+        return AlertChannel(self.client, result["id"], result)
