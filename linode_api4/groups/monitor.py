@@ -321,7 +321,6 @@ class MonitorGroup(Group):
         The clone request creates a new alert definition based on the source
         definition identified by ``id``.
 
-        API URL: POST /monitor/services/{service_type}/alert-definitions/{id}/clone
         API Documentation: TODO
 
         :param service_type: Service type for the source alert definition

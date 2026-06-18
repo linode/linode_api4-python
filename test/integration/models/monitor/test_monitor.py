@@ -241,7 +241,9 @@ def test_integration_create_get_update_delete_alert_definition(
     description = "E2E alert created by SDK integration test"
 
     # Pick an existing alert channel to attach to the definition; skip if none
-    channels = list(client.monitor.alert_channels()) #TODO: create channel instead of relying on pre-existing one
+    channels = list(
+        client.monitor.alert_channels()
+    )  # TODO: create channel instead of relying on pre-existing one
     if not channels:
         pytest.skip(
             "No alert channels available on account for creating alert definitions"
@@ -356,7 +358,9 @@ def test_integration_clone_alert_definition(test_linode_client):
         "trigger_occurrences": 1,
     }
 
-    channels = list(client.monitor.alert_channels()) #TODO: create channel instead of relying on pre-existing one
+    channels = list(
+        client.monitor.alert_channels()
+    )  # TODO: create channel instead of relying on pre-existing one
     if not channels:
         pytest.skip(
             "No alert channels available on account for creating/cloning alert definitions"
