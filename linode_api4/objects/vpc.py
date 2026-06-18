@@ -16,7 +16,7 @@ class VPCIPv4DefaultRange(JSONObject):
     VPCIPv4DefaultRange represents the default settings for the internal and forbidden IPv4 address ranges in VPCs.
     """
 
-    ipv4_ranges: Optional[List[str]] = None
+    default_ipv4_ranges: Optional[List[str]] = None
     forbidden_ipv4_ranges: Optional[List[str]] = None
 
 

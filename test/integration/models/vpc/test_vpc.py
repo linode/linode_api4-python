@@ -147,8 +147,8 @@ def test_get_vpc_default_ranges(test_linode_client):
     result = test_linode_client.vpcs.default_ranges()
 
     assert isinstance(result, VPCIPv4DefaultRange)
-    assert isinstance(result.ipv4_ranges, list)
-    assert len(result.ipv4_ranges) > 0
+    assert isinstance(result.default_ipv4_ranges, list)
+    assert len(result.default_ipv4_ranges) > 0
     assert isinstance(result.forbidden_ipv4_ranges, list)
     assert len(result.forbidden_ipv4_ranges) > 0
 
