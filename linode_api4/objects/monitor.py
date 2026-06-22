@@ -278,6 +278,7 @@ class MonitorDashboard(Base):
         "label": Property(),
         "service_type": Property(ServiceType),
         "type": Property(DashboardType),
+        "group_by": Property(),
         "widgets": Property(json_object=DashboardWidget),
         "updated": Property(is_datetime=True),
     }

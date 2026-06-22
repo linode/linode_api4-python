@@ -2,6 +2,7 @@ import ipaddress
 import logging
 import os
 import random
+import subprocess
 import time
 from test.integration.helpers import (
     get_test_label,
@@ -16,7 +17,9 @@ import requests
 from requests.exceptions import ConnectionError, RequestException
 
 from linode_api4 import (
+    Instance,
     InterfaceGeneration,
+    IPAddress,
     LinodeInterfaceDefaultRouteOptions,
     LinodeInterfaceOptions,
     LinodeInterfacePublicOptions,
@@ -25,6 +28,7 @@ from linode_api4 import (
     PlacementGroupPolicy,
     PlacementGroupType,
     PostgreSQLDatabase,
+    ReservedIPAddress,
 )
 from linode_api4.errors import ApiError
 from linode_api4.linode_client import LinodeClient, MonitorClient
@@ -259,20 +263,18 @@ def create_linode_for_pass_reset(test_linode_client, e2e_test_firewall):
 
 
 @pytest.fixture(scope="session")
-def ssh_key_gen():
-    output = os.popen("ssh-keygen -q -t rsa -f ./sdk-sshkey  -q -N ''")
+def ssh_key_gen(tmp_path_factory):
+    key_path = tmp_path_factory.mktemp("ssh-key-gen") / "sdk-sshkey"
 
-    time.sleep(1)
+    subprocess.run(
+        ["ssh-keygen", "-q", "-t", "rsa", "-f", str(key_path), "-N", ""],
+        check=True,
+    )
 
-    pub_file = open("./sdk-sshkey.pub", "r")
-    pub_key = pub_file.read().rstrip()
-
-    priv_file = open("./sdk-sshkey", "r")
-    priv_key = priv_file.read().rstrip()
+    pub_key = key_path.with_suffix(".pub").read_text().rstrip()
+    priv_key = key_path.read_text().rstrip()
 
     yield pub_key, priv_key
-
-    os.popen("rm ./sdk-sshkey*")
 
 
 @pytest.fixture(scope="session")
@@ -310,6 +312,12 @@ def test_domain(test_linode_client):
         domain=domain_addr, soa_email=soa_email, tags=["test-tag"]
     )
 
+    def get_domain_status():
+        domain.invalidate()
+        return domain.status == "active"
+
+    wait_for_condition(3, 30, get_domain_status)
+
     # Create a SRV record
     domain.record_create(
         "SRV",
@@ -332,6 +340,12 @@ def test_volume(test_linode_client):
     label = get_test_label(length=8)
 
     volume = client.volume_create(label=label, region=region)
+
+    def get_volume_status():
+        volume.invalidate()
+        return volume.status == "active"
+
+    wait_for_condition(5, 45, get_volume_status)
 
     yield volume
 
@@ -733,3 +747,48 @@ def test_monitor_client(get_monitor_token_for_db_entities):
     )
 
     return client, entity_ids
+
+
+@pytest.fixture
+def create_reserved_ip(test_linode_client):
+    client = test_linode_client
+    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    reserved_ip = client.networking.reserved_ip_create(
+        region=region, tags=["test"]
+    )
+
+    yield reserved_ip
+
+    # Delete only if IP exists (some tests delete it earlier)
+    if client.networking.reserved_ips(
+        ReservedIPAddress.address == reserved_ip.address
+    ):
+        reserved_ip.delete()
+
+
+@pytest.fixture
+def create_reserved_ip_assigned(test_linode_client, create_linode):
+    client = test_linode_client
+    linode = create_linode
+    reserved_ip = client.networking.reserved_ip_create(
+        region=linode.region,
+        tags=["test", "assigned"],
+    )
+
+    client.networking.ip_addresses_assign(
+        assignments=[{"address": reserved_ip.address, "linode_id": linode.id}],
+        region=linode.region,
+    )
+
+    linode = client.load(Instance, linode.id)
+    reserved_ip = test_linode_client.load(
+        ReservedIPAddress, reserved_ip.address
+    )
+
+    yield linode, reserved_ip
+
+    # Delete assigned IP address completely
+    if address := client.networking.ips(
+        IPAddress.address == reserved_ip.address
+    ):
+        address[0].delete()
