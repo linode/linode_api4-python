@@ -124,7 +124,7 @@ class VPCGroup(Group):
         """
         Retrieve the default settings for the internal and forbidden IPv4 address ranges in VPCs.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-vpcs-default-ranges
 
         :returns: The default IPv4 ranges for VPCs.
         :rtype: VPCIPv4DefaultRange
