@@ -96,14 +96,6 @@ def build_interface_options_rdma_vpc():
     )
 
 
-def build_interface_options_rdma_vpc_minimal():
-    """Per spec: ipv4 may be omitted; defaults to a primary "auto" address."""
-    return LinodeInterfaceOptions(
-        firewall_id=-1,
-        rdma_vpc=LinodeInterfaceRDMAVPCOptions(subnet_id=1234),
-    )
-
-
 class LinodeInterfaceTest(ClientBaseCase):
     """
     Tests methods of the LinodeInterface class
