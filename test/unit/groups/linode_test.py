@@ -1,6 +1,7 @@
 from test.unit.base import ClientBaseCase
 from test.unit.objects.linode_interface_test import (
     build_interface_options_public,
+    build_interface_options_rdma_vpc,
     build_interface_options_vlan,
     build_interface_options_vpc,
 )
@@ -126,6 +127,40 @@ class LinodeTest(ClientBaseCase):
                 "type": "g6-nanode-1",
                 "interface_generation": "linode",
                 "interfaces": [iface._serialize() for iface in interfaces],
+            }
+
+    def test_instance_create_with_interfaces_linode_rdma(self):
+        """
+        Tests that a Linode can be created with RDMA VPC LinodeInterfaces.
+        """
+
+        interfaces = [
+            build_interface_options_rdma_vpc(),
+        ]
+
+        with self.mock_post("linode/instances/124") as m:
+            self.client.linode.instance_create(
+                "g6-nanode-1",
+                "us-mia",
+                interface_generation=InterfaceGeneration.LINODE,
+                interfaces=interfaces,
+            )
+
+            assert m.call_data == {
+                "region": "us-mia",
+                "type": "g6-nanode-1",
+                "interface_generation": "linode",
+                "interfaces": [iface._serialize() for iface in interfaces],
+            }
+
+            assert m.call_data["interfaces"][0] == {
+                "firewall_id": -1,
+                "rdma_vpc": {
+                    "subnet_id": 1234,
+                    "ipv4": {
+                        "addresses": [{"address": "auto", "primary": True}]
+                    },
+                },
             }
 
     def test_create_with_maintenance_policy(self):

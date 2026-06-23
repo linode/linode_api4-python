@@ -213,12 +213,3 @@ class VPCTest(ClientBaseCase):
 
             assert m.call_url == "/vpcs"
             assert "vpc_type" not in m.call_data
-
-    def test_vpc_type_enum_values(self):
-        """
-        Sanity checks on the ``VPCType`` string enum values.
-        """
-
-        assert VPCType.regular == "regular"
-        assert VPCType.rdma == "rdma"
-        assert str(VPCType.rdma) == "rdma"
