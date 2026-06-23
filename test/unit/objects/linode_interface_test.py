@@ -420,9 +420,7 @@ class LinodeInterfaceTest(ClientBaseCase):
                 "rdma_vpc": {
                     "subnet_id": 4321,
                     "ipv4": {
-                        "addresses": [
-                            {"address": "10.0.0.25", "primary": True}
-                        ]
+                        "addresses": [{"address": "10.0.0.25", "primary": True}]
                     },
                 },
             }
