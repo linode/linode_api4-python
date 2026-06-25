@@ -1,4 +1,5 @@
 from test.integration.conftest import get_region
+from test.integration.helpers import get_test_label
 
 import pytest
 
@@ -11,6 +12,7 @@ def test_get_vpc(test_linode_client, create_vpc):
     test_linode_client.vpcs()
     assert vpc.id == create_vpc.id
     assert isinstance(vpc.ipv6[0].range, str)
+    assert vpc.vpc_type == "regular"
 
 
 @pytest.mark.smoke
@@ -38,6 +40,8 @@ def test_get_subnet(test_linode_client, create_vpc_with_subnet):
         vpc.ipv6[0].range.split("::")[0]
     )
     assert loaded_subnet.id == subnet.id
+    assert loaded_subnet.vpc_type == "regular"
+    assert loaded_subnet.vpc_type == vpc.vpc_type
 
 
 @pytest.mark.smoke
@@ -139,3 +143,38 @@ def test_get_vpc_ipv6s(test_linode_client):
         assert "vpc_id" in ipv6
         assert isinstance(ipv6["ipv6_range"], str)
         assert isinstance(ipv6["ipv6_addresses"], list)
+
+
+def test_get_vpc_with_rdma_type(test_linode_client, create_vpc_with_rdma_type):
+    vpc_rdma = create_vpc_with_rdma_type
+    assert vpc_rdma.vpc_type == "rdma"
+
+    vpc = test_linode_client.load(VPC, vpc_rdma.id)
+    assert vpc.id == vpc_rdma.id
+    assert vpc.vpc_type == vpc_rdma.vpc_type
+
+    vpc = test_linode_client.vpcs(VPC.vpc_type == "rdma")[0]
+    assert vpc.id == vpc_rdma.id
+    assert vpc.vpc_type == vpc_rdma.vpc_type
+
+
+def test_get_subnet_with_rdma_type(
+    request, test_linode_client, create_vpc_with_rdma_type
+):
+    vpc_rdma = create_vpc_with_rdma_type
+    label = get_test_label(length=10)
+
+    subnet_rdma = create_vpc_with_rdma_type.subnet_create(
+        label=label,
+        ipv4="10.0.0.0/24",
+    )
+
+    # clean-up after test
+    request.addfinalizer(subnet_rdma.delete)
+
+    assert subnet_rdma.vpc_type == vpc_rdma.vpc_type
+    assert subnet_rdma.ipv6 is None
+
+    subnet = test_linode_client.load(VPCSubnet, subnet_rdma.id, vpc_rdma.id)
+    assert subnet.id == subnet_rdma.id
+    assert subnet.ipv6 is None
