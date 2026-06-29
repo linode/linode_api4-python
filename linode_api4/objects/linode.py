@@ -2124,6 +2124,13 @@ class Instance(Base):
         :rtype: LinodeInterface
         """
 
+        if kwargs.get("rdma_vpc") is not None:
+            raise ValueError(
+                "RDMA VPC interfaces (rdma_vpc) cannot be added via "
+                "interface_create(). They may only be specified at instance "
+                "creation time via LinodeGroup.instance_create()."
+            )
+
         params = {
             "firewall_id": firewall,
             "default_route": default_route,
