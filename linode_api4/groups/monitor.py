@@ -378,6 +378,10 @@ class MonitorGroup(Group):
 
         :returns: The newly created :class:`AlertChannel`.
         :rtype: AlertChannel
+
+        .. note::
+           For updating an alert channel, use the ``save()`` method on the :class:`AlertChannel` object.
+           For deleting an alert channel, use the ``delete()`` method directly on the :class:`AlertChannel` object.
         """
         params = {
             "label": label,

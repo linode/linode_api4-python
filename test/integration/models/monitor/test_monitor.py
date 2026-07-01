@@ -18,7 +18,11 @@ from linode_api4.objects import (
     MonitorService,
     MonitorServiceToken,
 )
-from linode_api4.objects.monitor import AlertStatus, ChannelDetails, EmailDetails
+from linode_api4.objects.monitor import (
+    AlertStatus,
+    ChannelDetails,
+    EmailDetails,
+)
 
 
 # List all dashboards
@@ -314,12 +318,12 @@ def test_alert_definition_entities(test_linode_client):
         assert entity._type == service_type
 
 
-def test_integration_create_get_delete_alert_channel(test_linode_client):
-    """E2E: create an alert channel, fetch it, then delete it.
+def test_integration_create_get_update_delete_alert_channel(test_linode_client):
+    """E2E: create an alert channel, fetch it, update it, then delete it.
 
     This test creates an alert channel with email details, retrieves it,
-    and then deletes it. It ensures the feature is working end-to-end
-    against the actual API.
+    updates it, and then deletes it. It ensures the full CRUD feature is
+    working end-to-end against the actual API.
     """
     client = test_linode_client
     label = get_test_label() + "-e2e-channel"
@@ -362,6 +366,18 @@ def test_integration_create_get_delete_alert_channel(test_linode_client):
         assert found_channel.label == label
         assert found_channel.channel_type == "email"
 
+        # Update the channel label
+        updated_label = f"{label}-updated"
+        created_channel.label = updated_label
+        result = created_channel.save()
+        assert result is True, "Failed to update channel"
+
+        # Fetch the updated channel to verify the change
+        reloaded_channel = client.load(AlertChannel, created_channel.id)
+        assert (
+            reloaded_channel.label == updated_label
+        ), "Channel label was not updated"
+
     finally:
         if created_channel:
             # Clean up: delete the created channel
@@ -369,4 +385,6 @@ def test_integration_create_get_delete_alert_channel(test_linode_client):
                 created_channel.delete()
             except Exception as e:
                 # Log but don't fail if cleanup fails
-                print(f"Warning: Failed to delete channel {created_channel.id}: {e}")
+                print(
+                    f"Warning: Failed to delete channel {created_channel.id}: {e}"
+                )

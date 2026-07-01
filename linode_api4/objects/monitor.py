@@ -504,10 +504,10 @@ class AlertChannel(Base):
 
     properties = {
         "id": Property(identifier=True),
-        "label": Property(),
+        "label": Property(mutable=True),
         "type": Property(),
         "channel_type": Property(),
-        "details": Property(mutable=False, json_object=ChannelDetails),
+        "details": Property(mutable=True, json_object=ChannelDetails),
         "alerts": Property(mutable=False, json_object=AlertInfo),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),

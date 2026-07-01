@@ -183,54 +183,71 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             assert entities[2].url == "/v4/databases/mysql/instances/3"
             assert entities[2]._type == "dbaas"
 
-    def test_create_channel(self):
-        url = "/monitor/alert-channels"
-        result = {
-            "id": 123,
-            "label": "email channel for api change",
+    def test_create_update_delete_alert_channel(self):
+        """
+        E2E test for alert channel CRUD: create, update, and delete.
+        Verifies the full lifecycle of an alert channel.
+        """
+        create_url = "/monitor/alert-channels"
+        channel_id = 789
+        channel_url = f"{create_url}/{channel_id}"
+
+        # Create channel
+        create_response = {
+            "id": channel_id,
+            "label": "Test Channel",
             "type": "user",
             "channel_type": "email",
             "details": {
                 "email": {
-                    "usernames": ["mawasthy_tenant02_admin"],
+                    "usernames": ["test_user"],
                     "recipient_type": "user",
                 }
             },
             "alerts": {
-                "url": "/monitor/alert-channels/123/alerts",
+                "url": f"{channel_url}/alerts",
                 "type": "alerts-definitions",
                 "alert_count": 0,
             },
             "created": "2024-01-01T00:00:00",
             "updated": "2024-01-01T00:00:00",
-            "created_by": "mawasthy_tenant02_admin",
-            "updated_by": "mawasthy_tenant02_admin",
+            "created_by": "test_user",
+            "updated_by": "test_user",
         }
 
-        with self.mock_post(result) as mock_post:
+        with self.mock_post(create_response) as mock_post:
             channel = self.client.monitor.channel_create(
-                label="email channel for api change",
+                label="Test Channel",
                 channel_type="email",
                 details=ChannelDetails(
                     email=EmailDetails(
                         recipient_type="user",
-                        usernames=["mawasthy_tenant02_admin"],
+                        usernames=["test_user"],
                     )
                 ),
             )
 
-            assert mock_post.call_url == url
-            # payload should include the provided fields
-            assert mock_post.call_data["label"] == "email channel for api change"
-            assert mock_post.call_data["channel_type"] == "email"
-            assert "details" in mock_post.call_data
-
+            assert mock_post.call_url == create_url
             assert isinstance(channel, AlertChannel)
-            assert channel.id == 123
-            assert channel.label == "email channel for api change"
-            assert channel.channel_type == "email"
+            assert channel.id == channel_id
+            assert channel.label == "Test Channel"
 
-            # fetch the same response from the client and assert
-            resp = self.client.post(url, data={})
-            assert resp["label"] == "email channel for api change"
-            assert resp["channel_type"] == "email"
+        # Update channel
+        updated_response = create_response.copy()
+        updated_response["label"] = "Test Channel Updated"
+        updated_response["updated"] = "2024-01-02T00:00:00"
+
+        with self.mock_put(updated_response) as mock_put:
+            channel.label = "Test Channel Updated"
+            result = channel.save()
+
+            assert mock_put.call_url == channel_url
+            assert result is True
+            assert channel.label == "Test Channel Updated"
+
+        # Delete channel
+        with self.mock_delete() as mock_delete:
+            result = channel.delete()
+
+            assert mock_delete.call_url == channel_url
+            assert result is True

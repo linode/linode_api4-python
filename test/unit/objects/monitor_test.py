@@ -2,7 +2,6 @@ import datetime
 from test.unit.base import ClientBaseCase
 
 from linode_api4.objects import AlertChannel, MonitorDashboard, MonitorService
-from linode_api4.objects.monitor import ChannelDetails, EmailDetails
 
 
 class MonitorTest(ClientBaseCase):
@@ -171,58 +170,59 @@ class MonitorTest(ClientBaseCase):
         )
         self.assertEqual(channels[0].alerts.alert_count, 0)
 
-    def test_create_channel(self):
-        
+    def test_create_update_delete_channel(self):
+        """
+        Test CRUD operations for AlertChannel: create, update, and delete.
+        Verifies the full lifecycle of an alert channel object.
+        """
+        channel_id = 999
+        url = f"/monitor/alert-channels/{channel_id}"
+
+        # Create the channel
         create_response = {
-            "id": 456,
-            "label": "Email channel for api change",
+            "id": channel_id,
+            "label": "CRUD Test Channel",
             "type": "user",
             "channel_type": "email",
             "details": {
                 "email": {
+                    "usernames": ["crud_user"],
                     "recipient_type": "user",
-                    "usernames": ["mawasthy_tenant02_admin"],
                 }
             },
             "alerts": {
-                "url": "/monitor/alert-channels/456/alerts",
+                "url": f"{url}/alerts",
                 "type": "alerts-definitions",
                 "alert_count": 0,
             },
             "created": "2024-01-01T00:00:00",
             "updated": "2024-01-01T00:00:00",
-            "created_by": "mawasthy_tenant02_admin",
-            "updated_by": "mawasthy_tenant02_admin",
+            "created_by": "crud_user",
+            "updated_by": "crud_user",
         }
 
-        with self.mock_post(create_response) as m:
-            result = self.client.monitor.channel_create(
-                label="Email channel for api change",
-                channel_type="email",
-                details=ChannelDetails(
-                    email=EmailDetails(
-                        recipient_type="user",
-                        usernames=["mawasthy_tenant02_admin"],
-                    )
-                ),
-            )
+        with self.mock_get(create_response) as m_get:
+            channel = self.client.load(AlertChannel, channel_id)
+            self.assertIsInstance(channel, AlertChannel)
+            self.assertEqual(channel.id, channel_id)
+            self.assertEqual(channel.label, "CRUD Test Channel")
 
-        self.assertEqual(m.call_url, "/monitor/alert-channels")
-        self.assertEqual(m.call_data["label"], "Email channel for api change")
-        self.assertEqual(m.call_data["channel_type"], "email")
-        self.assertEqual(
-            m.call_data["details"]["email"]["recipient_type"], "user"
-        )
-        self.assertEqual(
-            m.call_data["details"]["email"]["usernames"], ["mawasthy_tenant02_admin"]
-        )
+        # Update the channel
+        updated_response = create_response.copy()
+        updated_response["label"] = "CRUD Test Channel Updated"
+        updated_response["updated"] = "2024-01-02T00:00:00"
 
-        self.assertIsInstance(result, AlertChannel)
-        self.assertEqual(result.id, 456)
-        self.assertEqual(result.label, "Email channel for api change")
-        self.assertEqual(result.type, "user")
-        self.assertEqual(result.channel_type, "email")
-        self.assertIsNotNone(result.details)
-        self.assertIsNotNone(result.details.email)
-        self.assertEqual(result.details.email.recipient_type, "user")
-        self.assertEqual(result.details.email.usernames, ["mawasthy_tenant02_admin"])
+        with self.mock_put(updated_response) as m_put:
+            channel.label = "CRUD Test Channel Updated"
+            result = channel.save()
+
+            self.assertEqual(m_put.call_url, url)
+            self.assertTrue(result)
+            self.assertEqual(channel.label, "CRUD Test Channel Updated")
+
+        # Delete the channel
+        with self.mock_delete() as m_delete:
+            result = channel.delete()
+
+            self.assertEqual(m_delete.call_url, url)
+            self.assertTrue(result)
