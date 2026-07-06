@@ -67,9 +67,10 @@ def test_get_all_vpcs(test_linode_client, create_multiple_vpcs):
     vpc_1, vpc_2 = create_multiple_vpcs
 
     all_vpcs = test_linode_client.vpcs()
+    all_vpc_ids = {vpc.id for vpc in all_vpcs}
 
-    assert str(vpc_1) in str(all_vpcs.lists)
-    assert str(vpc_2) in str(all_vpcs.lists)
+    assert vpc_1.id in all_vpc_ids
+    assert vpc_2.id in all_vpc_ids
 
 
 def test_fails_update_vpc_invalid_data(create_vpc):
