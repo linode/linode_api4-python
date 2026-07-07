@@ -154,7 +154,7 @@ class LinodeTest(ClientBaseCase):
             }
 
             assert m.call_data["interfaces"][0] == {
-                "firewall_id": -1,
+                "firewall_id": None,
                 "rdma_vpc": {
                     "subnet_id": 1234,
                     "ipv4": {

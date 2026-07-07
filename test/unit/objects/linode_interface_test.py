@@ -82,7 +82,7 @@ def build_interface_options_vlan():
 
 def build_interface_options_rdma_vpc():
     return LinodeInterfaceOptions(
-        firewall_id=-1,
+        firewall_id=None,
         rdma_vpc=LinodeInterfaceRDMAVPCOptions(
             subnet_id=1234,
             ipv4=LinodeInterfaceRDMAVPCIPv4Options(
