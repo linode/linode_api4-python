@@ -332,6 +332,16 @@ def test_integration_create_get_update_delete_alert_channel(test_linode_client):
     created_channel = None
 
     try:
+        # Get valid users to use for the email alert channel
+        users = list(client.account.users())
+        if len(users) == 0:
+            pytest.skip("No account users available for creating alert channels")
+        
+        # Use the first user, or first two if available
+        usernames = [users[0].username]
+        if len(users) > 1:
+            usernames.append(users[1].username)
+
         # Create an alert channel with email details
         created_channel = client.monitor.channel_create(
             label=label,
@@ -339,7 +349,7 @@ def test_integration_create_get_update_delete_alert_channel(test_linode_client):
             details=ChannelDetails(
                 email=EmailDetails(
                     recipient_type="user",
-                    usernames=["mawasthy_tenant02_admin"],
+                    usernames=usernames,
                 )
             ),
         )

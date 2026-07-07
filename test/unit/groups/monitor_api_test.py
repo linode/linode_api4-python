@@ -200,7 +200,7 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             "channel_type": "email",
             "details": {
                 "email": {
-                    "usernames": ["test_user"],
+                    "usernames": ["test_user1", "test_user2"],
                     "recipient_type": "user",
                 }
             },
@@ -211,8 +211,8 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             },
             "created": "2024-01-01T00:00:00",
             "updated": "2024-01-01T00:00:00",
-            "created_by": "test_user",
-            "updated_by": "test_user",
+            "created_by": "test_user1",
+            "updated_by": "test_user1",
         }
 
         with self.mock_post(create_response) as mock_post:
@@ -222,7 +222,7 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
                 details=ChannelDetails(
                     email=EmailDetails(
                         recipient_type="user",
-                        usernames=["test_user"],
+                        usernames=["test_user1", "test_user2"],
                     )
                 ),
             )
