@@ -498,7 +498,6 @@ def create_vpc_with_rdma_type(test_linode_client):
             {Capability.vpcs},
         ),
         description="test description",
-        ipv6=[{"range": "auto"}],
         vpc_type="rdma",
     )
     yield vpc

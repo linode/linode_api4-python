@@ -148,12 +148,13 @@ def test_get_vpc_ipv6s(test_linode_client):
 def test_get_vpc_with_rdma_type(test_linode_client, create_vpc_with_rdma_type):
     vpc_rdma = create_vpc_with_rdma_type
     assert vpc_rdma.vpc_type == "rdma"
+    assert vpc_rdma.ipv6 is None
 
     vpc = test_linode_client.load(VPC, vpc_rdma.id)
     assert vpc.id == vpc_rdma.id
     assert vpc.vpc_type == vpc_rdma.vpc_type
 
-    vpc = test_linode_client.vpcs(VPC.vpc_type == "rdma")[0]
+    vpc = test_linode_client.vpcs(VPC.vpc_type == "rdma")[-1]
     assert vpc.id == vpc_rdma.id
     assert vpc.vpc_type == vpc_rdma.vpc_type
 
