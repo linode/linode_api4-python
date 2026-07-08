@@ -8,6 +8,7 @@ from linode_api4.objects.serializable import JSONObject, StrEnum
 __all__ = [
     "AggregateFunction",
     "AlertChannel",
+    "AlertChannelType",
     "AlertDefinition",
     "AlertDefinitionChannel",
     "AlertDefinitionEntity",
@@ -387,6 +388,15 @@ class AlertScope(StrEnum):
     account = "account"
 
 
+class AlertChannelType(StrEnum):
+    """
+    Type values for alert channels.
+    """
+
+    system = "system"
+    user = "user"
+
+
 @dataclass
 class AlertEntities(JSONObject):
     """
@@ -490,11 +500,11 @@ class AlertChannel(Base):
     """
     Represents an alert channel used to deliver notifications when alerts
     fire. Alert channels define a destination and configuration for
-    notifications (for example: email lists, webhooks, PagerDuty, Slack, etc.).
+    notifications (for example: email lists, webhooks, Slack, etc.).
 
     API Documentation:
-        List/Get: https://techdocs.akamai.com/linode-api/reference/get-alert-channels
-        Create:   https://techdocs.akamai.com/linode-api/reference/post-alert-channel
+        List/Get: https://techdocs.akamai.com/linode-api/reference/get-notification-channel
+        Create:   https://techdocs.akamai.com/linode-api/reference/post-notification-channel
 
     This class maps to the Monitor API's ``/monitor/alert-channels`` resource
     and is used by the SDK to list, load, create, and inspect channels.
@@ -505,7 +515,7 @@ class AlertChannel(Base):
     properties = {
         "id": Property(identifier=True),
         "label": Property(mutable=True),
-        "type": Property(),
+        "type": Property(AlertChannelType),
         "channel_type": Property(),
         "details": Property(mutable=True, json_object=ChannelDetails),
         "alerts": Property(mutable=False, json_object=AlertInfo),

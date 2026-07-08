@@ -335,8 +335,10 @@ def test_integration_create_get_update_delete_alert_channel(test_linode_client):
         # Get valid users to use for the email alert channel
         users = list(client.account.users())
         if len(users) == 0:
-            pytest.skip("No account users available for creating alert channels")
-        
+            pytest.skip(
+                "No account users available for creating alert channels"
+            )
+
         # Use the first user, or first two if available
         usernames = [users[0].username]
         if len(users) > 1:
