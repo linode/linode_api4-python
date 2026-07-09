@@ -541,6 +541,21 @@ def create_vpc_with_subnet_and_linode(
 
 
 @pytest.fixture(scope="session")
+def create_vpc_with_subnet_and_rdma_type(create_vpc_with_rdma_type):
+    vpc_rdma = create_vpc_with_rdma_type
+    label = get_test_label(length=10)
+
+    subnet_rdma = create_vpc_with_rdma_type.subnet_create(
+        label=label,
+        ipv4="10.0.0.0/24",
+    )
+
+    yield vpc_rdma, subnet_rdma
+
+    subnet_rdma.delete()
+
+
+@pytest.fixture(scope="session")
 def create_multiple_vpcs(test_linode_client):
     client = test_linode_client
 

@@ -1,5 +1,4 @@
 from test.integration.conftest import get_region
-from test.integration.helpers import get_test_label
 
 import pytest
 
@@ -154,28 +153,20 @@ def test_get_vpc_with_rdma_type(test_linode_client, create_vpc_with_rdma_type):
     assert vpc.id == vpc_rdma.id
     assert vpc.vpc_type == vpc_rdma.vpc_type
 
-    vpc = test_linode_client.vpcs(VPC.vpc_type == "rdma")[-1]
-    assert vpc.id == vpc_rdma.id
-    assert vpc.vpc_type == vpc_rdma.vpc_type
+    vpcs = test_linode_client.vpcs(VPC.vpc_type == "rdma")
+    assert vpc_rdma.id in [vpc.id for vpc in vpcs]
+    assert all(vpc.vpc_type == "rdma" for vpc in vpcs)
 
 
 def test_get_subnet_with_rdma_type(
-    request, test_linode_client, create_vpc_with_rdma_type
+    test_linode_client, create_vpc_with_subnet_and_rdma_type
 ):
-    vpc_rdma = create_vpc_with_rdma_type
-    label = get_test_label(length=10)
-
-    subnet_rdma = create_vpc_with_rdma_type.subnet_create(
-        label=label,
-        ipv4="10.0.0.0/24",
-    )
-
-    # clean-up after test
-    request.addfinalizer(subnet_rdma.delete)
+    vpc_rdma, subnet_rdma = create_vpc_with_subnet_and_rdma_type
 
     assert subnet_rdma.vpc_type == vpc_rdma.vpc_type
     assert subnet_rdma.ipv6 is None
 
     subnet = test_linode_client.load(VPCSubnet, subnet_rdma.id, vpc_rdma.id)
     assert subnet.id == subnet_rdma.id
+    assert subnet.vpc_type == vpc_rdma.vpc_type
     assert subnet.ipv6 is None
