@@ -1334,6 +1334,7 @@ class ObjectStorageGroupTest(ClientBaseCase):
                 "us-east-1", "example-bucket", ObjectStorageACL.PRIVATE, True
             )
             self.assertIsNotNone(b)
+            self.assertEqual(b.region, "us-east-1")
             self.assertEqual(m.call_url, "/object-storage/buckets")
             self.assertEqual(
                 m.call_data,

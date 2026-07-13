@@ -429,8 +429,8 @@ class ObjectStorageGroup(Group):
                 json=result,
             )
 
-        return ObjectStorageBucket(
-            self.client, result["label"], result["cluster"], result
+        return ObjectStorageBucket.make_instance(
+            result["label"], self.client, json=result
         )
 
     def object_acl_config(self, cluster_or_region_id: str, bucket, name=None):
