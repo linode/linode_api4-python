@@ -1,5 +1,4 @@
 import base64
-import re
 from test.integration.conftest import get_region
 from test.integration.helpers import (
     get_test_label,
