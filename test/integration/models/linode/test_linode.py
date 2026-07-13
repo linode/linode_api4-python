@@ -854,8 +854,8 @@ def test_get_linode_types(test_linode_client):
         if len(v.region_prices) > 0 and v.region_prices[0].hourly > 0
     ]
 
-    any(v.region_prices[0].hourly > 0 for v in regional_priced_types)
-    any(v.region_prices[0].monthly > 0 for v in regional_priced_types)
+    assert any(v.region_prices[0].hourly > 0 for v in regional_priced_types)
+    assert any(v.region_prices[0].monthly > 0 for v in regional_priced_types)
 
 
 @pytest.mark.flaky(reruns=3, reruns_delay=2)
