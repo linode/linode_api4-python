@@ -848,21 +848,14 @@ def test_get_linode_types(test_linode_client):
     for linode_type in types:
         assert hasattr(linode_type, "accelerated_devices")
 
-
-def test_get_linode_types_overrides(test_linode_client):
-    types = test_linode_client.linode.types()
-
-    target_types = [
+    regional_priced_types = [
         v
         for v in types
         if len(v.region_prices) > 0 and v.region_prices[0].hourly > 0
     ]
 
-    assert len(target_types) > 0
-
-    for linode_type in target_types:
-        assert linode_type.region_prices[0].hourly >= 0
-        assert linode_type.region_prices[0].monthly >= 0
+    assert any(v.region_prices[0].hourly > 0 for v in regional_priced_types)
+    assert any(v.region_prices[0].monthly > 0 for v in regional_priced_types)
 
 
 @pytest.mark.flaky(reruns=3, reruns_delay=2)
