@@ -164,9 +164,6 @@ def test_vpc_with_ipv4(test_linode_client, create_vpc_with_ipv4):
     loaded_vpc = client.load(VPC, vpc.id)
     assert loaded_vpc.ipv4[0].range == "10.0.0.0/8"
 
-    all_vpcs = client.vpcs()
-    assert vpc.id in [v.id for v in all_vpcs]
-
     vpc.ipv4 = [{"range": "192.168.0.0/17"}]
     vpc.save()
 

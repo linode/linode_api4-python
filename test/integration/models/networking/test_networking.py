@@ -15,11 +15,7 @@ from test.integration.helpers import (
 import pytest
 import requests
 
-from linode_api4 import (
-    ApiError,
-    Instance,
-    LinodeClient,
-)
+from linode_api4 import ApiError, Instance, LinodeClient
 from linode_api4.objects import (
     Config,
     ConfigInterfaceIPv4,
