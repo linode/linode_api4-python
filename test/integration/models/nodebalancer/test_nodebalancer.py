@@ -139,7 +139,7 @@ def test_create_nb(test_linode_client, e2e_test_firewall):
 
 
 def test_get_nodebalancer_config(test_linode_client, create_nb_config):
-    config = test_linode_client.load(
+    test_linode_client.load(
         NodeBalancerConfig,
         create_nb_config.id,
         create_nb_config.nodebalancer_id,
@@ -184,6 +184,8 @@ def test_get_nb(test_linode_client, create_nb):
     )
 
     assert nb.id == create_nb.id
+    assert nb.type == 'common'
+    assert nb.lke_cluster is None
 
 
 def test_update_nb(test_linode_client, create_nb):
@@ -205,6 +207,8 @@ def test_update_nb(test_linode_client, create_nb):
 
     assert new_label == nb_updated.label
     assert 5 == nb_updated.client_udp_sess_throttle
+    assert nb.type == 'common'
+    assert nb.lke_cluster is None
 
 
 @pytest.mark.smoke
@@ -228,7 +232,7 @@ def test_create_nb_node(
 
 @pytest.mark.smoke
 def test_get_nb_node(test_linode_client, create_nb_config):
-    node = test_linode_client.load(
+    test_linode_client.load(
         NodeBalancerNode,
         create_nb_config.nodes[0].id,
         (create_nb_config.id, create_nb_config.nodebalancer_id),
