@@ -20,6 +20,33 @@ from linode_api4.objects import (
 from linode_api4.objects.monitor import AlertStatus
 
 
+def wait_for_alert_ready(
+    client: LinodeClient,
+    alert_id: int,
+    service_type: str,
+    timeout: int = 360,
+    initial_timeout: int = 1,
+) -> AlertDefinition:
+    """Wait for an alert definition to reach enabled status, with backoff."""
+    start = time.time()
+    interval = initial_timeout
+    alert = client.load(AlertDefinition, alert_id, service_type)
+    while (
+        getattr(alert, "status", None)
+        != AlertStatus.AlertDefinitionStatusEnabled
+        and (time.time() - start) < timeout
+    ):
+        time.sleep(interval)
+        interval *= 2
+        try:
+            alert._api_get()
+        except ApiError as e:
+            # transient errors while polling; continue until timeout
+            if e.status != 404:
+                raise
+    return alert
+
+
 # List all dashboards
 def test_get_all_dashboards(test_linode_client):
     client = test_linode_client
@@ -214,34 +241,15 @@ def test_integration_create_get_update_delete_alert_definition(
     description = "E2E alert created by SDK integration test"
 
     # Pick an existing alert channel to attach to the definition; skip if none
-    channels = list(client.monitor.alert_channels())
+    channels = list(
+        client.monitor.alert_channels()
+    )  # TODO: create channel instead of relying on pre-existing one
     if not channels:
         pytest.skip(
             "No alert channels available on account for creating alert definitions"
         )
 
     created = None
-
-    def wait_for_alert_ready(alert_id, service_type: str):
-        timeout = 360  # maximum time in seconds to wait for alert creation
-        initial_timeout = 1
-        start = time.time()
-        interval = initial_timeout
-        alert = client.load(AlertDefinition, alert_id, service_type)
-        while (
-            getattr(alert, "status", None)
-            != AlertStatus.AlertDefinitionStatusEnabled
-            and (time.time() - start) < timeout
-        ):
-            time.sleep(interval)
-            interval *= 2
-            try:
-                alert._api_get()
-            except ApiError as e:
-                # transient errors while polling; continue until timeout
-                if e.status != 404:
-                    raise
-        return alert
 
     try:
         # Create the alert definition using API-compliant top-level fields
@@ -258,18 +266,20 @@ def test_integration_create_get_update_delete_alert_definition(
         assert created.id
         assert getattr(created, "label", None) == label
         assert getattr(created, "entities", None) is not None
+        assert isinstance(created.group_by, list)
 
-        created = wait_for_alert_ready(created.id, service_type)
+        created = wait_for_alert_ready(client, created.id, service_type)
 
         updated = client.load(AlertDefinition, created.id, service_type)
         updated.label = f"{label}-updated"
         updated.save()
         assert getattr(updated, "entities", None) is not None
 
-        updated = wait_for_alert_ready(updated.id, service_type)
+        updated = wait_for_alert_ready(client, updated.id, service_type)
 
         assert created.id == updated.id
         assert updated.label == f"{label}-updated"
+        assert isinstance(updated.group_by, list)
 
     finally:
         if created:
@@ -297,6 +307,7 @@ def test_alert_definition_entities(test_linode_client):
         pytest.fail("No alert definitions available for dbaas service type")
 
     assert getattr(alert_definitions[0], "entities", None) is not None
+    assert isinstance(alert_definitions[0].group_by, list)
 
     alert_def = alert_definitions[0]
     entities = client.monitor.alert_definition_entities(
@@ -311,3 +322,110 @@ def test_alert_definition_entities(test_linode_client):
         assert entity.label
         assert entity.url
         assert entity._type == service_type
+
+
+def test_integration_clone_alert_definition(test_linode_client):
+    """E2E: create a source alert definition, clone it, then delete both."""
+    client = test_linode_client
+    service_type = "dbaas"
+    source_label = f"{get_test_label()}-e2e-source-alert-{int(time.time())}"
+    clone_label = f"{get_test_label()}-e2e-cloned-alert-{int(time.time())}"
+
+    rule_criteria = {
+        "rules": [
+            {
+                "aggregate_function": "avg",
+                "dimension_filters": [
+                    {
+                        "dimension_label": "node_type",
+                        "label": "Node Type",
+                        "operator": "eq",
+                        "value": "primary",
+                    }
+                ],
+                "label": "Memory Usage",
+                "metric": "memory_usage",
+                "operator": "gt",
+                "threshold": 90,
+                "unit": "percent",
+            }
+        ]
+    }
+    trigger_conditions = {
+        "criteria_condition": "ALL",
+        "evaluation_period_seconds": 300,
+        "polling_interval_seconds": 300,
+        "trigger_occurrences": 1,
+    }
+
+    channels = list(
+        client.monitor.alert_channels()
+    )  # TODO: create channel instead of relying on pre-existing one
+    if not channels:
+        pytest.skip(
+            "No alert channels available on account for creating/cloning alert definitions"
+        )
+
+    created = None
+    cloned_alert = None
+
+    try:
+        # Create the source alert definition
+        created = client.monitor.create_alert_definition(
+            service_type=service_type,
+            label=source_label,
+            severity=1,
+            channel_ids=[channels[0].id],
+            rule_criteria=rule_criteria,
+            trigger_conditions=trigger_conditions,
+        )
+
+        created = wait_for_alert_ready(client, created.id, service_type)
+
+        clone_trigger_conditions_overrides = {
+            "criteria_condition": "ALL",
+            "evaluation_period_seconds": 900,
+            "polling_interval_seconds": 300,
+            "trigger_occurrences": 3,
+        }
+
+        # Clone the alert definition, overriding the label and trigger conditions
+        cloned_alert = client.monitor.clone_alert_definition(
+            service_type=service_type,
+            id=created.id,
+            label=clone_label,
+            trigger_conditions=clone_trigger_conditions_overrides,
+        )
+
+        cloned_alert = wait_for_alert_ready(
+            client, cloned_alert.id, service_type
+        )
+
+        assert created.id
+        assert cloned_alert.id
+        assert cloned_alert.id != created.id
+        assert cloned_alert.label == clone_label
+        assert cloned_alert.label != created.label
+        assert cloned_alert.scope == created.scope
+        assert cloned_alert.rule_criteria is not None
+        assert created.rule_criteria is not None
+        assert cloned_alert.rule_criteria.dict == created.rule_criteria.dict
+        assert created.trigger_conditions is not None
+        assert cloned_alert.trigger_conditions is not None
+        assert (
+            cloned_alert.trigger_conditions.dict
+            != created.trigger_conditions.dict
+        )
+
+    finally:
+        if cloned_alert:
+            delete_clone_alert = client.load(
+                AlertDefinition, cloned_alert.id, service_type
+            )
+            delete_clone_alert.delete()
+
+        if created:
+            delete_source_alert = client.load(
+                AlertDefinition, created.id, service_type
+            )
+            delete_source_alert.delete()

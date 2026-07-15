@@ -1,7 +1,7 @@
 import datetime
 from test.unit.base import ClientBaseCase
 
-from linode_api4 import DATE_FORMAT, VPC, VPCSubnet
+from linode_api4 import DATE_FORMAT, VPC, VPCIPv4DefaultRange, VPCSubnet
 
 
 class VPCTest(ClientBaseCase):
@@ -95,6 +95,8 @@ class VPCTest(ClientBaseCase):
         self.assertEqual(vpc.created, expected_dt)
         self.assertEqual(vpc.updated, expected_dt)
 
+        self.assertEqual(vpc.ipv4[0].range, "10.0.0.0/8")
+
     def validate_vpc_subnet_789(self, subnet: VPCSubnet):
         expected_dt = datetime.datetime.strptime(
             "2018-01-01T00:01:01", DATE_FORMAT
@@ -105,3 +107,18 @@ class VPCTest(ClientBaseCase):
         self.assertEqual(subnet.linodes[0].id, 12345)
         self.assertEqual(subnet.created, expected_dt)
         self.assertEqual(subnet.updated, expected_dt)
+
+    def test_default_ranges(self):
+        """
+        Tests that VPC default ranges can be retrieved.
+        """
+
+        with self.mock_get("/vpcs/default-ranges") as m:
+            result = self.client.vpcs.default_ranges()
+
+        self.assertEqual(m.call_url, "/vpcs/default-ranges")
+        self.assertIsInstance(result, VPCIPv4DefaultRange)
+        self.assertEqual(
+            result.default_ipv4_ranges, ["10.0.0.0/8", "192.168.0.0/17"]
+        )
+        self.assertEqual(result.forbidden_ipv4_ranges, ["172.17.0.0/16"])

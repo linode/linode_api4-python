@@ -2,7 +2,7 @@ from test.integration.conftest import get_region
 
 import pytest
 
-from linode_api4 import VPC, ApiError, VPCSubnet
+from linode_api4 import VPC, ApiError, VPCIPv4DefaultRange, VPCSubnet
 
 
 @pytest.mark.smoke
@@ -139,3 +139,33 @@ def test_get_vpc_ipv6s(test_linode_client):
         assert "vpc_id" in ipv6
         assert isinstance(ipv6["ipv6_range"], str)
         assert isinstance(ipv6["ipv6_addresses"], list)
+
+
+def test_get_vpc_default_ranges(test_linode_client):
+    """
+    Tests that VPC default IPv4 ranges can be retrieved.
+    """
+    result = test_linode_client.vpcs.default_ranges()
+
+    assert isinstance(result, VPCIPv4DefaultRange)
+    assert isinstance(result.default_ipv4_ranges, list)
+    assert len(result.default_ipv4_ranges) > 0
+    assert isinstance(result.forbidden_ipv4_ranges, list)
+    assert len(result.forbidden_ipv4_ranges) > 0
+
+
+def test_vpc_with_ipv4(test_linode_client, create_vpc_with_ipv4):
+    client = test_linode_client
+    vpc = create_vpc_with_ipv4
+
+    assert vpc.id is not None
+    assert vpc.ipv4[0].range == "10.0.0.0/8"
+
+    loaded_vpc = client.load(VPC, vpc.id)
+    assert loaded_vpc.ipv4[0].range == "10.0.0.0/8"
+
+    vpc.ipv4 = [{"range": "192.168.0.0/17"}]
+    vpc.save()
+
+    updated_vpc = client.load(VPC, vpc.id)
+    assert updated_vpc.ipv4[0].range == "192.168.0.0/17"

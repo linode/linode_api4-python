@@ -113,6 +113,7 @@ class VPCTest(ClientBaseCase):
         self.assertEqual(vpc.created, expected_dt)
         self.assertEqual(vpc.updated, expected_dt)
 
+        self.assertEqual(vpc.ipv4[0].range, "10.0.0.0/8")
         self.assertEqual(vpc.ipv6[0].range, "fd71:1140:a9d0::/52")
 
     def validate_vpc_subnet_789(self, subnet: VPCSubnet):
