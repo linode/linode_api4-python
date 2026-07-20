@@ -400,3 +400,57 @@ def test_integration_create_get_update_delete_alert_channel(test_linode_client):
                 print(
                     f"Warning: Failed to delete channel {created_channel.id}: {e}"
                 )
+
+
+def test_integration_alert_channel(test_linode_client):
+    """Test retrieving a single alert channel by ID.
+
+    This test fetches an existing alert channel and verifies that all
+    expected properties are populated correctly.
+    """
+    client = test_linode_client
+
+    # Get an existing alert channel to test with
+    channels = list(client.monitor.alert_channels())
+    if len(channels) == 0:
+        pytest.skip("No alert channels available on account for testing")
+
+    channel_id = channels[0].id
+
+    # Test the alert_channel() method
+    fetched_channel = client.monitor.alert_channel(channel_id)
+
+    assert isinstance(fetched_channel, AlertChannel)
+    assert fetched_channel.id == channel_id
+    assert fetched_channel.label is not None
+    assert fetched_channel.channel_type is not None
+    assert fetched_channel.details is not None
+
+
+def test_integration_alert_channel_alerts(test_linode_client):
+    """Test retrieving alerts associated with a specific alert channel.
+
+    This test fetches alerts for an existing alert channel and verifies
+    the paginated list of alert definitions is returned correctly.
+    """
+    client = test_linode_client
+
+    # Get an existing alert channel to test with
+    channels = list(client.monitor.alert_channels())
+    if len(channels) == 0:
+        pytest.skip("No alert channels available on account for testing")
+
+    channel_id = channels[0].id
+
+    # Test the alert_channel_alerts() method
+    alerts = client.monitor.alert_channel_alerts(channel_id)
+
+    assert isinstance(alerts, PaginatedList)
+
+    # If there are alerts, verify their structure
+    if len(alerts) > 0:
+        alert = alerts[0]
+        assert isinstance(alert, AlertDefinition)
+        assert alert.id is not None
+        assert alert.label is not None
+        assert alert.service_type is not None

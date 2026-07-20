@@ -251,3 +251,99 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
 
             assert mock_delete.call_url == channel_url
             assert result is True
+
+    def test_alert_channel(self):
+        """
+        Test retrieval of a specific alert channel by ID.
+        Verifies the alert_channel method returns a single AlertChannel object.
+        """
+        channel_id = 123
+        channel_url = f"/monitor/alert-channels/{channel_id}"
+
+        channel_response = {
+            "id": channel_id,
+            "label": "alert notification channel",
+            "type": "user",
+            "channel_type": "email",
+            "details": {
+                "email": {
+                    "usernames": ["admin-user1", "admin-user2"],
+                    "recipient_type": "user",
+                }
+            },
+            "alerts": {
+                "url": f"{channel_url}/alerts",
+                "type": "alerts-definitions",
+                "alert_count": 2,
+            },
+            "created": "2024-01-01T00:00:00",
+            "updated": "2024-01-01T00:00:00",
+            "created_by": "tester",
+            "updated_by": "tester",
+        }
+
+        with self.mock_get(channel_response) as mock_get:
+            channel = self.client.monitor.alert_channel(channel_id=channel_id)
+
+            assert mock_get.call_url == channel_url
+            assert isinstance(channel, AlertChannel)
+            assert channel.id == channel_id
+            assert channel.label == "alert notification channel"
+            assert channel.channel_type == "email"
+            assert channel.details.email.usernames == [
+                "admin-user1",
+                "admin-user2",
+            ]
+            assert channel.alerts.alert_count == 2
+
+    def test_alert_channel_alerts(self):
+        """
+        Test retrieval of alerts associated with a specific alert channel.
+        Verifies the alert_channel_alerts method returns a paginated list
+        of AlertDefinition objects associated with the channel.
+        """
+        channel_id = 123
+        alerts_url = f"/monitor/alert-channels/{channel_id}/alerts"
+
+        alerts_response = {
+            "data": [
+                {
+                    "id": 12345,
+                    "label": "DBAAS Alert 1",
+                    "service_type": "dbaas",
+                    "type": "alerts-definitions",
+                    "url": "/monitor/services/dbaas/alerts-definitions/12345",
+                },
+                {
+                    "id": 12346,
+                    "label": "DBAAS Alert 2",
+                    "service_type": "dbaas",
+                    "type": "alerts-definitions",
+                    "url": "/monitor/services/dbaas/alerts-definitions/12346",
+                },
+            ],
+            "page": 1,
+            "pages": 1,
+            "results": 2,
+        }
+
+        with self.mock_get(alerts_response) as mock_get:
+            alerts = self.client.monitor.alert_channel_alerts(
+                channel_id=channel_id
+            )
+
+            assert mock_get.call_url == alerts_url
+            assert isinstance(alerts, PaginatedList)
+            assert len(alerts) == 2
+
+            # Verify first alert
+            assert isinstance(alerts[0], AlertDefinition)
+            assert alerts[0].id == 12345
+            assert alerts[0].label == "DBAAS Alert 1"
+            assert alerts[0].service_type == "dbaas"
+
+            # Verify second alert
+            assert isinstance(alerts[1], AlertDefinition)
+            assert alerts[1].id == 12346
+            assert alerts[1].label == "DBAAS Alert 2"
+            assert alerts[1].service_type == "dbaas"

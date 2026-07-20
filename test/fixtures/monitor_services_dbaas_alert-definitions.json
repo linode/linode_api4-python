@@ -38,7 +38,7 @@
             "metric": "cpu_usage",
             "operator": "gt",
             "threshold": 90,
-            "unit": "percent"
+            "unit": "%"
           }
         ]
       },

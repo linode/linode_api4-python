@@ -13,6 +13,7 @@ from linode_api4.objects import (
     MonitorService,
     MonitorServiceToken,
 )
+from linode_api4.objects.filtering import and_
 from linode_api4.objects.monitor import ChannelDetails
 
 __all__ = [
@@ -378,3 +379,86 @@ class MonitorGroup(Group):
             )
 
         return AlertChannel(self.client, result["id"], result)
+
+    def alert_channel(self, channel_id: int) -> AlertChannel:
+        """
+        Retrieve a specific notification channel definition details by its channel ID.
+
+        Returns an :class:`AlertChannel` object for the specified channel ID.
+        The channel object contains all configuration details for the notification
+        destination (e.g., email lists, webhooks, etc.).
+
+        .. note:: This endpoint is in beta and requires using the v4beta base URL.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-notification-channel
+
+        :param channel_id: The ID of the alert channel to retrieve.
+        :type channel_id: int
+
+        :returns: The requested :class:`AlertChannel` object.
+        :rtype: AlertChannel
+        :raises ApiError: if the requested channel could not be loaded.
+        """
+        return self.client.load(AlertChannel, channel_id)
+
+    def alert_channel_alerts(self, channel_id: int, *filters) -> PaginatedList:
+        """
+        Retrieve all alerts associated with a specific alert channel.
+
+        Returns a paginated collection of alert definitions associated with the
+        specified alert channel. This allows you to see which alert definitions
+        are configured to notify this specific channel.
+
+        .. note:: This endpoint is in beta and requires using the v4beta base URL.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-notification-channel-alerts
+
+        :param channel_id: The ID of the alert channel to retrieve alerts for.
+        :type channel_id: int
+        :param filters: Optional filter expressions to apply to the collection.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>` for details.
+
+        :returns: A paginated list of alert definitions associated with this channel.
+        :rtype: PaginatedList[AlertDefinition]
+        """
+        endpoint = f"/monitor/alert-channels/{channel_id}/alerts"
+        parsed_filters = None
+        if filters:
+            if len(filters) > 1:
+                parsed_filters = and_(
+                    *filters
+                ).dct  # pylint: disable=no-value-for-parameter
+            else:
+                parsed_filters = filters[0].dct
+
+        response_json = self.client.get(endpoint, filters=parsed_filters)
+
+        if "data" not in response_json:
+            raise UnexpectedResponseError(
+                "Unexpected response when retrieving alert channel alerts!",
+                json=response_json,
+            )
+
+        # For each alert definition in the response, extract the service_type
+        # and use it as the parent_id when creating AlertDefinition objects
+        result = []
+        for obj in response_json.get("data", []):
+            if "id" in obj and "service_type" in obj:
+                alert = AlertDefinition.make_instance(
+                    obj["id"],
+                    self.client,
+                    parent_id=obj["service_type"],
+                    json=obj,
+                )
+                result.append(alert)
+
+        # Return paginated list with pagination metadata from response
+        return PaginatedList(
+            self.client,
+            endpoint[1:],
+            page=result,
+            max_pages=response_json.get("pages", 1),
+            total_items=response_json.get("results", len(result)),
+            parent_id=None,
+            filters=parsed_filters,
+        )

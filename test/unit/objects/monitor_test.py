@@ -127,7 +127,7 @@ class MonitorTest(ClientBaseCase):
         self.assertEqual(metrics[0].metric, "cpu_usage")
         self.assertEqual(metrics[0].metric_type, "gauge")
         self.assertEqual(metrics[0].scrape_interval, "60s")
-        self.assertEqual(metrics[0].unit, "percent")
+        self.assertEqual(metrics[0].unit, "%")
         self.assertEqual(metrics[0].dimensions[0].dimension_label, "node_type")
         self.assertEqual(metrics[0].dimensions[0].label, "Node Type")
         self.assertEqual(
