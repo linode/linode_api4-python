@@ -47,8 +47,6 @@ class MonitorGroup(Group):
             dashboard = client.load(MonitorDashboard, 1)
             dashboards_by_service = client.monitor.dashboards(service_type="dbaas")
 
-        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
-
         API Documentation:
         - All Dashboards: https://techdocs.akamai.com/linode-api/reference/get-dashboards-all
         - Dashboards by Service: https://techdocs.akamai.com/linode-api/reference/get-dashboards
@@ -83,8 +81,6 @@ class MonitorGroup(Group):
             supported_services = client.monitor.services()
             service_details = client.monitor.load(MonitorService, "dbaas")
 
-        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
-
         API Documentation: https://techdocs.akamai.com/linode-api/reference/get-monitor-services
         API Documentation: https://techdocs.akamai.com/linode-api/reference/get-monitor-services-for-service-type
 
@@ -110,7 +106,6 @@ class MonitorGroup(Group):
         Returns metrics for a specific service type.
 
             metrics = client.monitor.list_metric_definitions(service_type="dbaas")
-        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/get-monitor-information
 
@@ -135,8 +130,6 @@ class MonitorGroup(Group):
         """
         Returns a JWE Token for a specific service type.
             token = client.monitor.create_token(service_type="dbaas", entity_ids=[1234])
-
-        .. note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/post-get-token
 
@@ -175,7 +168,6 @@ class MonitorGroup(Group):
 
             alerts = client.monitor.alert_definitions()
             alerts_by_service = client.monitor.alert_definitions(service_type="dbaas")
-        .. note:: This endpoint is in beta and requires using the v4beta base URL.
 
         API Documentation:
             https://techdocs.akamai.com/linode-api/reference/get-alert-definitions
@@ -212,8 +204,6 @@ class MonitorGroup(Group):
         Examples:
             channels = client.monitor.alert_channels()
 
-        .. note:: This endpoint is in beta and requires using the v4beta base URL.
-
         API Documentation: https://techdocs.akamai.com/linode-api/reference/get-notification-channels
 
         :param filters: Optional filter expressions to apply to the collection.
@@ -235,14 +225,13 @@ class MonitorGroup(Group):
         description: Optional[str] = None,
         scope: Optional[Union[AlertScope, str]] = None,
         regions: Optional[list[str]] = None,
+        group_by: Optional[list[str]] = None,
     ) -> AlertDefinition:
         """
         Create a new alert definition for a given service type.
 
         The alert definition configures when alerts are fired and which channels
         are notified.
-
-        .. note:: This endpoint is in beta and requires using the v4beta base URL.
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/post-alert-definition-for-service-type
 
@@ -270,6 +259,8 @@ class MonitorGroup(Group):
         :type scope: Optional[Union[AlertScope, str]]
         :param regions: (Optional) Regions to monitor.
         :type regions: Optional[list[str]]
+        :param group_by: (Optional) Aggregates metric data by dimension so that alert conditions are evaluated independently for each dimension value.
+        :type group_by: Optional[list[str]]
 
         :returns: The newly created :class:`AlertDefinition`.
         :rtype: AlertDefinition
@@ -294,6 +285,8 @@ class MonitorGroup(Group):
             params["scope"] = scope
         if regions is not None:
             params["regions"] = regions
+        if group_by is not None:
+            params["group_by"] = group_by
 
         # API will validate service_type and return an error if missing
         result = self.client.post(
@@ -303,6 +296,95 @@ class MonitorGroup(Group):
         if "id" not in result:
             raise UnexpectedResponseError(
                 "Unexpected response when creating alert definition!",
+                json=result,
+            )
+
+        return AlertDefinition(self.client, result["id"], service_type, result)
+
+    def clone_alert_definition(
+        self,
+        service_type: str,
+        id: int,
+        label: str,
+        description: Optional[str] = None,
+        scope: Optional[Union[AlertScope, str]] = None,
+        regions: Optional[list[str]] = None,
+        entity_ids: Optional[list[str]] = None,
+        severity: Optional[int] = None,
+        rule_criteria: Optional[dict] = None,
+        trigger_conditions: Optional[dict] = None,
+        channel_ids: Optional[list[int]] = None,
+        group_by: Optional[list[str]] = None,
+    ) -> AlertDefinition:
+        """
+        Clone an existing alert definition for a given service type.
+        The clone request creates a new alert definition based on the source
+        definition identified by ``id``.
+
+        API Documentation: TODO
+
+        :param service_type: Service type for the source alert definition
+                             (e.g. ``"dbaas"``).
+        :type service_type: str
+        :param id: Source alert definition identifier.
+        :type id: int (Alert identifier)
+        :param label: Human-readable label for the cloned alert definition.
+                      This value is mandatory and must be unique.
+        :type label: str
+        :param description: (Optional) Longer description for the cloned alert definition.
+        :type description: Optional[str]
+        :param scope: (Optional) Alert scope provided in the clone request.
+                      Scope is inherited from the source alert and is immutable.
+        :type scope: Optional[Union[AlertScope, str]]
+        :param regions: (Optional) Regions to monitor.
+        :type regions: Optional[list[str]]
+        :param entity_ids: (Optional) Restrict the alert to a subset of entity IDs.
+        :type entity_ids: Optional[list[str]]
+        :param severity: (Optional) Severity level for the alert.
+        :type severity: Optional[int]
+        :param rule_criteria: (Optional) Rule criteria used to evaluate the alert.
+        :type rule_criteria: Optional[dict]
+        :param trigger_conditions: (Optional) Trigger conditions for alert state transitions.
+        :type trigger_conditions: Optional[dict]
+        :param channel_ids: (Optional) List of alert channel IDs to notify.
+        :type channel_ids: Optional[list[int]]
+        :param group_by: (Optional) Aggregates metric data by dimension so that alert conditions are evaluated independently for each dimension value.
+        :type group_by: Optional[list[str]]
+
+        :returns: The newly created cloned :class:`AlertDefinition`.
+        :rtype: AlertDefinition
+        """
+        params = {
+            "label": label,
+        }
+
+        if description is not None:
+            params["description"] = description
+        if scope is not None:
+            params["scope"] = scope
+        if regions is not None:
+            params["regions"] = regions
+        if entity_ids is not None:
+            params["entity_ids"] = entity_ids
+        if severity is not None:
+            params["severity"] = severity
+        if rule_criteria is not None:
+            params["rule_criteria"] = rule_criteria
+        if trigger_conditions is not None:
+            params["trigger_conditions"] = trigger_conditions
+        if channel_ids is not None:
+            params["channel_ids"] = channel_ids
+        if group_by is not None:
+            params["group_by"] = group_by
+
+        result = self.client.post(
+            f"/monitor/services/{service_type}/alert-definitions/{id}/clone",
+            data=params,
+        )
+
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when cloning alert definition!",
                 json=result,
             )
 
@@ -319,9 +401,7 @@ class MonitorGroup(Group):
 
         This endpoint supports pagination fields (`page`, `page_size`) in the API.
 
-        .. note:: This endpoint is in beta and requires using the v4beta base URL.
-
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-alert-definition-entities
 
         :param service_type: Service type for the alert definition (e.g. `dbaas`).
         :type service_type: str

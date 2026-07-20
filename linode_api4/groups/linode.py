@@ -166,6 +166,7 @@ class LinodeGroup(Group):
         kernel: Optional[str] = None,
         boot_size: Optional[int] = None,
         authorized_users: Optional[List[str]] = None,
+        ipv4: Optional[List[str]] = None,
         **kwargs,
     ):
         """
@@ -355,6 +356,9 @@ class LinodeGroup(Group):
         :param boot_size: The size of the boot disk in MB. If provided, this will be used to create
                           the boot disk for the Instance.
         :type boot_size: int
+        :param ipv4: A list of reserved IPv4 addresses to assign to this Instance.
+                     NOTE: Reserved IP feature may not currently be available to all users.
+        :type ipv4: list[str]
 
         :returns: A new Instance object
         :rtype: Instance
@@ -401,6 +405,7 @@ class LinodeGroup(Group):
             "network_helper": network_helper,
             "kernel": kernel,
             "boot_size": boot_size,
+            "ipv4": ipv4,
         }
 
         params.update(kwargs)

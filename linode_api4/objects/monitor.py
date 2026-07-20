@@ -278,6 +278,7 @@ class MonitorDashboard(Base):
         "label": Property(),
         "service_type": Property(ServiceType),
         "type": Property(DashboardType),
+        "group_by": Property(),
         "widgets": Property(json_object=DashboardWidget),
         "updated": Property(is_datetime=True),
     }
@@ -498,6 +499,7 @@ class AlertDefinition(DerivedBase):
         "regions": Property(mutable=True),
         "entities": Property(json_object=AlertEntities),
         "channel_ids": Property(mutable=True),
+        "group_by": Property(mutable=True),
     }
 
 

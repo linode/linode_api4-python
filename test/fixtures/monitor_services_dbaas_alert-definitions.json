@@ -9,6 +9,9 @@
       "description": "A test alert for dbaas service",
       "scope": "entity",
       "regions": [],
+      "group_by": [
+        "entity_id"
+      ],
       "entities": {
         "url": "/monitor/services/dbaas/alert-definitions/12345/entities",
         "count": 1,
@@ -48,8 +51,8 @@
         "polling_interval_seconds": 60,
         "trigger_occurrences": 3
       },
-      "class": "alert",
-      "status": "active",
+      "class": "",
+      "status": "enabled",
       "created": "2024-01-01T00:00:00",
       "updated": "2024-01-01T00:00:00",
       "updated_by": "tester"
