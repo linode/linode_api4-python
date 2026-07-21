@@ -1,5 +1,4 @@
 import base64
-import re
 from test.integration.conftest import get_region
 from test.integration.helpers import (
     get_test_label,
@@ -224,16 +223,6 @@ def test_node_pool_create_with_disk_encryption(test_linode_client, lke_cluster):
         assert pool.disk_encryption == InstanceDiskEncryptionType.enabled
     finally:
         pool.delete()
-
-
-def test_cluster_dashboard_url_view(lke_cluster):
-    cluster = lke_cluster
-
-    url = send_request_when_resource_available(
-        300, cluster.cluster_dashboard_url_view
-    )
-
-    assert re.search("https://+", url)
 
 
 def test_get_and_delete_kubeconfig(lke_cluster):

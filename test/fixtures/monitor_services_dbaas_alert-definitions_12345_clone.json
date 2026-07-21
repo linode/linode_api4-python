@@ -1,17 +1,17 @@
 {
-  "id": 12345,
-  "label": "Test Alert for DBAAS",
+  "id": 67891,
+  "label": "Cloned Alert",
   "service_type": "dbaas",
   "severity": 1,
   "type": "user",
-  "description": "A test alert for dbaas service",
+  "description": "Cloned from source alert",
   "scope": "entity",
   "regions": [],
   "group_by": [
     "entity_id"
   ],
   "entities": {
-    "url": "/monitor/services/dbaas/alert-definitions/12345/entities",
+    "url": "/monitor/services/dbaas/alert-definitions/67891/entities",
     "count": 1,
     "has_more_resources": false
   },
@@ -39,7 +39,7 @@
         "metric": "cpu_usage",
         "operator": "gt",
         "threshold": 90,
-        "unit": "%"
+        "unit": "percent"
       }
     ]
   },

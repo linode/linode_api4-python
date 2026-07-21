@@ -1,13 +1,16 @@
 import copy
 import ipaddress
+from test.integration.helpers import get_test_label
 
 import pytest
 
 from linode_api4 import (
     ApiError,
     Instance,
+    InterfaceGeneration,
     LinodeInterface,
     LinodeInterfaceDefaultRouteOptions,
+    LinodeInterfaceOptions,
     LinodeInterfacePublicIPv4AddressOptions,
     LinodeInterfacePublicIPv4Options,
     LinodeInterfacePublicIPv6Options,
@@ -18,7 +21,58 @@ from linode_api4 import (
     LinodeInterfaceVPCIPv4Options,
     LinodeInterfaceVPCIPv4RangeOptions,
     LinodeInterfaceVPCOptions,
+    ReservedIPAddress,
 )
+
+
+def build_interface_public_ipv4(firewall, ip_address):
+    return LinodeInterfaceOptions(
+        firewall_id=firewall,
+        default_route=LinodeInterfaceDefaultRouteOptions(
+            ipv4=True,
+        ),
+        public=LinodeInterfacePublicOptions(
+            ipv4=LinodeInterfacePublicIPv4Options(
+                addresses=[
+                    LinodeInterfacePublicIPv4AddressOptions(
+                        address=ip_address, primary=True
+                    )
+                ],
+            ),
+        ),
+    )
+
+
+def create_linode_with_legacy_config(
+    client, ip_address, label, firewall, authorized_key
+):
+    linode = client.linode.instance_create(
+        "g6-nanode-1",
+        ip_address.region,
+        image="linode/debian12",
+        label=label,
+        firewall=firewall,
+        interface_generation=InterfaceGeneration.LEGACY_CONFIG,
+        authorized_keys=authorized_key,
+        ipv4=[ip_address.address],
+    )
+    return linode
+
+
+def create_linode_with_standard_interfaces(
+    client, ip_address, label, firewall, authorized_key
+):
+    interface = build_interface_public_ipv4(firewall.id, ip_address.address)
+    linode = client.linode.instance_create(
+        "g6-nanode-1",
+        ip_address.region,
+        image="linode/debian12",
+        label=label,
+        interface_generation=InterfaceGeneration.LINODE,
+        authorized_keys=authorized_key,
+        interfaces=[interface],
+    )
+    return linode
 
 
 def test_linode_create_with_linode_interfaces(
@@ -359,3 +413,48 @@ def test_linode_interface_firewalls(e2e_test_firewall, linode_interface_public):
     firewall = firewalls[0]
     assert firewall.id == e2e_test_firewall.id
     assert firewall.label == e2e_test_firewall.label
+
+
+@pytest.mark.parametrize(
+    "create_linode_fn",
+    [create_linode_with_legacy_config, create_linode_with_standard_interfaces],
+    ids=["legacy_config", "standard_interfaces"],
+)
+def test_linode_interfaces_with_reserved_ips(
+    test_linode_client,
+    e2e_test_firewall,
+    create_reserved_ip,
+    create_linode_fn,
+    ssh_key_gen,
+):
+    client = test_linode_client
+    reserved_ip = create_reserved_ip
+    label = get_test_label(length=8)
+
+    linode = create_linode_fn(
+        client, reserved_ip, label, e2e_test_firewall, ssh_key_gen[0]
+    )
+
+    try:
+        linode_ips = linode.ips.ipv4.public
+        assert len(linode_ips) == 1
+        assert linode_ips[0].address == reserved_ip.address
+        assert linode_ips[0].reserved == True
+        assert linode_ips[0].linode_id == linode.id
+        assert linode_ips[0].assigned_entity.id == linode.id
+        assert linode_ips[0].assigned_entity.type == "linode"
+        assert linode_ips[0].assigned_entity.label == linode.label
+        assert (
+            linode_ips[0].assigned_entity.url
+            == f"/v4/linode/instances/{linode.id}"
+        )
+    finally:
+        linode.delete()
+
+    reserved_ips_list = client.networking.reserved_ips(
+        ReservedIPAddress.address == reserved_ip.address
+    )
+    assert len(reserved_ips_list) == 1
+    assert reserved_ips_list[0].reserved == True
+    assert reserved_ips_list[0].linode_id is None
+    assert reserved_ips_list[0].assigned_entity is None
