@@ -451,6 +451,8 @@ class MonitorGroup(Group):
         :rtype: AlertChannel
 
         .. note::
+           If you need to obtain a single :class:`AlertChannel`, use :meth:`LinodeClient.load`.
+           Example: ``client.load(AlertChannel, channel_id)``.
            For updating an alert channel, use the ``save()`` method on the :class:`AlertChannel` object.
            For deleting an alert channel, use the ``delete()`` method directly on the :class:`AlertChannel` object.
         """
@@ -470,27 +472,6 @@ class MonitorGroup(Group):
 
         return AlertChannel(self.client, result["id"], result)
 
-    def alert_channel(self, channel_id: int) -> AlertChannel:
-        """
-        Retrieve a specific notification channel definition details by its channel ID.
-
-        Returns an :class:`AlertChannel` object for the specified channel ID.
-        The channel object contains all configuration details for the notification
-        destination (e.g., email lists, webhooks, etc.).
-
-        .. note:: This endpoint is in beta and requires using the v4beta base URL.
-
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-notification-channel
-
-        :param channel_id: The ID of the alert channel to retrieve.
-        :type channel_id: int
-
-        :returns: The requested :class:`AlertChannel` object.
-        :rtype: AlertChannel
-        :raises ApiError: if the requested channel could not be loaded.
-        """
-        return self.client.load(AlertChannel, channel_id)
-
     def alert_channel_alerts(self, channel_id: int, *filters) -> PaginatedList:
         """
         Retrieve all alerts associated with a specific alert channel.
@@ -498,8 +479,6 @@ class MonitorGroup(Group):
         Returns a paginated collection of alert definitions associated with the
         specified alert channel. This allows you to see which alert definitions
         are configured to notify this specific channel.
-
-        .. note:: This endpoint is in beta and requires using the v4beta base URL.
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/get-notification-channel-alerts
 
@@ -512,14 +491,13 @@ class MonitorGroup(Group):
         :rtype: PaginatedList[AlertDefinition]
         """
         endpoint = f"/monitor/alert-channels/{channel_id}/alerts"
+
+        # Build filter dict if filters provided
         parsed_filters = None
         if filters:
-            if len(filters) > 1:
-                parsed_filters = and_(
-                    *filters
-                ).dct  # pylint: disable=no-value-for-parameter
-            else:
-                parsed_filters = filters[0].dct
+            parsed_filters = (
+                and_(*filters).dct if len(filters) > 1 else filters[0].dct
+            )
 
         response_json = self.client.get(endpoint, filters=parsed_filters)
 
@@ -529,20 +507,18 @@ class MonitorGroup(Group):
                 json=response_json,
             )
 
-        # For each alert definition in the response, extract the service_type
-        # and use it as the parent_id when creating AlertDefinition objects
-        result = []
-        for obj in response_json.get("data", []):
-            if "id" in obj and "service_type" in obj:
-                alert = AlertDefinition.make_instance(
-                    obj["id"],
-                    self.client,
-                    parent_id=obj["service_type"],
-                    json=obj,
-                )
-                result.append(alert)
+        # Create AlertDefinition objects with proper parent_id (service_type)
+        result = [
+            AlertDefinition.make_instance(
+                obj["id"],
+                self.client,
+                parent_id=obj["service_type"],
+                json=obj,
+            )
+            for obj in response_json.get("data", [])
+            if "id" in obj and "service_type" in obj
+        ]
 
-        # Return paginated list with pagination metadata from response
         return PaginatedList(
             self.client,
             endpoint[1:],

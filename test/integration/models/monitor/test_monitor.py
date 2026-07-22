@@ -245,25 +245,36 @@ def test_integration_create_get_update_delete_alert_definition(
     label = f"{label}-{int(time.time())}"
     description = "E2E alert created by SDK integration test"
 
-    # Pick an existing alert channel to attach to the definition; skip if none
-    channels = list(
-        client.monitor.alert_channels()
-    )  # TODO: create channel instead of relying on pre-existing one
-    if not channels:
-        pytest.skip(
-            "No alert channels available on account for creating alert definitions"
-        )
+    # Get valid users to create an alert channel for the alert definition
+    users = list(client.account.users())
+    if len(users) == 0:
+        pytest.skip("No account users available for creating alert channels")
+
+    # Use the first user for the alert channel
+    usernames = [users[0].username]
 
     created = None
+    created_channel = None
 
     try:
+        # Create a new alert channel for this test
+        created_channel = client.monitor.channel_create(
+            label=f"{get_test_label()}-channel-{int(time.time())}",
+            channel_type="email",
+            details=ChannelDetails(
+                email=EmailDetails(
+                    recipient_type="user",
+                    usernames=usernames,
+                )
+            ),
+        )
         # Create the alert definition using API-compliant top-level fields
         created = client.monitor.create_alert_definition(
             service_type=service_type,
             label=label,
             severity=1,
             description=description,
-            channel_ids=[channels[0].id],
+            channel_ids=[created_channel.id],
             rule_criteria=rule_criteria,
             trigger_conditions=trigger_conditions,
         )
@@ -293,6 +304,15 @@ def test_integration_create_get_update_delete_alert_definition(
                 AlertDefinition, created.id, service_type
             )
             delete_alert.delete()
+        if created_channel:
+            # Clean up the created channel
+            try:
+                created_channel.delete()
+            except Exception as e:
+                # Log but don't fail if cleanup fails
+                print(
+                    f"Warning: Failed to delete channel {created_channel.id}: {e}"
+                )
 
 
 def test_alert_definition_entities(test_linode_client):
@@ -337,8 +357,7 @@ def test_integration_create_get_update_delete_alert_channel(test_linode_client):
     working end-to-end against the actual API.
     """
     client = test_linode_client
-    label = get_test_label() + "-e2e-channel"
-    label = f"{label}-{int(time.time())}"
+    label = "pythonsdk-alert-channel-test"
 
     created_channel = None
 
@@ -411,31 +430,6 @@ def test_integration_create_get_update_delete_alert_channel(test_linode_client):
                 print(
                     f"Warning: Failed to delete channel {created_channel.id}: {e}"
                 )
-
-
-def test_integration_alert_channel(test_linode_client):
-    """Test retrieving a single alert channel by ID.
-
-    This test fetches an existing alert channel and verifies that all
-    expected properties are populated correctly.
-    """
-    client = test_linode_client
-
-    # Get an existing alert channel to test with
-    channels = list(client.monitor.alert_channels())
-    if len(channels) == 0:
-        pytest.skip("No alert channels available on account for testing")
-
-    channel_id = channels[0].id
-
-    # Test the alert_channel() method
-    fetched_channel = client.monitor.alert_channel(channel_id)
-
-    assert isinstance(fetched_channel, AlertChannel)
-    assert fetched_channel.id == channel_id
-    assert fetched_channel.label is not None
-    assert fetched_channel.channel_type is not None
-    assert fetched_channel.details is not None
 
 
 def test_integration_alert_channel_alerts(test_linode_client):

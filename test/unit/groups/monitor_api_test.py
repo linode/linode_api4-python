@@ -258,50 +258,6 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             assert mock_delete.call_url == channel_url
             assert result is True
 
-    def test_alert_channel(self):
-        """
-        Test retrieval of a specific alert channel by ID.
-        Verifies the alert_channel method returns a single AlertChannel object.
-        """
-        channel_id = 123
-        channel_url = f"/monitor/alert-channels/{channel_id}"
-
-        channel_response = {
-            "id": channel_id,
-            "label": "alert notification channel",
-            "type": "user",
-            "channel_type": "email",
-            "details": {
-                "email": {
-                    "usernames": ["admin-user1", "admin-user2"],
-                    "recipient_type": "user",
-                }
-            },
-            "alerts": {
-                "url": f"{channel_url}/alerts",
-                "type": "alerts-definitions",
-                "alert_count": 2,
-            },
-            "created": "2024-01-01T00:00:00",
-            "updated": "2024-01-01T00:00:00",
-            "created_by": "tester",
-            "updated_by": "tester",
-        }
-
-        with self.mock_get(channel_response) as mock_get:
-            channel = self.client.monitor.alert_channel(channel_id=channel_id)
-
-            assert mock_get.call_url == channel_url
-            assert isinstance(channel, AlertChannel)
-            assert channel.id == channel_id
-            assert channel.label == "alert notification channel"
-            assert channel.channel_type == "email"
-            assert channel.details.email.usernames == [
-                "admin-user1",
-                "admin-user2",
-            ]
-            assert channel.alerts.alert_count == 2
-
     def test_alert_channel_alerts(self):
         """
         Test retrieval of alerts associated with a specific alert channel.
