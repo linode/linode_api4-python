@@ -1,9 +1,11 @@
 from test.integration.conftest import get_region
 from test.integration.helpers import get_test_label
+
+import pytest
+
 from linode_api4 import (
     LKEClusterControlPlaneOptions,
 )
-import pytest
 
 
 @pytest.fixture(scope="package")

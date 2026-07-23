@@ -10,17 +10,12 @@ from test.integration.helpers import (
     get_test_label,
     wait_for_condition,
 )
-from test.integration.filters.fixtures import (
-    lke_cluster,
-)
-from linode_api4.objects import (
-    LKECluster,
-)
 
 import pytest
 
 from linode_api4 import ApiError, LinodeClient, NodeBalancer
 from linode_api4.objects import (
+    LKECluster,
     NodeBalancerConfig,
     NodeBalancerNode,
     NodeBalancerType,
