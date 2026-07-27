@@ -17,6 +17,7 @@ import requests
 from requests.exceptions import ConnectionError, RequestException
 
 from linode_api4 import (
+    Capability,
     Instance,
     InterfaceGeneration,
     IPAddress,
@@ -483,6 +484,27 @@ def create_vpc(test_linode_client):
     vpc.delete()
 
 
+@pytest.fixture
+def create_vpc_with_rdma_type(test_linode_client):
+    client = test_linode_client
+    label = get_test_label(length=10)
+
+    vpc = client.vpcs.create(
+        label=label,
+        region=get_region(
+            # GPUDirect RDMA capability not available for now
+            # test_linode_client, {Capability.vpcs, Capability.gpudirect_rdma}
+            test_linode_client,
+            {Capability.vpcs},
+        ),
+        description="test description",
+        vpc_type="rdma",
+    )
+    yield vpc
+
+    vpc.delete()
+
+
 @pytest.fixture(scope="session")
 def create_vpc_with_subnet(test_linode_client, create_vpc):
     subnet = create_vpc.subnet_create(
@@ -516,6 +538,21 @@ def create_vpc_with_subnet_and_linode(
     yield vpc, subnet, instance
 
     instance.delete()
+
+
+@pytest.fixture
+def create_vpc_with_subnet_and_rdma_type(create_vpc_with_rdma_type):
+    vpc_rdma = create_vpc_with_rdma_type
+    label = get_test_label(length=10)
+
+    subnet_rdma = vpc_rdma.subnet_create(
+        label=label,
+        ipv4="10.0.0.0/24",
+    )
+
+    yield vpc_rdma, subnet_rdma
+
+    subnet_rdma.delete()
 
 
 @pytest.fixture(scope="session")
