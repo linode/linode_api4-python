@@ -495,18 +495,32 @@ def test_integration_clone_alert_definition(test_linode_client):
         "trigger_occurrences": 1,
     }
 
-    channels = list(
-        client.monitor.alert_channels()
-    )  # TODO: create channel instead of relying on pre-existing one
-    if not channels:
-        pytest.skip(
-            "No alert channels available on account for creating/cloning alert definitions"
-        )
+    # Get valid users to create an alert channel
+    users = list(client.account.users())
+    if len(users) == 0:
+        pytest.skip("No account users available for creating alert channels")
+
+    # Use the first user for the alert channel
+    usernames = [users[0].username]
 
     created = None
     cloned_alert = None
+    created_channel = None
 
     try:
+        # Create a new alert channel for this test
+        created_channel = client.monitor.channel_create(
+            label=f"{get_test_label()}-channel-{int(time.time())}",
+            channel_type="email",
+            details=ChannelDetails(
+                email=EmailDetails(
+                    recipient_type="user",
+                    usernames=usernames,
+                )
+            ),
+        )
+        channels = [created_channel]
+
         # Create the source alert definition
         created = client.monitor.create_alert_definition(
             service_type=service_type,
@@ -566,3 +580,13 @@ def test_integration_clone_alert_definition(test_linode_client):
                 AlertDefinition, created.id, service_type
             )
             delete_source_alert.delete()
+
+        if created_channel:
+            # Clean up the created channel
+            try:
+                created_channel.delete()
+            except Exception as e:
+                # Log but don't fail if cleanup fails
+                print(
+                    f"Warning: Failed to delete channel {created_channel.id}: {e}"
+                )
