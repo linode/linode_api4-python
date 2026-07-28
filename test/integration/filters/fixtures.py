@@ -42,7 +42,7 @@ def lke_cluster_instance(test_linode_client):
 
 
 @pytest.fixture(scope="package")
-def lke_cluster(test_linode_client):
+def create_lke_cluster_with_related_nb(test_linode_client):
     node_type = "g6-dedicated-4"  # g6-standard-1
     version = test_linode_client.lke.versions()[0]
 

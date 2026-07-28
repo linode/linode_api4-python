@@ -6,6 +6,9 @@ from test.integration.conftest import (
     get_region,
     get_token,
 )
+from test.integration.filters.fixtures import (
+    create_lke_cluster_with_related_nb,
+)
 from test.integration.helpers import (
     get_test_label,
     wait_for_condition,
@@ -206,17 +209,17 @@ def is_related_nodebalancer_exist(client, cluster: LKECluster):
     return False
 
 
-def test_get_nb_with_lke_cluster(test_linode_client, lke_cluster):
+def test_get_nb_with_lke_cluster(test_linode_client, create_lke_cluster_with_related_nb):
     wait_for_condition(
         10,
         600,
         is_related_nodebalancer_exist,
         test_linode_client,
-        lke_cluster,
+        create_lke_cluster_with_related_nb,
     )
     nb = test_linode_client.load(
         NodeBalancer,
-        find_related_nodebalancer(test_linode_client, lke_cluster),
+        find_related_nodebalancer(test_linode_client, create_lke_cluster_with_related_nb),
     )
     assert nb.type == "common"
     assert nb.lke_cluster is not None
