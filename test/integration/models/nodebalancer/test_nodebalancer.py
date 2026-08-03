@@ -6,7 +6,7 @@ from test.integration.conftest import (
     get_region,
     get_token,
 )
-from test.integration.filters.fixtures import (
+from test.integration.filters.fixtures import (  # noqa: F401
     create_lke_cluster_with_related_nb,
 )
 from test.integration.helpers import (
