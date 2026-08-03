@@ -6,6 +6,9 @@ from test.integration.conftest import (
     get_region,
     get_token,
 )
+from test.integration.filters.fixtures import (
+    create_lke_cluster_with_related_nb,
+)
 from test.integration.helpers import (
     get_test_label,
     wait_for_condition,
