@@ -286,6 +286,7 @@ def test_linode_client():
         token,
         base_url=api_url,
         ca_path=api_ca_file,
+        retry_statuses=[504],
     )
     return client
 

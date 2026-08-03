@@ -23,6 +23,7 @@ from linode_api4.objects import (
     Type,
 )
 from linode_api4.objects.linode import InstanceDiskEncryptionType, MigrationType
+from linode_api4.objects.region import RegionAvailabilityEntry
 
 
 @pytest.fixture(scope="session")
@@ -119,12 +120,23 @@ def linode_and_vpc_for_legacy_interface_tests_offline(
 @pytest.fixture(scope="session")
 def linode_for_vpu_tests(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    region = "us-lax"
+    vpu_type = "g1-accelerated-netint-vpu-t1u1-s"
+
+    availability = client.regions.availability(
+        RegionAvailabilityEntry.filters.plan == vpu_type
+    )
+
+    region = next(
+        (entry.region for entry in availability if entry.available), None
+    )
+
+    if region is None:
+        pytest.skip("No VPU capacity is currently available")
 
     label = get_test_label(length=8)
 
     linode_instance = client.linode.instance_create(
-        "g1-accelerated-netint-vpu-t1u1-s",
+        vpu_type,
         region,
         image="linode/debian12",
         label=label,
