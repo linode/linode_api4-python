@@ -641,8 +641,17 @@ def test_linode_ips(create_linode):
 
 def test_linode_initate_migration(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label() + "_migration"
+    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    region_migrate = get_region(
+        client, {"Linodes", "Cloud Firewall"}, site_type="core"
+    )
+
+    # Cannot migrate linode to the same region
+    while region_migrate == region:
+        region_migrate = get_region(
+            client, {"Linodes", "Cloud Firewall"}, site_type="core"
+        )
 
     linode = client.linode.instance_create(
         "g6-nanode-1",
@@ -657,7 +666,7 @@ def test_linode_initate_migration(test_linode_client, e2e_test_firewall):
     send_request_when_resource_available(
         300,
         linode.initiate_migration,
-        region="us-central",
+        region=region_migrate,
         migration_type=MigrationType.COLD,
     )
 
