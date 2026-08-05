@@ -39,6 +39,9 @@ def test_get_account(test_linode_client):
     assert account_get.tax_id == account.tax_id
 
 
+@pytest.mark.skip(
+    reason="Test fails for test user with [504] Gateway Timeout. More details: ARB-7420"
+)
 def test_get_login(test_linode_client):
     client = test_linode_client
     login = retry_sending_request(3, client.load, Login(client, "", {}), "")
