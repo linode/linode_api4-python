@@ -4,6 +4,7 @@ from test.integration.helpers import get_test_label
 
 import pytest
 
+from linode_api4.errors import ApiError
 from linode_api4.objects import (
     Image,
     ImageShareGroup,
@@ -33,7 +34,7 @@ def wait_for_image_status(
         )
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="module")
 def sample_linode(test_linode_client, e2e_test_firewall):
     client = test_linode_client
     region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
@@ -50,15 +51,22 @@ def sample_linode(test_linode_client, e2e_test_firewall):
     linode_instance.delete()
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="module")
 def create_image_id(test_linode_client, sample_linode):
     create_image = test_linode_client.images.create(
         sample_linode.disks[0],
         label="linode-api4python-test-image-sharing-image",
     )
     wait_for_image_status(test_linode_client, create_image.id, "available")
+
     yield create_image.id
-    create_image.delete()
+
+    try:
+        create_image.delete()
+    except ApiError as e:
+        # The image may already have been removed so we ignore [404] Not found
+        if e.status != 404:
+            raise
 
 
 @pytest.fixture(scope="function")
