@@ -648,10 +648,15 @@ def test_linode_initate_migration(test_linode_client, e2e_test_firewall):
     )
 
     # Cannot migrate linode to the same region
-    while region_migrate == region:
+    for _ in range(5):
+        if region_migrate.id != region.id:
+            break
+
         region_migrate = get_region(
             client, {"Linodes", "Cloud Firewall"}, site_type="core"
         )
+    else:
+        pytest.skip("No alternative region to be used for linode migration")
 
     linode = client.linode.instance_create(
         "g6-nanode-1",
