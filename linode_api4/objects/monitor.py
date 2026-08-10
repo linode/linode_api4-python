@@ -505,7 +505,7 @@ class AlertDefinition(DerivedBase):
         "entity_ids": Property(mutable=True),
         "description": Property(mutable=True),
         "service_class": Property(alias_of="class"),
-        "scope": Property(AlertScope),
+        "scope": Property(),
         "regions": Property(mutable=True),
         "entities": Property(json_object=AlertEntities),
         "channel_ids": Property(mutable=True),
@@ -566,7 +566,7 @@ class AlertChannel(Base):
     properties = {
         "id": Property(identifier=True),
         "label": Property(mutable=True),
-        "type": Property(AlertChannelType),
+        "type": Property(),
         "channel_type": Property(),
         "details": Property(mutable=True, json_object=ChannelDetails),
         "alerts": Property(mutable=False, json_object=AlertInfo),
