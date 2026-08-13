@@ -40,7 +40,7 @@ def test_get_account(test_linode_client):
 
 
 @pytest.mark.skip(
-    reason="Test fails for test user with [504] Gateway Timeout. More details: ARB-7420"
+    reason="Test fails for E2E test user with [504] Server Timeout due to enormous amount of logins. More details: ARB-7420"
 )
 def test_get_login(test_linode_client):
     client = test_linode_client
