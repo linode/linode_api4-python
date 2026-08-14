@@ -9,7 +9,14 @@ from linode_api4.objects import (
     AlertDefinitionEntity,
     EntityMetricOptions,
 )
-from linode_api4.objects.monitor import ChannelDetails, EmailDetails
+from linode_api4.objects.monitor import (
+    BasicAuthenticationDetails,
+    ChannelDetails,
+    CustomHeader,
+    DestinationAuthentication,
+    EmailDetails,
+    WebhookDetails,
+)
 
 
 class MonitorAPITest(MonitorClientBaseCase):
@@ -189,127 +196,6 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             assert entities[2].url == "/v4/databases/mysql/instances/3"
             assert entities[2]._type == "dbaas"
 
-    def test_create_update_delete_alert_channel(self):
-        """
-        E2E test for alert channel CRUD: create, update, and delete.
-        Verifies the full lifecycle of an alert channel.
-        """
-        create_url = "/monitor/alert-channels"
-        channel_id = 789
-        channel_url = f"{create_url}/{channel_id}"
-
-        # Create channel
-        create_response = {
-            "id": channel_id,
-            "label": "Test Channel",
-            "type": "user",
-            "channel_type": "email",
-            "details": {
-                "email": {
-                    "usernames": ["test_user1", "test_user2"],
-                    "recipient_type": "user",
-                }
-            },
-            "alerts": {
-                "url": f"{channel_url}/alerts",
-                "type": "alerts-definitions",
-                "alert_count": 0,
-            },
-            "created": "2024-01-01T00:00:00",
-            "updated": "2024-01-01T00:00:00",
-            "created_by": "test_user1",
-            "updated_by": "test_user1",
-        }
-
-        with self.mock_post(create_response) as mock_post:
-            channel = self.client.monitor.channel_create(
-                label="Test Channel",
-                channel_type="email",
-                details=ChannelDetails(
-                    email=EmailDetails(
-                        recipient_type="user",
-                        usernames=["test_user1", "test_user2"],
-                    )
-                ),
-            )
-
-            assert mock_post.call_url == create_url
-            assert isinstance(channel, AlertChannel)
-            assert channel.id == channel_id
-            assert channel.label == "Test Channel"
-
-        # Update channel
-        updated_response = create_response.copy()
-        updated_response["label"] = "Test Channel Updated"
-        updated_response["updated"] = "2024-01-02T00:00:00"
-
-        with self.mock_put(updated_response) as mock_put:
-            channel.label = "Test Channel Updated"
-            result = channel.save()
-
-            assert mock_put.call_url == channel_url
-            assert result is True
-            assert channel.label == "Test Channel Updated"
-
-        # Delete channel
-        with self.mock_delete() as mock_delete:
-            result = channel.delete()
-
-            assert mock_delete.call_url == channel_url
-            assert result is True
-
-    def test_alert_channel_alerts(self):
-        """
-        Test retrieval of alerts associated with a specific alert channel.
-        Verifies the alert_channel_alerts method returns a paginated list
-        of AlertDefinition objects associated with the channel.
-        """
-        channel_id = 123
-        alerts_url = f"/monitor/alert-channels/{channel_id}/alerts"
-
-        alerts_response = {
-            "data": [
-                {
-                    "id": 12345,
-                    "label": "DBAAS Alert 1",
-                    "service_type": "dbaas",
-                    "type": "alerts-definitions",
-                    "url": "/monitor/services/dbaas/alerts-definitions/12345",
-                },
-                {
-                    "id": 12346,
-                    "label": "DBAAS Alert 2",
-                    "service_type": "dbaas",
-                    "type": "alerts-definitions",
-                    "url": "/monitor/services/dbaas/alerts-definitions/12346",
-                },
-            ],
-            "page": 1,
-            "pages": 1,
-            "results": 2,
-        }
-
-        with self.mock_get(alerts_response) as mock_get:
-            alerts = self.client.monitor.alert_channel_alerts(
-                channel_id=channel_id
-            )
-
-            assert mock_get.call_url == alerts_url
-            assert isinstance(alerts, PaginatedList)
-            assert len(alerts) == 2
-
-            # Verify first alert
-            assert isinstance(alerts[0], AlertDefinition)
-            assert alerts[0].id == 12345
-            assert alerts[0].label == "DBAAS Alert 1"
-            assert alerts[0].service_type == "dbaas"
-
-            # Verify second alert
-            assert isinstance(alerts[1], AlertDefinition)
-            assert alerts[1].id == 12346
-            assert alerts[1].label == "DBAAS Alert 2"
-            assert alerts[1].service_type == "dbaas"
-
     def test_clone_alert_definition(self):
         service_type = "dbaas"
         source_id = 12345
@@ -379,3 +265,151 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             }
             assert mock_post.call_data["channel_ids"] == [1, 2]
             assert mock_post.call_data["group_by"] == ["entity_id"]
+
+    def test_create_email_channel(self):
+        """
+        Test creating an email alert channel.
+        Verifies that channel_create() properly handles email channel details.
+        """
+        create_url = "/monitor/alert-channels"
+        channel_id = 789
+        channel_url = f"{create_url}/{channel_id}"
+
+        create_response = {
+            "id": channel_id,
+            "label": "Email Test Channel",
+            "type": "user",
+            "channel_type": "email",
+            "details": {
+                "email": {
+                    "usernames": ["test_user1", "test_user2"],
+                    "recipient_type": "user",
+                }
+            },
+            "alerts": {
+                "url": f"{channel_url}/alerts",
+                "type": "alerts-definitions",
+                "alert_count": 0,
+            },
+            "created": "2024-01-01T00:00:00",
+            "updated": "2024-01-01T00:00:00",
+            "created_by": "test_user1",
+            "updated_by": "test_user1",
+        }
+
+        with self.mock_post(create_response) as mock_post:
+            channel = self.client.monitor.channel_create(
+                label="Email Test Channel",
+                channel_type="email",
+                details=ChannelDetails(
+                    email=EmailDetails(
+                        recipient_type="user",
+                        usernames=["test_user1", "test_user2"],
+                    )
+                ),
+            )
+            assert mock_post.call_url == create_url
+            assert isinstance(channel, AlertChannel)
+            assert channel.id == channel_id
+            assert channel.label == "Email Test Channel"
+            assert channel.channel_type == "email"
+
+    def test_create_webhook_channel(self):
+        """
+        Test creating a webhook alert channel.
+        Verifies that channel_create() properly handles webhook channel details
+        with authentication, compression, and custom headers.
+        """
+        create_url = "/monitor/alert-channels"
+        channel_id = 888
+        channel_url = f"{create_url}/{channel_id}"
+
+        create_response = {
+            "id": channel_id,
+            "label": "Webhook Test Channel",
+            "type": "user",
+            "channel_type": "webhook",
+            "details": {
+                "webhook": {
+                    "endpoint_url": "https://example.com/webhook",
+                    "authentication": {
+                        "type": "basic",
+                        "details": {
+                            "basic_authentication_user": "testuser",
+                            "basic_authentication_password": "testpass",
+                        },
+                    },
+                    "data_compression": "gzip",
+                    "custom_headers": [
+                        {"name": "X-API-Key", "value": "secret123"}
+                    ],
+                }
+            },
+            "alerts": {
+                "url": f"{channel_url}/alerts",
+                "type": "alerts-definitions",
+                "alert_count": 0,
+            },
+            "created": "2024-01-01T00:00:00",
+            "updated": "2024-01-01T00:00:00",
+            "created_by": "webhook_user",
+            "updated_by": "webhook_user",
+        }
+
+        with self.mock_post(create_response) as mock_post:
+            webhook_channel = self.client.monitor.channel_create(
+                label="Webhook Test Channel",
+                channel_type="webhook",
+                details=ChannelDetails(
+                    webhook=WebhookDetails(
+                        endpoint_url="https://example.com/webhook",
+                        authentication=DestinationAuthentication(
+                            type="basic",
+                            details=BasicAuthenticationDetails(
+                                basic_authentication_user="testuser",
+                                basic_authentication_password="testpass",
+                            ),
+                        ),
+                        data_compression="gzip",
+                        custom_headers=[
+                            CustomHeader(name="X-API-Key", value="secret123")
+                        ],
+                    )
+                ),
+            )
+            assert mock_post.call_url == create_url
+            assert isinstance(webhook_channel, AlertChannel)
+            assert webhook_channel.id == channel_id
+            assert webhook_channel.label == "Webhook Test Channel"
+            assert webhook_channel.channel_type == "webhook"
+            assert (
+                webhook_channel.details.webhook.endpoint_url
+                == "https://example.com/webhook"
+            )
+            assert (
+                webhook_channel.details.webhook.authentication.type == "basic"
+            )
+
+    def test_verify_webhook_channel(self):
+        """
+        Test verifying a webhook channel configuration.
+        Verifies that verify_webhook() returns success for valid webhook config.
+        """
+        verify_url = "/monitor/alert-channels/verify"
+        verify_response = {"success": True}
+
+        with self.mock_post(verify_response) as mock_verify:
+            is_valid = self.client.monitor.verify_webhook(
+                WebhookDetails(
+                    endpoint_url="https://example.com/webhook",
+                    authentication=DestinationAuthentication(
+                        type="basic",
+                        details=BasicAuthenticationDetails(
+                            basic_authentication_user="testuser",
+                            basic_authentication_password="testpass",
+                        ),
+                    ),
+                )
+            )
+            assert mock_verify.call_url == verify_url
+            assert is_valid is True

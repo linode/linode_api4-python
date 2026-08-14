@@ -18,12 +18,16 @@ from linode_api4.objects import (
     MonitorService,
     MonitorServiceToken,
 )
-from linode_api4.objects.filtering import and_
 from linode_api4.objects.monitor import (
     AkamaiObjectStorageLogsDestinationDetails,
+    BasicAuthenticationDetails,
     ChannelDetails,
+    CustomHeader,
     CustomHTTPSLogsDestinationDetails,
+    DestinationAuthentication,
+    EmailDetails,
     LogsStreamDetails,
+    WebhookDetails,
 )
 
 __all__ = [
@@ -214,6 +218,193 @@ class MonitorGroup(Group):
         :rtype: PaginatedList[AlertChannel]
         """
         return self.client._get_and_filter(AlertChannel, *filters)
+
+    def channel_create(
+        self,
+        label: str,
+        channel_type: str,
+        details: "ChannelDetails",
+    ) -> AlertChannel:
+        """
+        Create a new alert channel.
+
+        Alert channels define destinations for alert notifications. Supported
+        channel types include email, webhook, PagerDuty, and Slack.
+
+        **Webhook Channel Constraints:**
+        - If ``channel_type`` is "webhook", the following are required:
+          - ``details.webhook.endpoint_url`` must be provided
+          - ``details.webhook.authentication.type`` must be specified ("basic" or "none")
+          - If ``authentication.type`` is "basic", both ``basic_authentication_user`` and
+            ``basic_authentication_password`` must be provided in ``details.webhook.authentication.details``
+        - Client Certificate Configuration (Optional but must be complete):
+          - If ``details.webhook.client_certificate_details`` is provided, all three certificates
+            must be included: ``client_ca_certificate``, ``client_certificate``, and ``client_private_key``
+          - ``tls_hostname`` is optional
+        - Custom Headers:
+          - ``Content-Type`` header must NOT be set by the user; it will be managed by the API
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-notification-channel
+
+        :param label: A human-readable name for the alert channel.
+        :type label: str
+        :param channel_type: The channel type (e.g., ``"email"``, ``"webhook"``).
+        :type channel_type: str
+        :param details: Configuration details specific to the channel type.
+        :type details: ChannelDetails
+
+        :returns: The newly created alert channel.
+        :rtype: AlertChannel
+
+        :raises ValueError: If webhook channel configuration is invalid or missing required fields.
+        """
+        pass
+
+        # Validate webhook channel requirements
+        if channel_type == "webhook":
+            self._validate_webhook_details(details)
+
+        params = {
+            "label": label,
+            "channel_type": channel_type,
+            "details": (
+                details._serialize()
+                if hasattr(details, "_serialize")
+                else details
+            ),
+        }
+
+        result = self.client.post("/monitor/alert-channels", data=params)
+
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating alert channel!",
+                json=result,
+            )
+
+        return AlertChannel(self.client, result["id"], result)
+
+    def verify_webhook(
+        self,
+        webhook: "WebhookDetails",
+    ) -> bool:
+        """
+        Verify a webhook configuration by testing connectivity to the endpoint.
+
+        This endpoint validates that the webhook endpoint is reachable and
+        accepts the request format. It's recommended to verify webhook
+        configurations before creating a webhook channel.
+
+        **Webhook Configuration Requirements:**
+        - ``endpoint_url`` must be provided
+        - ``authentication.type`` must be specified ("basic" or "none")
+        - If ``authentication.type`` is "basic", both ``basic_authentication_user`` and
+          ``basic_authentication_password`` must be provided
+        - Client certificates (if used) must include all three: ``client_ca_certificate``,
+          ``client_certificate``, and ``client_private_key``
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-verify-webhook
+
+        :param webhook: The webhook configuration to verify.
+        :type webhook: WebhookDetails
+
+        :returns: True if verification succeeds.
+        :rtype: bool
+
+        :raises ValueError: If webhook configuration is invalid.
+        :raises ApiError: If the webhook verification fails.
+        """
+        from linode_api4.objects.monitor import ChannelDetails
+
+        # Validate webhook configuration
+        self._validate_webhook_details(ChannelDetails(webhook=webhook))
+
+        data = {
+            "webhook": (
+                webhook._serialize()
+                if hasattr(webhook, "_serialize")
+                else webhook
+            ),
+        }
+
+        result = self.client.post("/monitor/alert-channels/verify", data=data)
+
+        return result.get("success", True)
+
+    def _validate_webhook_details(self, details: "ChannelDetails") -> None:
+        """
+        Validate webhook channel details against API requirements.
+
+        :param details: The channel details to validate.
+        :type details: ChannelDetails
+
+        :raises ValueError: If validation fails.
+        """
+        if not details or not details.webhook:
+            raise ValueError(
+                "Webhook details are required for webhook channel type"
+            )
+
+        webhook = details.webhook
+
+        # Validate required endpoint_url
+        if not webhook.endpoint_url:
+            raise ValueError(
+                "Webhook channel requires 'endpoint_url' to be specified"
+            )
+
+        # Validate required authentication.type
+        if not webhook.authentication or not webhook.authentication.type:
+            raise ValueError(
+                "Webhook channel requires 'authentication.type' to be specified "
+                "(e.g., 'basic' or 'none')"
+            )
+
+        auth_type = webhook.authentication.type
+        if auth_type == "basic":
+            # For basic auth, both username and password are required
+            if not webhook.authentication.details:
+                raise ValueError(
+                    "Basic authentication requires 'authentication.details' to be specified"
+                )
+
+            auth_details = webhook.authentication.details
+            if not auth_details.basic_authentication_user:
+                raise ValueError(
+                    "Basic authentication requires 'basic_authentication_user' to be specified"
+                )
+
+            if not auth_details.basic_authentication_password:
+                raise ValueError(
+                    "Basic authentication requires 'basic_authentication_password' to be specified"
+                )
+
+        # Validate client certificate configuration (all three must be present together)
+        if webhook.client_certificate_details:
+            cert_details = webhook.client_certificate_details
+
+            # Check if any certificate field is present
+            has_ca_cert = bool(cert_details.client_ca_certificate)
+            has_client_cert = bool(cert_details.client_certificate)
+            has_private_key = bool(cert_details.client_private_key)
+
+            # If any certificate field is present, all must be present
+            if has_ca_cert or has_client_cert or has_private_key:
+                if not (has_ca_cert and has_client_cert and has_private_key):
+                    raise ValueError(
+                        "Client certificate configuration requires all three to be specified: "
+                        "'client_ca_certificate', 'client_certificate', and 'client_private_key'. "
+                        "'tls_hostname' is optional."
+                    )
+
+        # Validate custom headers don't include Content-Type
+        if webhook.custom_headers:
+            for header in webhook.custom_headers:
+                if header.name and header.name.lower() == "content-type":
+                    raise ValueError(
+                        "Custom headers must NOT include 'Content-Type'; "
+                        "it will be managed by the API"
+                    )
 
     def create_alert_definition(
         self,
@@ -423,110 +614,6 @@ class MonitorGroup(Group):
             AlertDefinitionEntity,
             *filters,
             endpoint=endpoint,
-        )
-
-    def channel_create(
-        self,
-        label: str,
-        channel_type: str,
-        details: ChannelDetails,
-    ) -> AlertChannel:
-        """
-        Creates a new alert channel for the authenticated account.
-
-        An alert channel defines a notification destination (for example: an
-        email list) that can be associated with one or more alert definitions.
-        Currently only ``email`` is supported as a ``channel_type``.
-
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-notification-channel
-
-        :param label: Human-readable name for the new alert channel.
-        :type label: str
-        :param channel_type: The type of notification channel (e.g. ``"email"``).
-        :type channel_type: str
-        :param details: Notification-type-specific configuration.
-        :type details: ChannelDetails
-
-        :returns: The newly created :class:`AlertChannel`.
-        :rtype: AlertChannel
-
-        .. note::
-           If you need to obtain a single :class:`AlertChannel`, use :meth:`LinodeClient.load`.
-           Example: ``client.load(AlertChannel, channel_id)``.
-           For updating an alert channel, use the ``save()`` method on the :class:`AlertChannel` object.
-           For deleting an alert channel, use the ``delete()`` method directly on the :class:`AlertChannel` object.
-        """
-        params = {
-            "label": label,
-            "channel_type": channel_type,
-            "details": details.dict,
-        }
-
-        result = self.client.post("/monitor/alert-channels", data=params)
-
-        if "id" not in result:
-            raise UnexpectedResponseError(
-                "Unexpected response when creating alert channel!",
-                json=result,
-            )
-
-        return AlertChannel(self.client, result["id"], result)
-
-    def alert_channel_alerts(self, channel_id: int, *filters) -> PaginatedList:
-        """
-        Retrieve all alerts associated with a specific alert channel.
-
-        Returns a paginated collection of alert definitions associated with the
-        specified alert channel. This allows you to see which alert definitions
-        are configured to notify this specific channel.
-
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-notification-channel-alerts
-
-        :param channel_id: The ID of the alert channel to retrieve alerts for.
-        :type channel_id: int
-        :param filters: Optional filter expressions to apply to the collection.
-                        See :doc:`Filtering Collections</linode_api4/objects/filtering>` for details.
-
-        :returns: A paginated list of alert definitions associated with this channel.
-        :rtype: PaginatedList[AlertDefinition]
-        """
-        endpoint = f"/monitor/alert-channels/{channel_id}/alerts"
-
-        # Build filter dict if filters provided
-        parsed_filters = None
-        if filters:
-            parsed_filters = (
-                and_(*filters).dct if len(filters) > 1 else filters[0].dct
-            )
-
-        response_json = self.client.get(endpoint, filters=parsed_filters)
-
-        if "data" not in response_json:
-            raise UnexpectedResponseError(
-                "Unexpected response when retrieving alert channel alerts!",
-                json=response_json,
-            )
-
-        # Create AlertDefinition objects with proper parent_id (service_type)
-        result = [
-            AlertDefinition.make_instance(
-                obj["id"],
-                self.client,
-                parent_id=obj["service_type"],
-                json=obj,
-            )
-            for obj in response_json.get("data", [])
-            if "id" in obj and "service_type" in obj
-        ]
-
-        return PaginatedList(
-            self.client,
-            endpoint[1:],
-            page=result,
-            max_pages=response_json.get("pages", 1),
-            total_items=response_json.get("results", len(result)),
-            parent_id=None,
-            filters=parsed_filters,
         )
 
     def destinations(self, *filters) -> PaginatedList:
