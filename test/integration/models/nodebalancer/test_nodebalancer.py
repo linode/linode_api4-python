@@ -6,12 +6,19 @@ from test.integration.conftest import (
     get_region,
     get_token,
 )
-from test.integration.helpers import get_test_label
+from test.integration.filters.fixtures import (  # noqa: F401
+    create_lke_cluster_with_related_nb,
+)
+from test.integration.helpers import (
+    get_test_label,
+    wait_for_condition,
+)
 
 import pytest
 
 from linode_api4 import ApiError, LinodeClient, NodeBalancer
 from linode_api4.objects import (
+    LKECluster,
     NodeBalancerConfig,
     NodeBalancerNode,
     NodeBalancerType,
@@ -167,7 +174,7 @@ def test_create_nb_with_reserved_ip(
 
 
 def test_get_nodebalancer_config(test_linode_client, create_nb_config):
-    config = test_linode_client.load(
+    test_linode_client.load(
         NodeBalancerConfig,
         create_nb_config.id,
         create_nb_config.nodebalancer_id,
@@ -212,6 +219,45 @@ def test_get_nb(test_linode_client, create_nb):
     )
 
     assert nb.id == create_nb.id
+    assert nb.type == "common"
+    assert nb.lke_cluster is None
+
+
+def find_related_nodebalancer(client, cluster: LKECluster):
+    nbs = client.nodebalancers()
+    for nb in nbs:
+        if nb.lke_cluster is not None and nb.lke_cluster.id == cluster.id:
+            return nb.id
+    return 0
+
+
+def is_related_nodebalancer_exist(client, cluster: LKECluster):
+    if find_related_nodebalancer(client, cluster):
+        return True
+    return False
+
+
+def test_get_nb_with_lke_cluster(
+    test_linode_client, create_lke_cluster_with_related_nb
+):
+    wait_for_condition(
+        10,
+        600,
+        is_related_nodebalancer_exist,
+        test_linode_client,
+        create_lke_cluster_with_related_nb,
+    )
+    nb = test_linode_client.load(
+        NodeBalancer,
+        find_related_nodebalancer(
+            test_linode_client, create_lke_cluster_with_related_nb
+        ),
+    )
+    assert nb.type == "common"
+    assert nb.lke_cluster is not None
+    assert nb.lke_cluster.label is not None
+    assert nb.lke_cluster.type == "lkecluster"
+    assert "/lke/clusters/" in str(nb.lke_cluster.url)
 
 
 def test_update_nb(test_linode_client, create_nb):
@@ -233,6 +279,8 @@ def test_update_nb(test_linode_client, create_nb):
 
     assert new_label == nb_updated.label
     assert 5 == nb_updated.client_udp_sess_throttle
+    assert nb.type == "common"
+    assert nb.lke_cluster is None
 
 
 @pytest.mark.smoke
@@ -255,15 +303,32 @@ def test_create_nb_node(
 
 
 @pytest.mark.smoke
-def test_get_nb_node(test_linode_client, create_nb_config):
+def test_get_nb_node(
+    test_linode_client, create_nb_config, linode_with_private_ip
+):
+    address = [
+        a for a in linode_with_private_ip.ipv4 if re.search("192.168.+", a)
+    ][0]
+    create_nb_config.node_create(
+        "node_test", address + ":80", weight=50, mode="accept"
+    )
     node = test_linode_client.load(
         NodeBalancerNode,
         create_nb_config.nodes[0].id,
         (create_nb_config.id, create_nb_config.nodebalancer_id),
     )
+    assert "node_test" == node.label
 
 
-def test_update_nb_node(test_linode_client, create_nb_config):
+def test_update_nb_node(
+    test_linode_client, create_nb_config, linode_with_private_ip
+):
+    address = [
+        a for a in linode_with_private_ip.ipv4 if re.search("192.168.+", a)
+    ][0]
+    create_nb_config.node_create(
+        "node_test", address + ":80", weight=50, mode="accept"
+    )
     config = test_linode_client.load(
         NodeBalancerConfig,
         create_nb_config.id,
