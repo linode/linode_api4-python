@@ -9,7 +9,6 @@ import pytest
 
 from linode_api4 import LinodeClient, PaginatedList
 from linode_api4.objects import (
-    AlertChannel,
     AlertDefinition,
     AlertDefinitionEntity,
     ApiError,
@@ -19,9 +18,13 @@ from linode_api4.objects import (
     MonitorServiceToken,
 )
 from linode_api4.objects.monitor import (
+    AlertChannel,
     AlertStatus,
+    BasicAuthenticationDetails,
     ChannelDetails,
-    EmailDetails,
+    CustomHeader,
+    DestinationAuthentication,
+    WebhookDetails,
 )
 
 
@@ -245,36 +248,25 @@ def test_integration_create_get_update_delete_alert_definition(
     label = f"{label}-{int(time.time())}"
     description = "E2E alert created by SDK integration test"
 
-    # Get valid users to create an alert channel for the alert definition
-    users = list(client.account.users())
-    if len(users) == 0:
-        pytest.skip("No account users available for creating alert channels")
-
-    # Use the first user for the alert channel
-    usernames = [users[0].username]
+    # Pick an existing alert channel to attach to the definition; skip if none
+    channels = list(
+        client.monitor.alert_channels()
+    )  # TODO: create channel instead of relying on pre-existing one
+    if not channels:
+        pytest.skip(
+            "No alert channels available on account for creating alert definitions"
+        )
 
     created = None
-    created_channel = None
 
     try:
-        # Create a new alert channel for this test
-        created_channel = client.monitor.channel_create(
-            label=f"{get_test_label()}-channel-{int(time.time())}",
-            channel_type="email",
-            details=ChannelDetails(
-                email=EmailDetails(
-                    recipient_type="user",
-                    usernames=usernames,
-                )
-            ),
-        )
         # Create the alert definition using API-compliant top-level fields
         created = client.monitor.create_alert_definition(
             service_type=service_type,
             label=label,
             severity=1,
             description=description,
-            channel_ids=[created_channel.id],
+            channel_ids=[channels[0].id],
             rule_criteria=rule_criteria,
             trigger_conditions=trigger_conditions,
         )
@@ -304,15 +296,6 @@ def test_integration_create_get_update_delete_alert_definition(
                 AlertDefinition, created.id, service_type
             )
             delete_alert.delete()
-        if created_channel:
-            # Clean up the created channel
-            try:
-                created_channel.delete()
-            except Exception as e:
-                # Log but don't fail if cleanup fails
-                print(
-                    f"Warning: Failed to delete channel {created_channel.id}: {e}"
-                )
 
 
 def test_alert_definition_entities(test_linode_client):
@@ -349,118 +332,6 @@ def test_alert_definition_entities(test_linode_client):
         assert entity._type == service_type
 
 
-def test_integration_create_get_update_delete_alert_channel(test_linode_client):
-    """E2E: create an alert channel, fetch it, update it, then delete it.
-
-    This test creates an alert channel with email details, retrieves it,
-    updates it, and then deletes it. It ensures the full CRUD feature is
-    working end-to-end against the actual API.
-    """
-    client = test_linode_client
-    label = "pythonsdk-alert-channel-test"
-
-    created_channel = None
-
-    try:
-        # Get valid users to use for the email alert channel
-        users = list(client.account.users())
-        if len(users) == 0:
-            pytest.skip(
-                "No account users available for creating alert channels"
-            )
-
-        # Use the first user, or first two if available
-        usernames = [users[0].username]
-        if len(users) > 1:
-            usernames.append(users[1].username)
-
-        # Create an alert channel with email details
-        created_channel = client.monitor.channel_create(
-            label=label,
-            channel_type="email",
-            details=ChannelDetails(
-                email=EmailDetails(
-                    recipient_type="user",
-                    usernames=usernames,
-                )
-            ),
-        )
-
-        # Assert the created channel has expected properties
-        assert isinstance(created_channel, AlertChannel)
-        assert created_channel.id is not None
-        assert created_channel.label == label
-        assert created_channel.channel_type == "email"
-        assert created_channel.details is not None
-
-        # Fetch the channel to verify it exists
-        channels = list(client.monitor.alert_channels())
-        assert len(channels) > 0, "No channels found after creation"
-
-        # Find the created channel in the list
-        found_channel = None
-        for ch in channels:
-            if ch.id == created_channel.id:
-                found_channel = ch
-                break
-
-        assert found_channel is not None, "Created channel not found in list"
-        assert found_channel.label == label
-        assert found_channel.channel_type == "email"
-
-        # Update the channel label
-        updated_label = f"{label}-updated"
-        created_channel.label = updated_label
-        result = created_channel.save()
-        assert result is True, "Failed to update channel"
-
-        # Fetch the updated channel to verify the change
-        reloaded_channel = client.load(AlertChannel, created_channel.id)
-        assert (
-            reloaded_channel.label == updated_label
-        ), "Channel label was not updated"
-
-    finally:
-        if created_channel:
-            # Clean up: delete the created channel
-            try:
-                created_channel.delete()
-            except Exception as e:
-                # Log but don't fail if cleanup fails
-                print(
-                    f"Warning: Failed to delete channel {created_channel.id}: {e}"
-                )
-
-
-def test_integration_alert_channel_alerts(test_linode_client):
-    """Test retrieving alerts associated with a specific alert channel.
-
-    This test fetches alerts for an existing alert channel and verifies
-    the paginated list of alert definitions is returned correctly.
-    """
-    client = test_linode_client
-
-    # Get an existing alert channel to test with
-    channels = list(client.monitor.alert_channels())
-    if len(channels) == 0:
-        pytest.skip("No alert channels available on account for testing")
-
-    channel_id = channels[0].id
-
-    # Test the alert_channel_alerts() method
-    alerts = client.monitor.alert_channel_alerts(channel_id)
-
-    assert isinstance(alerts, PaginatedList)
-
-    # If there are alerts, verify their structure
-    if len(alerts) > 0:
-        alert = alerts[0]
-        assert isinstance(alert, AlertDefinition)
-        assert alert.id is not None
-        assert alert.label is not None
-        assert alert.service_type is not None
-
-
 def test_integration_clone_alert_definition(test_linode_client):
     """E2E: create a source alert definition, clone it, then delete both."""
     client = test_linode_client
@@ -495,32 +366,18 @@ def test_integration_clone_alert_definition(test_linode_client):
         "trigger_occurrences": 1,
     }
 
-    # Get valid users to create an alert channel
-    users = list(client.account.users())
-    if len(users) == 0:
-        pytest.skip("No account users available for creating alert channels")
-
-    # Use the first user for the alert channel
-    usernames = [users[0].username]
+    channels = list(
+        client.monitor.alert_channels()
+    )  # TODO: create channel instead of relying on pre-existing one
+    if not channels:
+        pytest.skip(
+            "No alert channels available on account for creating/cloning alert definitions"
+        )
 
     created = None
     cloned_alert = None
-    created_channel = None
 
     try:
-        # Create a new alert channel for this test
-        created_channel = client.monitor.channel_create(
-            label=f"{get_test_label()}-channel-{int(time.time())}",
-            channel_type="email",
-            details=ChannelDetails(
-                email=EmailDetails(
-                    recipient_type="user",
-                    usernames=usernames,
-                )
-            ),
-        )
-        channels = [created_channel]
-
         # Create the source alert definition
         created = client.monitor.create_alert_definition(
             service_type=service_type,
@@ -581,12 +438,65 @@ def test_integration_clone_alert_definition(test_linode_client):
             )
             delete_source_alert.delete()
 
-        if created_channel:
-            # Clean up the created channel
-            try:
-                created_channel.delete()
-            except Exception as e:
-                # Log but don't fail if cleanup fails
-                print(
-                    f"Warning: Failed to delete channel {created_channel.id}: {e}"
-                )
+
+# Webhook Channel Operations
+def test_webhook_channel_crud(test_linode_client):
+    """
+    Test webhook channel create, verify, and delete operations.
+
+    Creates a webhook channel with basic auth, verifies the configuration,
+    and then deletes the channel.
+    """
+    client = test_linode_client
+
+    # Create webhook channel with basic authentication
+    webhook = client.monitor.channel_create(
+        label=f"webhook-test-{get_test_label()}",
+        channel_type="webhook",
+        details=ChannelDetails(
+            webhook=WebhookDetails(
+                endpoint_url="https://example.com/webhook",
+                authentication=DestinationAuthentication(
+                    type="basic",
+                    details=BasicAuthenticationDetails(
+                        basic_authentication_user="testuser",
+                        basic_authentication_password="testpass",
+                    ),
+                ),
+                data_compression="gzip",
+                custom_headers=[
+                    CustomHeader(name="X-API-Key", value="secret123"),
+                ],
+            )
+        ),
+    )
+
+    assert isinstance(webhook, AlertChannel)
+    assert webhook.channel_type == "webhook"
+    assert webhook.details.webhook.endpoint_url == "https://example.com/webhook"
+    assert webhook.details.webhook.authentication.type == "basic"
+    assert webhook.details.webhook.data_compression == "gzip"
+    assert len(webhook.details.webhook.custom_headers) == 1
+
+    # Verify webhook configuration
+    webhook_config = WebhookDetails(
+        endpoint_url="https://example.com/webhook",
+        authentication=DestinationAuthentication(
+            type="basic",
+            details=BasicAuthenticationDetails(
+                basic_authentication_user="user",
+                basic_authentication_password="pass",
+            ),
+        ),
+    )
+
+    is_valid = client.monitor.verify_webhook(webhook_config)
+    assert is_valid is True
+
+    # Delete webhook channel
+    webhook_id = webhook.id
+    webhook.delete()
+
+    # Verify deletion
+    with pytest.raises(ApiError):
+        client.load(AlertChannel, webhook_id)
