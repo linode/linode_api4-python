@@ -317,7 +317,7 @@ def test_domain(test_linode_client):
         domain.invalidate()
         return domain.status == "active"
 
-    wait_for_condition(3, 30, get_domain_status)
+    wait_for_condition(3, 45, get_domain_status)
 
     # Create a SRV record
     domain.record_create(
