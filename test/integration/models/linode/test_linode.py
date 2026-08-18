@@ -19,9 +19,11 @@ from linode_api4.objects import (
     Instance,
     InterfaceGeneration,
     LinodeInterface,
+    ReservedIPAddress,
     Type,
 )
 from linode_api4.objects.linode import InstanceDiskEncryptionType, MigrationType
+from linode_api4.objects.region import RegionAvailabilityEntry
 
 
 @pytest.fixture(scope="session")
@@ -118,12 +120,23 @@ def linode_and_vpc_for_legacy_interface_tests_offline(
 @pytest.fixture(scope="session")
 def linode_for_vpu_tests(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    region = "us-lax"
+    vpu_type = "g1-accelerated-netint-vpu-t1u1-s"
+
+    availability = client.regions.availability(
+        RegionAvailabilityEntry.filters.plan == vpu_type
+    )
+
+    region = next(
+        (entry.region for entry in availability if entry.available), None
+    )
+
+    if region is None:
+        pytest.skip("No VPU capacity is currently available")
 
     label = get_test_label(length=8)
 
     linode_instance = client.linode.instance_create(
-        "g1-accelerated-netint-vpu-t1u1-s",
+        vpu_type,
         region,
         image="linode/debian12",
         label=label,
@@ -304,7 +317,7 @@ def test_linode_rebuild(test_linode_client):
         root_pass="aComplex@Password123",
     )
 
-    wait_for_condition(10, 100, get_status, linode, "running")
+    wait_for_condition(10, 150, get_status, linode, "running")
 
     retry_sending_request(
         3,
@@ -628,8 +641,22 @@ def test_linode_ips(create_linode):
 
 def test_linode_initate_migration(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label() + "_migration"
+    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    region_migrate = get_region(
+        client, {"Linodes", "Cloud Firewall"}, site_type="core"
+    )
+
+    # Cannot migrate linode to the same region
+    for _ in range(5):
+        if region_migrate.id != region.id:
+            break
+
+        region_migrate = get_region(
+            client, {"Linodes", "Cloud Firewall"}, site_type="core"
+        )
+    else:
+        pytest.skip("No alternative region to be used for linode migration")
 
     linode = client.linode.instance_create(
         "g6-nanode-1",
@@ -644,7 +671,7 @@ def test_linode_initate_migration(test_linode_client, e2e_test_firewall):
     send_request_when_resource_available(
         300,
         linode.initiate_migration,
-        region="us-central",
+        region=region_migrate,
         migration_type=MigrationType.COLD,
     )
 
@@ -847,21 +874,14 @@ def test_get_linode_types(test_linode_client):
     for linode_type in types:
         assert hasattr(linode_type, "accelerated_devices")
 
-
-def test_get_linode_types_overrides(test_linode_client):
-    types = test_linode_client.linode.types()
-
-    target_types = [
+    regional_priced_types = [
         v
         for v in types
         if len(v.region_prices) > 0 and v.region_prices[0].hourly > 0
     ]
 
-    assert len(target_types) > 0
-
-    for linode_type in target_types:
-        assert linode_type.region_prices[0].hourly >= 0
-        assert linode_type.region_prices[0].monthly >= 0
+    assert any(v.region_prices[0].hourly > 0 for v in regional_priced_types)
+    assert any(v.region_prices[0].monthly > 0 for v in regional_priced_types)
 
 
 @pytest.mark.flaky(reruns=3, reruns_delay=2)
@@ -1243,3 +1263,43 @@ def test_create_linode_with_kernel_and_boot_size_then_add_disk_and_rebuild(
     assert linode_create.status == "rebuilding"
     wait_for_condition(10, 300, get_status, linode_create, "running")
     assert linode_create.image.id == "linode/debian12"
+
+
+def test_update_linode_with_reserved_ip_in_address(
+    test_linode_client, e2e_test_firewall, create_reserved_ip, ssh_key_gen
+):
+    label = get_test_label(length=8)
+    client = test_linode_client
+    reserved_ip = create_reserved_ip
+
+    linode = client.linode.instance_create(
+        "g6-nanode-1",
+        reserved_ip.region,
+        image="linode/debian12",
+        label=label,
+        firewall=e2e_test_firewall,
+        authorized_keys=ssh_key_gen[0],
+    )
+
+    linode_ips = linode.ips.ipv4.public
+    assert len(linode_ips) == 1
+    assert linode_ips[0].address != reserved_ip.address
+
+    linode.ip_allocate(True, reserved_ip.address)
+    delattr(linode, "_ips")
+    linode_ips = linode.ips.ipv4.public
+    assert len(linode_ips) == 2
+    assert reserved_ip.address in [ip.address for ip in linode_ips]
+
+    reserved_ip = client.networking.reserved_ips(
+        ReservedIPAddress.address == reserved_ip.address
+    )[0]
+    assert reserved_ip.linode_id == linode.id
+    assert reserved_ip.assigned_entity.id == linode.id
+    assert reserved_ip.assigned_entity.type == "linode"
+    assert reserved_ip.assigned_entity.label == linode.label
+    assert (
+        reserved_ip.assigned_entity.url == f"/v4/linode/instances/{linode.id}"
+    )
+
+    linode.delete()

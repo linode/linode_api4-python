@@ -1,0 +1,27 @@
+{
+  "page": 1,
+  "pages": 1,
+  "results": 1,
+  "data": [
+    {
+      "id": "ipv4",
+      "label": "IPv4 Address",
+      "price": {
+        "hourly": 0.005,
+        "monthly": 2.0
+      },
+      "region_prices": [
+        {
+          "id": "us-east",
+          "hourly": 0.005,
+          "monthly": 2.0
+        },
+        {
+          "id": "br-gru",
+          "hourly": 0.006,
+          "monthly": 3.0
+        }
+      ]
+    }
+  ]
+}

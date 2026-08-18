@@ -622,7 +622,7 @@ class ObjectStorageGlobalQuota(Base):
     """
     An account-level Object Storage quota.
 
-    API documentation: TBD
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-global-quota
     """
 
     api_endpoint = "/object-storage/global-quotas/{quota_id}"
