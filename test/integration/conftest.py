@@ -42,6 +42,8 @@ ENV_API_CA_NAME = "LINODE_API_CA"
 RUN_LONG_TESTS = "RUN_LONG_TESTS"
 SKIP_E2E_FIREWALL = "SKIP_E2E_FIREWALL"
 
+TEST_VPC_REGION = None
+
 ALL_ACCOUNT_AVAILABILITIES = {
     "Linodes",
     "NodeBalancers",
@@ -468,14 +470,16 @@ def test_oauth_client(test_linode_client):
 @pytest.fixture(scope="session")
 def create_vpc(test_linode_client):
     client = test_linode_client
-
     label = get_test_label(length=10)
+
+    global TEST_VPC_REGION
+    TEST_VPC_REGION = get_region(
+        test_linode_client, {"VPCs", "VPC IPv6 Stack", "Linode Interfaces"}
+    )
 
     vpc = client.vpcs.create(
         label=label,
-        region=get_region(
-            test_linode_client, {"VPCs", "VPC IPv6 Stack", "Linode Interfaces"}
-        ),
+        region=TEST_VPC_REGION,
         description="test description",
         ipv6=[{"range": "auto"}],
     )
@@ -489,14 +493,19 @@ def create_vpc_with_rdma_type(test_linode_client):
     client = test_linode_client
     label = get_test_label(length=10)
 
-    vpc = client.vpcs.create(
-        label=label,
-        region=get_region(
+    if TEST_VPC_REGION:
+        region = TEST_VPC_REGION
+    else:
+        region = get_region(
             # GPUDirect RDMA capability not available for now
             # test_linode_client, {Capability.vpcs, Capability.gpudirect_rdma}
             test_linode_client,
             {Capability.vpcs},
-        ),
+        )
+
+    vpc = client.vpcs.create(
+        label=label,
+        region=region,
         description="test description",
         vpc_type="rdma",
     )

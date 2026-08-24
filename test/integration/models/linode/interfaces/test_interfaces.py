@@ -1,6 +1,9 @@
 import copy
 import ipaddress
-from test.integration.helpers import get_test_label
+from test.integration.helpers import (
+    get_test_label,
+    wait_for_condition,
+)
 
 import pytest
 
@@ -16,6 +19,9 @@ from linode_api4 import (
     LinodeInterfacePublicIPv6Options,
     LinodeInterfacePublicIPv6RangeOptions,
     LinodeInterfacePublicOptions,
+    LinodeInterfaceRDMAVPCIPv4AddressOptions,
+    LinodeInterfaceRDMAVPCIPv4Options,
+    LinodeInterfaceRDMAVPCOptions,
     LinodeInterfaceVLANOptions,
     LinodeInterfaceVPCIPv4AddressOptions,
     LinodeInterfaceVPCIPv4Options,
@@ -38,6 +44,22 @@ def build_interface_public_ipv4(firewall, ip_address):
                         address=ip_address, primary=True
                     )
                 ],
+            ),
+        ),
+    )
+
+
+def build_interface_rdma_vpc_ipv4(subnet_id: int):
+    return LinodeInterfaceOptions(
+        firewall_id=-1,
+        rdma_vpc=LinodeInterfaceRDMAVPCOptions(
+            subnet_id=subnet_id,
+            ipv4=LinodeInterfaceRDMAVPCIPv4Options(
+                addresses=[
+                    LinodeInterfaceRDMAVPCIPv4AddressOptions(
+                        address="auto", primary=True
+                    )
+                ]
             ),
         ),
     )
@@ -73,6 +95,22 @@ def create_linode_with_standard_interfaces(
         interfaces=[interface],
     )
     return linode
+
+
+def create_multiple_rdma_interfaces(amount: int, subnet_id: int):
+    """
+    Creates multiple VPC RDMA interfaces that may be needed for RDMA Linode instance
+
+    Note:
+    At least 8 separate VPC RDMA interfaces need to be created for a single RDMA linode instance
+    """
+    interfaces = list()
+
+    for _ in range(amount):
+        rdma_iface = build_interface_rdma_vpc_ipv4(subnet_id)
+        interfaces.append(rdma_iface)
+
+    return interfaces
 
 
 def test_linode_create_with_linode_interfaces(
@@ -458,3 +496,61 @@ def test_linode_interfaces_with_reserved_ips(
     assert reserved_ips_list[0].reserved == True
     assert reserved_ips_list[0].linode_id is None
     assert reserved_ips_list[0].assigned_entity is None
+
+
+@pytest.mark.skip(
+    reason="Linode with RDMA interfaces requires manual infra changes at the moment"
+)
+def test_linode_interfaces_with_rdma_vpc_type(
+    request,
+    test_linode_client,
+    create_vpc_with_subnet,
+    create_vpc_with_subnet_and_rdma_type,
+):
+    client = test_linode_client
+    vpc, subnet = create_vpc_with_subnet
+    vpc_rdma, subnet_rdma = create_vpc_with_subnet_and_rdma_type
+
+    # Include RDMA VPC interfaces
+    multi_ifaces = create_multiple_rdma_interfaces(8, subnet_rdma.id)
+
+    # Include (at least one) regular interface
+    multi_ifaces.append(
+        LinodeInterfaceOptions(
+            firewall_id=-1,
+            default_route=LinodeInterfaceDefaultRouteOptions(
+                ipv4=True,
+            ),
+            vpc=LinodeInterfaceVPCOptions(
+                subnet_id=subnet.id,
+                ipv4=LinodeInterfaceVPCIPv4Options(
+                    addresses=[
+                        LinodeInterfaceVPCIPv4AddressOptions(
+                            address="auto",
+                            primary=True,
+                        )
+                    ],
+                ),
+            ),
+        ),
+    )
+
+    instance = client.linode.instance_create(
+        label="go-test-rdma-" + get_test_label(),
+        root_pass="aComplex@Password123",
+        image="linode/ubuntu24.04",
+        region=vpc.region,
+        # ltype="TBD",
+        # host_id="TBD",
+        interface_generation=InterfaceGeneration.LINODE,
+        interfaces=multi_ifaces,
+        booted=False,
+    )
+    request.addfinalizer(instance.delete)
+
+    def get_linode_status():
+        return instance.status == "offline"
+
+    wait_for_condition(5, 180, get_linode_status)
+
+    assert len(instance.linode_interfaces) == len(multi_ifaces)
