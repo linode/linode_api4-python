@@ -18,8 +18,10 @@ from linode_api4.objects import (
     MonitorService,
     MonitorServiceToken,
 )
+from linode_api4.objects.filtering import and_
 from linode_api4.objects.monitor import (
     AkamaiObjectStorageLogsDestinationDetails,
+    ChannelDetails,
     CustomHTTPSLogsDestinationDetails,
     LogsStreamDetails,
 )
@@ -421,6 +423,110 @@ class MonitorGroup(Group):
             AlertDefinitionEntity,
             *filters,
             endpoint=endpoint,
+        )
+
+    def channel_create(
+        self,
+        label: str,
+        channel_type: str,
+        details: ChannelDetails,
+    ) -> AlertChannel:
+        """
+        Creates a new alert channel for the authenticated account.
+
+        An alert channel defines a notification destination (for example: an
+        email list) that can be associated with one or more alert definitions.
+        Currently only ``email`` is supported as a ``channel_type``.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-notification-channel
+
+        :param label: Human-readable name for the new alert channel.
+        :type label: str
+        :param channel_type: The type of notification channel (e.g. ``"email"``).
+        :type channel_type: str
+        :param details: Notification-type-specific configuration.
+        :type details: ChannelDetails
+
+        :returns: The newly created :class:`AlertChannel`.
+        :rtype: AlertChannel
+
+        .. note::
+           If you need to obtain a single :class:`AlertChannel`, use :meth:`LinodeClient.load`.
+           Example: ``client.load(AlertChannel, channel_id)``.
+           For updating an alert channel, use the ``save()`` method on the :class:`AlertChannel` object.
+           For deleting an alert channel, use the ``delete()`` method directly on the :class:`AlertChannel` object.
+        """
+        params = {
+            "label": label,
+            "channel_type": channel_type,
+            "details": details.dict,
+        }
+
+        result = self.client.post("/monitor/alert-channels", data=params)
+
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating alert channel!",
+                json=result,
+            )
+
+        return AlertChannel(self.client, result["id"], result)
+
+    def alert_channel_alerts(self, channel_id: int, *filters) -> PaginatedList:
+        """
+        Retrieve all alerts associated with a specific alert channel.
+
+        Returns a paginated collection of alert definitions associated with the
+        specified alert channel. This allows you to see which alert definitions
+        are configured to notify this specific channel.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-notification-channel-alerts
+
+        :param channel_id: The ID of the alert channel to retrieve alerts for.
+        :type channel_id: int
+        :param filters: Optional filter expressions to apply to the collection.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>` for details.
+
+        :returns: A paginated list of alert definitions associated with this channel.
+        :rtype: PaginatedList[AlertDefinition]
+        """
+        endpoint = f"/monitor/alert-channels/{channel_id}/alerts"
+
+        # Build filter dict if filters provided
+        parsed_filters = None
+        if filters:
+            parsed_filters = (
+                and_(*filters).dct if len(filters) > 1 else filters[0].dct
+            )
+
+        response_json = self.client.get(endpoint, filters=parsed_filters)
+
+        if "data" not in response_json:
+            raise UnexpectedResponseError(
+                "Unexpected response when retrieving alert channel alerts!",
+                json=response_json,
+            )
+
+        # Create AlertDefinition objects with proper parent_id (service_type)
+        result = [
+            AlertDefinition.make_instance(
+                obj["id"],
+                self.client,
+                parent_id=obj["service_type"],
+                json=obj,
+            )
+            for obj in response_json.get("data", [])
+            if "id" in obj and "service_type" in obj
+        ]
+
+        return PaginatedList(
+            self.client,
+            endpoint[1:],
+            page=result,
+            max_pages=response_json.get("pages", 1),
+            total_items=response_json.get("results", len(result)),
+            parent_id=None,
+            filters=parsed_filters,
         )
 
     def destinations(self, *filters) -> PaginatedList:

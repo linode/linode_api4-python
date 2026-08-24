@@ -8,6 +8,7 @@ from linode_api4.objects.serializable import JSONObject, StrEnum
 __all__ = [
     "AggregateFunction",
     "AlertChannel",
+    "AlertChannelType",
     "AlertDefinition",
     "AlertDefinitionChannel",
     "AlertDefinitionEntity",
@@ -437,6 +438,15 @@ class AlertScope(StrEnum):
     account = "account"
 
 
+class AlertChannelType(StrEnum):
+    """
+    Type values for alert channels.
+    """
+
+    system = "system"
+    user = "user"
+
+
 @dataclass
 class AlertEntities(JSONObject):
     """
@@ -495,7 +505,7 @@ class AlertDefinition(DerivedBase):
         "entity_ids": Property(mutable=True),
         "description": Property(mutable=True),
         "service_class": Property(alias_of="class"),
-        "scope": Property(AlertScope),
+        "scope": Property(),
         "regions": Property(mutable=True),
         "entities": Property(json_object=AlertEntities),
         "channel_ids": Property(mutable=True),
@@ -541,25 +551,24 @@ class AlertChannel(Base):
     """
     Represents an alert channel used to deliver notifications when alerts
     fire. Alert channels define a destination and configuration for
-    notifications (for example: email lists, webhooks, PagerDuty, Slack, etc.).
+    notifications (for example: email lists, webhooks, Slack, etc.).
 
-    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-notification-channels
+    API Documentation:
+        List/Get: https://techdocs.akamai.com/linode-api/reference/get-notification-channel
+        Create:   https://techdocs.akamai.com/linode-api/reference/post-notification-channel
 
-    This class maps to the Monitor API's `/monitor/alert-channels` resource
-    and is used by the SDK to list, load, and inspect channels.
-
-    NOTE: Only read operations are supported for AlertChannel at this time.
-    Create, update, and delete (CRUD) operations are not allowed.
+    This class maps to the Monitor API's ``/monitor/alert-channels`` resource
+    and is used by the SDK to list, load, create, and inspect channels.
     """
 
     api_endpoint = "/monitor/alert-channels/{id}"
 
     properties = {
         "id": Property(identifier=True),
-        "label": Property(),
+        "label": Property(mutable=True),
         "type": Property(),
         "channel_type": Property(),
-        "details": Property(mutable=False, json_object=ChannelDetails),
+        "details": Property(mutable=True, json_object=ChannelDetails),
         "alerts": Property(mutable=False, json_object=AlertInfo),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),
