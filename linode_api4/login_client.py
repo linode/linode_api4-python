@@ -268,6 +268,33 @@ class OAuthScopes:
                 return "images:*"
             return "images:{}".format(self.name)
 
+    class Databases(Enum):
+        """
+        Access to Managed Databases
+        """
+
+        read_only = 0
+        read_write = 1
+        all = 2
+
+        def __repr__(self):
+            if self.name == "all":
+                return "databases:*"
+            return "databases:{}".format(self.name)
+
+    class VPC(Enum):
+        """
+        Access to VPCs and subnets
+        """
+
+        read_write = 1
+        all = 2
+
+        def __repr__(self):
+            if self.name == "all":
+                return "vpc:*"
+            return "vpc:{}".format(self.name)
+
     _scope_families = {
         "linodes": Linodes,
         "domains": Domains,
@@ -286,6 +313,8 @@ class OAuthScopes:
         "nodebalancers": NodeBalancers,
         "longview": Longview,
         "images": Images,
+        "databases": Databases,
+        "vpc": VPC,
     }
 
     @staticmethod
