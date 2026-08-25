@@ -30,10 +30,11 @@ class OAuthScopes:
     Lists of OAuth Scopes are accepted when calling the :any:`generate_login_url`
     method of the :any:`LinodeLoginClient`.
 
-    All contained enumerations of OAuth Scopes have two levels, "read_only" and
+    Most contained enumerations of OAuth Scopes have two levels, "read_only" and
     "read_write".  "read_only" access grants you the ability to get resources and
     of that type, but not to change, create, or delete them.  "read_write" access
-    allows to full access to resources of the requested type.  In the above
+    allows to full access to resources of the requested type.  :any:`OAuthScopes.VPC`
+    is the exception and exposes only "read_write" and "all".  In the above
     example, you are requesting access to view, modify, create, and delete
     Linodes, and to view Domains.
     """
