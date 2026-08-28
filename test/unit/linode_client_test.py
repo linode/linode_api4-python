@@ -1589,6 +1589,78 @@ class NodeBalancerGroupTest(ClientBaseCase):
         self.assertEqual(types[0].region_prices[0].hourly, 0.018)
         self.assertEqual(types[0].region_prices[0].monthly, 12)
 
+    def test_create_with_type_and_backend_connectivity(self):
+        """
+        Tests that creating a NodeBalancer forwards type, backend_connectivity,
+        vpcs, and config node addresses.
+        """
+        with self.mock_post(
+            {
+                "id": 1234,
+                "label": "my-premium-nb",
+                "type": "premium",
+                "backend_connectivity": "ipv6",
+                "region": "us-east",
+            }
+        ) as m:
+            nb = self.client.nodebalancers.create(
+                "us-east",
+                label="my-premium-nb",
+                type="premium",
+                backend_connectivity="ipv6",
+                configs=[
+                    {
+                        "port": 80,
+                        "nodes": [
+                            {
+                                "address": "[2001:db8:abcd:0012::1]:80",
+                                "label": "node1",
+                            }
+                        ],
+                    }
+                ],
+            )
+
+            self.assertEqual(m.call_url, "/nodebalancers")
+            self.assertEqual(m.call_data["region"], "us-east")
+            self.assertEqual(m.call_data["type"], "premium")
+            self.assertEqual(m.call_data["backend_connectivity"], "ipv6")
+            self.assertEqual(
+                m.call_data["configs"][0]["nodes"][0]["address"],
+                "[2001:db8:abcd:0012::1]:80",
+            )
+            self.assertEqual(nb.id, 1234)
+            self.assertEqual(nb.type, "premium")
+            self.assertEqual(nb.backend_connectivity, "ipv6")
+
+    def test_create_with_vpc_backend_connectivity(self):
+        """
+        Tests that creating a NodeBalancer forwards vpc backend connectivity.
+        """
+        with self.mock_post(
+            {
+                "id": 1234,
+                "label": "my-nb",
+                "type": "common",
+                "backend_connectivity": "vpc",
+                "region": "us-east",
+            }
+        ) as m:
+            nb = self.client.nodebalancers.create(
+                "us-east",
+                label="my-nb",
+                backend_connectivity="vpc",
+                vpcs=[{"subnet_id": 123456, "ipv4_range": "10.0.250.4/30"}],
+            )
+
+            self.assertEqual(m.call_url, "/nodebalancers")
+            self.assertEqual(m.call_data["backend_connectivity"], "vpc")
+            self.assertEqual(
+                m.call_data["vpcs"],
+                [{"subnet_id": 123456, "ipv4_range": "10.0.250.4/30"}],
+            )
+            self.assertEqual(nb.backend_connectivity, "vpc")
+
 
 class VolumeGroupTest(ClientBaseCase):
     """

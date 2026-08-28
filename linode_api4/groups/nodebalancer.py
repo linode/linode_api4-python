@@ -35,6 +35,27 @@ class NodeBalancerGroup(Group):
         :param ipv4: A reserved IPv4 address to assign to this NodeBalancer.
                      NOTE: Reserved IP feature may not currently be available to all users.
         :type ipv4: str
+        :param type: The NodeBalancer type. Supported values include
+                     ``common``, ``basic``, ``premium``, ``premium_40g``,
+                     and ``enterprise``. This cannot be changed after creation.
+                     NOTE: Creating premium or enterprise NodeBalancers may not
+                     currently be available to all users.
+        :type type: str
+        :param backend_connectivity: How this NodeBalancer communicates with
+                     backends (``legacy``, ``ipv6``, or ``vpc``). If omitted,
+                     the API infers a value from ``vpcs`` or config nodes, or
+                     returns ``undefined`` until the first node is added.
+                     ``undefined`` cannot be sent by clients. This cannot be
+                     changed after creation.
+                     NOTE: This field may not currently be available to all users.
+        :type backend_connectivity: str
+        :param vpcs: VPC attachments for this NodeBalancer. Required when
+                     ``backend_connectivity`` is ``vpc``.
+        :type vpcs: list[dict]
+        :param configs: NodeBalancer configs and optional nodes to create
+                     with this NodeBalancer. Node addresses must match the
+                     selected or inferred backend connectivity.
+        :type configs: list[dict]
 
         :returns: The new NodeBalancer
         :rtype: NodeBalancer

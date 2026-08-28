@@ -13,5 +13,7 @@
   ],
   "locks": [
     "cannot_delete_with_subresources"
-  ]
+  ],
+  "type": "premium",
+  "backend_connectivity": "ipv6"
 }

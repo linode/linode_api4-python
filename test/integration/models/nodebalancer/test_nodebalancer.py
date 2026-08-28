@@ -106,11 +106,15 @@ def test_create_nb(test_linode_client, e2e_test_firewall):
         label=label,
         firewall=e2e_test_firewall.id,
         client_udp_sess_throttle=5,
+        type="premium",
+        backend_connectivity="ipv6",
     )
 
     assert TEST_REGION, nb.region
     assert label == nb.label
     assert 5 == nb.client_udp_sess_throttle
+    assert nb.type == "premium"
+    assert nb.backend_connectivity == "ipv6"
 
     nb.delete()
 
