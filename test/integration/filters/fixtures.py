@@ -3,6 +3,10 @@ from test.integration.helpers import get_test_label
 
 import pytest
 
+from linode_api4 import (
+    LKEClusterControlPlaneOptions,
+)
+
 
 @pytest.fixture(scope="package")
 def domain_instance(test_linode_client):
@@ -30,6 +34,30 @@ def lke_cluster_instance(test_linode_client):
 
     cluster = test_linode_client.lke.cluster_create(
         region, label, version, [node_pool]
+    )
+
+    yield cluster
+
+    cluster.delete()
+
+
+@pytest.fixture(scope="package")
+def create_lke_cluster_with_related_nb(test_linode_client):
+    node_type = "g6-dedicated-4"  # g6-standard-1
+    version = test_linode_client.lke.versions()[0]
+
+    region = get_region(test_linode_client, {"Kubernetes"})
+
+    node_pool = test_linode_client.lke.node_pool(node_type, 3)
+    label = get_test_label() + "_cluster"
+
+    cluster = test_linode_client.lke.cluster_create(
+        region,
+        label,
+        version,
+        [node_pool],
+        apl_enabled=True,
+        control_plane=LKEClusterControlPlaneOptions(high_availability=True),
     )
 
     yield cluster

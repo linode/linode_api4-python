@@ -1,0 +1,16 @@
+{
+    "data": [
+        {
+            "id": 99,
+            "nodebalancer_id": 12345,
+            "subnet_id": 5555,
+            "vpc_id": 111,
+            "ipv4_range": "10.100.5.0/24",
+            "ipv6_range": "2001:db8::/64",
+            "purpose": "frontend"
+        }
+    ],
+    "page": 1,
+    "pages": 1,
+    "results": 1
+}
