@@ -3,10 +3,19 @@ from test.unit.base import ClientBaseCase, MonitorClientBaseCase
 from linode_api4 import PaginatedList
 from linode_api4.objects import (
     AggregateFunction,
+    AlertChannel,
     AlertDefinition,
     AlertDefinitionChannel,
     AlertDefinitionEntity,
     EntityMetricOptions,
+)
+from linode_api4.objects.monitor import (
+    BasicAuthenticationDetails,
+    ChannelDetails,
+    CustomHeader,
+    DestinationAuthentication,
+    EmailDetails,
+    WebhookDetails,
 )
 
 
@@ -256,3 +265,151 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             }
             assert mock_post.call_data["channel_ids"] == [1, 2]
             assert mock_post.call_data["group_by"] == ["entity_id"]
+
+    def test_create_email_channel(self):
+        """
+        Test creating an email alert channel.
+        Verifies that channel_create() properly handles email channel details.
+        """
+        create_url = "/monitor/alert-channels"
+        channel_id = 789
+        channel_url = f"{create_url}/{channel_id}"
+
+        create_response = {
+            "id": channel_id,
+            "label": "Email Test Channel",
+            "type": "user",
+            "channel_type": "email",
+            "details": {
+                "email": {
+                    "usernames": ["test_user1", "test_user2"],
+                    "recipient_type": "user",
+                }
+            },
+            "alerts": {
+                "url": f"{channel_url}/alerts",
+                "type": "alerts-definitions",
+                "alert_count": 0,
+            },
+            "created": "2024-01-01T00:00:00",
+            "updated": "2024-01-01T00:00:00",
+            "created_by": "test_user1",
+            "updated_by": "test_user1",
+        }
+
+        with self.mock_post(create_response) as mock_post:
+            channel = self.client.monitor.channel_create(
+                label="Email Test Channel",
+                channel_type="email",
+                details=ChannelDetails(
+                    email=EmailDetails(
+                        recipient_type="user",
+                        usernames=["test_user1", "test_user2"],
+                    )
+                ),
+            )
+            assert mock_post.call_url == create_url
+            assert isinstance(channel, AlertChannel)
+            assert channel.id == channel_id
+            assert channel.label == "Email Test Channel"
+            assert channel.channel_type == "email"
+
+    def test_create_webhook_channel(self):
+        """
+        Test creating a webhook alert channel.
+        Verifies that channel_create() properly handles webhook channel details
+        with authentication, compression, and custom headers.
+        """
+        create_url = "/monitor/alert-channels"
+        channel_id = 888
+        channel_url = f"{create_url}/{channel_id}"
+
+        create_response = {
+            "id": channel_id,
+            "label": "Webhook Test Channel",
+            "type": "user",
+            "channel_type": "webhook",
+            "details": {
+                "webhook": {
+                    "endpoint_url": "https://example.com/webhook",
+                    "authentication": {
+                        "type": "basic",
+                        "details": {
+                            "basic_authentication_user": "testuser",
+                            "basic_authentication_password": "testpass",
+                        },
+                    },
+                    "data_compression": "gzip",
+                    "custom_headers": [
+                        {"name": "X-API-Key", "value": "secret123"}
+                    ],
+                }
+            },
+            "alerts": {
+                "url": f"{channel_url}/alerts",
+                "type": "alerts-definitions",
+                "alert_count": 0,
+            },
+            "created": "2024-01-01T00:00:00",
+            "updated": "2024-01-01T00:00:00",
+            "created_by": "webhook_user",
+            "updated_by": "webhook_user",
+        }
+
+        with self.mock_post(create_response) as mock_post:
+            webhook_channel = self.client.monitor.channel_create(
+                label="Webhook Test Channel",
+                channel_type="webhook",
+                details=ChannelDetails(
+                    webhook=WebhookDetails(
+                        endpoint_url="https://example.com/webhook",
+                        authentication=DestinationAuthentication(
+                            type="basic",
+                            details=BasicAuthenticationDetails(
+                                basic_authentication_user="testuser",
+                                basic_authentication_password="testpass",
+                            ),
+                        ),
+                        data_compression="gzip",
+                        custom_headers=[
+                            CustomHeader(name="X-API-Key", value="secret123")
+                        ],
+                    )
+                ),
+            )
+            assert mock_post.call_url == create_url
+            assert isinstance(webhook_channel, AlertChannel)
+            assert webhook_channel.id == channel_id
+            assert webhook_channel.label == "Webhook Test Channel"
+            assert webhook_channel.channel_type == "webhook"
+            assert (
+                webhook_channel.details.webhook.endpoint_url
+                == "https://example.com/webhook"
+            )
+            assert (
+                webhook_channel.details.webhook.authentication.type == "basic"
+            )
+
+    def test_verify_webhook_channel(self):
+        """
+        Test verifying a webhook channel configuration.
+        Verifies that verify_webhook() returns success for valid webhook config.
+        """
+        verify_url = "/monitor/alert-channels/verify"
+        verify_response = {"success": True}
+
+        with self.mock_post(verify_response) as mock_verify:
+            is_valid = self.client.monitor.verify_webhook(
+                WebhookDetails(
+                    endpoint_url="https://example.com/webhook",
+                    authentication=DestinationAuthentication(
+                        type="basic",
+                        details=BasicAuthenticationDetails(
+                            basic_authentication_user="testuser",
+                            basic_authentication_password="testpass",
+                        ),
+                    ),
+                )
+            )
+            assert mock_verify.call_url == verify_url
+            assert is_valid is True

@@ -14,12 +14,15 @@ __all__ = [
     "AlertEntities",
     "AlertScope",
     "AlertType",
+    "ChannelDetails",
+    "EmailDetails",
     "MonitorDashboard",
     "MonitorMetricsDefinition",
     "MonitorService",
     "MonitorServiceToken",
     "RuleCriteria",
     "TriggerConditions",
+    "WebhookDetails",
     "AkamaiObjectStorageLogsDestinationDetails",
     "AuthenticationType",
     "BasicAuthenticationDetails",
@@ -504,71 +507,6 @@ class AlertDefinition(DerivedBase):
 
 
 @dataclass
-class EmailDetails(JSONObject):
-    """
-    Represents email-specific details for an alert channel.
-    """
-
-    usernames: Optional[List[str]] = None
-    recipient_type: Optional[str] = None
-
-
-@dataclass
-class ChannelDetails(JSONObject):
-    """
-    Represents the details block for an AlertChannel, which varies by channel type.
-    """
-
-    email: Optional[EmailDetails] = None
-
-
-@dataclass
-class AlertInfo(JSONObject):
-    """
-    Represents a reference to alerts associated with an alert channel.
-    Fields:
-      - url: str - API URL to fetch the alerts for this channel
-      - type: str - Type identifier (e.g., 'alerts-definitions')
-      - alert_count: int - Number of alerts associated with this channel
-    """
-
-    url: str = ""
-    _type: str = field(default="", metadata={"json_key": "type"})
-    alert_count: int = 0
-
-
-class AlertChannel(Base):
-    """
-    Represents an alert channel used to deliver notifications when alerts
-    fire. Alert channels define a destination and configuration for
-    notifications (for example: email lists, webhooks, PagerDuty, Slack, etc.).
-
-    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-notification-channels
-
-    This class maps to the Monitor API's `/monitor/alert-channels` resource
-    and is used by the SDK to list, load, and inspect channels.
-
-    NOTE: Only read operations are supported for AlertChannel at this time.
-    Create, update, and delete (CRUD) operations are not allowed.
-    """
-
-    api_endpoint = "/monitor/alert-channels/{id}"
-
-    properties = {
-        "id": Property(identifier=True),
-        "label": Property(),
-        "type": Property(),
-        "channel_type": Property(),
-        "details": Property(mutable=False, json_object=ChannelDetails),
-        "alerts": Property(mutable=False, json_object=AlertInfo),
-        "created": Property(is_datetime=True),
-        "updated": Property(is_datetime=True),
-        "created_by": Property(),
-        "updated_by": Property(),
-    }
-
-
-@dataclass
 class BasicAuthenticationDetails(JSONObject):
     """
     Includes additional parameters necessary to define basic authentication.
@@ -608,6 +546,131 @@ class ClientCertificateDetails(JSONObject):
     client_certificate: Optional[str] = None
     client_private_key: Optional[str] = None
     tls_hostname: Optional[str] = None
+
+
+@dataclass
+class EmailDetails(JSONObject):
+    """
+    Represents email-specific details for an alert channel.
+    """
+
+    usernames: Optional[List[str]] = None
+    recipient_type: Optional[str] = None
+
+
+@dataclass
+class WebhookDetails(JSONObject):
+    """
+    Represents webhook-specific details for an alert channel.
+
+    Fields:
+      - endpoint_url: The URL where webhook events are sent.
+      - authentication: Authentication configuration for the webhook endpoint.
+      - data_compression: Compression method for webhook payloads ("gzip" or "none").
+      - client_certificate_details: TLS client certificate configuration.
+      - custom_headers: List of custom HTTP headers to include in webhook requests.
+    """
+
+    endpoint_url: Optional[str] = None
+    authentication: Optional[DestinationAuthentication] = None
+    data_compression: Optional[str] = None
+    client_certificate_details: Optional[ClientCertificateDetails] = None
+    custom_headers: Optional[List[CustomHeader]] = None
+
+
+@dataclass
+class ChannelDetails(JSONObject):
+    """
+    Represents the details block for an AlertChannel, which varies by channel type.
+    Supports email and webhook channel details.
+    """
+
+    email: Optional[EmailDetails] = None
+    webhook: Optional[WebhookDetails] = None
+
+
+@dataclass
+class AlertInfo(JSONObject):
+    """
+    Represents a reference to alerts associated with an alert channel.
+    Fields:
+      - url: str - API URL to fetch the alerts for this channel
+      - type: str - Type identifier (e.g., 'alerts-definitions')
+      - alert_count: int - Number of alerts associated with this channel
+    """
+
+    url: str = ""
+    _type: str = field(default="", metadata={"json_key": "type"})
+    alert_count: int = 0
+
+
+class AlertChannel(Base):
+    """
+    Represents an alert channel used to deliver notifications when alerts
+    fire. Alert channels define a destination and configuration for
+    notifications (for example: email lists, webhooks, PagerDuty, Slack, etc.).
+
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-notification-channels
+
+    This class maps to the Monitor API's `/monitor/alert-channels` resource
+    and supports full CRUD operations (create, read, update, delete).
+
+    Examples:
+        # List channels
+        channels = client.monitor.alert_channels()
+
+        # Create email channel
+        channel = client.monitor.channel_create(
+            label="Support Email",
+            channel_type="email",
+            details=ChannelDetails(
+                email=EmailDetails(
+                    recipient_type="user",
+                    usernames=["user@example.com"]
+                )
+            )
+        )
+
+        # Create webhook channel
+        channel = client.monitor.channel_create(
+            label="Webhook Receiver",
+            channel_type="webhook",
+            details=ChannelDetails(
+                webhook=WebhookDetails(
+                    endpoint_url="https://example.com/webhook",
+                    authentication=DestinationAuthentication(
+                        type="basic",
+                        details=BasicAuthenticationDetails(
+                            basic_authentication_user="user",
+                            basic_authentication_password="pass"
+                        )
+                    )
+                )
+            )
+        )
+
+        # Update channel
+        channel.label = "Updated Label"
+        channel.save()
+
+        # Delete channel
+        channel.delete()
+    """
+
+    api_endpoint = "/monitor/alert-channels/{id}"
+
+    properties = {
+        "id": Property(identifier=True),
+        "label": Property(mutable=True),
+        "type": Property(),
+        "channel_type": Property(),
+        "details": Property(mutable=True, json_object=ChannelDetails),
+        "alerts": Property(mutable=False, json_object=AlertInfo),
+        "created": Property(is_datetime=True),
+        "updated": Property(is_datetime=True),
+        "created_by": Property(),
+        "updated_by": Property(),
+    }
 
 
 @dataclass
