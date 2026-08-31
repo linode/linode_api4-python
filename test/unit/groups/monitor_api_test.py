@@ -75,6 +75,7 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             assert isinstance(alert[0], AlertDefinition)
             assert alert[0].scope == "entity"
             assert alert[0].regions == []
+            assert alert[0].group_by == ["entity_id"]
             assert alert[0].entities.url.endswith(
                 "/alert-definitions/12345/entities"
             )
@@ -94,7 +95,8 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             first = raw["data"][0]
             assert first["label"] == "Test Alert for DBAAS"
             assert first["service_type"] == "dbaas"
-            assert first["status"] == "active"
+            assert first["status"] == "enabled"
+            assert first["group_by"] == ["entity_id"]
             assert first["created"] == "2024-01-01T00:00:00"
 
     def test_create_alert_definition(self):
@@ -106,6 +108,7 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             "service_type": service_type,
             "severity": 1,
             "status": "active",
+            "group_by": ["entity_id"],
             "entities": {
                 "url": f"/monitor/services/dbaas/alert-definitions/67890/entities",
                 "count": 1,
@@ -125,6 +128,7 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
                 regions=[],
                 entity_ids=["13217"],
                 description="created via test",
+                group_by=["entity_id"],
             )
 
             assert mock_post.call_url == url
@@ -134,6 +138,7 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             assert "channel_ids" in mock_post.call_data
             assert mock_post.call_data["scope"] == "entity"
             assert mock_post.call_data["regions"] == []
+            assert mock_post.call_data["group_by"] == ["entity_id"]
 
             assert isinstance(alert, AlertDefinition)
             assert alert.id == 67890
@@ -142,6 +147,7 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             )
             assert alert.entities.count == 1
             assert alert.entities.has_more_resources is False
+            assert alert.group_by == ["entity_id"]
 
             # fetch the same response from the client and assert
             resp = self.client.post(url, data={})
@@ -180,3 +186,73 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             assert entities[2].label == "mydatabase-3"
             assert entities[2].url == "/v4/databases/mysql/instances/3"
             assert entities[2]._type == "dbaas"
+
+    def test_clone_alert_definition(self):
+        service_type = "dbaas"
+        source_id = 12345
+        url = (
+            f"/monitor/services/{service_type}/alert-definitions/"
+            f"{source_id}/clone"
+        )
+
+        with self.mock_post(url) as mock_post:
+            alert = self.client.monitor.clone_alert_definition(
+                service_type=service_type,
+                id=source_id,
+                label="Cloned Alert",
+            )
+
+            assert mock_post.call_url == url
+            assert mock_post.call_data == {"label": "Cloned Alert"}
+
+            assert isinstance(alert, AlertDefinition)
+            assert alert.id == 67891
+            assert alert.label == "Cloned Alert"
+            assert alert.scope == "entity"
+            assert alert.group_by == ["entity_id"]
+            assert alert.rule_criteria is not None
+            assert alert.entities.url.endswith(
+                "/alert-definitions/67891/entities"
+            )
+
+            # fetch the same response from the client and assert
+            resp = self.client.post(url, data={})
+            assert resp["label"] == "Cloned Alert"
+
+    def test_clone_alert_definition_with_optional_fields(self):
+        service_type = "dbaas"
+        source_id = 12345
+        url = (
+            f"/monitor/services/{service_type}/alert-definitions/"
+            f"{source_id}/clone"
+        )
+
+        with self.mock_post(url) as mock_post:
+            self.client.monitor.clone_alert_definition(
+                service_type=service_type,
+                id=source_id,
+                label="Cloned Alert",
+                description="cloned via test",
+                scope="entity",  # same as source alert definition
+                regions=[],
+                entity_ids=["13217"],
+                severity=1,
+                rule_criteria={"rules": []},
+                trigger_conditions={"criteria_condition": "ALL"},
+                channel_ids=[1, 2],
+                group_by=["entity_id"],
+            )
+
+            assert mock_post.call_url == url
+            assert mock_post.call_data["label"] == "Cloned Alert"
+            assert mock_post.call_data["description"] == "cloned via test"
+            assert mock_post.call_data["scope"] == "entity"
+            assert mock_post.call_data["regions"] == []
+            assert mock_post.call_data["entity_ids"] == ["13217"]
+            assert mock_post.call_data["severity"] == 1
+            assert mock_post.call_data["rule_criteria"] == {"rules": []}
+            assert mock_post.call_data["trigger_conditions"] == {
+                "criteria_condition": "ALL"
+            }
+            assert mock_post.call_data["channel_ids"] == [1, 2]
+            assert mock_post.call_data["group_by"] == ["entity_id"]

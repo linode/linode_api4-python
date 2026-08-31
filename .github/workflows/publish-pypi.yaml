@@ -12,10 +12,10 @@ jobs:
     environment: pypi-release
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.x'
 
@@ -28,4 +28,4 @@ jobs:
           LINODE_SDK_VERSION: ${{ github.event.release.tag_name }}
 
       - name: Publish the release artifacts to PyPI
-        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # pin@release/v1.14.0
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # pin@release/v1.14.2

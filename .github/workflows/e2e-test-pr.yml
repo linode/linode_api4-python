@@ -64,7 +64,7 @@ jobs:
 
       # Check out merge commit
       - name: Checkout PR
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ inputs.sha }}
           fetch-depth: 0
@@ -96,7 +96,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.x'
 
@@ -112,9 +112,13 @@ jobs:
         run: |
           timestamp=$(date +'%Y%m%d%H%M')
           report_filename="${timestamp}_sdk_test_report.xml"
-          make test-int RUN_DB_FORK_TESTS=${{ github.event.inputs.run_db_fork_tests }} RUN_DB_TESTS=${{ github.event.inputs.run_db_tests }} RUN_ACLP_LOGS_STREAM_TESTS=${{ github.event.inputs.run_aclp_logs_stream_tests }} TEST_ARGS="--junitxml=${report_filename}" TEST_SUITE="${{ github.event.inputs.test_suite }}"
+          make test-int RUN_DB_FORK_TESTS="$RUN_DB_FORK_TESTS" RUN_DB_TESTS="$RUN_DB_TESTS" RUN_ACLP_LOGS_STREAM_TESTS="$RUN_ACLP_LOGS_STREAM_TESTS" TEST_ARGS="--junitxml=${report_filename}" TEST_SUITE="$TEST_SUITE"
         env:
           LINODE_TOKEN: ${{ secrets.LINODE_TOKEN }}
+          RUN_DB_FORK_TESTS: ${{ github.event.inputs.run_db_fork_tests }}
+          RUN_DB_TESTS: ${{ github.event.inputs.run_db_tests }}
+          RUN_ACLP_LOGS_STREAM_TESTS: ${{ github.event.inputs.run_aclp_logs_stream_tests }}
+          TEST_SUITE: ${{ github.event.inputs.test_suite }}
 
       - name: Upload test results
         if: always() && github.repository == 'linode/linode_api4-python' && (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.test_report_upload == 'true'))
@@ -166,7 +170,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           submodules: 'recursive'
@@ -192,7 +196,7 @@ jobs:
 
     steps:
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.x'
 

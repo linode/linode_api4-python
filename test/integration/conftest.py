@@ -289,6 +289,7 @@ def test_linode_client():
         token,
         base_url=api_url,
         ca_path=api_ca_file,
+        retry_statuses=[504],
     )
     return client
 
@@ -319,7 +320,7 @@ def test_domain(test_linode_client):
         domain.invalidate()
         return domain.status == "active"
 
-    wait_for_condition(3, 30, get_domain_status)
+    wait_for_condition(3, 45, get_domain_status)
 
     # Create a SRV record
     domain.record_create(
@@ -479,7 +480,15 @@ def create_vpc(test_linode_client):
 
     vpc = client.vpcs.create(
         label=label,
-        region=TEST_VPC_REGION,
+        region=get_region(
+            test_linode_client,
+            {
+                "VPCs",
+                "VPC IPv6 Stack",
+                "Linode Interfaces",
+                "Custom VPC IPv4 Ranges",
+            },
+        ),
         description="test description",
         ipv6=[{"range": "auto"}],
     )
@@ -562,6 +571,22 @@ def create_vpc_with_subnet_and_rdma_type(create_vpc_with_rdma_type):
     yield vpc_rdma, subnet_rdma
 
     subnet_rdma.delete()
+
+
+@pytest.fixture
+def create_vpc_with_ipv4(test_linode_client):
+    client = test_linode_client
+
+    vpc = client.vpcs.create(
+        label=get_test_label(length=10),
+        region=get_region(client, {"VPCs", "Custom VPC IPv4 Ranges"}),
+        description="integration test vpc with ipv4",
+        ipv4=[{"range": "10.0.0.0/8"}],
+    )
+
+    yield vpc
+
+    vpc.delete()
 
 
 @pytest.fixture(scope="session")

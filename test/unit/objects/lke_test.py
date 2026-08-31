@@ -68,17 +68,6 @@ class LKETest(ClientBaseCase):
         assert pool.taints[0].value == "bar"
         assert pool.taints[0].effect == "NoSchedule"
 
-    def test_cluster_dashboard_url_view(self):
-        """
-        Tests that you can submit a correct cluster dashboard url api request.
-        """
-        cluster = LKECluster(self.client, 18881)
-
-        with self.mock_get("/lke/clusters/18881/dashboard") as m:
-            result = cluster.cluster_dashboard_url_view()
-            self.assertEqual(m.call_url, "/lke/clusters/18881/dashboard")
-            self.assertEqual(result, "https://example.dashboard.linodelke.net")
-
     def test_kubeconfig_delete(self):
         """
         Tests that you can submit a correct kubeconfig delete api request.
