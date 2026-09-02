@@ -1,9 +1,7 @@
 import copy
 import ipaddress
-from test.integration.helpers import (
-    get_test_label,
-    wait_for_condition,
-)
+import os
+from test.integration.helpers import get_test_label, wait_for_condition
 
 import pytest
 
@@ -498,18 +496,45 @@ def test_linode_interfaces_with_reserved_ips(
     assert reserved_ips_list[0].assigned_entity is None
 
 
-@pytest.mark.skip(
-    reason="Linode with RDMA interfaces requires manual infra changes at the moment"
+@pytest.mark.skipif(
+    os.getenv("RUN_RDMA_TESTS", "").strip().lower() not in {"yes", "true"},
+    reason="Linode with RDMA interfaces requires manual infra changes; set RUN_RDMA_TESTS=yes to enable",
 )
 def test_linode_interfaces_with_rdma_vpc_type(
     request,
     test_linode_client,
-    create_vpc_with_subnet,
-    create_vpc_with_subnet_and_rdma_type,
 ):
     client = test_linode_client
-    vpc, subnet = create_vpc_with_subnet
-    vpc_rdma, subnet_rdma = create_vpc_with_subnet_and_rdma_type
+    region = "us-rno-1"
+
+    # Create a regular VPC with a subnet in us-rno-1
+    vpc = client.vpcs.create(
+        label=get_test_label(length=10),
+        region=region,
+        description="test description",
+        ipv6=[{"range": "auto"}],
+    )
+    request.addfinalizer(vpc.delete)
+    subnet = vpc.subnet_create(
+        label="test-subnet",
+        ipv4="10.0.0.0/24",
+        ipv6=[{"range": "auto"}],
+    )
+    request.addfinalizer(subnet.delete)
+
+    # Create an RDMA VPC with a subnet in us-rno-1
+    vpc_rdma = client.vpcs.create(
+        label=get_test_label(length=10),
+        region=region,
+        description="test description",
+        vpc_type="rdma",
+    )
+    request.addfinalizer(vpc_rdma.delete)
+    subnet_rdma = vpc_rdma.subnet_create(
+        label=get_test_label(length=10),
+        ipv4="10.0.0.0/24",
+    )
+    request.addfinalizer(subnet_rdma.delete)
 
     # Include RDMA VPC interfaces
     multi_ifaces = create_multiple_rdma_interfaces(8, subnet_rdma.id)
@@ -536,12 +561,11 @@ def test_linode_interfaces_with_rdma_vpc_type(
     )
 
     instance = client.linode.instance_create(
-        label="go-test-rdma-" + get_test_label(),
+        label="python-test-rdma-" + get_test_label(),
         root_pass="aComplex@Password123",
         image="linode/ubuntu24.04",
         region=vpc.region,
-        # ltype="TBD",
-        # host_id="TBD",
+        ltype="g3-gpu-rtxpro6000-blackwell-rdma-8",
         interface_generation=InterfaceGeneration.LINODE,
         interfaces=multi_ifaces,
         booted=False,
@@ -549,6 +573,7 @@ def test_linode_interfaces_with_rdma_vpc_type(
     request.addfinalizer(instance.delete)
 
     def get_linode_status():
+        instance.invalidate()
         return instance.status == "offline"
 
     wait_for_condition(5, 180, get_linode_status)
