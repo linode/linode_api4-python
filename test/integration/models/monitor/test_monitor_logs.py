@@ -17,9 +17,13 @@ from linode_api4.objects import (
 )
 from linode_api4.objects.monitor import (
     AkamaiObjectStorageLogsDestinationDetails,
+    BasicAuthenticationDetails,
+    CustomHeader,
     LogsDestination,
     LogsStream,
     LogsStreamStatus,
+    TrafficPeakDestinationAuthentication,
+    TrafficPeakLogsDestinationDetails,
 )
 
 _RUN_ACLP_LOGS_STREAM_TESTS = "RUN_ACLP_LOGS_STREAM_TESTS"
@@ -27,6 +31,12 @@ _SKIP_STREAM_TESTS = pytest.mark.skipif(
     os.getenv(_RUN_ACLP_LOGS_STREAM_TESTS, "").strip().lower()
     not in {"yes", "true"},
     reason=f"{_RUN_ACLP_LOGS_STREAM_TESTS} environment variable must be set to 'yes' or 'true'",
+)
+_RUN_TRAFFIC_PEAK_TESTS = "RUN_TRAFFIC_PEAK_TESTS"
+_SKIP_TRAFFIC_PEAK_TESTS = pytest.mark.skipif(
+    os.getenv(_RUN_TRAFFIC_PEAK_TESTS, "").strip().lower()
+    not in {"yes", "true"},
+    reason=f"{_RUN_TRAFFIC_PEAK_TESTS} environment variable must be set to 'yes' or 'true'",
 )
 _STREAM_FIXTURE_CLEANUP_WAIT = 2700
 _STREAM_FIXTURE_PROVISIONING_WAIT = 3600
@@ -87,17 +97,22 @@ def _delete_destination_with_bucket(
     client: LinodeClient, dest: LogsDestination, bucket: ObjectStorageBucket
 ):
     """Helper that deletes a logs destination and its backing OBJ bucket."""
+    _delete_destination(client, dest)
+    _empty_bucket(client, bucket)
+    send_request_when_resource_available(timeout=100, func=bucket.delete)
+
+
+def _delete_destination(client: LinodeClient, destination: LogsDestination):
+    """Helper that deletes a logs destination after its stream is detached."""
 
     def no_stream_attached():
         streams = client.monitor.streams()
         return all(
-            all(d.id != dest.id for d in s.destinations) for s in streams
+            all(d.id != destination.id for d in s.destinations) for s in streams
         )
 
     wait_for_condition(30, _STREAM_FIXTURE_CLEANUP_WAIT, no_stream_attached)
-    send_request_when_resource_available(timeout=100, func=dest.delete)
-    _empty_bucket(client, bucket)
-    send_request_when_resource_available(timeout=100, func=bucket.delete)
+    send_request_when_resource_available(timeout=100, func=destination.delete)
 
 
 def _skip_if_streams_exist(client: LinodeClient):
@@ -110,6 +125,40 @@ def _skip_if_streams_exist(client: LinodeClient):
             f"Skipping: existing stream(s) found on this account "
             f"(labels: {stream_labels}). Only one stream can be present per account."
         )
+
+
+def _wait_for_stream_updatable(client: LinodeClient, stream_id: int):
+    """
+    Blocks until the stream with the given id reaches active or inactive status.
+    Updating destinations or other attributes puts the stream
+    back into a transitional state, and attempting to delete or modify it while
+    transitioning results in [400] errors.
+    """
+
+    def is_stream_updatable():
+        stream = client.load(LogsStream, stream_id)
+        return stream.status in (
+            LogsStreamStatus.active,
+            LogsStreamStatus.inactive,
+        )
+
+    wait_for_condition(
+        30, _STREAM_FIXTURE_PROVISIONING_WAIT, is_stream_updatable
+    )
+
+
+def _delete_stream(client: LinodeClient, stream: LogsStream):
+    _wait_for_stream_updatable(client, stream.id)
+    send_request_when_resource_available(timeout=100, func=stream.delete)
+
+    # The delete request returns 200 but stream deletion is async on the backend.
+    # Wait until the stream is fully gone before teardown continues, so that
+    # dependent fixtures can proceed with teardown.
+    def is_stream_deleted():
+        existing = client.monitor.streams()
+        return all(s.id != stream.id for s in existing)
+
+    wait_for_condition(30, _STREAM_FIXTURE_CLEANUP_WAIT, is_stream_deleted)
 
 
 def _empty_bucket(client: LinodeClient, bucket: ObjectStorageBucket):
@@ -280,6 +329,113 @@ def test_fails_to_create_destination_empty_required_fields(
     )
 
 
+@pytest.fixture(scope="function")
+def create_traffic_peak_destination(test_linode_client: LinodeClient):
+    destination = test_linode_client.monitor.destination_create(
+        label=get_test_label(),
+        type="traffic_peak",
+        details=TrafficPeakLogsDestinationDetails(
+            endpoint_url="https://example.com/",
+            authentication=TrafficPeakDestinationAuthentication(
+                details=BasicAuthenticationDetails(
+                    basic_authentication_user="user",
+                    basic_authentication_password="password",
+                )
+            ),
+            data_compression="none",
+            content_type="application/json",
+            custom_headers=[
+                CustomHeader(name="X-Source", value="linode-api4-python")
+            ],
+        ),
+    )
+    yield destination
+    _delete_destination(test_linode_client, destination)
+
+
+@_SKIP_TRAFFIC_PEAK_TESTS
+def test_create_and_get_traffic_peak_destination(
+    test_linode_client: LinodeClient,
+    create_traffic_peak_destination: LogsDestination,
+):
+    """
+    Test that fetching a TrafficPeak destination by ID returns the correct
+    destination with expected fields.
+    """
+    destination = test_linode_client.load(
+        LogsDestination, create_traffic_peak_destination.id
+    )
+
+    assert isinstance(destination, LogsDestination)
+    assert destination.type == "traffic_peak"
+    assert isinstance(destination.details, TrafficPeakLogsDestinationDetails)
+    assert destination.details.endpoint_url == "https://example.com/"
+    assert isinstance(
+        destination.details.authentication,
+        TrafficPeakDestinationAuthentication,
+    )
+    assert destination.details.authentication.details is not None
+    assert destination.details.data_compression == "none"
+    assert destination.details.content_type == "application/json"
+    assert destination.details.custom_headers[0].name == "X-Source"
+
+
+@_SKIP_TRAFFIC_PEAK_TESTS
+def test_list_traffic_peak_destinations(
+    test_linode_client: LinodeClient,
+    create_traffic_peak_destination: LogsDestination,
+):
+    """
+    Test that listing destinations returns a PaginatedList containing the
+    previously created TrafficPeak destination.
+    """
+    destinations = test_linode_client.monitor.destinations(
+        LogsDestination.id == create_traffic_peak_destination.id
+    )
+
+    assert isinstance(destinations, PaginatedList)
+    assert len(destinations) == 1
+    assert destinations[0].id == create_traffic_peak_destination.id
+    assert destinations[0].type == "traffic_peak"
+
+
+@pytest.fixture(scope="function")
+def create_traffic_peak_stream(
+    test_linode_client: LinodeClient,
+    create_traffic_peak_destination: LogsDestination,
+):
+    _skip_if_streams_exist(test_linode_client)
+    stream = test_linode_client.monitor.stream_create(
+        label=get_test_label(),
+        destinations=[create_traffic_peak_destination.id],
+        type=LogsStreamType.audit_logs,
+    )
+    yield stream
+    _delete_stream(test_linode_client, stream)
+
+
+@_SKIP_TRAFFIC_PEAK_TESTS
+@_SKIP_STREAM_TESTS
+def test_create_stream_with_traffic_peak_destination(
+    test_linode_client: LinodeClient,
+    create_traffic_peak_stream: LogsStream,
+):
+    """
+    Test that loading a stream by ID returns the correct TrafficPeak destination
+    with expected fields.
+    """
+    stream = test_linode_client.load(LogsStream, create_traffic_peak_stream.id)
+    destination = stream.destinations[0]
+
+    assert destination.type == "traffic_peak"
+    assert isinstance(destination.details, TrafficPeakLogsDestinationDetails)
+    assert destination.details.endpoint_url == "https://example.com/"
+    assert isinstance(
+        destination.details.authentication,
+        TrafficPeakDestinationAuthentication,
+    )
+
+
 @pytest.fixture(scope="session")
 def invalid_destination_error(test_linode_client: LinodeClient):
     """
@@ -346,41 +502,7 @@ def create_stream(
     assert stream.id is not None
     assert stream.status == LogsStreamStatus.provisioning
     yield stream
-    _stream_teardown(test_linode_client, stream)
-
-
-def _wait_for_stream_updatable(client: LinodeClient, stream_id: int):
-    """
-    Blocks until the stream with the given id reaches active or inactive status.
-    Updating destinations or other attributes puts the stream
-    back into a transitional state, and attempting to delete or modify it while
-    transitioning results in [400] errors.
-    """
-
-    def is_stream_updatable():
-        stream = client.load(LogsStream, stream_id)
-        return stream.status in (
-            LogsStreamStatus.active,
-            LogsStreamStatus.inactive,
-        )
-
-    wait_for_condition(
-        30, _STREAM_FIXTURE_PROVISIONING_WAIT, is_stream_updatable
-    )
-
-
-def _stream_teardown(test_linode_client: LinodeClient, stream: LogsStream):
-    _wait_for_stream_updatable(test_linode_client, stream.id)
-    send_request_when_resource_available(timeout=100, func=stream.delete)
-
-    # The delete request returns 200 but stream deletion is async on the backend.
-    # Wait until the stream is fully gone before teardown continues, so that
-    # dependent fixtures (e.g. create_secondary_destination) can proceed with teardown.
-    def is_stream_deleted():
-        existing = test_linode_client.monitor.streams()
-        return all(s.id != stream.id for s in existing)
-
-    wait_for_condition(30, _STREAM_FIXTURE_CLEANUP_WAIT, is_stream_deleted)
+    _delete_stream(test_linode_client, stream)
 
 
 @pytest.fixture(scope="session")

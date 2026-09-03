@@ -1,0 +1,35 @@
+{
+  "id": 4,
+  "label": "traffic-peak-stream",
+  "type": "audit_logs",
+  "status": "active",
+  "destinations": [
+    {
+      "id": 3,
+      "label": "traffic-peak-destination",
+      "type": "traffic_peak",
+      "details": {
+        "endpoint_url": "https://example.com/",
+        "authentication": {
+          "details": {
+            "basic_authentication_user": "user",
+            "basic_authentication_password": "password"
+          }
+        },
+        "data_compression": "none",
+        "content_type": "application/json",
+        "custom_headers": [
+          {
+            "name": "header",
+            "value": "header_value"
+          }
+        ]
+      }
+    }
+  ],
+  "created": "2026-09-01T00:00:00",
+  "updated": "2026-09-01T00:00:00",
+  "created_by": "tester",
+  "updated_by": "tester",
+  "version": 1
+}
