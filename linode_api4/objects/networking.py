@@ -7,6 +7,7 @@ from linode_api4.objects.base import Base, Property
 from linode_api4.objects.dbase import DerivedBase
 from linode_api4.objects.region import Region
 from linode_api4.objects.serializable import JSONObject
+from linode_api4.paginated_list import PaginatedList
 
 
 class IPv6Pool(Base):
@@ -211,6 +212,31 @@ class VPCIPAddressIPv6(JSONObject):
 
 
 @dataclass
+class VPCIPAddressNATGatewayPortsetPort(JSONObject):
+    start: int = 0
+    end: int = 0
+
+
+@dataclass
+class VPCIPAddressNATGatewayPortset(JSONObject):
+    address: str = ""
+    ports: List[VPCIPAddressNATGatewayPortsetPort] = field(default_factory=list)
+
+
+@dataclass
+class VPCIPAddressNATGateway(JSONObject):
+    """
+    A NAT gateway under a VPC IP Address.
+    """
+
+    id: int = 0
+    addresses: List[str] = field(default_factory=list)
+    portset_assignments: int = 0
+    portset_capacity: int = 0
+    portsets: List[VPCIPAddressNATGatewayPortset] = field(default_factory=list) # NOTE: This field may not be available to all users.
+
+
+@dataclass
 class VPCIPAddress(JSONObject):
     """
     VPCIPAddress represents the IP address of a VPC.
@@ -238,6 +264,7 @@ class VPCIPAddress(JSONObject):
     ipv6_range: Optional[str] = None
     ipv6_is_public: Optional[bool] = None
     ipv6_addresses: Optional[List[VPCIPAddressIPv6]] = None
+    natgateway: Optional[VPCIPAddressNATGateway] = None
 
 
 class VLAN(Base):
@@ -490,3 +517,234 @@ class ReservedIPType(Base):
         "price": Property(json_object=Price),
         "region_prices": Property(json_object=RegionPrice),
     }
+
+
+@dataclass
+class NATGatewayAddress(JSONObject):
+    address: str = ""
+
+
+@dataclass
+class NATGatewayVPCSubnet(JSONObject):
+    id: int = 0
+    type: str = ""
+    label: str = ""
+    url: str = ""
+    vpc_id: int = 0
+    vpc_label: str = ""
+
+
+@dataclass
+class NATGatewayAddressAssignment(JSONObject):
+    address: str = ""
+    in_use: bool = False
+    interface_count: int = 0
+    interface_url: str = ""
+    portset_assignments: int = 0
+    portset_capacity: int = 0
+
+
+@dataclass
+class NATGatewayInterfaceLinode(JSONObject):
+    id: int = 0
+    label: str = ""
+    type: str = ""
+    url: str = ""
+
+
+
+@dataclass
+class NATGatewayInterfacePortsetPort(JSONObject):
+    start: int = 0
+    end: int = 0
+
+
+@dataclass
+class NATGatewayInterfacePortset(JSONObject):
+    address: str = ""
+    ports: List[NATGatewayInterfacePortsetPort] = field(default_factory=list)
+
+
+@dataclass
+class NATGatewayInterface(JSONObject):
+    id: int = 0
+    linode: NATGatewayInterfaceLinode = None
+    addresses: List[str] = field(default_factory=list)
+    portsets: List[NATGatewayInterfacePortset] = field(default_factory=list) # NOTE: This field may not be available to all users.
+
+
+@dataclass
+class NATGatewayType(JSONObject):
+    id: int = 0
+    label: str = ""
+    price: Price = None
+
+
+@dataclass
+class NATGatewaySettings(JSONObject):
+    allowed_ports_per_interface: List[int] = field(default_factory=list)
+    maximum_autoscaling_addresses_per_natgateway: int = 0
+    maximum_reserved_addresses_per_natgateway: int = 0
+
+
+class NATGateway(Base):
+    """
+    Represents a single Linode NAT Gateway.
+
+    API documentation: TODO
+
+    NOTE: This feature may not currently be available to all users.
+    """
+
+    api_endpoint = "/networking/natgateways/{id}"
+
+    id_attribute = "id"
+
+    properties = {
+        "id": Property(identifier=True),
+        "region": Property(),
+        "addresses": Property(json_object=NATGatewayAddress),
+        "address_autoscale_max": Property(),
+        "default_ports_per_interface": Property(),
+        "label": Property(mutable=True),
+        "portset_assignments": Property(),
+        "portset_capacity": Property(),
+        "vpc_subnet": Property(json_object=NATGatewayVPCSubnet),
+        "created": Property(is_datetime=True),
+        "updated": Property(is_datetime=True),
+    }
+
+    def address_assignments(self, *filters) -> PaginatedList:
+        """
+        Retrieves the reserved IP address assignments for this NAT Gateway.
+
+        API Documentation: TODO
+
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
+
+        :returns: A paginated list of address assignments for this NAT Gateway.
+        :rtype: PaginatedList of NATGatewayAddressAssignment
+        """
+        return self._client._get_and_filter(
+            NATGatewayAddressAssignment,
+            *filters,
+            endpoint="{}/addresses".format(NATGateway.api_endpoint).format(
+                id=self.id
+            ),
+        )
+
+    def address_assignment_view(
+        self, address: str
+    ) -> NATGatewayAddressAssignment:
+        """
+        Retrieves a single reserved IP address assignment for this NAT Gateway.
+
+        API Documentation: TODO
+
+        :param address: The reserved IPv4 address to look up.
+        :type address: str
+
+        :returns: The requested address assignment.
+        :rtype: NATGatewayAddressAssignment
+        """
+        result = self._client.get(
+            "{}/addresses/{}".format(NATGateway.api_endpoint, address),
+            model=self,
+        )
+        return NATGatewayAddressAssignment.from_json(result)
+
+    def address_assignment_create(
+        self, address: str
+    ) -> NATGatewayAddressAssignment:
+        """
+        Assigns a reserved IP address to this NAT Gateway.
+
+        API Documentation: TODO
+
+        :param address: The reserved IPv4 address to assign to this NAT Gateway.
+        :type address: str
+
+        :returns: The new address assignment.
+        :rtype: NATGatewayAddressAssignment
+        """
+        result = self._client.post(
+            "{}/addresses".format(NATGateway.api_endpoint),
+            model=self,
+            data={"address": address},
+        )
+
+        if "address" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when assigning address to NAT Gateway!",
+                json=result,
+            )
+
+        return NATGatewayAddressAssignment.from_json(result)
+
+    def address_assignment_delete(self, address: str) -> bool:
+        """
+        Removes a reserved IP address assignment from this NAT Gateway.
+
+        API Documentation: TODO
+
+        :param address: The reserved IPv4 address to remove from this NAT Gateway.
+        :type address: str
+
+        :returns: True if the delete request succeeded.
+        :rtype: bool
+        """
+        resp = self._client.delete(
+            "{}/addresses/{}".format(NATGateway.api_endpoint, address),
+            model=self,
+        )
+
+        if "error" in resp:
+            return False
+        return True
+
+    def interfaces(self, *filters) -> PaginatedList:
+        """
+        Retrieves the Linode Interfaces attached to this NAT Gateway.
+
+        API Documentation: TODO
+
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
+
+        :returns: A paginated list of interfaces attached to this NAT Gateway.
+        :rtype: PaginatedList of NATGatewayInterface
+        """
+        return self._client._get_and_filter(
+            NATGatewayInterface,
+            *filters,
+            endpoint="{}/interfaces".format(NATGateway.api_endpoint).format(
+                id=self.id
+            ),
+        )
+
+    def address_interfaces(self, address: str, *filters) -> PaginatedList:
+        """
+        Retrieves the Linode Interfaces using the given reserved IP address on this NAT Gateway.
+
+        API Documentation: TODO
+
+        :param address: The reserved IPv4 address to look up interfaces for.
+        :type address: str
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
+
+        :returns: A paginated list of interfaces using the given address.
+        :rtype: PaginatedList of NATGatewayInterface
+        """
+        return self._client._get_and_filter(
+            NATGatewayInterface,
+            *filters,
+            endpoint="{}/addresses/{}/interfaces".format(
+                NATGateway.api_endpoint, address
+            ).format(id=self.id),
+        )
+

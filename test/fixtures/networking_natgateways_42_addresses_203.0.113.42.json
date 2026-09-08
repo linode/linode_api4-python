@@ -1,0 +1,8 @@
+{
+  "address": "203.0.113.42",
+  "in_use": true,
+  "interface_count": 2,
+  "interface_url": "/v4/linode/instances/123/interfaces/456",
+  "portset_assignments": 15,
+  "portset_capacity": 30
+}

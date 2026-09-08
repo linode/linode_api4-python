@@ -1,7 +1,13 @@
 from test.unit.base import ClientBaseCase, MethodMock
 from test.unit.objects.firewall_test import FirewallTemplatesTest
+from test.unit.objects.networking_test import NATGatewayTest
 
-from linode_api4.objects.networking import ReservedIPAddress
+from linode_api4.objects import NATGateway, NATGatewayAddress
+from linode_api4.objects.networking import (
+    NATGatewaySettings,
+    NATGatewayType,
+    ReservedIPAddress,
+)
 
 
 class NetworkingGroupTest(ClientBaseCase):
@@ -238,3 +244,84 @@ class NetworkingGroupTest(ClientBaseCase):
                 "region is only valid when reserved is True."
             )
             assert m.called is False
+
+    def test_list_natgateways(self):
+        """
+        Tests that NAT Gateways can be listed via GET /networking/natgateways.
+        """
+        natgateways = self.client.networking.natgateways()
+
+        assert len(natgateways) == 1
+        NATGatewayTest.assert_natgateway_42(natgateways[0])
+
+    def test_natgateway_create(self):
+        """
+        Tests that natgateway_create sends the correct POST body and returns a NATGateway.
+        """
+        with self.mock_post("/networking/natgateways/42") as m:
+            result = self.client.networking.natgateway_create(
+                region="us-east",
+                label="the-natgateway",
+                addresses=[NATGatewayAddress(address="203.0.113.42")],
+                default_ports_per_interface=4096,
+                use_autoscaling=True,
+                vpc_subnet_id=789,
+            )
+
+            assert m.call_url == "/networking/natgateways"
+            assert m.call_data == {
+                "region": "us-east",
+                "label": "the-natgateway",
+                "addresses": [{"address": "203.0.113.42"}],
+                "default_ports_per_interface": 4096,
+                "use_autoscaling": True,
+                "vpc_subnet_id": 789,
+            }
+
+            assert isinstance(result, NATGateway)
+            NATGatewayTest.assert_natgateway_42(result)
+
+    def test_natgateway_create_minimal(self):
+        """
+        Tests that natgateway_create with only required fields omits optional fields
+        and accepts raw dict form for addresses.
+        """
+        with self.mock_post("/networking/natgateways/42") as m:
+            self.client.networking.natgateway_create(
+                region="us-east",
+                label="the-natgateway",
+                addresses=[{"address": "203.0.113.42"}],
+            )
+
+            assert m.call_data == {
+                "region": "us-east",
+                "label": "the-natgateway",
+                "addresses": [{"address": "203.0.113.42"}],
+            }
+
+    def test_natgateway_types(self):
+        """
+        Tests GET /networking/natgateways/types.
+        """
+        types = self.client.networking.natgateway_types()
+
+        assert len(types) == 1
+
+        t = types[0]
+        assert isinstance(t, NATGatewayType)
+        assert t.id == "g1-natgateway"
+        assert t.label == "NAT Gateway"
+        assert t.price.hourly == 0.035
+        assert t.price.monthly == 25
+
+    def test_natgateway_settings(self):
+        """
+        Tests GET /networking/natgateways/settings.
+        """
+        settings = self.client.networking.natgateway_settings()
+
+        assert isinstance(settings, NATGatewaySettings)
+        assert settings.allowed_ports_per_interface == [4096, 8192, 16384]
+        assert settings.maximum_autoscaling_addresses_per_natgateway == 100
+        assert settings.maximum_reserved_addresses_per_natgateway == 100
+

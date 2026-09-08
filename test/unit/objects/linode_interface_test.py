@@ -150,6 +150,17 @@ class LinodeInterfaceTest(ClientBaseCase):
         assert iface.vpc.ipv4.ranges[0].range == "192.168.22.16/28"
         assert iface.vpc.ipv4.ranges[1].range == "192.168.22.32/28"
 
+        # natgateway assertions
+        assert iface.vpc.ipv4.natgateway.id == 42
+        assert iface.vpc.ipv4.natgateway.label == "the-natgateway"
+        assert iface.vpc.ipv4.natgateway.type == "natgateway"
+        assert iface.vpc.ipv4.natgateway.url == "/v4/networking/natgateways/1"
+        assert iface.vpc.ipv4.natgateway.addresses == ["203.0.113.42"]
+        assert iface.vpc.ipv4.natgateway.portset_capacity == 30
+        assert iface.vpc.ipv4.natgateway.portsets[0].address == "203.0.113.42"
+        assert iface.vpc.ipv4.natgateway.portsets[0].ports[0].start == 2048
+        assert iface.vpc.ipv4.natgateway.portsets[0].ports[0].end == 3071
+
         assert iface.vpc.ipv6.is_public
 
         assert iface.vpc.ipv6.slaac[0].range == "1234::/64"

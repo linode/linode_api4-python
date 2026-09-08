@@ -13,7 +13,19 @@
       "nat_1_1": null,
       "gateway": "10.0.0.1",
       "prefix": 8,
-      "subnet_mask": "255.0.0.0"
+      "subnet_mask": "255.0.0.0",
+      "natgateway": {
+        "id": 42,
+        "addresses": ["203.0.113.42"],
+        "portset_assignments": 15,
+        "portset_capacity": 30,
+        "portsets": [
+          {
+            "address": "203.0.113.42",
+            "ports": [{"start": 2048, "end": 3071}]
+          }
+        ]
+      }
     },
     {
       "address": "10.0.0.3",

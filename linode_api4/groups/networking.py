@@ -15,9 +15,16 @@ from linode_api4.objects import (
     IPv6Range,
     NetworkTransferPrice,
     Region,
+    NATGateway,
+    NATGatewayAddress,
 )
 from linode_api4.objects.base import _flatten_request_body_recursive
-from linode_api4.objects.networking import ReservedIPAddress, ReservedIPType
+from linode_api4.objects.networking import (
+    NATGatewaySettings,
+    NATGatewayType,
+    ReservedIPAddress,
+    ReservedIPType,
+)
 from linode_api4.paginated_list import PaginatedList
 from linode_api4.util import drop_null_keys
 
@@ -622,3 +629,119 @@ class NetworkingGroup(Group):
         return self.client._get_and_filter(
             ReservedIPType, *filters, endpoint="/networking/reserved/ips/types"
         )
+
+
+    def natgateways(self, *filters):
+        """
+        Retrieves the NAT Gateways your user has access to.
+
+        API Documentation: TODO
+
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
+
+        :returns: A list of NAT Gateways the acting user can access.
+        :rtype: PaginatedList of NATGateway
+        """
+        return self.client._get_and_filter(NATGateway, *filters)
+
+
+    def natgateway_create(
+        self,
+        region: Union[Region, str],
+        label: str,
+        addresses: Optional[
+            List[Union[NATGatewayAddress, Dict[str, Any]]]
+        ] = None,
+        default_ports_per_interface: Optional[int] = None,
+        use_autoscaling: Optional[bool] = None,
+        vpc_subnet_id: Optional[int] = None,
+        **kwargs,
+    ) -> NATGateway:
+        """
+        Create a NAT Gateway in the given region.
+
+        NOTE: NAT Gateways may not currently be available to all users.
+
+        API Documentation: TODO
+
+        :param region: The region in which to create the NAT Gateway.
+        :type region: str or Region
+        :param label: The label of the NAT Gateway.
+        :type label: str
+        :param addresses: The reserved IP addresses to assign to this NAT Gateway.
+        :type addresses: list of NATGatewayAddress or list of dict
+        :param default_ports_per_interface: The default ports per interface to use.
+                                            Defaults to 4096 on the API side.
+        :type default_ports_per_interface: int
+        :param use_autoscaling: Whether the NAT Gateway should autoscale its address pool.
+        :type use_autoscaling: bool
+        :param vpc_subnet_id: The ID of the VPC subnet this NAT Gateway should attach to.
+        :type vpc_subnet_id: int
+
+        :returns: The new NAT Gateway.
+        :rtype: NATGateway
+        """
+        params = {
+            "region": region.id if isinstance(region, Region) else region,
+            "label": label,
+            "addresses": addresses,
+            "default_ports_per_interface": default_ports_per_interface,
+            "use_autoscaling": use_autoscaling,
+            "vpc_subnet_id": vpc_subnet_id,
+        }
+        params.update(kwargs)
+
+        result = self.client.post(
+            "/networking/natgateways",
+            data=drop_null_keys(_flatten_request_body_recursive(params)),
+        )
+
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating NAT Gateway!", json=result
+            )
+
+        return NATGateway(self.client, result["id"], result)
+
+    def natgateway_types(self, *filters) -> PaginatedList:
+        """
+        Returns a list of NAT Gateway types with pricing information.
+
+        NOTE: NAT Gateways may not currently be available to all users.
+
+        API Documentation: TODO
+
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
+
+        :returns: A list of NAT Gateway types.
+        :rtype: PaginatedList of NATGatewayType
+        """
+        return self.client._get_and_filter(
+            NATGatewayType, *filters, endpoint="/networking/natgateways/types"
+        )
+
+    def natgateway_settings(self) -> NATGatewaySettings:
+        """
+        Returns the account-wide NAT Gateway settings and limits for the current user.
+
+        NOTE: NAT Gateways may not currently be available to all users.
+
+        API Documentation: TODO
+
+        :returns: The NAT Gateway settings for the current user.
+        :rtype: NATGatewaySettings
+        """
+        result = self.client.get("/networking/natgateways/settings")
+
+        if "allowed_ports_per_interface" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when getting NAT Gateway settings!",
+                json=result,
+            )
+
+        return NATGatewaySettings.from_json(result)
+

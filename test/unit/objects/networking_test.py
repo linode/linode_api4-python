@@ -3,6 +3,9 @@ from test.unit.base import ClientBaseCase, MethodMock
 from linode_api4 import VLAN, ExplicitNullValue, Instance, Region
 from linode_api4.objects import Firewall, IPAddress, IPv6Range
 from linode_api4.objects.networking import (
+    NATGateway,
+    NATGatewayAddressAssignment,
+    NATGatewayInterface,
     ReservedIPAddress,
     ReservedIPAssignedEntity,
 )
@@ -455,3 +458,178 @@ class NetworkingTest(ClientBaseCase):
 
             assert m.call_url == "/linode/instances/123/ips"
             assert "address" not in m.call_data
+
+
+class NATGatewayTest(ClientBaseCase):
+    """
+    Tests methods of the NATGateway class.
+    """
+
+    @staticmethod
+    def assert_natgateway_42(natgateway: NATGateway):
+        assert natgateway.id == 42
+        assert natgateway.label == "the-natgateway"
+        assert natgateway.region == "us-east"
+        assert natgateway.address_autoscale_max == 4
+        assert natgateway.default_ports_per_interface == 4096
+        assert natgateway.portset_assignments == 15
+        assert natgateway.portset_capacity == 30
+        assert natgateway.addresses[0].address == "203.0.113.42"
+        assert natgateway.vpc_subnet.id == 789
+        assert natgateway.vpc_subnet.type == "subnet"
+        assert natgateway.vpc_subnet.label == "my-subnet"
+        assert natgateway.vpc_subnet.url == "/v4/vpcs/123456/subnets/789"
+        assert natgateway.vpc_subnet.vpc_id == 123456
+        assert natgateway.vpc_subnet.vpc_label == "my-vpc"
+
+    def test_get_natgateway(self):
+        """
+        Tests that a NAT Gateway is loaded correctly via GET /networking/natgateways/{id}.
+        """
+        natgateway = NATGateway(self.client, 42)
+        self.assertEqual(natgateway._populated, False)
+
+        self.assert_natgateway_42(natgateway)
+        self.assertEqual(natgateway._populated, True)
+
+    def test_update_natgateway(self):
+        """
+        Tests that only the mutable ``label`` field is sent via PUT /networking/natgateways/{id}.
+        """
+        with self.mock_put("/networking/natgateways/42") as m:
+            natgateway = NATGateway(self.client, 42)
+            # Force a lazy load so the object is fully populated.
+            _ = natgateway.label
+
+            natgateway.label = "renamed-natgateway"
+            natgateway.save()
+
+            self.assertEqual(m.call_url, "/networking/natgateways/42")
+            self.assertEqual(m.call_data, {"label": "renamed-natgateway"})
+
+    def test_delete_natgateway(self):
+        """
+        Tests that DELETE /networking/natgateways/{id} is issued.
+        """
+        with self.mock_delete() as m:
+            natgateway = NATGateway(self.client, 42)
+            natgateway.delete()
+
+            self.assertEqual(m.call_url, "/networking/natgateways/42")
+
+    @staticmethod
+    def assert_address_assignment(assignment: NATGatewayAddressAssignment):
+        assert assignment.address == "203.0.113.42"
+        assert assignment.in_use is True
+        assert assignment.interface_count == 2
+        assert (
+            assignment.interface_url
+            == "/v4/linode/instances/123/interfaces/456"
+        )
+        assert assignment.portset_assignments == 15
+        assert assignment.portset_capacity == 30
+
+    def test_list_address_assignments(self):
+        """
+        Tests GET /networking/natgateways/{id}/addresses.
+        """
+        natgateway = NATGateway(self.client, 42)
+        assignments = natgateway.address_assignments()
+
+        assert len(assignments) == 1
+        NATGatewayTest.assert_address_assignment(assignments[0])
+
+    def test_view_address_assignment(self):
+        """
+        Tests GET /networking/natgateways/{id}/addresses/{address}.
+        """
+        natgateway = NATGateway(self.client, 42)
+        assignment = natgateway.address_assignment_view("203.0.113.42")
+
+        assert isinstance(assignment, NATGatewayAddressAssignment)
+        NATGatewayTest.assert_address_assignment(assignment)
+
+    def test_create_address_assignment(self):
+        """
+        Tests POST /networking/natgateways/{id}/addresses.
+        """
+        with self.mock_post(
+            "/networking/natgateways/42/addresses/203.0.113.42"
+        ) as m:
+            natgateway = NATGateway(self.client, 42)
+            assignment = natgateway.address_assignment_create("203.0.113.42")
+
+            self.assertEqual(
+                m.call_url, "/networking/natgateways/42/addresses"
+            )
+            self.assertEqual(m.call_data, {"address": "203.0.113.42"})
+
+            assert isinstance(assignment, NATGatewayAddressAssignment)
+            NATGatewayTest.assert_address_assignment(assignment)
+
+    def test_delete_address_assignment(self):
+        """
+        Tests DELETE /networking/natgateways/{id}/addresses/{address}.
+        """
+        with self.mock_delete() as m:
+            natgateway = NATGateway(self.client, 42)
+            result = natgateway.address_assignment_delete("203.0.113.42")
+
+            self.assertEqual(
+                m.call_url,
+                "/networking/natgateways/42/addresses/203.0.113.42",
+            )
+            assert result is True
+
+    @staticmethod
+    def assert_interfaces(interfaces):
+        assert len(interfaces) == 2
+
+        first = interfaces[0]
+        assert isinstance(first, NATGatewayInterface)
+        assert first.id == 142
+        assert first.linode.id == 1001
+        assert first.linode.label == "linode1001"
+        assert first.linode.type == "linode"
+        assert first.linode.url == "/v4/linode/instances/1001"
+        assert first.addresses == ["172.24.213.144"]
+        assert first.portsets[0].address == "172.24.213.144"
+        assert first.portsets[0].ports[0].start == 2048
+        assert first.portsets[0].ports[0].end == 3071
+
+        second = interfaces[1]
+        assert second.id == 143
+        assert second.linode.id == 1002
+        assert second.linode.label == "linode1002"
+
+    def test_list_interfaces(self):
+        """
+        Tests GET /networking/natgateways/{id}/interfaces.
+        """
+        natgateway = NATGateway(self.client, 42)
+        interfaces = natgateway.interfaces()
+        NATGatewayTest.assert_interfaces(interfaces)
+
+    def test_list_address_interfaces(self):
+        """
+        Tests GET /networking/natgateways/{id}/addresses/{address}/interfaces.
+
+        The per-address endpoint only returns interfaces actually using that
+        address, so the response is a subset of the gateway-wide list.
+        """
+        natgateway = NATGateway(self.client, 42)
+        interfaces = natgateway.address_interfaces("203.0.113.42")
+
+        assert len(interfaces) == 1
+        iface = interfaces[0]
+        assert isinstance(iface, NATGatewayInterface)
+        assert iface.id == 142
+        assert iface.linode.id == 1001
+        assert iface.linode.label == "linode1001"
+        assert iface.linode.type == "linode"
+        assert iface.linode.url == "/v4/linode/instances/1001"
+        assert iface.addresses == ["203.0.113.42"]
+        assert iface.portsets[0].address == "203.0.113.42"
+        assert iface.portsets[0].ports[0].start == 2048
+        assert iface.portsets[0].ports[0].end == 3071
+
