@@ -233,7 +233,9 @@ class VPCIPAddressNATGateway(JSONObject):
     addresses: List[str] = field(default_factory=list)
     portset_assignments: int = 0
     portset_capacity: int = 0
-    portsets: List[VPCIPAddressNATGatewayPortset] = field(default_factory=list) # NOTE: This field may not be available to all users.
+    portsets: List[VPCIPAddressNATGatewayPortset] = field(
+        default_factory=list
+    )  # NOTE: This field may not be available to all users.
 
 
 @dataclass
@@ -552,7 +554,6 @@ class NATGatewayInterfaceLinode(JSONObject):
     url: str = ""
 
 
-
 @dataclass
 class NATGatewayInterfacePortsetPort(JSONObject):
     start: int = 0
@@ -570,7 +571,9 @@ class NATGatewayInterface(JSONObject):
     id: int = 0
     linode: NATGatewayInterfaceLinode = None
     addresses: List[str] = field(default_factory=list)
-    portsets: List[NATGatewayInterfacePortset] = field(default_factory=list) # NOTE: This field may not be available to all users.
+    portsets: List[NATGatewayInterfacePortset] = field(
+        default_factory=list
+    )  # NOTE: This field may not be available to all users.
 
 
 @dataclass
@@ -747,4 +750,3 @@ class NATGateway(Base):
                 NATGateway.api_endpoint, address
             ).format(id=self.id),
         )
-

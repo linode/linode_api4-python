@@ -324,4 +324,3 @@ class NetworkingGroupTest(ClientBaseCase):
         assert settings.allowed_ports_per_interface == [4096, 8192, 16384]
         assert settings.maximum_autoscaling_addresses_per_natgateway == 100
         assert settings.maximum_reserved_addresses_per_natgateway == 100
-

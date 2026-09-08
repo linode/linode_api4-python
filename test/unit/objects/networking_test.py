@@ -559,9 +559,7 @@ class NATGatewayTest(ClientBaseCase):
             natgateway = NATGateway(self.client, 42)
             assignment = natgateway.address_assignment_create("203.0.113.42")
 
-            self.assertEqual(
-                m.call_url, "/networking/natgateways/42/addresses"
-            )
+            self.assertEqual(m.call_url, "/networking/natgateways/42/addresses")
             self.assertEqual(m.call_data, {"address": "203.0.113.42"})
 
             assert isinstance(assignment, NATGatewayAddressAssignment)
@@ -632,4 +630,3 @@ class NATGatewayTest(ClientBaseCase):
         assert iface.portsets[0].address == "203.0.113.42"
         assert iface.portsets[0].ports[0].start == 2048
         assert iface.portsets[0].ports[0].end == 3071
-

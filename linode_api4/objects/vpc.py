@@ -149,7 +149,9 @@ class VPCSubnetNATGateway(JSONObject):
     addresses: List[str] = None
     portset_assignments: int = 0
     portset_capacity: int = 0
-    portsets: List[VPCSubnetNATGatewayPortset] = None # NOTE: This field may not be available to all users.
+    portsets: List[VPCSubnetNATGatewayPortset] = (
+        None  # NOTE: This field may not be available to all users.
+    )
 
 
 class VPCSubnet(DerivedBase):
@@ -224,7 +226,12 @@ class VPC(Base):
         :param natgateway: The NAT gateway options for this subnet. NOTE: May not be available for all users.
         :type natgateway: VPCSubnetNATGatewayOptions
         """
-        params = {"label": label, "ipv4": ipv4, "ipv6": ipv6, "natgateway": natgateway}
+        params = {
+            "label": label,
+            "ipv4": ipv4,
+            "ipv6": ipv6,
+            "natgateway": natgateway,
+        }
 
         params.update(kwargs)
 

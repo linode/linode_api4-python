@@ -13,10 +13,10 @@ from linode_api4.objects import (
     IPAddress,
     IPv6Pool,
     IPv6Range,
-    NetworkTransferPrice,
-    Region,
     NATGateway,
     NATGatewayAddress,
+    NetworkTransferPrice,
+    Region,
 )
 from linode_api4.objects.base import _flatten_request_body_recursive
 from linode_api4.objects.networking import (
@@ -630,7 +630,6 @@ class NetworkingGroup(Group):
             ReservedIPType, *filters, endpoint="/networking/reserved/ips/types"
         )
 
-
     def natgateways(self, *filters):
         """
         Retrieves the NAT Gateways your user has access to.
@@ -645,7 +644,6 @@ class NetworkingGroup(Group):
         :rtype: PaginatedList of NATGateway
         """
         return self.client._get_and_filter(NATGateway, *filters)
-
 
     def natgateway_create(
         self,
@@ -744,4 +742,3 @@ class NetworkingGroup(Group):
             )
 
         return NATGatewaySettings.from_json(result)
-

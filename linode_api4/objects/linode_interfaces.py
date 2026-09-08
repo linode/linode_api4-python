@@ -254,7 +254,9 @@ class LinodeInterfaceVPCIPv4NATGatewayPortsetPort(JSONObject):
 @dataclass
 class LinodeInterfaceVPCIPv4NATGatewayPortset(JSONObject):
     address: str = ""
-    ports: List[LinodeInterfaceVPCIPv4NATGatewayPortsetPort] = field(default_factory=list)
+    ports: List[LinodeInterfaceVPCIPv4NATGatewayPortsetPort] = field(
+        default_factory=list
+    )
 
 
 @dataclass
@@ -270,7 +272,9 @@ class LinodeInterfaceVPCIPv4NATGateway(JSONObject):
     addresses: List[str] = field(default_factory=list)
     portset_assignments: int = 0
     portset_capacity: int = 0
-    portsets: List[LinodeInterfaceVPCIPv4NATGatewayPortset] = field(default_factory=list) # NOTE: This field may not be available to all users.
+    portsets: List[LinodeInterfaceVPCIPv4NATGatewayPortset] = field(
+        default_factory=list
+    )  # NOTE: This field may not be available to all users.
 
 
 @dataclass
