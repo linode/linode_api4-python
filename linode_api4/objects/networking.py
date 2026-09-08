@@ -569,7 +569,7 @@ class NATGatewayInterfacePortset(JSONObject):
 @dataclass
 class NATGatewayInterface(JSONObject):
     id: int = 0
-    linode: NATGatewayInterfaceLinode = None
+    linode: Optional[NATGatewayInterfaceLinode] = None
     addresses: List[str] = field(default_factory=list)
     portsets: List[NATGatewayInterfacePortset] = field(
         default_factory=list
@@ -578,9 +578,9 @@ class NATGatewayInterface(JSONObject):
 
 @dataclass
 class NATGatewayType(JSONObject):
-    id: int = 0
+    id: str = ""
     label: str = ""
-    price: Price = None
+    price: Optional[Price] = None
 
 
 @dataclass

@@ -119,7 +119,7 @@ class VPCTest(ClientBaseCase):
             self.assertEqual(m.call_url, "/vpcs/123456/subnets/789")
             self.assertEqual(m.call_data.get("label"), "cool-vpc-subnet")
 
-            # The fixture has a NAT Gateway already attached,so the
+            # The fixture has a NAT Gateway already attached, so the
             # unchanged put_class serialization is a no-op.
             self.assertEqual(m.call_data.get("natgateway"), {"id": 42})
 

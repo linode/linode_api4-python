@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Union
 
 from linode_api4.errors import UnexpectedResponseError
@@ -137,7 +137,7 @@ class VPCSubnetNATGatewayPortsetPort(JSONObject):
 @dataclass
 class VPCSubnetNATGatewayPortset(JSONObject):
     address: str = ""
-    ports: List[VPCSubnetNATGatewayPortsetPort] = None
+    ports: List[VPCSubnetNATGatewayPortsetPort] = field(default_factory=list)
 
 
 @dataclass
@@ -146,12 +146,11 @@ class VPCSubnetNATGateway(JSONObject):
 
     id: int = 0
     label: str = ""
-    addresses: List[str] = None
+    addresses: List[str] = field(default_factory=list)
     portset_assignments: int = 0
     portset_capacity: int = 0
-    portsets: List[VPCSubnetNATGatewayPortset] = (
-        None  # NOTE: This field may not be available to all users.
-    )
+    # NOTE: This field may not be available to all users.
+    portsets: List[VPCSubnetNATGatewayPortset] = field(default_factory=list)
 
 
 class VPCSubnet(DerivedBase):

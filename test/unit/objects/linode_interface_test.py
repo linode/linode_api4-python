@@ -154,7 +154,7 @@ class LinodeInterfaceTest(ClientBaseCase):
         assert iface.vpc.ipv4.natgateway.id == 42
         assert iface.vpc.ipv4.natgateway.label == "the-natgateway"
         assert iface.vpc.ipv4.natgateway.type == "natgateway"
-        assert iface.vpc.ipv4.natgateway.url == "/v4/networking/natgateways/1"
+        assert iface.vpc.ipv4.natgateway.url == "/v4/networking/natgateways/42"
         assert iface.vpc.ipv4.natgateway.addresses == ["203.0.113.42"]
         assert iface.vpc.ipv4.natgateway.portset_capacity == 30
         assert iface.vpc.ipv4.natgateway.portsets[0].address == "203.0.113.42"
