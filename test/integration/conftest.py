@@ -468,7 +468,6 @@ def test_oauth_client(test_linode_client):
 @pytest.fixture(scope="session")
 def create_vpc(test_linode_client):
     client = test_linode_client
-
     label = get_test_label(length=10)
 
     vpc = client.vpcs.create(
@@ -484,6 +483,27 @@ def create_vpc(test_linode_client):
         ),
         description="test description",
         ipv6=[{"range": "auto"}],
+    )
+    yield vpc
+
+    vpc.delete()
+
+
+@pytest.fixture
+def create_vpc_with_rdma_type(test_linode_client):
+    client = test_linode_client
+    label = get_test_label(length=10)
+
+    # GPUDirect RDMA capability not available for now
+    region = get_region(
+        test_linode_client, {"VPCs", "VPC IPv6 Stack", "Linode Interfaces"}
+    )
+
+    vpc = client.vpcs.create(
+        label=label,
+        region=region,
+        description="test description",
+        vpc_type="rdma",
     )
     yield vpc
 
@@ -523,6 +543,21 @@ def create_vpc_with_subnet_and_linode(
     yield vpc, subnet, instance
 
     instance.delete()
+
+
+@pytest.fixture
+def create_vpc_with_subnet_and_rdma_type(create_vpc_with_rdma_type):
+    vpc_rdma = create_vpc_with_rdma_type
+    label = get_test_label(length=10)
+
+    subnet_rdma = vpc_rdma.subnet_create(
+        label=label,
+        ipv4="10.0.0.0/24",
+    )
+
+    yield vpc_rdma, subnet_rdma
+
+    subnet_rdma.delete()
 
 
 @pytest.fixture
