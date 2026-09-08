@@ -634,7 +634,7 @@ class NetworkingGroup(Group):
         """
         Retrieves the NAT Gateways your user has access to.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-natgateways
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -662,7 +662,7 @@ class NetworkingGroup(Group):
 
         NOTE: NAT Gateways may not currently be available to all users.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-natgateways
 
         :param region: The region in which to create the NAT Gateway.
         :type region: str or Region
@@ -709,7 +709,7 @@ class NetworkingGroup(Group):
 
         NOTE: NAT Gateways may not currently be available to all users.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-natgateway-types
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -728,7 +728,7 @@ class NetworkingGroup(Group):
 
         NOTE: NAT Gateways may not currently be available to all users.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-natgateway-settings
 
         :returns: The NAT Gateway settings for the current user.
         :rtype: NATGatewaySettings

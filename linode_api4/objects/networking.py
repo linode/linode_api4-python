@@ -594,7 +594,7 @@ class NATGateway(Base):
     """
     Represents a single Linode NAT Gateway.
 
-    API documentation: TODO
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-natgateway
 
     NOTE: This feature may not currently be available to all users.
     """
@@ -621,7 +621,7 @@ class NATGateway(Base):
         """
         Retrieves the reserved IP address assignments for this NAT Gateway.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-natgateway-addresses
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -644,7 +644,7 @@ class NATGateway(Base):
         """
         Retrieves a single reserved IP address assignment for this NAT Gateway.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-natgateway-address
 
         :param address: The reserved IPv4 address to look up.
         :type address: str
@@ -664,7 +664,7 @@ class NATGateway(Base):
         """
         Assigns a reserved IP address to this NAT Gateway.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-natgateway-address
 
         :param address: The reserved IPv4 address to assign to this NAT Gateway.
         :type address: str
@@ -690,7 +690,7 @@ class NATGateway(Base):
         """
         Removes a reserved IP address assignment from this NAT Gateway.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/delete-natgateway-address
 
         :param address: The reserved IPv4 address to remove from this NAT Gateway.
         :type address: str
@@ -711,7 +711,7 @@ class NATGateway(Base):
         """
         Retrieves the Linode Interfaces attached to this NAT Gateway.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-natgateway-interfaces
 
         :param filters: Any number of filters to apply to this query.
                         See :doc:`Filtering Collections</linode_api4/objects/filtering>`
@@ -732,7 +732,7 @@ class NATGateway(Base):
         """
         Retrieves the Linode Interfaces using the given reserved IP address on this NAT Gateway.
 
-        API Documentation: TODO
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-natgateway-address-interfaces
 
         :param address: The reserved IPv4 address to look up interfaces for.
         :type address: str
