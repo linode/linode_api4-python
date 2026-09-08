@@ -44,8 +44,8 @@ class VPCGroup(Group):
         description: Optional[str] = None,
         subnets: Optional[List[Dict[str, Any]]] = None,
         ipv6: Optional[List[Union[VPCIPv6RangeOptions, Dict[str, Any]]]] = None,
-        vpc_type: Optional[Union[VPCType, str]] = None,
         ipv4: Optional[List[Union[VPCIPv4RangeOptions, Dict[str, Any]]]] = None,
+        vpc_type: Optional[Union[VPCType, str]] = None,
         **kwargs,
     ) -> VPC:
         """
