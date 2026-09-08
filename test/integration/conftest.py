@@ -17,7 +17,6 @@ import requests
 from requests.exceptions import ConnectionError, RequestException
 
 from linode_api4 import (
-    Capability,
     Instance,
     InterfaceGeneration,
     IPAddress,
@@ -41,8 +40,6 @@ ENV_REGION_OVERRIDE = "LINODE_TEST_REGION_OVERRIDE"
 ENV_API_CA_NAME = "LINODE_API_CA"
 RUN_LONG_TESTS = "RUN_LONG_TESTS"
 SKIP_E2E_FIREWALL = "SKIP_E2E_FIREWALL"
-
-TEST_VPC_REGION = None
 
 ALL_ACCOUNT_AVAILABILITIES = {
     "Linodes",
@@ -473,11 +470,6 @@ def create_vpc(test_linode_client):
     client = test_linode_client
     label = get_test_label(length=10)
 
-    global TEST_VPC_REGION
-    TEST_VPC_REGION = get_region(
-        test_linode_client, {"VPCs", "VPC IPv6 Stack", "Linode Interfaces"}
-    )
-
     vpc = client.vpcs.create(
         label=label,
         region=get_region(
@@ -502,15 +494,10 @@ def create_vpc_with_rdma_type(test_linode_client):
     client = test_linode_client
     label = get_test_label(length=10)
 
-    if TEST_VPC_REGION:
-        region = TEST_VPC_REGION
-    else:
-        region = get_region(
-            # GPUDirect RDMA capability not available for now
-            # test_linode_client, {Capability.vpcs, Capability.gpudirect_rdma}
-            test_linode_client,
-            {Capability.vpcs},
-        )
+    # GPUDirect RDMA capability not available for now
+    region = get_region(
+        test_linode_client, {"VPCs", "VPC IPv6 Stack", "Linode Interfaces"}
+    )
 
     vpc = client.vpcs.create(
         label=label,
