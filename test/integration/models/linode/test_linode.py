@@ -1039,7 +1039,10 @@ class TestNetworkInterface:
                 None,
             )
 
-        matched_ip = wait_for_condition(5, 120, resolve_vpc_ip)
+        try:
+            matched_ip = wait_for_condition(5, 120, resolve_vpc_ip)
+        except TimeoutError:
+            matched_ip = None
 
         assert (
             matched_ip is not None
@@ -1070,7 +1073,10 @@ class TestNetworkInterface:
                 None,
             )
 
-        matched_ipv6 = wait_for_condition(5, 120, resolve_vpc_ipv6)
+        try:
+            matched_ipv6 = wait_for_condition(5, 120, resolve_vpc_ipv6)
+        except TimeoutError:
+            matched_ipv6 = None
 
         assert (
             matched_ipv6
