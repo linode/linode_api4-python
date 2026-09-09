@@ -144,7 +144,9 @@ def linode_for_vpu_tests(test_linode_client, e2e_test_firewall):
             root_pass="aComplex@Password123",
         )
     except ApiError as e:
-        if e.status == 400 and "The Linode plan you chose is not currently available in the selected region" in str(e):
+        reasons = e.errors or [str(e)]
+        unavailable_msg = "not currently available in the selected region"
+        if e.status == 400 and any(unavailable_msg in r for r in reasons):
             pytest.skip("No VPU capacity is currently available")
         raise
 
@@ -1023,18 +1025,21 @@ class TestNetworkInterface:
 
         # TODO:: Add `VPCIPAddress.filters.linode_id == linode.id` filter back
 
-        # Attempt to resolve the IP from /vpcs/ips
-        all_vpc_ips = test_linode_client.vpcs.ips()
-        matched_ip = next(
-            (
-                ip
-                for ip in all_vpc_ips
-                if ip.address == vpc_ip.address
-                and ip.vpc_id == vpc_ip.vpc_id
-                and ip.linode_id == vpc_ip.linode_id
-            ),
-            None,
-        )
+        # Attempt to resolve the IP from /vpcs/ips. The account-wide listing
+        # may lag behind instance creation, so poll until the IP appears.
+        def resolve_vpc_ip():
+            return next(
+                (
+                    ip
+                    for ip in test_linode_client.vpcs.ips()
+                    if ip.address == vpc_ip.address
+                    and ip.vpc_id == vpc_ip.vpc_id
+                    and ip.linode_id == vpc_ip.linode_id
+                ),
+                None,
+            )
+
+        matched_ip = wait_for_condition(5, 120, resolve_vpc_ip)
 
         assert (
             matched_ip is not None
