@@ -102,7 +102,7 @@ def linode_and_vpc_for_legacy_interface_tests_offline(
     label = get_test_label(length=8)
 
     instance = test_linode_client.linode.instance_create(
-        "g6-standard-1",
+        "g5-standard-1",
         vpc.region,
         booted=False,
         image="linode/debian11",
@@ -1054,21 +1054,23 @@ class TestNetworkInterface:
         assert vpc_ips[0].linode_id == linode.id
         assert vpc_ips[0].nat_1_1 == linode.ips.ipv4.public[0].address
 
-        # Validate VPC IPv6 IPs from /vpcs/ips
-        all_vpc_ipv6 = test_linode_client.get("/vpcs/ipv6s")["data"]
+        # Validate VPC IPv6 IPs from /vpcs/ipv6s. The account-wide listing may
+        # lag behind instance creation, so poll until the entry appears.
+        def resolve_vpc_ipv6():
+            all_vpc_ipv6 = test_linode_client.get("/vpcs/ipv6s")["data"]
+            return next(
+                (
+                    ip
+                    for ip in all_vpc_ipv6
+                    if ip["vpc_id"] == vpc.id
+                    and ip["linode_id"] == linode.id
+                    and ip["interface_id"] == interface.id
+                    and ip["subnet_id"] == subnet.id
+                ),
+                None,
+            )
 
-        # Find matching VPC IPv6 entry
-        matched_ipv6 = next(
-            (
-                ip
-                for ip in all_vpc_ipv6
-                if ip["vpc_id"] == vpc.id
-                and ip["linode_id"] == linode.id
-                and ip["interface_id"] == interface.id
-                and ip["subnet_id"] == subnet.id
-            ),
-            None,
-        )
+        matched_ipv6 = wait_for_condition(5, 120, resolve_vpc_ipv6)
 
         assert (
             matched_ipv6

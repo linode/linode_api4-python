@@ -481,7 +481,6 @@ def create_vpc(test_linode_client):
                 "Custom VPC IPv4 Ranges",
                 "Linodes",
             },
-            site_type="core",
         ),
         description="test description",
         ipv6=[{"range": "auto"}],
