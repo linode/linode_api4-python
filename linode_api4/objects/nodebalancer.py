@@ -162,10 +162,10 @@ class NodeBalancerConfig(DerivedBase):
 
         API documentation: https://techdocs.akamai.com/linode-api/reference/post-node-balancer-node
 
-        :param address: The address where this backend can be reached. This may
-                        be a private IPv4 address, a public IPv6 address in
-                        ``[IPv6]:port`` format, or a VPC address. The address
-                        type must match this NodeBalancer's ``backend_connectivity``.
+        :param address: The address and port where this backend can be reached.
+                        The address may be a private IPv4 address, a public
+                        IPv6 address, or a VPC address. The address type must
+                        match this NodeBalancer's ``backend_connectivity``.
         :type address: str
 
         :param label: The label for this node. This is for display purposes only.
