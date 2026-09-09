@@ -479,6 +479,7 @@ def create_vpc(test_linode_client):
                 "VPC IPv6 Stack",
                 "Linode Interfaces",
                 "Custom VPC IPv4 Ranges",
+                "Linodes",
             },
         ),
         description="test description",

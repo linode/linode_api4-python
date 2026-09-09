@@ -102,7 +102,7 @@ def linode_and_vpc_for_legacy_interface_tests_offline(
     label = get_test_label(length=8)
 
     instance = test_linode_client.linode.instance_create(
-        "g6-standard-1",
+        "g5-standard-1",
         vpc.region,
         booted=False,
         image="linode/debian11",
@@ -134,15 +134,21 @@ def linode_for_vpu_tests(test_linode_client, e2e_test_firewall):
         pytest.skip("No VPU capacity is currently available")
 
     label = get_test_label(length=8)
-
-    linode_instance = client.linode.instance_create(
-        vpu_type,
-        region,
-        image="linode/debian12",
-        label=label,
-        firewall=e2e_test_firewall,
-        root_pass="aComplex@Password123",
-    )
+    try:
+        linode_instance = client.linode.instance_create(
+            vpu_type,
+            region,
+            image="linode/debian12",
+            label=label,
+            firewall=e2e_test_firewall,
+            root_pass="aComplex@Password123",
+        )
+    except ApiError as e:
+        reasons = e.errors or [str(e)]
+        unavailable_msg = "not currently available in the selected region"
+        if e.status == 400 and any(unavailable_msg in r for r in reasons):
+            pytest.skip("No VPU capacity is currently available")
+        raise
 
     yield linode_instance
 
@@ -1019,18 +1025,24 @@ class TestNetworkInterface:
 
         # TODO:: Add `VPCIPAddress.filters.linode_id == linode.id` filter back
 
-        # Attempt to resolve the IP from /vpcs/ips
-        all_vpc_ips = test_linode_client.vpcs.ips()
-        matched_ip = next(
-            (
-                ip
-                for ip in all_vpc_ips
-                if ip.address == vpc_ip.address
-                and ip.vpc_id == vpc_ip.vpc_id
-                and ip.linode_id == vpc_ip.linode_id
-            ),
-            None,
-        )
+        # Attempt to resolve the IP from /vpcs/ips. The account-wide listing
+        # may lag behind instance creation, so poll until the IP appears.
+        def resolve_vpc_ip():
+            return next(
+                (
+                    ip
+                    for ip in test_linode_client.vpcs.ips()
+                    if ip.address == vpc_ip.address
+                    and ip.vpc_id == vpc_ip.vpc_id
+                    and ip.linode_id == vpc_ip.linode_id
+                ),
+                None,
+            )
+
+        try:
+            matched_ip = wait_for_condition(5, 120, resolve_vpc_ip)
+        except TimeoutError:
+            matched_ip = None
 
         assert (
             matched_ip is not None
@@ -1045,21 +1057,26 @@ class TestNetworkInterface:
         assert vpc_ips[0].linode_id == linode.id
         assert vpc_ips[0].nat_1_1 == linode.ips.ipv4.public[0].address
 
-        # Validate VPC IPv6 IPs from /vpcs/ips
-        all_vpc_ipv6 = test_linode_client.get("/vpcs/ipv6s")["data"]
+        # Validate VPC IPv6 IPs from /vpcs/ipv6s. The account-wide listing may
+        # lag behind instance creation, so poll until the entry appears.
+        def resolve_vpc_ipv6():
+            all_vpc_ipv6 = test_linode_client.get("/vpcs/ipv6s")["data"]
+            return next(
+                (
+                    ip
+                    for ip in all_vpc_ipv6
+                    if ip["vpc_id"] == vpc.id
+                    and ip["linode_id"] == linode.id
+                    and ip["interface_id"] == interface.id
+                    and ip["subnet_id"] == subnet.id
+                ),
+                None,
+            )
 
-        # Find matching VPC IPv6 entry
-        matched_ipv6 = next(
-            (
-                ip
-                for ip in all_vpc_ipv6
-                if ip["vpc_id"] == vpc.id
-                and ip["linode_id"] == linode.id
-                and ip["interface_id"] == interface.id
-                and ip["subnet_id"] == subnet.id
-            ),
-            None,
-        )
+        try:
+            matched_ipv6 = wait_for_condition(5, 120, resolve_vpc_ipv6)
+        except TimeoutError:
+            matched_ipv6 = None
 
         assert (
             matched_ipv6
