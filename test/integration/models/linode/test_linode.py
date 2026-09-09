@@ -134,15 +134,19 @@ def linode_for_vpu_tests(test_linode_client, e2e_test_firewall):
         pytest.skip("No VPU capacity is currently available")
 
     label = get_test_label(length=8)
-
-    linode_instance = client.linode.instance_create(
-        vpu_type,
-        region,
-        image="linode/debian12",
-        label=label,
-        firewall=e2e_test_firewall,
-        root_pass="aComplex@Password123",
-    )
+    try:
+        linode_instance = client.linode.instance_create(
+            vpu_type,
+            region,
+            image="linode/debian12",
+            label=label,
+            firewall=e2e_test_firewall,
+            root_pass="aComplex@Password123",
+        )
+    except ApiError as e:
+        if e.status == 400 and "The Linode plan you chose is not currently available in the selected region" in str(e):
+            pytest.skip("No VPU capacity is currently available")
+        raise
 
     yield linode_instance
 
