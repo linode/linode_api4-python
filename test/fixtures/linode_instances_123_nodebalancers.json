@@ -8,6 +8,8 @@
       "ipv4": "203.0.113.1",
       "ipv6": null,
       "label": "balancer12345",
+      "type": "premium",
+      "backend_connectivity": "ipv6",
       "region": "us-east",
       "tags": [
         "example tag",

@@ -162,8 +162,10 @@ class NodeBalancerConfig(DerivedBase):
 
         API documentation: https://techdocs.akamai.com/linode-api/reference/post-node-balancer-node
 
-        :param address: The private IP Address where this backend can be reached.
-                        This must be a private IP address.
+        :param address: The address and port where this backend can be reached.
+                        The address may be a private IPv4 address, a public
+                        IPv6 address, or a VPC address. The address type must
+                        match this NodeBalancer's ``backend_connectivity``.
         :type address: str
 
         :param label: The label for this node. This is for display purposes only.
@@ -255,6 +257,8 @@ class NodeBalancer(Base):
         "tags": Property(mutable=True, unordered=True),
         "client_udp_sess_throttle": Property(mutable=True),
         "locks": Property(unordered=True),
+        "type": Property(),
+        "backend_connectivity": Property(),
     }
 
     # create derived objects
