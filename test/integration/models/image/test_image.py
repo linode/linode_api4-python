@@ -43,11 +43,9 @@ def image_upload_url(test_linode_client):
 
     region = get_image_upload_regions(test_linode_client)[0]
 
-    test_linode_client.image_create_upload(
+    image, _ = test_linode_client.image_create_upload(
         label, region.id, "integration test image upload"
     )
-
-    image = test_linode_client.images()[0]
 
     yield image
 

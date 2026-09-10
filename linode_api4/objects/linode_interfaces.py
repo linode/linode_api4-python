@@ -188,6 +188,47 @@ class LinodeInterfaceVLANOptions(JSONObject):
 
 
 @dataclass
+class LinodeInterfaceRDMAVPCIPv4AddressOptions(JSONObject):
+    """
+    Options accepted for a single address when creating or updating the IPv4
+    configuration of an RDMA VPC Linode Interface.
+
+    Only one address is supported per RDMA VPC interface, and it must be
+    marked as primary.
+    """
+
+    address: Optional[str] = None
+    primary: Optional[bool] = None
+
+
+@dataclass
+class LinodeInterfaceRDMAVPCIPv4Options(JSONObject):
+    """
+    Options accepted when creating or updating the IPv4 configuration of an
+    RDMA VPC Linode Interface.
+
+    The ``addresses`` list MUST contain exactly one element. If omitted, the
+    API defaults to a single primary ``auto`` address.
+    """
+
+    addresses: Optional[List[LinodeInterfaceRDMAVPCIPv4AddressOptions]] = None
+
+
+@dataclass
+class LinodeInterfaceRDMAVPCOptions(JSONObject):
+    """
+    RDMA-VPC-exclusive options accepted when creating or updating a Linode
+    Interface.
+
+    Used for GPUDirect RDMA interfaces. Default routes and NAT 1:1 addresses
+    are not supported on RDMA VPC interfaces.
+    """
+
+    subnet_id: int = 0
+    ipv4: Optional[LinodeInterfaceRDMAVPCIPv4Options] = None
+
+
+@dataclass
 class LinodeInterfaceOptions(JSONObject):
     """
     Options accepted when creating or updating a Linode Interface.
@@ -204,6 +245,7 @@ class LinodeInterfaceOptions(JSONObject):
     vpc: Optional[LinodeInterfaceVPCOptions] = None
     public: Optional[LinodeInterfacePublicOptions] = None
     vlan: Optional[LinodeInterfaceVLANOptions] = None
+    rdma_vpc: Optional[LinodeInterfaceRDMAVPCOptions] = None
 
 
 # Interface GET Response
@@ -409,6 +451,45 @@ class LinodeInterfaceVLAN(JSONObject):
     ipam_address: Optional[str] = None
 
 
+@dataclass
+class LinodeInterfaceRDMAVPCIPv4Address(JSONObject):
+    """
+    A single address under the IPv4 configuration of an RDMA VPC Linode Interface.
+    """
+
+    put_class = LinodeInterfaceRDMAVPCIPv4AddressOptions
+
+    address: str = ""
+    primary: bool = False
+
+
+@dataclass
+class LinodeInterfaceRDMAVPCIPv4(JSONObject):
+    """
+    The IPv4 configuration of an RDMA VPC Linode Interface.
+    """
+
+    put_class = LinodeInterfaceRDMAVPCIPv4Options
+
+    addresses: List[LinodeInterfaceRDMAVPCIPv4Address] = field(
+        default_factory=list
+    )
+
+
+@dataclass
+class LinodeInterfaceRDMAVPC(JSONObject):
+    """
+    RDMA VPC-specific configuration field for a Linode Interface.
+    """
+
+    put_class = LinodeInterfaceRDMAVPCOptions
+
+    vpc_id: int = 0
+    subnet_id: int = 0
+
+    ipv4: Optional[LinodeInterfaceRDMAVPCIPv4] = None
+
+
 class LinodeInterface(DerivedBase):
     """
     A Linode's network interface.
@@ -449,6 +530,7 @@ class LinodeInterface(DerivedBase):
         "public": Property(mutable=True, json_object=LinodeInterfacePublic),
         "vlan": Property(mutable=True, json_object=LinodeInterfaceVLAN),
         "vpc": Property(mutable=True, json_object=LinodeInterfaceVPC),
+        "rdma_vpc": Property(mutable=True, json_object=LinodeInterfaceRDMAVPC),
     }
 
     def firewalls(self, *filters) -> List[Firewall]:

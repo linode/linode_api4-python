@@ -11,6 +11,7 @@ from linode_api4.objects import (
     VPCIPv6RangeOptions,
 )
 from linode_api4.objects.base import _flatten_request_body_recursive
+from linode_api4.objects.vpc import VPCType
 from linode_api4.paginated_list import PaginatedList
 from linode_api4.util import drop_null_keys
 
@@ -44,6 +45,7 @@ class VPCGroup(Group):
         subnets: Optional[List[Dict[str, Any]]] = None,
         ipv6: Optional[List[Union[VPCIPv6RangeOptions, Dict[str, Any]]]] = None,
         ipv4: Optional[List[Union[VPCIPv4RangeOptions, Dict[str, Any]]]] = None,
+        vpc_type: Optional[Union[VPCType, str]] = None,
         **kwargs,
     ) -> VPC:
         """
@@ -61,6 +63,11 @@ class VPCGroup(Group):
         :type subnets: List[Dict[str, Any]]
         :param ipv6: The IPv6 address ranges for this VPC.
         :type ipv6: List[Union[VPCIPv6RangeOptions, Dict[str, Any]]]
+        :param vpc_type: The type of VPC to create. Defaults to ``regular`` on
+                         the API side. Set to ``rdma`` to create a GPUDirect
+                         RDMA VPC (requires the ``GPUDirect RDMA`` account
+                         capability).
+        :type vpc_type: Optional[Union[VPCType, str]]
         :param ipv4: The IPv4 address ranges for this VPC. Note that IPv4 VPCs may not currently be available to all users.
         :type ipv4: List[Union[VPCIPv4RangeOptions, Dict[str, Any]]]
 
@@ -74,6 +81,7 @@ class VPCGroup(Group):
             "ipv4": ipv4,
             "ipv6": ipv6,
             "subnets": subnets,
+            "vpc_type": vpc_type,
         }
 
         if subnets is not None and len(subnets) > 0:
