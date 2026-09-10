@@ -140,6 +140,49 @@ class VPCTest(ClientBaseCase):
             self.assertEqual(m.call_url, "/vpcs/123456/subnets/789")
             self.assertEqual(m.call_data.get("natgateway"), {"id": None})
 
+    def test_update_subnet_label_only_no_gateway(self):
+        """
+        Tests that saving a subnet with no NAT Gateway attached omits the
+        ``natgateway`` key from the PUT body entirely (rather than sending
+        a spurious ``null`` or empty object). This is the safe path for
+        accounts without the NAT Gateway feature.
+        """
+
+        with self.mock_put("/vpcs/123456/subnets/790") as m:
+            subnet = VPCSubnet(self.client, 790, 123456)
+            _ = subnet.label
+
+            subnet.label = "renamed-subnet"
+            subnet.save()
+
+            self.assertEqual(m.call_url, "/vpcs/123456/subnets/790")
+            self.assertEqual(m.call_data.get("label"), "renamed-subnet")
+            self.assertNotIn("natgateway", m.call_data)
+
+    def test_create_subnet_disconnect_natgateway_signal(self):
+        """
+        Tests that ``VPCSubnetNATGatewayOptions(id=None)`` on POST is
+        preserved as ``{"natgateway": {"id": null}}`` through
+        ``drop_null_keys`` (rather than collapsing to ``{}``).
+        """
+
+        with self.mock_post("/vpcs/123456/subnets/789") as m:
+            vpc = VPC(self.client, 123456)
+            vpc.subnet_create(
+                "test-subnet",
+                "10.0.0.0/24",
+                natgateway=VPCSubnetNATGatewayOptions(id=None),
+            )
+
+            self.assertEqual(
+                m.call_data,
+                {
+                    "label": "test-subnet",
+                    "ipv4": "10.0.0.0/24",
+                    "natgateway": {"id": None},
+                },
+            )
+
     def test_list_ips(self):
         """
         Validates that all VPC IPs can be listed.

@@ -583,6 +583,9 @@ class NATGatewayType(JSONObject):
     price: Optional[Price] = None
 
 
+# TODO: replace with base once the region_prices and transfer fields are in use and returned by the API
+
+
 @dataclass
 class NATGatewaySettings(JSONObject):
     allowed_ports_per_interface: List[int] = field(default_factory=list)
@@ -605,7 +608,7 @@ class NATGateway(Base):
 
     properties = {
         "id": Property(identifier=True),
-        "region": Property(),
+        "region": Property(slug_relationship=Region),
         "addresses": Property(json_object=NATGatewayAddress),
         "address_autoscale_max": Property(),
         "default_ports_per_interface": Property(),
@@ -677,6 +680,7 @@ class NATGateway(Base):
             model=self,
             data={"address": address},
         )
+        self.invalidate()
 
         if "address" not in result:
             raise UnexpectedResponseError(
@@ -702,6 +706,7 @@ class NATGateway(Base):
             "{}/addresses/{}".format(NATGateway.api_endpoint, address),
             model=self,
         )
+        self.invalidate()
 
         if "error" in resp:
             return False

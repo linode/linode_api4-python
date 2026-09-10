@@ -208,7 +208,9 @@ class VPC(Base):
         ipv6: Optional[
             List[Union[VPCSubnetIPv6RangeOptions, Dict[str, Any]]]
         ] = None,
-        natgateway: Optional[VPCSubnetNATGatewayOptions] = None,
+        natgateway: Optional[
+            Union[VPCSubnetNATGatewayOptions, Dict[str, Any]]
+        ] = None,
         **kwargs,
     ) -> VPCSubnet:
         """
@@ -229,15 +231,22 @@ class VPC(Base):
             "label": label,
             "ipv4": ipv4,
             "ipv6": ipv6,
-            "natgateway": natgateway,
         }
 
         params.update(kwargs)
 
+        data = drop_null_keys(_flatten_request_body_recursive(params))
+
+        # Preserve the ``{"id": null}`` detach signal separately: ``drop_null_keys``
+        # is recursive and would otherwise strip an explicit ``id: None`` inside
+        # ``natgateway``, collapsing the detach payload to ``{}``.
+        if natgateway is not None:
+            data["natgateway"] = _flatten_request_body_recursive(natgateway)
+
         result = self._client.post(
             "{}/subnets".format(VPC.api_endpoint),
             model=self,
-            data=drop_null_keys(_flatten_request_body_recursive(params)),
+            data=data,
         )
         self.invalidate()
 

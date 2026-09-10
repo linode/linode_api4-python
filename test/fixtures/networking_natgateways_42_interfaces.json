@@ -8,10 +8,10 @@
         "type": "linode",
         "url": "/v4/linode/instances/1001"
       },
-      "addresses": ["172.24.213.144"],
+      "addresses": ["203.0.113.42"],
       "portsets": [
         {
-          "address": "172.24.213.144",
+          "address": "203.0.113.42",
           "ports": [{"start": 2048, "end": 3071}]
         }
       ]
@@ -24,10 +24,10 @@
         "type": "linode",
         "url": "/v4/linode/instances/1002"
       },
-      "addresses": ["172.24.213.144"],
+      "addresses": ["203.0.113.43"],
       "portsets": [
         {
-          "address": "172.24.213.144",
+          "address": "203.0.113.43",
           "ports": [{"start": 3072, "end": 4095}]
         }
       ]

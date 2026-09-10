@@ -3,8 +3,8 @@
     {
       "address": "203.0.113.42",
       "in_use": true,
-      "interface_count": 2,
-      "interface_url": "/v4/linode/instances/123/interfaces/456",
+      "interface_count": 1,
+      "interface_url": "/v4/networking/natgateways/42/addresses/203.0.113.42/interfaces",
       "portset_assignments": 15,
       "portset_capacity": 30
     }

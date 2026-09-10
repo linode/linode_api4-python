@@ -469,7 +469,7 @@ class NATGatewayTest(ClientBaseCase):
     def assert_natgateway_42(natgateway: NATGateway):
         assert natgateway.id == 42
         assert natgateway.label == "the-natgateway"
-        assert natgateway.region == "us-east"
+        assert natgateway.region.id == "us-east"
         assert natgateway.address_autoscale_max == 4
         assert natgateway.default_ports_per_interface == 4096
         assert natgateway.portset_assignments == 15
@@ -521,10 +521,10 @@ class NATGatewayTest(ClientBaseCase):
     def assert_address_assignment(assignment: NATGatewayAddressAssignment):
         assert assignment.address == "203.0.113.42"
         assert assignment.in_use is True
-        assert assignment.interface_count == 2
+        assert assignment.interface_count == 1
         assert (
             assignment.interface_url
-            == "/v4/linode/instances/123/interfaces/456"
+            == "/v4/networking/natgateways/42/addresses/203.0.113.42/interfaces"
         )
         assert assignment.portset_assignments == 15
         assert assignment.portset_capacity == 30
@@ -590,8 +590,8 @@ class NATGatewayTest(ClientBaseCase):
         assert first.linode.label == "linode1001"
         assert first.linode.type == "linode"
         assert first.linode.url == "/v4/linode/instances/1001"
-        assert first.addresses == ["172.24.213.144"]
-        assert first.portsets[0].address == "172.24.213.144"
+        assert first.addresses == ["203.0.113.42"]
+        assert first.portsets[0].address == "203.0.113.42"
         assert first.portsets[0].ports[0].start == 2048
         assert first.portsets[0].ports[0].end == 3071
 
@@ -599,6 +599,8 @@ class NATGatewayTest(ClientBaseCase):
         assert second.id == 143
         assert second.linode.id == 1002
         assert second.linode.label == "linode1002"
+        assert second.addresses == ["203.0.113.43"]
+        assert second.portsets[0].address == "203.0.113.43"
 
     def test_list_interfaces(self):
         """
@@ -612,8 +614,9 @@ class NATGatewayTest(ClientBaseCase):
         """
         Tests GET /networking/natgateways/{id}/addresses/{address}/interfaces.
 
-        The per-address endpoint only returns interfaces actually using that
-        address, so the response is a subset of the gateway-wide list.
+        The per-address endpoint returns only the interfaces using that
+        specific address. In the fixture, only interface 142 uses
+        203.0.113.42; interface 143 uses 203.0.113.43.
         """
         natgateway = NATGateway(self.client, 42)
         interfaces = natgateway.address_interfaces("203.0.113.42")
