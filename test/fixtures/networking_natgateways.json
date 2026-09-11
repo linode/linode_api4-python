@@ -1,0 +1,30 @@
+{
+  "data": [
+    {
+      "id": 42,
+      "label": "the-natgateway",
+      "region": "us-east",
+      "addresses": [
+        {"address": "203.0.113.42"}
+      ],
+      "address_autoscale_max": 4,
+      "default_ports_per_interface": 4096,
+      "portset_assignments": 15,
+      "portset_capacity": 30,
+      "vpc_subnet": {
+        "id": 789,
+        "type": "subnet",
+        "label": "my-subnet",
+        "url": "/v4/vpcs/123456/subnets/789",
+        "vpc_id": 123456,
+        "vpc_label": "my-vpc"
+      },
+      "created": "2018-01-01T00:01:01",
+      "updated": "2018-01-01T00:01:01"
+    }
+  ],
+  "page": 1,
+  "pages": 1,
+  "results": 1
+}
+

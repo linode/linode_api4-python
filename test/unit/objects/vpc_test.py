@@ -1,7 +1,7 @@
 import datetime
 from test.unit.base import ClientBaseCase
 
-from linode_api4 import DATE_FORMAT, VPC, VPCSubnet
+from linode_api4 import DATE_FORMAT, VPC, VPCSubnet, VPCSubnetNATGatewayOptions
 
 
 class VPCTest(ClientBaseCase):
@@ -62,7 +62,11 @@ class VPCTest(ClientBaseCase):
 
         with self.mock_post("/vpcs/123456/subnets/789") as m:
             vpc = VPC(self.client, 123456)
-            subnet = vpc.subnet_create("test-subnet", "10.0.0.0/24")
+            subnet = vpc.subnet_create(
+                "test-subnet",
+                "10.0.0.0/24",
+                natgateway=VPCSubnetNATGatewayOptions(id=42),
+            )
 
             self.assertEqual(m.call_url, "/vpcs/123456/subnets")
 
@@ -71,10 +75,113 @@ class VPCTest(ClientBaseCase):
                 {
                     "label": "test-subnet",
                     "ipv4": "10.0.0.0/24",
+                    "natgateway": {"id": 42},
                 },
             )
 
             self.validate_vpc_subnet_789(subnet)
+
+    def test_update_subnet_attach_natgateway(self):
+        """
+        Tests that saving a subnet with a new NAT Gateway sends
+        {"label": ..., "natgateway": {"id": 42}}.
+        """
+
+        with self.mock_put("/vpcs/123456/subnets/789") as m:
+            subnet = VPCSubnet(self.client, 789, 123456)
+            # Force a lazy load so the object is fully populated.
+            _ = subnet.label
+
+            subnet.label = "cool-vpc-subnet"
+            subnet.natgateway = VPCSubnetNATGatewayOptions(id=42)
+            subnet.save()
+
+            self.assertEqual(m.call_url, "/vpcs/123456/subnets/789")
+
+            self.assertEqual(m.call_data.get("label"), "cool-vpc-subnet")
+            self.assertEqual(m.call_data.get("natgateway"), {"id": 42})
+
+    def test_update_subnet_label_only(self):
+        """
+        Tests that saving a subnet without touching natgateway either
+        omits the field or serializes the current attached NAT Gateway
+        as a no-op {"id": <current_id>}.
+        """
+
+        with self.mock_put("/vpcs/123456/subnets/789") as m:
+            subnet = VPCSubnet(self.client, 789, 123456)
+            # Force a lazy load so the object is fully populated.
+            _ = subnet.label
+
+            subnet.label = "cool-vpc-subnet"
+            subnet.save()
+
+            self.assertEqual(m.call_url, "/vpcs/123456/subnets/789")
+            self.assertEqual(m.call_data.get("label"), "cool-vpc-subnet")
+
+            # The fixture has a NAT Gateway already attached, so the
+            # unchanged put_class serialization is a no-op.
+            self.assertEqual(m.call_data.get("natgateway"), {"id": 42})
+
+    def test_update_subnet_disconnect_natgateway(self):
+        """
+        Tests that saving a subnet after setting natgateway to
+        VPCSubnetNATGatewayOptions(id=None) sends {"natgateway": {"id": null}}.
+        """
+
+        with self.mock_put("/vpcs/123456/subnets/789") as m:
+            subnet = VPCSubnet(self.client, 789, 123456)
+            # Force a lazy load so the object is fully populated.
+            _ = subnet.label
+
+            subnet.natgateway = VPCSubnetNATGatewayOptions(id=None)
+            subnet.save()
+
+            self.assertEqual(m.call_url, "/vpcs/123456/subnets/789")
+            self.assertEqual(m.call_data.get("natgateway"), {"id": None})
+
+    def test_update_subnet_label_only_no_gateway(self):
+        """
+        Tests that saving a subnet with no NAT Gateway attached omits the
+        ``natgateway`` key from the PUT body entirely (rather than sending
+        a spurious ``null`` or empty object). This is the safe path for
+        accounts without the NAT Gateway feature.
+        """
+
+        with self.mock_put("/vpcs/123456/subnets/790") as m:
+            subnet = VPCSubnet(self.client, 790, 123456)
+            _ = subnet.label
+
+            subnet.label = "renamed-subnet"
+            subnet.save()
+
+            self.assertEqual(m.call_url, "/vpcs/123456/subnets/790")
+            self.assertEqual(m.call_data.get("label"), "renamed-subnet")
+            self.assertNotIn("natgateway", m.call_data)
+
+    def test_create_subnet_disconnect_natgateway_signal(self):
+        """
+        Tests that ``VPCSubnetNATGatewayOptions(id=None)`` on POST is
+        preserved as ``{"natgateway": {"id": null}}`` through
+        ``drop_null_keys`` (rather than collapsing to ``{}``).
+        """
+
+        with self.mock_post("/vpcs/123456/subnets/789") as m:
+            vpc = VPC(self.client, 123456)
+            vpc.subnet_create(
+                "test-subnet",
+                "10.0.0.0/24",
+                natgateway=VPCSubnetNATGatewayOptions(id=None),
+            )
+
+            self.assertEqual(
+                m.call_data,
+                {
+                    "label": "test-subnet",
+                    "ipv4": "10.0.0.0/24",
+                    "natgateway": {"id": None},
+                },
+            )
 
     def test_list_ips(self):
         """
@@ -141,6 +248,15 @@ class VPCTest(ClientBaseCase):
 
         self.assertEqual(subnet.ipv6[0].range, "fd71:1140:a9d0::/52")
 
+        assert subnet.natgateway.id == 42
+        assert subnet.natgateway.label == "my-nat-gateway"
+        assert subnet.natgateway.addresses == ["203.0.113.42"]
+        assert subnet.natgateway.portset_assignments == 15
+        assert subnet.natgateway.portset_capacity == 30
+        assert subnet.natgateway.portsets[0].address == "203.0.113.42"
+        assert subnet.natgateway.portsets[0].ports[0].start == 2048
+        assert subnet.natgateway.portsets[0].ports[0].end == 3071
+
     def test_list_vpc_ips(self):
         """
         Test that the ips under a specific VPC can be listed.
@@ -165,6 +281,14 @@ class VPCTest(ClientBaseCase):
         self.assertEqual(vpc_ip.gateway, "10.0.0.1")
         self.assertEqual(vpc_ip.prefix, 8)
         self.assertEqual(vpc_ip.subnet_mask, "255.0.0.0")
+
+        self.assertEqual(vpc_ip.natgateway.id, 42)
+        self.assertEqual(vpc_ip.natgateway.addresses, ["203.0.113.42"])
+        self.assertEqual(vpc_ip.natgateway.portset_assignments, 15)
+        self.assertEqual(vpc_ip.natgateway.portset_capacity, 30)
+        self.assertEqual(vpc_ip.natgateway.portsets[0].address, "203.0.113.42")
+        self.assertEqual(vpc_ip.natgateway.portsets[0].ports[0].start, 2048)
+        self.assertEqual(vpc_ip.natgateway.portsets[0].ports[0].end, 3071)
 
         vpc_ip_2 = vpc_ips[2]
 

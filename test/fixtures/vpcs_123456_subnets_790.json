@@ -1,0 +1,11 @@
+{
+    "id": 790,
+    "label": "no-gateway-subnet",
+    "ipv4": "10.0.1.0/24",
+    "ipv6": [],
+    "linodes": [],
+    "databases": [],
+    "created": "2018-01-01T00:01:01",
+    "updated": "2018-01-01T00:01:01"
+}
+

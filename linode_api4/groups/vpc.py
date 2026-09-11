@@ -73,7 +73,6 @@ class VPCGroup(Group):
             "description": description,
             "ipv4": ipv4,
             "ipv6": ipv6,
-            "subnets": subnets,
         }
 
         if subnets is not None and len(subnets) > 0:
@@ -85,10 +84,19 @@ class VPCGroup(Group):
 
         params.update(kwargs)
 
-        result = self.client.post(
-            "/vpcs",
-            data=drop_null_keys(_flatten_request_body_recursive(params)),
-        )
+        data = drop_null_keys(_flatten_request_body_recursive(params))
+
+        # Preserve the ``{"id": null}`` detach signal on any subnet's
+        # ``natgateway`` field: ``drop_null_keys`` is recursive and would
+        # otherwise strip an explicit ``id: None`` inside ``natgateway``.
+        # Bypass ``drop_null_keys`` for the entire ``subnets`` payload -
+        # ``JSONObject`` values already strip their own optional ``None``
+        # fields via ``_serialize``, and raw-dict subnets are expected to
+        # be clean.
+        if subnets is not None:
+            data["subnets"] = _flatten_request_body_recursive(subnets)
+
+        result = self.client.post("/vpcs", data=data)
 
         if not "id" in result:
             raise UnexpectedResponseError(

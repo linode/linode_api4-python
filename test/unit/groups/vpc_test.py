@@ -1,7 +1,13 @@
 import datetime
 from test.unit.base import ClientBaseCase
 
-from linode_api4 import DATE_FORMAT, VPC, VPCIPv4DefaultRange, VPCSubnet
+from linode_api4 import (
+    DATE_FORMAT,
+    VPC,
+    VPCIPv4DefaultRange,
+    VPCSubnet,
+    VPCSubnetNATGatewayOptions,
+)
 
 
 class VPCTest(ClientBaseCase):
@@ -58,6 +64,75 @@ class VPCTest(ClientBaseCase):
             self.assertEqual(vpc._populated, True)
             self.validate_vpc_123456(vpc)
 
+    def test_create_vpc_with_subnet_natgateway(self):
+        """
+        Tests that a subnet's natgateway is correctly serialized.
+        """
+
+        with self.mock_post("/vpcs/123456") as m:
+            vpc = self.client.vpcs.create(
+                "test-vpc",
+                "us-southeast",
+                subnets=[
+                    {
+                        "label": "test-subnet",
+                        "ipv4": "10.0.0.0/24",
+                        "natgateway": VPCSubnetNATGatewayOptions(id=42),
+                    },
+                ],
+            )
+
+            self.assertEqual(m.call_url, "/vpcs")
+
+            self.assertEqual(
+                m.call_data,
+                {
+                    "label": "test-vpc",
+                    "region": "us-southeast",
+                    "subnets": [
+                        {
+                            "label": "test-subnet",
+                            "ipv4": "10.0.0.0/24",
+                            "natgateway": {"id": 42},
+                        },
+                    ],
+                },
+            )
+
+            self.assertEqual(vpc._populated, True)
+            self.validate_vpc_123456(vpc)
+
+    def test_create_vpc_with_subnet_natgateway_detach_signal(self):
+        """
+        Tests that a subnet's ``natgateway`` set to
+        ``VPCSubnetNATGatewayOptions(id=None)`` on VPC create is preserved
+        as ``{"natgateway": {"id": null}}`` through ``drop_null_keys``.
+        """
+
+        with self.mock_post("/vpcs/123456") as m:
+            self.client.vpcs.create(
+                "test-vpc",
+                "us-southeast",
+                subnets=[
+                    {
+                        "label": "test-subnet",
+                        "ipv4": "10.0.0.0/24",
+                        "natgateway": VPCSubnetNATGatewayOptions(id=None),
+                    },
+                ],
+            )
+
+            self.assertEqual(
+                m.call_data.get("subnets"),
+                [
+                    {
+                        "label": "test-subnet",
+                        "ipv4": "10.0.0.0/24",
+                        "natgateway": {"id": None},
+                    },
+                ],
+            )
+
     def test_list_ips(self):
         """
         Validates that all VPC IPs can be listed.
@@ -83,6 +158,13 @@ class VPCTest(ClientBaseCase):
         assert ip.gateway == "10.0.0.1"
         assert ip.prefix == 24
         assert ip.subnet_mask == "255.255.255.0"
+        assert ip.natgateway.id == 42
+        assert ip.natgateway.addresses == ["203.0.113.42"]
+        assert ip.natgateway.portset_assignments == 15
+        assert ip.natgateway.portset_capacity == 30
+        assert ip.natgateway.portsets[0].address == "203.0.113.42"
+        assert ip.natgateway.portsets[0].ports[0].start == 2048
+        assert ip.natgateway.portsets[0].ports[0].end == 3071
 
     def validate_vpc_123456(self, vpc: VPC):
         expected_dt = datetime.datetime.strptime(
