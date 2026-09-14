@@ -27,6 +27,8 @@ __all__ = [
     "ContentType",
     "CustomHeader",
     "CustomHTTPSLogsDestinationDetails",
+    "TrafficPeakDestinationAuthentication",
+    "TrafficPeakLogsDestinationDetails",
     "DataCompressionType",
     "DestinationAuthentication",
     "LogsDestinationDetailsBase",
@@ -158,6 +160,7 @@ class LogsDestinationType(StrEnum):
 
     akamai_object_storage = "akamai_object_storage"
     custom_https = "custom_https"
+    traffic_peak = "traffic_peak"
 
 
 class AuthenticationType(StrEnum):
@@ -589,6 +592,15 @@ class DestinationAuthentication(JSONObject):
 
 
 @dataclass
+class TrafficPeakDestinationAuthentication(JSONObject):
+    """
+    Authentication details for a TrafficPeak destination.
+    """
+
+    details: Optional[BasicAuthenticationDetails] = None
+
+
+@dataclass
 class CustomHeader(JSONObject):
     """
     Pairs of parameters used to optionally include custom headers in the request.
@@ -625,7 +637,8 @@ class LogsDestinationDetailsBase(JSONObject):
         Factory method that instantiates the correct details subclass
         based on the destination type string.
 
-        :param dest_type: The destination type (e.g. "akamai_object_storage", "custom_https").
+        :param dest_type: The destination type (``akamai_object_storage``,
+                          ``custom_https``, or ``traffic_peak``).
         :param json_dict: The raw JSON dict for the details block.
         :returns: A populated subclass instance, or None if json_dict is empty/None.
         """
@@ -638,6 +651,8 @@ class LogsDestinationDetailsBase(JSONObject):
             )
         elif dest_type == LogsDestinationType.custom_https:
             return CustomHTTPSLogsDestinationDetails.from_json(json_dict)
+        elif dest_type == LogsDestinationType.traffic_peak:
+            return TrafficPeakLogsDestinationDetails.from_json(json_dict)
 
         return None
 
@@ -654,6 +669,19 @@ class CustomHTTPSLogsDestinationDetails(LogsDestinationDetailsBase):
     content_type: Optional[ContentType] = None
     custom_headers: Optional[List[CustomHeader]] = None
     client_certificate_details: Optional[ClientCertificateDetails] = None
+
+
+@dataclass
+class TrafficPeakLogsDestinationDetails(LogsDestinationDetailsBase):
+    """
+    Represents the details block for TrafficPeak LogsDestination type.
+    """
+
+    endpoint_url: str = ""
+    authentication: Optional[TrafficPeakDestinationAuthentication] = None
+    data_compression: Optional[DataCompressionType] = None
+    content_type: Optional[ContentType] = None
+    custom_headers: Optional[List[CustomHeader]] = None
 
 
 @dataclass

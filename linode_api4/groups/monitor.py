@@ -22,6 +22,7 @@ from linode_api4.objects.monitor import (
     AkamaiObjectStorageLogsDestinationDetails,
     CustomHTTPSLogsDestinationDetails,
     LogsStreamDetails,
+    TrafficPeakLogsDestinationDetails,
 )
 
 __all__ = [
@@ -455,6 +456,7 @@ class MonitorGroup(Group):
         details: Union[
             AkamaiObjectStorageLogsDestinationDetails,
             CustomHTTPSLogsDestinationDetails,
+            TrafficPeakLogsDestinationDetails,
         ],
     ) -> LogsDestination:
         """
@@ -495,17 +497,40 @@ class MonitorGroup(Group):
                )
            )
 
+        For a ``traffic_peak`` destination::
+
+           new_destination = client.monitor.destination_create(
+               label="traffic_peak_logs_destination",
+               type="traffic_peak",
+               details=TrafficPeakLogsDestinationDetails(
+                   endpoint_url="https://my-site.com",
+                   authentication=TrafficPeakDestinationAuthentication(
+                       details=BasicAuthenticationDetails(
+                           basic_authentication_user="user",
+                           basic_authentication_password="pass",
+                       ),
+                   ),
+                   data_compression="gzip",
+                   content_type="application/json",
+                   custom_headers=[
+                       CustomHeader(name="header", value="header_value")
+                   ],
+               )
+           )
+
         API Documentation: https://techdocs.akamai.com/linode-api/reference/post-destination
 
         :param label: The name for this logs destination.
         :type label: str
-        :param type: The type of destination — ``akamai_object_storage`` or ``custom_https``.
+        :param type: The type of destination — ``akamai_object_storage``, ``custom_https``, or ``traffic_peak``.
         :type type: str or LogsDestinationType
         :param details: A typed details object matching the destination type.
                         Use :class:`AkamaiObjectStorageLogsDestinationDetails` for
                         ``akamai_object_storage`` or :class:`CustomHTTPSLogsDestinationDetails`
-                        for ``custom_https``.
-        :type details: AkamaiObjectStorageLogsDestinationDetails or CustomHTTPSLogsDestinationDetails
+                        for ``custom_https``. Use
+                        :class:`TrafficPeakLogsDestinationDetails` for
+                        ``traffic_peak``.
+        :type details: AkamaiObjectStorageLogsDestinationDetails, CustomHTTPSLogsDestinationDetails, or TrafficPeakLogsDestinationDetails
 
         :returns: The newly created logs destination.
         :rtype: LogsDestination
