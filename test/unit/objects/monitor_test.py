@@ -12,11 +12,15 @@ from linode_api4.objects import (
 )
 from linode_api4.objects.monitor import (
     AkamaiObjectStorageLogsDestinationDetails,
+    BasicAuthenticationDetails,
+    CustomHeader,
     CustomHTTPSLogsDestinationDetails,
     DestinationAuthentication,
     LogsDestinationDetailsBase,
     LogsStreamDetails,
     LogsStreamType,
+    TrafficPeakDestinationAuthentication,
+    TrafficPeakLogsDestinationDetails,
 )
 
 
@@ -465,6 +469,123 @@ class CustomHTTPSLogsDestinationTest(ClientBaseCase):
         self.assertIsInstance(result, LogsDestination)
         self.assertEqual(result.id, 3)
         self.assertIsInstance(result.details, CustomHTTPSLogsDestinationDetails)
+
+
+class TrafficPeakLogsDestinationTest(ClientBaseCase):
+    """
+    Tests methods for traffic_peak type LogsDestination.
+    """
+
+    def test_load_traffic_peak_destination(self):
+        """
+        Test that loading a traffic_peak destination deserializes all nested fields correctly.
+        """
+        destination = self.client.load(LogsDestination, 3)
+
+        self.assertEqual(destination.type, "traffic_peak")
+        self.assertIsInstance(
+            destination.details, TrafficPeakLogsDestinationDetails
+        )
+        self.assertEqual(
+            destination.details.endpoint_url, "https://example.com/"
+        )
+        self.assertIsInstance(
+            destination.details.authentication,
+            TrafficPeakDestinationAuthentication,
+        )
+        self.assertEqual(
+            destination.details.authentication.details.basic_authentication_user,
+            "user",
+        )
+        self.assertEqual(destination.details.data_compression, "none")
+        self.assertEqual(destination.details.content_type, "application/json")
+        self.assertEqual(destination.details.custom_headers[0].name, "header")
+        self.assertEqual(
+            destination.details.custom_headers[0].value, "header_value"
+        )
+
+    def test_stream_with_traffic_peak_destination(self):
+        """
+        Test that a LogsStreamDestination with type traffic_peak is deserialized correctly.
+        """
+        stream = self.client.load(LogsStream, 4)
+        destination = stream.destinations[0]
+
+        self.assertEqual(destination.type, "traffic_peak")
+        self.assertIsInstance(
+            destination.details, TrafficPeakLogsDestinationDetails
+        )
+        self.assertEqual(
+            destination.details.endpoint_url, "https://example.com/"
+        )
+
+    def test_create_traffic_peak_destination(self):
+        """
+        Test that destination_create with type=traffic_peak sends the correct payload.
+        """
+        create_response = {
+            "id": 3,
+            "label": "traffic-peak-destination",
+            "type": "traffic_peak",
+            "status": "active",
+            "details": {
+                "endpoint_url": "https://example.com/",
+                "authentication": {
+                    "details": {
+                        "basic_authentication_user": "user",
+                        "basic_authentication_password": "password",
+                    }
+                },
+                "data_compression": "none",
+                "content_type": "application/json",
+                "custom_headers": [{"name": "header", "value": "header_value"}],
+            },
+            "created": "2026-09-01T00:00:00",
+            "updated": "2026-09-01T00:00:00",
+            "created_by": "tester",
+            "updated_by": "tester",
+            "version": 1,
+        }
+
+        with self.mock_post(create_response) as mock:
+            result = self.client.monitor.destination_create(
+                label="traffic-peak-destination",
+                type="traffic_peak",
+                details=TrafficPeakLogsDestinationDetails(
+                    endpoint_url="https://example.com/",
+                    authentication=TrafficPeakDestinationAuthentication(
+                        details=BasicAuthenticationDetails(
+                            basic_authentication_user="user",
+                            basic_authentication_password="password",
+                        ),
+                    ),
+                    data_compression="none",
+                    content_type="application/json",
+                    custom_headers=[
+                        CustomHeader(name="header", value="header_value")
+                    ],
+                ),
+            )
+
+        self.assertEqual(mock.call_url, "/monitor/streams/destinations")
+        self.assertEqual(mock.call_data["type"], "traffic_peak")
+        self.assertEqual(
+            mock.call_data["details"],
+            {
+                "endpoint_url": "https://example.com/",
+                "authentication": {
+                    "details": {
+                        "basic_authentication_user": "user",
+                        "basic_authentication_password": "password",
+                    },
+                },
+                "data_compression": "none",
+                "content_type": "application/json",
+                "custom_headers": [{"name": "header", "value": "header_value"}],
+            },
+        )
+        self.assertIsInstance(result, LogsDestination)
+        self.assertIsInstance(result.details, TrafficPeakLogsDestinationDetails)
 
 
 class LogsStreamTest(ClientBaseCase):

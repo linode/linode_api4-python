@@ -1,0 +1,28 @@
+{
+  "id": 3,
+  "version": 1,
+  "type": "traffic_peak",
+  "label": "traffic-peak-destination",
+  "status": "active",
+  "created_by": "tester",
+  "created": "2026-09-01T00:00:00",
+  "updated_by": "tester",
+  "updated": "2026-09-01T00:00:00",
+  "details": {
+    "endpoint_url": "https://example.com/",
+    "authentication": {
+      "details": {
+        "basic_authentication_user": "user",
+        "basic_authentication_password": "password"
+      }
+    },
+    "data_compression": "none",
+    "content_type": "application/json",
+    "custom_headers": [
+      {
+        "name": "header",
+        "value": "header_value"
+      }
+    ]
+  }
+}
