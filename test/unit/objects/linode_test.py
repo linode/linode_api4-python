@@ -3,6 +3,7 @@ from test.unit.base import ClientBaseCase
 from test.unit.objects.linode_interface_test import (
     LinodeInterfaceTest,
     build_interface_options_public,
+    build_interface_options_rdma_vpc,
     build_interface_options_vlan,
     build_interface_options_vpc,
 )
@@ -755,6 +756,21 @@ class LinodeTest(ClientBaseCase):
             assert m.call_data == {"vlan": iface.vlan._serialize()}
 
         LinodeInterfaceTest.assert_linode_124_interface_789(result)
+
+    def test_create_interface_rdma_vpc_rejected(self):
+        """
+        Tests that attempting to create an RDMA VPC interface via
+        interface_create() raises a clear ValueError instead of sending an
+        invalid request to the API.
+        """
+        instance = Instance(self.client, 124)
+
+        iface = build_interface_options_rdma_vpc()
+
+        with self.assertRaises(ValueError) as ctx:
+            instance.interface_create(**vars(iface))
+
+        assert "rdma_vpc" in str(ctx.exception)
 
 
 class DiskTest(ClientBaseCase):
