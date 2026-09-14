@@ -304,14 +304,14 @@ def test_create_and_delete_vlan(test_linode_client, linode_for_vlan_tests):
     config.interfaces = []
     config.save()
 
-    wait_for_condition(3, 100, get_status, linode, "running")
+    wait_for_condition(3, 150, get_status, linode, "running")
 
     retry_sending_request(3, linode.reboot)
 
     wait_for_condition(3, 100, get_status, linode, "rebooting")
     assert linode.status == "rebooting"
 
-    wait_for_condition(3, 100, get_status, linode, "running")
+    wait_for_condition(3, 150, get_status, linode, "running")
 
     # Delete the VLAN
     is_deleted = test_linode_client.networking.delete_vlan(
