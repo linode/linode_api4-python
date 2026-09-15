@@ -86,15 +86,26 @@ class VPCGroup(Group):
 
         data = drop_null_keys(_flatten_request_body_recursive(params))
 
-        # Preserve the ``{"id": null}`` detach signal on any subnet's
-        # ``natgateway`` field: ``drop_null_keys`` is recursive and would
-        # otherwise strip an explicit ``id: None`` inside ``natgateway``.
-        # Bypass ``drop_null_keys`` for the entire ``subnets`` payload -
-        # ``JSONObject`` values already strip their own optional ``None``
-        # fields via ``_serialize``, and raw-dict subnets are expected to
-        # be clean.
+        # Recursively clean each subnet while preserving the ``{"id": null}``
+        # detach signal on any explicitly-supplied ``natgateway`` object.
         if subnets is not None:
-            data["subnets"] = _flatten_request_body_recursive(subnets)
+            cleaned_subnets = []
+            for subnet in subnets:
+                flattened = _flatten_request_body_recursive(subnet)
+                cleaned = drop_null_keys(flattened)
+
+                # If the caller explicitly supplied a ``natgateway`` field,
+                # re-inject its flattened (but not null-stripped) form so
+                # the detach signal survives.
+                if (
+                    isinstance(flattened, dict)
+                    and "natgateway" in flattened
+                    and flattened["natgateway"] is not None
+                ):
+                    cleaned["natgateway"] = flattened["natgateway"]
+
+                cleaned_subnets.append(cleaned)
+            data["subnets"] = cleaned_subnets
 
         result = self.client.post("/vpcs", data=data)
 
