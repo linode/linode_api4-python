@@ -13,7 +13,19 @@
       "nat_1_1": "172.233.179.133",
       "gateway": "10.0.0.1",
       "prefix": 24,
-      "subnet_mask": "255.255.255.0"
+      "subnet_mask": "255.255.255.0",
+      "natgateway": {
+        "id": 42,
+        "addresses": ["203.0.113.42"],
+        "portset_assignments": 15,
+        "portset_capacity": 30,
+        "portsets": [
+          {
+            "address": "203.0.113.42",
+            "ports": [{"start": 2048, "end": 3071}]
+          }
+        ]
+      }
     },
     {
       "ipv6_range": "fd71:1140:a9d0::/52",

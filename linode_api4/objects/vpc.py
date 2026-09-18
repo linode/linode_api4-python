@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Union
 
 from linode_api4.errors import UnexpectedResponseError
@@ -101,6 +101,58 @@ class VPCSubnetDatabase(JSONObject):
     ipv6_ranges: Optional[List[str]] = None
 
 
+@dataclass
+class VPCSubnetNATGatewayOptions(JSONObject):
+    """
+    VPCSubnetNATGatewayOptions is used to specify a NAT Gateway when creating or updating a VPC subnet.
+
+    To attach or change the NAT Gateway on a subnet, set ``id`` to the ID of the target NAT Gateway::
+
+        subnet.natgateway = VPCSubnetNATGatewayOptions(id=42)
+        subnet.save()
+
+    To disconnect the NAT Gateway from a subnet, set ``id`` to ``None`` (or :any:`ExplicitNullValue`)::
+
+        subnet.natgateway = VPCSubnetNATGatewayOptions(id=None)
+        subnet.save()
+
+    To update other fields without touching the NAT Gateway, simply do not modify the ``natgateway``
+    attribute before calling ``save()``.
+    """
+
+    # Ensure ``id`` is always included in the serialized payload so that
+    # ``VPCSubnetNATGatewayOptions(id=None)`` produces ``{"id": null}`` which
+    # signals the API to disconnect the NAT Gateway from the subnet.
+    always_include = {"id"}
+
+    id: Optional[int] = None
+
+
+@dataclass
+class VPCSubnetNATGatewayPortsetPort(JSONObject):
+    start: int = 0
+    end: int = 0
+
+
+@dataclass
+class VPCSubnetNATGatewayPortset(JSONObject):
+    address: str = ""
+    ports: List[VPCSubnetNATGatewayPortsetPort] = field(default_factory=list)
+
+
+@dataclass
+class VPCSubnetNATGateway(JSONObject):
+    put_class = VPCSubnetNATGatewayOptions
+
+    id: int = 0
+    label: str = ""
+    addresses: List[str] = field(default_factory=list)
+    portset_assignments: int = 0
+    portset_capacity: int = 0
+    # NOTE: This field may not be available to all users.
+    portsets: List[VPCSubnetNATGatewayPortset] = field(default_factory=list)
+
+
 class VPCSubnet(DerivedBase):
     """
     An instance of a VPC subnet.
@@ -119,6 +171,7 @@ class VPCSubnet(DerivedBase):
         "ipv6": Property(json_object=VPCSubnetIPv6Range, unordered=True),
         "linodes": Property(json_object=VPCSubnetLinode, unordered=True),
         "databases": Property(json_object=VPCSubnetDatabase, unordered=True),
+        "natgateway": Property(json_object=VPCSubnetNATGateway, mutable=True),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),
     }
@@ -155,6 +208,9 @@ class VPC(Base):
         ipv6: Optional[
             List[Union[VPCSubnetIPv6RangeOptions, Dict[str, Any]]]
         ] = None,
+        natgateway: Optional[
+            Union[VPCSubnetNATGatewayOptions, Dict[str, Any]]
+        ] = None,
         **kwargs,
     ) -> VPCSubnet:
         """
@@ -168,15 +224,29 @@ class VPC(Base):
         :type ipv4: str
         :param ipv6: The IPv6 range of this subnet in CIDR format.
         :type ipv6: List[Union[VPCSubnetIPv6RangeOptions, Dict[str, Any]]]
+        :param natgateway: The NAT gateway options for this subnet. NOTE: May not be available for all users.
+        :type natgateway: VPCSubnetNATGatewayOptions
         """
-        params = {"label": label, "ipv4": ipv4, "ipv6": ipv6}
+        params = {
+            "label": label,
+            "ipv4": ipv4,
+            "ipv6": ipv6,
+        }
 
         params.update(kwargs)
+
+        data = drop_null_keys(_flatten_request_body_recursive(params))
+
+        # Preserve the ``{"id": null}`` detach signal separately: ``drop_null_keys``
+        # is recursive and would otherwise strip an explicit ``id: None`` inside
+        # ``natgateway``, collapsing the detach payload to ``{}``.
+        if natgateway is not None:
+            data["natgateway"] = _flatten_request_body_recursive(natgateway)
 
         result = self._client.post(
             "{}/subnets".format(VPC.api_endpoint),
             model=self,
-            data=drop_null_keys(_flatten_request_body_recursive(params)),
+            data=data,
         )
         self.invalidate()
 

@@ -246,6 +246,38 @@ class LinodeInterfaceVPCIPv4Range(JSONObject):
 
 
 @dataclass
+class LinodeInterfaceVPCIPv4NATGatewayPortsetPort(JSONObject):
+    start: int = 0
+    end: int = 0
+
+
+@dataclass
+class LinodeInterfaceVPCIPv4NATGatewayPortset(JSONObject):
+    address: str = ""
+    ports: List[LinodeInterfaceVPCIPv4NATGatewayPortsetPort] = field(
+        default_factory=list
+    )
+
+
+@dataclass
+class LinodeInterfaceVPCIPv4NATGateway(JSONObject):
+    """
+    A NAT gateway under the IPv4 configuration of a VPC Linode Interface.
+    """
+
+    id: int = 0
+    label: str = ""
+    type: str = ""
+    url: str = ""
+    addresses: List[str] = field(default_factory=list)
+    portset_assignments: int = 0
+    portset_capacity: int = 0
+    portsets: List[LinodeInterfaceVPCIPv4NATGatewayPortset] = field(
+        default_factory=list
+    )  # NOTE: This field may not be available to all users.
+
+
+@dataclass
 class LinodeInterfaceVPCIPv4(JSONObject):
     """
     A single address under the IPv4 configuration of a VPC Linode Interface.
@@ -255,6 +287,7 @@ class LinodeInterfaceVPCIPv4(JSONObject):
 
     addresses: List[LinodeInterfaceVPCIPv4Address] = field(default_factory=list)
     ranges: List[LinodeInterfaceVPCIPv4Range] = field(default_factory=list)
+    natgateway: Optional[LinodeInterfaceVPCIPv4NATGateway] = None
 
 
 @dataclass

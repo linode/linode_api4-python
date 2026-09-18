@@ -73,7 +73,6 @@ class VPCGroup(Group):
             "description": description,
             "ipv4": ipv4,
             "ipv6": ipv6,
-            "subnets": subnets,
         }
 
         if subnets is not None and len(subnets) > 0:
@@ -85,10 +84,30 @@ class VPCGroup(Group):
 
         params.update(kwargs)
 
-        result = self.client.post(
-            "/vpcs",
-            data=drop_null_keys(_flatten_request_body_recursive(params)),
-        )
+        data = drop_null_keys(_flatten_request_body_recursive(params))
+
+        # Recursively clean each subnet while preserving the ``{"id": null}``
+        # detach signal on any explicitly-supplied ``natgateway`` object.
+        if subnets is not None:
+            cleaned_subnets = []
+            for subnet in subnets:
+                flattened = _flatten_request_body_recursive(subnet)
+                cleaned = drop_null_keys(flattened)
+
+                # If the caller explicitly supplied a ``natgateway`` field,
+                # re-inject its flattened (but not null-stripped) form so
+                # the detach signal survives.
+                if (
+                    isinstance(flattened, dict)
+                    and "natgateway" in flattened
+                    and flattened["natgateway"] is not None
+                ):
+                    cleaned["natgateway"] = flattened["natgateway"]
+
+                cleaned_subnets.append(cleaned)
+            data["subnets"] = cleaned_subnets
+
+        result = self.client.post("/vpcs", data=data)
 
         if not "id" in result:
             raise UnexpectedResponseError(
