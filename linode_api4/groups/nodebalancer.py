@@ -36,7 +36,7 @@ class NodeBalancerGroup(Group):
                      NOTE: Reserved IP feature may not currently be available to all users.
         :type ipv4: str
         :param type: The NodeBalancer type. Supported values include
-                     ``common``, ``premium``, ``premium_40gb``, and 
+                     ``common``, ``premium``, ``premium_40gb``, and
                      ``enterprise``. This cannot be changed after creation.
                      NOTE: Creating premium or enterprise NodeBalancers may not
                      currently be available to all users.
