@@ -492,7 +492,6 @@ class MonitorGroup(Group):
         """
         endpoint = f"/monitor/alert-channels/{channel_id}/alerts"
 
-        # Build filter dict if filters provided
         parsed_filters = None
         if filters:
             parsed_filters = (
@@ -507,16 +506,15 @@ class MonitorGroup(Group):
                 json=response_json,
             )
 
-        # Create AlertDefinition objects with proper parent_id (service_type)
         result = [
             AlertDefinition.make_instance(
                 obj["id"],
                 self.client,
-                parent_id=obj["service_type"],
+                parent_id=obj.get("service_type"),
                 json=obj,
             )
             for obj in response_json.get("data", [])
-            if "id" in obj and "service_type" in obj
+            if "id" in obj
         ]
 
         return PaginatedList(
