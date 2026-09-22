@@ -26,7 +26,6 @@ from linode_api4 import (
     LinodeInterfacePublicOptions,
     LinodeInterfaceVLANOptions,
     LinodeInterfaceVPCOptions,
-    NATGateway,
     PlacementGroupPolicy,
     PlacementGroupType,
     PostgreSQLDatabase,
@@ -845,9 +844,7 @@ def create_nat_gateway(request, test_linode_client):
 
     yield gateway
 
-    # Delete only if NAT Gateway exists (some tests may delete it earlier)
-    if client.load(NATGateway, gateway.id):
-        gateway.delete()
+    gateway.delete()
 
 
 @pytest.fixture
