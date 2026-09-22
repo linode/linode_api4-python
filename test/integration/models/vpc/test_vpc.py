@@ -2,7 +2,13 @@ from test.integration.conftest import get_region
 
 import pytest
 
-from linode_api4 import VPC, ApiError, VPCIPv4DefaultRange, VPCSubnet
+from linode_api4 import (
+    VPC,
+    ApiError,
+    VPCIPv4DefaultRange,
+    VPCSubnet,
+)
+from linode_api4.objects import VPCSubnetNATGatewayOptions
 
 
 @pytest.mark.smoke
@@ -169,3 +175,23 @@ def test_vpc_with_ipv4(test_linode_client, create_vpc_with_ipv4):
 
     updated_vpc = client.load(VPC, vpc.id)
     assert updated_vpc.ipv4[0].range == "192.168.0.0/17"
+
+
+def test_vpc_subnet_with_nat_gateway(
+    request, test_linode_client, create_nat_gateway, create_nat_vpc
+):
+    client = test_linode_client
+    gateway = create_nat_gateway
+    vpc = create_nat_vpc
+
+    subnet = create_nat_vpc.subnet_create(
+        label="test-nat-subnet",
+        ipv4="10.0.0.0/24",
+        ipv6=[{"range": "auto"}],
+        natgateway=VPCSubnetNATGatewayOptions(id=gateway.id),
+    )
+    request.addfinalizer(subnet.delete)
+
+    subnet = client.load(VPCSubnet, subnet.id, vpc.id)
+
+    assert subnet.natgateway.id == gateway.id

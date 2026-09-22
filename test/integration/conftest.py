@@ -17,6 +17,7 @@ import requests
 from requests.exceptions import ConnectionError, RequestException
 
 from linode_api4 import (
+    Capability,
     Instance,
     InterfaceGeneration,
     IPAddress,
@@ -25,6 +26,7 @@ from linode_api4 import (
     LinodeInterfacePublicOptions,
     LinodeInterfaceVLANOptions,
     LinodeInterfaceVPCOptions,
+    NATGateway,
     PlacementGroupPolicy,
     PlacementGroupType,
     PostgreSQLDatabase,
@@ -815,3 +817,51 @@ def create_reserved_ip_assigned(test_linode_client, create_linode):
         IPAddress.address == reserved_ip.address
     ):
         address[0].delete()
+
+
+@pytest.fixture
+def create_nat_gateway(request, test_linode_client):
+    client = test_linode_client
+    label = "nat-gateway-" + get_test_label(length=8)
+    autoscaling = getattr(request, "param", True)
+    region = get_region(
+        client,
+        {
+            Capability.firewall,
+            Capability.linodes,
+            Capability.linode_interfaces,
+            Capability.natgateway,
+            Capability.vpcs,
+            Capability.vpc_dual_stack,
+            Capability.vpc_ipv6_stack,
+        },
+    )
+
+    gateway = client.networking.natgateway_create(
+        label=label,
+        region=region,
+        use_autoscaling=autoscaling,
+    )
+
+    yield gateway
+
+    # Delete only if NAT Gateway exists (some tests may delete it earlier)
+    if client.load(NATGateway, gateway.id):
+        gateway.delete()
+
+
+@pytest.fixture
+def create_nat_vpc(test_linode_client, create_nat_gateway):
+    client = test_linode_client
+    gateway = create_nat_gateway
+    label = get_test_label(length=10)
+
+    vpc = client.vpcs.create(
+        label=label,
+        region=gateway.region,
+        description="test NAT Gateway VPC",
+        ipv6=[{"range": "auto"}],
+    )
+    yield vpc
+
+    vpc.delete()
