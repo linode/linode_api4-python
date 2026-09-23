@@ -603,22 +603,47 @@ def test_convert_unassigned_reserved_ip_to_ephemeral(
     assert len(reserved_ips_list) == 0
 
 
-def verify_nat_gateway_ifaces(gateway_ifaces, linode, reserved_ip):
-    assert len(gateway_ifaces) == 1
-    assert gateway_ifaces[0].id == linode.linode_interfaces[0].id
-    assert gateway_ifaces[0].linode.id == linode.id
-    assert gateway_ifaces[0].addresses[0] == reserved_ip.address
-    assert gateway_ifaces[0].portsets[0].address == reserved_ip.address
+def verify_nat_gateway(nat_gateway, nat_gateway_read):
+    assert nat_gateway_read.id == nat_gateway.id
+    assert nat_gateway_read.region.id == nat_gateway.region.id
+    assert nat_gateway_read.label == nat_gateway.label
+    assert len(nat_gateway_read.addresses) == 0
+    assert nat_gateway_read.address_autoscale_max > 0
+    assert nat_gateway_read.default_ports_per_interface == 4096
+    assert nat_gateway_read.portset_assignments == 0
+    assert nat_gateway_read.portset_capacity > 0
+
+
+def verify_nat_gateway_address(nat_address, reserved_ip_address):
+    assert nat_address.address == reserved_ip_address
+    assert nat_address.in_use == False
+    assert nat_address.interface_count == 0
+    assert nat_address.interface_url.endswith(
+        f"/{reserved_ip_address}/interfaces"
+    )
+    assert nat_address.portset_assignments == 0
+    assert nat_address.portset_capacity > 0
+
+
+def verify_nat_gateway_interface(interface, linode, reserved_ip):
+    assert interface.id == linode.linode_interfaces[0].id
+    assert interface.linode.id == linode.id
+    assert interface.addresses[0] == reserved_ip.address
+    assert interface.portsets[0].address == reserved_ip.address
 
 
 @pytest.mark.smoke
 def test_create_nat_gateway(test_linode_client, create_nat_gateway):
     client = test_linode_client
-    gateway = client.load(NATGateway, create_nat_gateway.id)
 
-    assert gateway.id == create_nat_gateway.id
-    assert gateway.region.id == create_nat_gateway.region.id
-    assert gateway.label == create_nat_gateway.label
+    gateway = client.load(NATGateway, create_nat_gateway.id)
+    verify_nat_gateway(create_nat_gateway, gateway)
+
+    gateways = client.networking.natgateways(
+        NATGateway.label == create_nat_gateway.label
+    )
+    assert len(gateways) == 1
+    verify_nat_gateway(create_nat_gateway, gateways[0])
 
 
 def test_update_nat_gateway(test_linode_client, create_nat_gateway):
@@ -630,23 +655,28 @@ def test_update_nat_gateway(test_linode_client, create_nat_gateway):
     gateway.save()
 
     gateway_updated = client.load(NATGateway, gateway.id)
-
     assert gateway_updated.label == new_label
 
 
 @pytest.mark.parametrize("create_nat_gateway", [False], indirect=True)
-def test_update_nat_gateway_with_ip_address(
+def test_assign_nat_gateway_ip_address(
     test_linode_client, create_nat_gateway, create_reserved_ip
 ):
-    client = test_linode_client
     gateway = create_nat_gateway
     reserved_ip = create_reserved_ip
 
     gateway.address_assignment_create(reserved_ip.address)
-    gateway = client.load(NATGateway, gateway.id)
 
-    assert len(gateway.addresses) == 1
-    assert gateway.addresses[0].address == reserved_ip.address
+    addresses = gateway.address_assignments()
+    assert len(addresses) == 1
+    verify_nat_gateway_address(addresses[0], reserved_ip.address)
+
+    address = gateway.address_assignment_view(reserved_ip.address)
+    verify_nat_gateway_address(address, reserved_ip.address)
+
+    gateway.address_assignment_delete(reserved_ip.address)
+    addresses = gateway.address_assignments()
+    assert len(addresses) == 0
 
 
 @pytest.mark.parametrize("create_nat_gateway", [False], indirect=True)
@@ -663,6 +693,7 @@ def test_get_nat_gateway_linode_ifaces(
     reserved_ip = create_reserved_ip
 
     gateway.address_assignment_create(reserved_ip.address)
+    # Link the NAT Gateway to the VPC Subnet
     subnet.natgateway = VPCSubnetNATGatewayOptions(id=gateway.id)
     subnet.save()
 
@@ -692,16 +723,22 @@ def test_get_nat_gateway_linode_ifaces(
     linode = client.load(Instance, linode.id)
 
     gateway_ifaces = gateway.interfaces()
-    verify_nat_gateway_ifaces(gateway_ifaces, linode, reserved_ip)
+    assert len(gateway_ifaces) == 1
+    verify_nat_gateway_interface(gateway_ifaces[0], linode, reserved_ip)
 
     gateway_ifaces = gateway.address_interfaces(reserved_ip.address)
-    verify_nat_gateway_ifaces(gateway_ifaces, linode, reserved_ip)
+    verify_nat_gateway_interface(gateway_ifaces[0], linode, reserved_ip)
+
+    address = gateway.address_assignment_view(reserved_ip.address)
+    assert address.in_use == True
+    assert address.interface_count == 1
+    assert address.portset_assignments == 1
 
 
 def test_get_nat_gateway_types(test_linode_client):
     client = test_linode_client
-    gateway_types = client.networking.natgateway_types()
 
+    gateway_types = client.networking.natgateway_types()
     assert len(gateway_types) > 0
     assert gateway_types[0].id == "g1-natgateway"
     assert gateway_types[0].label == "NAT Gateway"
@@ -709,15 +746,15 @@ def test_get_nat_gateway_types(test_linode_client):
         gateway_types[0].price.hourly >= 0
         or gateway_types[0].price.monthly >= 0
     )
-    # region_prices and transfer fields are not in use at the moment
+    # TODO region_prices and transfer fields are not in use at the moment
     # assert isinstance(gateway_types[0].region_prices, list)
     # assert isinstance(gateway_types[0].transfer, int)
 
 
 def test_get_nat_gateway_settings(test_linode_client):
     client = test_linode_client
-    gateway_settings = client.networking.natgateway_settings()
 
+    gateway_settings = client.networking.natgateway_settings()
     assert all(
         port in [4096, 8192, 16384]
         for port in gateway_settings.allowed_ports_per_interface

@@ -184,7 +184,7 @@ def test_vpc_subnet_with_nat_gateway(
     gateway = create_nat_gateway
     vpc = create_nat_vpc
 
-    subnet = create_nat_vpc.subnet_create(
+    subnet = vpc.subnet_create(
         label="test-nat-subnet",
         ipv4="10.0.0.0/24",
         ipv6=[{"range": "auto"}],
@@ -193,5 +193,4 @@ def test_vpc_subnet_with_nat_gateway(
     request.addfinalizer(subnet.delete)
 
     subnet = client.load(VPCSubnet, subnet.id, vpc.id)
-
     assert subnet.natgateway.id == gateway.id
