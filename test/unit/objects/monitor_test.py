@@ -12,11 +12,16 @@ from linode_api4.objects import (
 )
 from linode_api4.objects.monitor import (
     AkamaiObjectStorageLogsDestinationDetails,
+    BasicAuthenticationDetails,
+    ChannelDetails,
+    ClientCertificateDetails,
+    CustomHeader,
     CustomHTTPSLogsDestinationDetails,
     DestinationAuthentication,
     LogsDestinationDetailsBase,
     LogsStreamDetails,
     LogsStreamType,
+    WebhookDetails,
 )
 
 
@@ -189,6 +194,201 @@ class MonitorTest(ClientBaseCase):
             "/monitor/alert-channels/123/alerts",
         )
         self.assertEqual(channels[0].alerts.alert_count, 0)
+
+    def test_webhook_channel_validation(self):
+        """
+        Test webhook channel validation constraints for create and verify operations.
+
+        Validates all constraint checks: endpoint_url, authentication.type,
+        basic auth credentials, client certificates, and custom headers.
+        """
+        # Test 1: Missing endpoint_url
+        webhook_details = ChannelDetails(
+            webhook=WebhookDetails(
+                endpoint_url=None,
+                authentication=DestinationAuthentication(type="none"),
+            )
+        )
+        with self.assertRaises(ValueError) as cm:
+            self.client.monitor._validate_webhook_details(webhook_details)
+        self.assertIn("endpoint_url", str(cm.exception))
+
+        # Test 2: Missing authentication.type
+        webhook_details = ChannelDetails(
+            webhook=WebhookDetails(
+                endpoint_url="https://example.com/webhook",
+                authentication=DestinationAuthentication(type=None),
+            )
+        )
+        with self.assertRaises(ValueError) as cm:
+            self.client.monitor._validate_webhook_details(webhook_details)
+        self.assertIn("authentication.type", str(cm.exception))
+
+        # Test 3: Basic auth missing username
+        webhook_details = ChannelDetails(
+            webhook=WebhookDetails(
+                endpoint_url="https://example.com/webhook",
+                authentication=DestinationAuthentication(
+                    type="basic",
+                    details=BasicAuthenticationDetails(
+                        basic_authentication_user=None,
+                        basic_authentication_password="password",
+                    ),
+                ),
+            )
+        )
+        with self.assertRaises(ValueError) as cm:
+            self.client.monitor._validate_webhook_details(webhook_details)
+        self.assertIn("basic_authentication_user", str(cm.exception))
+
+        # Test 4: Basic auth missing password
+        webhook_details = ChannelDetails(
+            webhook=WebhookDetails(
+                endpoint_url="https://example.com/webhook",
+                authentication=DestinationAuthentication(
+                    type="basic",
+                    details=BasicAuthenticationDetails(
+                        basic_authentication_user="user",
+                        basic_authentication_password=None,
+                    ),
+                ),
+            )
+        )
+        with self.assertRaises(ValueError) as cm:
+            self.client.monitor._validate_webhook_details(webhook_details)
+        self.assertIn("basic_authentication_password", str(cm.exception))
+
+        # Test 5: Partial client certificates
+        webhook_details = ChannelDetails(
+            webhook=WebhookDetails(
+                endpoint_url="https://example.com/webhook",
+                authentication=DestinationAuthentication(type="none"),
+                client_certificate_details=ClientCertificateDetails(
+                    client_ca_certificate="-----BEGIN CERTIFICATE-----",
+                    client_certificate=None,
+                    client_private_key=None,
+                ),
+            )
+        )
+        with self.assertRaises(ValueError) as cm:
+            self.client.monitor._validate_webhook_details(webhook_details)
+        self.assertIn("client_ca_certificate", str(cm.exception))
+
+        # Test 6: Content-Type header validation
+        webhook_details = ChannelDetails(
+            webhook=WebhookDetails(
+                endpoint_url="https://example.com/webhook",
+                authentication=DestinationAuthentication(type="none"),
+                custom_headers=[
+                    CustomHeader(name="Content-Type", value="application/json")
+                ],
+            )
+        )
+        with self.assertRaises(ValueError) as cm:
+            self.client.monitor._validate_webhook_details(webhook_details)
+        self.assertIn("Content-Type", str(cm.exception))
+
+    def test_create_verify_delete_webhook_channel(self):
+        """
+        Test webhook channel create, verify, and delete operations.
+        Verifies the full lifecycle of a webhook alert channel object.
+        """
+        create_url = "/monitor/alert-channels"
+        channel_id = 888
+        channel_url = f"{create_url}/{channel_id}"
+
+        # CREATE: Create the webhook channel via channel_create()
+        create_response = {
+            "id": channel_id,
+            "label": "Webhook Test Channel",
+            "type": "user",
+            "channel_type": "webhook",
+            "details": {
+                "webhook": {
+                    "endpoint_url": "https://example.com/webhook",
+                    "authentication": {
+                        "type": "basic",
+                        "details": {
+                            "basic_authentication_user": "testuser",
+                            "basic_authentication_password": "testpass",
+                        },
+                    },
+                    "data_compression": "gzip",
+                    "custom_headers": [
+                        {"name": "X-API-Key", "value": "secret123"}
+                    ],
+                }
+            },
+            "alerts": {
+                "url": f"{channel_url}/alerts",
+                "type": "alerts-definitions",
+                "alert_count": 0,
+            },
+            "created": "2024-01-01T00:00:00",
+            "updated": "2024-01-01T00:00:00",
+            "created_by": "webhook_user",
+            "updated_by": "webhook_user",
+        }
+
+        with self.mock_post(create_response) as m_post:
+            webhook_channel = self.client.monitor.channel_create(
+                label="Webhook Test Channel",
+                channel_type="webhook",
+                details=ChannelDetails(
+                    webhook=WebhookDetails(
+                        endpoint_url="https://example.com/webhook",
+                        authentication=DestinationAuthentication(
+                            type="basic",
+                            details=BasicAuthenticationDetails(
+                                basic_authentication_user="testuser",
+                                basic_authentication_password="testpass",
+                            ),
+                        ),
+                        data_compression="gzip",
+                        custom_headers=[
+                            CustomHeader(name="X-API-Key", value="secret123")
+                        ],
+                    )
+                ),
+            )
+            self.assertEqual(m_post.call_url, create_url)
+            self.assertIsInstance(webhook_channel, AlertChannel)
+            self.assertEqual(webhook_channel.id, channel_id)
+            self.assertEqual(webhook_channel.label, "Webhook Test Channel")
+            self.assertEqual(
+                webhook_channel.details.webhook.endpoint_url,
+                "https://example.com/webhook",
+            )
+            self.assertEqual(
+                webhook_channel.details.webhook.authentication.type, "basic"
+            )
+
+        # VERIFY: Verify the webhook configuration
+        verify_url = "/monitor/alert-channels/verify"
+        verify_response = {"valid": True}
+
+        with self.mock_post(verify_response) as m_verify:
+            is_valid = self.client.monitor.verify_webhook(
+                WebhookDetails(
+                    endpoint_url="https://example.com/webhook",
+                    authentication=DestinationAuthentication(
+                        type="basic",
+                        details=BasicAuthenticationDetails(
+                            basic_authentication_user="testuser",
+                            basic_authentication_password="testpass",
+                        ),
+                    ),
+                )
+            )
+            self.assertEqual(m_verify.call_url, verify_url)
+            self.assertTrue(is_valid)
+
+        # DELETE: Delete the webhook channel
+        with self.mock_delete() as m_delete:
+            result = webhook_channel.delete()
+
+            self.assertEqual(m_delete.call_url, channel_url)
+            self.assertTrue(result)
 
 
 class LogsDestinationTest(ClientBaseCase):

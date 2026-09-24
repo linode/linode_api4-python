@@ -17,7 +17,15 @@ from linode_api4.objects import (
     MonitorService,
     MonitorServiceToken,
 )
-from linode_api4.objects.monitor import AlertStatus
+from linode_api4.objects.monitor import (
+    AlertChannel,
+    AlertStatus,
+    BasicAuthenticationDetails,
+    ChannelDetails,
+    CustomHeader,
+    DestinationAuthentication,
+    WebhookDetails,
+)
 
 
 def wait_for_alert_ready(
@@ -429,3 +437,66 @@ def test_integration_clone_alert_definition(test_linode_client):
                 AlertDefinition, created.id, service_type
             )
             delete_source_alert.delete()
+
+
+# Webhook Channel Operations
+def test_webhook_channel_crud(test_linode_client):
+    """
+    Test webhook channel create, verify, and delete operations.
+
+    Creates a webhook channel with basic auth, verifies the configuration,
+    and then deletes the channel.
+    """
+    client = test_linode_client
+
+    # Create webhook channel with basic authentication
+    webhook = client.monitor.channel_create(
+        label=f"webhook-test-{get_test_label()}",
+        channel_type="webhook",
+        details=ChannelDetails(
+            webhook=WebhookDetails(
+                endpoint_url="https://example.com/webhook",
+                authentication=DestinationAuthentication(
+                    type="basic",
+                    details=BasicAuthenticationDetails(
+                        basic_authentication_user="testuser",
+                        basic_authentication_password="testpass",
+                    ),
+                ),
+                data_compression="gzip",
+                custom_headers=[
+                    CustomHeader(name="X-API-Key", value="secret123"),
+                ],
+            )
+        ),
+    )
+
+    assert isinstance(webhook, AlertChannel)
+    assert webhook.channel_type == "webhook"
+    assert webhook.details.webhook.endpoint_url == "https://example.com/webhook"
+    assert webhook.details.webhook.authentication.type == "basic"
+    assert webhook.details.webhook.data_compression == "gzip"
+    assert len(webhook.details.webhook.custom_headers) == 1
+
+    # Verify webhook configuration
+    webhook_config = WebhookDetails(
+        endpoint_url="https://example.com/webhook",
+        authentication=DestinationAuthentication(
+            type="basic",
+            details=BasicAuthenticationDetails(
+                basic_authentication_user="user",
+                basic_authentication_password="pass",
+            ),
+        ),
+    )
+
+    is_valid = client.monitor.verify_webhook(webhook_config)
+    assert is_valid is True
+
+    # Delete webhook channel
+    webhook_id = webhook.id
+    webhook.delete()
+
+    # Verify deletion
+    with pytest.raises(ApiError):
+        client.load(AlertChannel, webhook_id)
