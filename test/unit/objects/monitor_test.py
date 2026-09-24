@@ -12,8 +12,10 @@ from linode_api4.objects import (
 )
 from linode_api4.objects.monitor import (
     AkamaiObjectStorageLogsDestinationDetails,
+    ChannelDetails,
     CustomHTTPSLogsDestinationDetails,
     DestinationAuthentication,
+    EmailDetails,
     LogsDestinationDetailsBase,
     LogsStreamDetails,
     LogsStreamType,
@@ -146,7 +148,7 @@ class MonitorTest(ClientBaseCase):
         self.assertEqual(metrics[0].metric, "cpu_usage")
         self.assertEqual(metrics[0].metric_type, "gauge")
         self.assertEqual(metrics[0].scrape_interval, "60s")
-        self.assertEqual(metrics[0].unit, "percent")
+        self.assertEqual(metrics[0].unit, "%")
         self.assertEqual(metrics[0].dimensions[0].dimension_label, "node_type")
         self.assertEqual(metrics[0].dimensions[0].label, "Node Type")
         self.assertEqual(
@@ -189,6 +191,74 @@ class MonitorTest(ClientBaseCase):
             "/monitor/alert-channels/123/alerts",
         )
         self.assertEqual(channels[0].alerts.alert_count, 0)
+
+    def test_create_update_delete_channel(self):
+        """
+        Test CRUD operations for AlertChannel: create, update, and delete.
+        Verifies the full lifecycle of an alert channel object.
+        """
+        create_url = "/monitor/alert-channels"
+        channel_id = 999
+        channel_url = f"{create_url}/{channel_id}"
+
+        # CREATE: Create the channel via channel_create()
+        create_response = {
+            "id": channel_id,
+            "label": "CRUD Test Channel",
+            "type": "user",
+            "channel_type": "email",
+            "details": {
+                "email": {
+                    "usernames": ["crud_user1", "crud_user2"],
+                    "recipient_type": "user",
+                }
+            },
+            "alerts": {
+                "url": f"{channel_url}/alerts",
+                "type": "alerts-definitions",
+                "alert_count": 0,
+            },
+            "created": "2024-01-01T00:00:00",
+            "updated": "2024-01-01T00:00:00",
+            "created_by": "crud_user1",
+            "updated_by": "crud_user1",
+        }
+
+        with self.mock_post(create_response) as m_post:
+            channel = self.client.monitor.channel_create(
+                label="CRUD Test Channel",
+                channel_type="email",
+                details=ChannelDetails(
+                    email=EmailDetails(
+                        recipient_type="user",
+                        usernames=["crud_user1", "crud_user2"],
+                    )
+                ),
+            )
+            self.assertEqual(m_post.call_url, create_url)
+            self.assertIsInstance(channel, AlertChannel)
+            self.assertEqual(channel.id, channel_id)
+            self.assertEqual(channel.label, "CRUD Test Channel")
+
+        # UPDATE: Update the channel label
+        updated_response = create_response.copy()
+        updated_response["label"] = "CRUD Test Channel Updated"
+        updated_response["updated"] = "2024-01-02T00:00:00"
+
+        with self.mock_put(updated_response) as m_put:
+            channel.label = "CRUD Test Channel Updated"
+            result = channel.save()
+
+            self.assertEqual(m_put.call_url, channel_url)
+            self.assertTrue(result)
+            self.assertEqual(channel.label, "CRUD Test Channel Updated")
+
+        # DELETE: Delete the channel
+        with self.mock_delete() as m_delete:
+            result = channel.delete()
+
+            self.assertEqual(m_delete.call_url, channel_url)
+            self.assertTrue(result)
 
 
 class LogsDestinationTest(ClientBaseCase):
