@@ -129,6 +129,18 @@ def create_firewall_with_device(create_linode_without_firewall):
 
 
 @pytest.fixture
+def create_nat_reserved_ip(test_linode_client, create_nat_gateway):
+    client = test_linode_client
+    gateway = create_nat_gateway
+
+    reserved_ip = client.networking.reserved_ip_create(region=gateway.region)
+
+    yield reserved_ip
+
+    reserved_ip.delete()
+
+
+@pytest.fixture
 def create_nat_vpc_with_subnet(test_linode_client, create_nat_vpc):
     subnet = create_nat_vpc.subnet_create(
         label="test-nat-subnet",
@@ -660,10 +672,10 @@ def test_update_nat_gateway(test_linode_client, create_nat_gateway):
 
 @pytest.mark.parametrize("create_nat_gateway", [False], indirect=True)
 def test_assign_nat_gateway_ip_address(
-    test_linode_client, create_nat_gateway, create_reserved_ip
+    test_linode_client, create_nat_gateway, create_nat_reserved_ip
 ):
     gateway = create_nat_gateway
-    reserved_ip = create_reserved_ip
+    reserved_ip = create_nat_reserved_ip
 
     gateway.address_assignment_create(reserved_ip.address)
 
@@ -685,12 +697,12 @@ def test_get_nat_gateway_linode_ifaces(
     e2e_test_firewall,
     create_nat_gateway,
     create_nat_vpc_with_subnet_and_linode,
-    create_reserved_ip,
+    create_nat_reserved_ip,
 ):
     client = test_linode_client
     gateway = create_nat_gateway
     vpc, subnet, linode = create_nat_vpc_with_subnet_and_linode
-    reserved_ip = create_reserved_ip
+    reserved_ip = create_nat_reserved_ip
 
     gateway.address_assignment_create(reserved_ip.address)
     # Link the NAT Gateway to the VPC Subnet
