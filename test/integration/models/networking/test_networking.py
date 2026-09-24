@@ -15,13 +15,26 @@ from test.integration.helpers import (
 import pytest
 import requests
 
-from linode_api4 import ApiError, Instance, LinodeClient
+from linode_api4 import (
+    ApiError,
+    Capability,
+    Instance,
+    InterfaceGeneration,
+    LinodeClient,
+)
 from linode_api4.objects import (
     Config,
     ConfigInterfaceIPv4,
     Firewall,
     IPAddress,
+    LinodeInterfaceDefaultRouteOptions,
+    LinodeInterfaceVPCIPv4AddressOptions,
+    LinodeInterfaceVPCIPv4Options,
+    LinodeInterfaceVPCIPv4RangeOptions,
+    LinodeInterfaceVPCOptions,
+    NATGateway,
     ReservedIPAddress,
+    VPCSubnetNATGatewayOptions,
 )
 from linode_api4.objects.networking import (
     FirewallCreateDevicesOptions,
@@ -35,7 +48,7 @@ TEST_REGION = get_region(
         base_url=get_api_url(),
         ca_path=get_api_ca_file(),
     ),
-    {"Linodes", "Cloud Firewall"},
+    {Capability.linodes, Capability.firewall},
     site_type="core",
 )
 
@@ -72,18 +85,6 @@ def create_linode_to_be_shared_with_ips(test_linode_client):
     yield linode
 
     linode.delete()
-
-
-@pytest.mark.smoke
-def test_get_networking_rules(test_linode_client, test_firewall):
-    firewall = test_linode_client.load(Firewall, test_firewall.id)
-
-    rules = firewall.get_rules()
-
-    assert "inbound" in str(rules)
-    assert "inbound_policy" in str(rules)
-    assert "outbound" in str(rules)
-    assert "outbound_policy" in str(rules)
 
 
 @pytest.fixture
@@ -125,6 +126,120 @@ def create_firewall_with_device(create_linode_without_firewall):
     yield firewall, target_instance
 
     firewall.delete()
+
+
+@pytest.fixture
+def create_nat_reserved_ip(test_linode_client, create_nat_gateway):
+    client = test_linode_client
+    gateway = create_nat_gateway
+
+    reserved_ip = client.networking.reserved_ip_create(region=gateway.region)
+
+    yield reserved_ip
+
+    reserved_ip.delete()
+
+
+@pytest.fixture
+def create_nat_vpc_with_subnet(test_linode_client, create_nat_vpc):
+    subnet = create_nat_vpc.subnet_create(
+        label="test-nat-subnet",
+        ipv4="10.0.0.0/24",
+        ipv6=[{"range": "auto"}],
+    )
+
+    yield create_nat_vpc, subnet
+
+    subnet.delete()
+
+
+@pytest.fixture
+def create_nat_vpc_with_subnet_and_linode(
+    test_linode_client, create_nat_vpc_with_subnet, e2e_test_firewall
+):
+    vpc, subnet = create_nat_vpc_with_subnet
+
+    instance = test_linode_client.linode.instance_create(
+        "g6-standard-1",
+        vpc.region,
+        label=get_test_label(length=8),
+        firewall=e2e_test_firewall,
+        interface_generation=InterfaceGeneration.LINODE,
+        booted=False,
+    )
+
+    yield vpc, subnet, instance
+
+    instance.delete()
+
+
+def verify_reserved_ip(reserved_ip):
+    assert isinstance(
+        ipaddress.ip_address(reserved_ip.address), ipaddress.IPv4Address
+    )
+    assert reserved_ip.type == "ipv4"
+    assert reserved_ip.public == True
+    assert reserved_ip.reserved == True
+    assert reserved_ip.linode_id is None
+    assert reserved_ip.assigned_entity is None
+
+
+def verify_reserved_ip_assigned(reserved_ip, resource):
+    assert isinstance(
+        ipaddress.ip_address(reserved_ip.address), ipaddress.IPv4Address
+    )
+    assert reserved_ip.type == "ipv4"
+    assert reserved_ip.public == True
+    assert reserved_ip.reserved == True
+    assert reserved_ip.linode_id == resource.id
+    assert reserved_ip.region.id == resource.region.id
+    assert reserved_ip.assigned_entity.id == resource.id
+    assert reserved_ip.assigned_entity.type == "linode"
+    assert reserved_ip.assigned_entity.label == resource.label
+    assert (
+        reserved_ip.assigned_entity.url == f"/v4/linode/instances/{resource.id}"
+    )
+
+
+def verify_nat_gateway(nat_gateway, nat_gateway_read):
+    assert nat_gateway_read.id == nat_gateway.id
+    assert nat_gateway_read.region.id == nat_gateway.region.id
+    assert nat_gateway_read.label == nat_gateway.label
+    assert len(nat_gateway_read.addresses) == 0
+    assert nat_gateway_read.address_autoscale_max > 0
+    assert nat_gateway_read.default_ports_per_interface == 4096
+    assert nat_gateway_read.portset_assignments == 0
+    assert nat_gateway_read.portset_capacity > 0
+
+
+def verify_nat_gateway_address(nat_address, reserved_ip_address):
+    assert nat_address.address == reserved_ip_address
+    assert nat_address.in_use == False
+    assert nat_address.interface_count == 0
+    assert nat_address.interface_url.endswith(
+        f"/{reserved_ip_address}/interfaces"
+    )
+    assert nat_address.portset_assignments == 0
+    assert nat_address.portset_capacity > 0
+
+
+def verify_nat_gateway_interface(interface, linode, reserved_ip):
+    assert interface.id == linode.linode_interfaces[0].id
+    assert interface.linode.id == linode.id
+    assert interface.addresses[0] == reserved_ip.address
+    assert interface.portsets[0].address == reserved_ip.address
+
+
+@pytest.mark.smoke
+def test_get_networking_rules(test_linode_client, test_firewall):
+    firewall = test_linode_client.load(Firewall, test_firewall.id)
+
+    rules = firewall.get_rules()
+
+    assert "inbound" in str(rules)
+    assert "inbound_policy" in str(rules)
+    assert "outbound" in str(rules)
+    assert "outbound_policy" in str(rules)
 
 
 def test_get_networking_rule_versions(test_linode_client, test_firewall):
@@ -362,34 +477,6 @@ def test_ip_info(test_linode_client, create_linode):
     assert ip_info.vpc_nat_1_1 is None
 
 
-def verify_reserved_ip(reserved_ip):
-    assert isinstance(
-        ipaddress.ip_address(reserved_ip.address), ipaddress.IPv4Address
-    )
-    assert reserved_ip.type == "ipv4"
-    assert reserved_ip.public == True
-    assert reserved_ip.reserved == True
-    assert reserved_ip.linode_id is None
-    assert reserved_ip.assigned_entity is None
-
-
-def verify_reserved_ip_assigned(reserved_ip, resource):
-    assert isinstance(
-        ipaddress.ip_address(reserved_ip.address), ipaddress.IPv4Address
-    )
-    assert reserved_ip.type == "ipv4"
-    assert reserved_ip.public == True
-    assert reserved_ip.reserved == True
-    assert reserved_ip.linode_id == resource.id
-    assert reserved_ip.region.id == resource.region.id
-    assert reserved_ip.assigned_entity.id == resource.id
-    assert reserved_ip.assigned_entity.type == "linode"
-    assert reserved_ip.assigned_entity.label == resource.label
-    assert (
-        reserved_ip.assigned_entity.url == f"/v4/linode/instances/{resource.id}"
-    )
-
-
 @pytest.mark.smoke
 @pytest.mark.parametrize(
     "region, tags, expected",
@@ -555,3 +642,160 @@ def test_convert_unassigned_reserved_ip_to_ephemeral(
         ReservedIPAddress.address == reserved_ip.address
     )
     assert len(reserved_ips_list) == 0
+
+
+@pytest.mark.smoke
+def test_create_nat_gateway(test_linode_client, create_nat_gateway):
+    client = test_linode_client
+
+    gateway = client.load(NATGateway, create_nat_gateway.id)
+    verify_nat_gateway(create_nat_gateway, gateway)
+
+    gateways = client.networking.natgateways(
+        NATGateway.label == create_nat_gateway.label
+    )
+    assert len(gateways) == 1
+    verify_nat_gateway(create_nat_gateway, gateways[0])
+
+
+def test_update_nat_gateway(test_linode_client, create_nat_gateway):
+    client = test_linode_client
+    gateway = create_nat_gateway
+
+    new_label = f"{gateway.label}-updated"
+    gateway.label = new_label
+    gateway.save()
+
+    gateway_updated = client.load(NATGateway, gateway.id)
+    assert gateway_updated.label == new_label
+
+
+@pytest.mark.parametrize("create_nat_gateway", [False], indirect=True)
+def test_assign_nat_gateway_ip_address(
+    test_linode_client, create_nat_gateway, create_nat_reserved_ip
+):
+    gateway = create_nat_gateway
+    reserved_ip = create_nat_reserved_ip
+
+    gateway.address_assignment_create(reserved_ip.address)
+
+    addresses = gateway.address_assignments()
+    assert len(addresses) == 1
+    verify_nat_gateway_address(addresses[0], reserved_ip.address)
+
+    address = gateway.address_assignment_view(reserved_ip.address)
+    verify_nat_gateway_address(address, reserved_ip.address)
+
+    gateway.address_assignment_delete(reserved_ip.address)
+    addresses = gateway.address_assignments()
+    assert len(addresses) == 0
+
+
+@pytest.mark.parametrize("create_nat_gateway", [False], indirect=True)
+def test_get_nat_gateway_linode_ifaces(
+    test_linode_client,
+    e2e_test_firewall,
+    create_nat_gateway,
+    create_nat_vpc_with_subnet_and_linode,
+    create_nat_reserved_ip,
+):
+    client = test_linode_client
+    gateway = create_nat_gateway
+    vpc, subnet, linode = create_nat_vpc_with_subnet_and_linode
+    reserved_ip = create_nat_reserved_ip
+
+    gateway.address_assignment_create(reserved_ip.address)
+    # Link the NAT Gateway to the VPC Subnet
+    subnet.natgateway = VPCSubnetNATGatewayOptions(id=gateway.id)
+    subnet.save()
+
+    linode.interface_create(
+        firewall_id=e2e_test_firewall,
+        default_route=LinodeInterfaceDefaultRouteOptions(
+            ipv4=True,
+        ),
+        vpc=LinodeInterfaceVPCOptions(
+            subnet_id=subnet.id,
+            ipv4=LinodeInterfaceVPCIPv4Options(
+                addresses=[
+                    LinodeInterfaceVPCIPv4AddressOptions(
+                        address="auto",
+                        primary=True,
+                        nat_1_1_address=None,
+                    )
+                ],
+                ranges=[
+                    LinodeInterfaceVPCIPv4RangeOptions(
+                        range="/32",
+                    )
+                ],
+            ),
+        ),
+    )
+    linode = client.load(Instance, linode.id)
+
+    gateway_ifaces = gateway.interfaces()
+    assert len(gateway_ifaces) == 1
+    verify_nat_gateway_interface(gateway_ifaces[0], linode, reserved_ip)
+
+    gateway_ifaces = gateway.address_interfaces(reserved_ip.address)
+    verify_nat_gateway_interface(gateway_ifaces[0], linode, reserved_ip)
+
+    address = gateway.address_assignment_view(reserved_ip.address)
+    assert address.in_use == True
+    assert address.interface_count == 1
+    assert address.portset_assignments == 1
+
+
+def test_get_nat_gateway_types(test_linode_client):
+    client = test_linode_client
+
+    gateway_types = client.networking.natgateway_types()
+    assert len(gateway_types) > 0
+    assert gateway_types[0].id == "g1-natgateway"
+    assert gateway_types[0].label == "NAT Gateway"
+    assert (
+        gateway_types[0].price.hourly >= 0
+        or gateway_types[0].price.monthly >= 0
+    )
+    # TODO region_prices and transfer fields are not in use at the moment
+    # assert isinstance(gateway_types[0].region_prices, list)
+    # assert isinstance(gateway_types[0].transfer, int)
+
+
+def test_get_nat_gateway_settings(test_linode_client):
+    client = test_linode_client
+
+    gateway_settings = client.networking.natgateway_settings()
+    assert all(
+        port in [4096, 8192, 16384]
+        for port in gateway_settings.allowed_ports_per_interface
+    )
+    assert gateway_settings.maximum_autoscaling_addresses_per_natgateway > 0
+    assert gateway_settings.maximum_reserved_addresses_per_natgateway > 0
+
+
+@pytest.mark.skip(reason="VPC-6253")
+@pytest.mark.parametrize("create_nat_gateway", [False], indirect=True)
+def test_assign_nat_gateway_ip_address_in_diff_region_fail(
+    test_linode_client, create_nat_gateway
+):
+    client = test_linode_client
+    gateway = create_nat_gateway
+    region = get_region(
+        client, {Capability.linodes, Capability.firewall}, site_type="core"
+    )
+
+    while region == gateway.region:
+        region = get_region(
+            client, {Capability.linodes, Capability.firewall}, site_type="core"
+        )
+
+    reserved_ip = client.networking.reserved_ip_create(region=region)
+
+    with pytest.raises(RuntimeError) as err:
+        gateway.address_assignment_create(reserved_ip.address)
+    assert "[400] ..." in str(err.value)
+
+    addresses = gateway.address_assignments()
+    assert len(addresses) == 0
