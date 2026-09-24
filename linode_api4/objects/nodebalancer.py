@@ -7,6 +7,16 @@ from linode_api4.objects.base import Base, MappedObject, Property
 from linode_api4.objects.dbase import DerivedBase
 from linode_api4.objects.networking import Firewall, IPAddress
 from linode_api4.objects.region import Region
+from linode_api4.objects.serializable import StrEnum
+
+
+class NodeBalancerBackendConnectivity(StrEnum):
+    """Backend connectivity modes accepted when creating a NodeBalancer."""
+
+    IPV6 = "ipv6"
+    LEGACY = "legacy"
+    UNDEFINED = "undefined"
+    VPC = "vpc"
 
 
 class NodeBalancerType(Base):

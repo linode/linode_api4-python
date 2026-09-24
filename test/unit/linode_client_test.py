@@ -5,6 +5,7 @@ from linode_api4 import FirewallCreateDevicesOptions, LongviewSubscription
 from linode_api4.objects.beta import BetaProgram
 from linode_api4.objects.linode import Instance
 from linode_api4.objects.networking import IPAddress
+from linode_api4.objects.nodebalancer import NodeBalancerBackendConnectivity
 from linode_api4.objects.object_storage import (
     ObjectStorageACL,
     ObjectStorageCluster,
@@ -1607,7 +1608,7 @@ class NodeBalancerGroupTest(ClientBaseCase):
                 "us-east",
                 label="my-premium-nb",
                 type="premium",
-                backend_connectivity="ipv6",
+                backend_connectivity=NodeBalancerBackendConnectivity.IPV6,
                 configs=[
                     {
                         "port": 80,
@@ -1625,6 +1626,7 @@ class NodeBalancerGroupTest(ClientBaseCase):
             self.assertEqual(m.call_data["region"], "us-east")
             self.assertEqual(m.call_data["type"], "premium")
             self.assertEqual(m.call_data["backend_connectivity"], "ipv6")
+            self.assertIs(type(m.call_data["backend_connectivity"]), str)
             self.assertEqual(
                 m.call_data["configs"][0]["nodes"][0]["address"],
                 "[2001:db8:abcd:0012::1]:80",

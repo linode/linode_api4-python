@@ -48,7 +48,7 @@ class NodeBalancerGroup(Group):
                      ``undefined`` cannot be sent by clients. This cannot be
                      changed after creation.
                      NOTE: This field may not currently be available to all users.
-        :type backend_connectivity: str
+                :type backend_connectivity: NodeBalancerBackendConnectivity | str
         :param vpcs: VPC attachments for this NodeBalancer. Required when
                      ``backend_connectivity`` is ``vpc``.
         :type vpcs: list[dict]
