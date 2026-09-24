@@ -11,7 +11,16 @@
       "label": "balancer123456",
       "client_conn_throttle": 0,
       "tags": ["something"],
-      "locks": ["cannot_delete_with_subresources"]
+      "locks": ["cannot_delete_with_subresources"],
+      "type": "common",
+      "lke_cluster": {
+        "id": 1234,
+        "type": "lkecluster",
+        "label": "test-cluster",
+        "url": "/v4/lke/clusters/1234"
+      },
+      "frontend_address_type": "vpc",
+      "frontend_vpc_subnet_id": 5555
     },
     {
       "created": "2018-01-01T00:01:01",
@@ -24,7 +33,11 @@
       "label": "balancer123457",
       "client_conn_throttle": 0,
       "tags": [],
-      "locks": []
+      "locks": [],
+      "type": "premium_40gb",
+      "lke_cluster": null,
+      "frontend_address_type": "vpc",
+      "frontend_vpc_subnet_id": 6666
     }
   ],
   "results": 2,

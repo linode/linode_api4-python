@@ -1,7 +1,7 @@
 from pathlib import Path
 from urllib import parse
 
-from linode_api4.common import Price, RegionPrice
+from linode_api4.common import LKECluster, Price, RegionPrice
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects.base import Base, MappedObject, Property
 from linode_api4.objects.dbase import DerivedBase
@@ -231,6 +231,28 @@ class NodeBalancerConfig(DerivedBase):
                 self.ssl_key = f.read()
 
 
+class NodeBalancerVPCConfig(DerivedBase):
+    """
+    The VPC configuration for this NodeBalancer.
+
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-node-balancer-vpc-config
+    """
+
+    api_endpoint = "/nodebalancers/{nodebalancer_id}/vpcs/{id}"
+    derived_url_path = "vpcs"
+    parent_id_name = "nodebalancer_id"
+
+    properties = {
+        "id": Property(identifier=True),
+        "nodebalancer_id": Property(identifier=True),
+        "ipv4_range": Property(),
+        "ipv6_range": Property(),
+        "subnet_id": Property(),
+        "vpc_id": Property(),
+        "purpose": Property(),
+    }
+
+
 class NodeBalancer(Base):
     """
     A single NodeBalancer you can access.
@@ -255,6 +277,10 @@ class NodeBalancer(Base):
         "tags": Property(mutable=True, unordered=True),
         "client_udp_sess_throttle": Property(mutable=True),
         "locks": Property(unordered=True),
+        "type": Property(),
+        "lke_cluster": Property(json_object=LKECluster),
+        "frontend_address_type": Property(),
+        "frontend_vpc_subnet_id": Property(),
     }
 
     # create derived objects
@@ -357,4 +383,81 @@ class NodeBalancer(Base):
         return [
             Firewall(self._client, firewall["id"])
             for firewall in result["data"]
+        ]
+
+    def vpcs(self):
+        """
+        View VPC information for VPCs associated with this NodeBalancer.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-node-balancer-vpcs
+
+        :returns: A List of NodeBalancerVPCConfig of the Linode NodeBalancer.
+        :rtype: List[NodeBalancerVPCConfig]
+        """
+        result = self._client.get(
+            "{}/vpcs".format(NodeBalancer.api_endpoint), model=self
+        )
+
+        return [
+            NodeBalancerVPCConfig(self._client, vpc["id"], self.id, json=vpc)
+            for vpc in result["data"]
+        ]
+
+    def vpc(self, id):
+        """
+        View VPC information for a VPC associated with this NodeBalancer.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-node-balancer-vpc-config
+
+        :param id: The ID of the NodeBalancer VPC Config to view.
+        :type id: int
+
+        :returns: A NodeBalancerVPCConfig of the Linode NodeBalancer.
+        :rtype: NodeBalancerVPCConfig
+        """
+        result = self._client.get(
+            "{}/vpcs/{}".format(
+                NodeBalancer.api_endpoint, parse.quote(str(id))
+            ),
+            model=self,
+        )
+
+        return NodeBalancerVPCConfig(
+            self._client, result["id"], self.id, json=result
+        )
+
+    def backend_vpcs(self):
+        """
+        View VPC information for backend VPCs associated with this NodeBalancer.
+
+        API Documentation: TODO
+
+        :returns: A List of NodeBalancerVPCConfig of the Linode NodeBalancer.
+        :rtype: List[NodeBalancerVPCConfig]
+        """
+        result = self._client.get(
+            "{}/backend_vpcs".format(NodeBalancer.api_endpoint), model=self
+        )
+
+        return [
+            NodeBalancerVPCConfig(self._client, vpc["id"], self.id, json=vpc)
+            for vpc in result["data"]
+        ]
+
+    def frontend_vpcs(self):
+        """
+        View VPC information for frontend VPCs associated with this NodeBalancer.
+
+        API Documentation: TODO
+
+        :returns: A List of NodeBalancerVPCConfig of the Linode NodeBalancer.
+        :rtype: List[NodeBalancerVPCConfig]
+        """
+        result = self._client.get(
+            "{}/frontend_vpcs".format(NodeBalancer.api_endpoint), model=self
+        )
+
+        return [
+            NodeBalancerVPCConfig(self._client, vpc["id"], self.id, json=vpc)
+            for vpc in result["data"]
         ]
