@@ -102,14 +102,13 @@ Tests
 -----
 
 Tests live in the ``test`` directory.  When invoking tests, make sure you are
-in the root directory of this project.  To run the full suite across all
-supported python versions, use tox_:
+in the root directory of this project.  Install unit-test dependencies and run
+the mocked unit suite with:
 
 .. code-block:: shell
 
-   tox
-
-Running tox also runs pylint and coverage reports.
+   python3 -m pip install -e ".[unit-test]"
+   make test-unit
 
 The test suite uses fixtures stored as JSON in ``test/fixtures``.  These files
 contain sanitized JSON responses from the API - the file name is the URL called
@@ -130,8 +129,6 @@ from the api base url that should be returned, for example::
    with self.mock_post('/linode/instances/123'):
      linode = self.client.linode.instance_create('g6-standard-2', 'us-east')
      self.assertEqual(linode.id, 123) # passes
-
-.. _tox: http://tox.readthedocs.io
 
 
 Integration Tests

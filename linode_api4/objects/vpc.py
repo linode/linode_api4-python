@@ -5,9 +5,18 @@ from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import Base, DerivedBase, Property, Region
 from linode_api4.objects.base import _flatten_request_body_recursive
 from linode_api4.objects.networking import VPCIPAddress
-from linode_api4.objects.serializable import JSONObject
+from linode_api4.objects.serializable import JSONObject, StrEnum
 from linode_api4.paginated_list import PaginatedList
 from linode_api4.util import drop_null_keys
+
+
+class VPCType(StrEnum):
+    """
+    VPCType represents the supported VPC types.
+    """
+
+    regular = "regular"
+    rdma = "rdma"
 
 
 @dataclass
@@ -119,6 +128,7 @@ class VPCSubnet(DerivedBase):
         "ipv6": Property(json_object=VPCSubnetIPv6Range, unordered=True),
         "linodes": Property(json_object=VPCSubnetLinode, unordered=True),
         "databases": Property(json_object=VPCSubnetDatabase, unordered=True),
+        "vpc_type": Property(),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),
     }
@@ -144,6 +154,7 @@ class VPC(Base):
         ),
         "ipv6": Property(json_object=VPCIPv6Range, unordered=True),
         "subnets": Property(derived_class=VPCSubnet),
+        "vpc_type": Property(),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),
     }
