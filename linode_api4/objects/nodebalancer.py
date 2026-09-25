@@ -7,6 +7,16 @@ from linode_api4.objects.base import Base, MappedObject, Property
 from linode_api4.objects.dbase import DerivedBase
 from linode_api4.objects.networking import Firewall, IPAddress
 from linode_api4.objects.region import Region
+from linode_api4.objects.serializable import StrEnum
+
+
+class NodeBalancerBackendConnectivity(StrEnum):
+    """Backend connectivity modes accepted when creating a NodeBalancer."""
+
+    IPV6 = "ipv6"
+    LEGACY = "legacy"
+    UNDEFINED = "undefined"
+    VPC = "vpc"
 
 
 class NodeBalancerType(Base):
@@ -162,8 +172,10 @@ class NodeBalancerConfig(DerivedBase):
 
         API documentation: https://techdocs.akamai.com/linode-api/reference/post-node-balancer-node
 
-        :param address: The private IP Address where this backend can be reached.
-                        This must be a private IP address.
+        :param address: The address and port where this backend can be reached.
+                        The address may be a private IPv4 address, a public
+                        IPv6 address, or a VPC address. The address type must
+                        match this NodeBalancer's ``backend_connectivity``.
         :type address: str
 
         :param label: The label for this node. This is for display purposes only.
@@ -255,6 +267,8 @@ class NodeBalancer(Base):
         "tags": Property(mutable=True, unordered=True),
         "client_udp_sess_throttle": Property(mutable=True),
         "locks": Property(unordered=True),
+        "type": Property(),
+        "backend_connectivity": Property(),
     }
 
     # create derived objects

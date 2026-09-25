@@ -11,7 +11,9 @@
       "label": "balancer123456",
       "client_conn_throttle": 0,
       "tags": ["something"],
-      "locks": ["cannot_delete_with_subresources"]
+      "locks": ["cannot_delete_with_subresources"],
+      "type": "premium",
+      "backend_connectivity": "ipv6"
     },
     {
       "created": "2018-01-01T00:01:01",
@@ -24,7 +26,9 @@
       "label": "balancer123457",
       "client_conn_throttle": 0,
       "tags": [],
-      "locks": []
+      "locks": [],
+      "type": "premium",
+      "backend_connectivity": "ipv6"
     }
   ],
   "results": 2,
