@@ -269,6 +269,7 @@ class NodeBalancer(Base):
         "locks": Property(unordered=True),
         "type": Property(),
         "backend_connectivity": Property(),
+        "backend_ipv6_prefix": Property(),
     }
 
     # create derived objects

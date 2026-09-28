@@ -1601,6 +1601,7 @@ class NodeBalancerGroupTest(ClientBaseCase):
                 "label": "my-premium-nb",
                 "type": "premium",
                 "backend_connectivity": "ipv6",
+                "backend_ipv6_prefix": "2600:3c22:1:20:0:3039::/96",
                 "region": "us-east",
             }
         ) as m:
@@ -1634,6 +1635,10 @@ class NodeBalancerGroupTest(ClientBaseCase):
             self.assertEqual(nb.id, 1234)
             self.assertEqual(nb.type, "premium")
             self.assertEqual(nb.backend_connectivity, "ipv6")
+            self.assertEqual(
+                nb.backend_ipv6_prefix, "2600:3c22:1:20:0:3039::/96"
+            )
+            self.assertNotIn("backend_ipv6_prefix", m.call_data)
 
     def test_create_with_vpc_backend_connectivity(self):
         """

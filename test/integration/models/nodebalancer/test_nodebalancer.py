@@ -115,6 +115,9 @@ def test_create_nb(test_linode_client, e2e_test_firewall):
     assert 5 == nb.client_udp_sess_throttle
     assert nb.type == "premium"
     assert nb.backend_connectivity == "ipv6"
+    assert nb.backend_ipv6_prefix is None or isinstance(
+        nb.backend_ipv6_prefix, str
+    )
 
     nb.delete()
 

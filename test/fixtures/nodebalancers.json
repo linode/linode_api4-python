@@ -13,7 +13,8 @@
       "tags": ["something"],
       "locks": ["cannot_delete_with_subresources"],
       "type": "premium",
-      "backend_connectivity": "ipv6"
+      "backend_connectivity": "ipv6",
+      "backend_ipv6_prefix": "2600:3c22:1:20:0:3039::/96"
     },
     {
       "created": "2018-01-01T00:01:01",
@@ -28,7 +29,8 @@
       "tags": [],
       "locks": [],
       "type": "premium",
-      "backend_connectivity": "ipv6"
+      "backend_connectivity": "ipv6",
+      "backend_ipv6_prefix": null
     }
   ],
   "results": 2,
