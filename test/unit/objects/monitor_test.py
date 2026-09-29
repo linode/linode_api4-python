@@ -16,6 +16,7 @@ from linode_api4.objects.monitor import (
     DestinationAuthentication,
     LogsDestinationDetailsBase,
     LogsStreamDetails,
+    LogsStreamQuota,
     LogsStreamType,
 )
 
@@ -652,6 +653,41 @@ class LogsStreamTest(ClientBaseCase):
             stream.delete()
 
         self.assertEqual(m.call_url, "/monitor/streams/1")
+
+    def test_stream_quotas(self):
+        """
+        Test that stream_quotas returns a paginated list of quota objects.
+        """
+        url = "/monitor/streams/quotas"
+        with self.mock_get(url) as m:
+            result = self.client.monitor.stream_quotas()
+
+        self.assertEqual(m.call_url, url)
+        self.assertEqual(len(result), 2)
+        self.assertIsInstance(result[0], LogsStreamQuota)
+        self.assertEqual(result[0].quota_id, "aclp_audit_logs_streams")
+        self.assertEqual(result[0].quota_name, "Number of Audit Logs Streams")
+        self.assertEqual(
+            result[0].description,
+            "Current number of audit logs streams per account",
+        )
+        self.assertEqual(result[0].quota_limit, 5)
+        self.assertEqual(
+            result[0].quota_type, "logs_streams_aclp_audit_logs_streams"
+        )
+        self.assertIsInstance(result[1], LogsStreamQuota)
+        self.assertEqual(result[1].quota_id, "aclp_lke_audit_logs_streams")
+        self.assertEqual(
+            result[1].quota_name, "Number of LKE Audit Logs Streams"
+        )
+        self.assertEqual(
+            result[1].description,
+            "Current number of LKE audit logs streams per account",
+        )
+        self.assertEqual(result[1].quota_limit, 10)
+        self.assertEqual(
+            result[1].quota_type, "logs_streams_aclp_lke_audit_logs_streams"
+        )
 
 
 class LkeAuditLogsStreamTest(ClientBaseCase):
