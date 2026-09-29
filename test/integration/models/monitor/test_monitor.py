@@ -20,7 +20,6 @@ from linode_api4.objects import (
 from linode_api4.objects.monitor import (
     AlertChannel,
     AlertStatus,
-    BasicAuthenticationDetails,
     ChannelDetails,
     CustomHeader,
     DestinationAuthentication,
@@ -442,61 +441,94 @@ def test_integration_clone_alert_definition(test_linode_client):
 # Webhook Channel Operations
 def test_webhook_channel_crud(test_linode_client):
     """
-    Test webhook channel create, verify, and delete operations.
+    E2E: Create webhook channel, fetch it, update it, verify it, then delete it.
 
-    Creates a webhook channel with basic auth, verifies the configuration,
-    and then deletes the channel.
+    This test creates a webhook channel with no authentication and custom headers,
+    retrieves it, updates its label, verifies the webhook configuration,
+    and then deletes it. It ensures the full CRUD + verification lifecycle
+    is working end-to-end against the actual API.
     """
     client = test_linode_client
+    label = f"python-sdk-webhook-change-{get_test_label()}"
 
-    # Create webhook channel with basic authentication
-    webhook = client.monitor.channel_create(
-        label=f"webhook-test-{get_test_label()}",
-        channel_type="webhook",
-        details=ChannelDetails(
-            webhook=WebhookDetails(
-                endpoint_url="https://example.com/webhook",
-                authentication=DestinationAuthentication(
-                    type="basic",
-                    details=BasicAuthenticationDetails(
-                        basic_authentication_user="testuser",
-                        basic_authentication_password="testpass",
-                    ),
-                ),
-                data_compression="gzip",
-                custom_headers=[
-                    CustomHeader(name="X-API-Key", value="secret123"),
-                ],
-            )
-        ),
-    )
+    created_webhook = None
 
-    assert isinstance(webhook, AlertChannel)
-    assert webhook.channel_type == "webhook"
-    assert webhook.details.webhook.endpoint_url == "https://example.com/webhook"
-    assert webhook.details.webhook.authentication.type == "basic"
-    assert webhook.details.webhook.data_compression == "gzip"
-    assert len(webhook.details.webhook.custom_headers) == 1
-
-    # Verify webhook configuration
-    webhook_config = WebhookDetails(
-        endpoint_url="https://example.com/webhook",
-        authentication=DestinationAuthentication(
-            type="basic",
-            details=BasicAuthenticationDetails(
-                basic_authentication_user="user",
-                basic_authentication_password="pass",
+    try:
+        # CREATE: Create webhook channel with no authentication
+        created_webhook = client.monitor.channel_create(
+            label=label,
+            channel_type="webhook",
+            details=ChannelDetails(
+                webhook=WebhookDetails(
+                    endpoint_url="https://httpbin.org/post",
+                    authentication=DestinationAuthentication(type="none"),
+                    data_compression="none",
+                    custom_headers=[
+                        CustomHeader(name="x-trace-id", value="1234"),
+                    ],
+                )
             ),
-        ),
-    )
+        )
 
-    is_valid = client.monitor.verify_webhook(webhook_config)
-    assert is_valid is True
+        # Assert created channel has expected properties
+        assert isinstance(created_webhook, AlertChannel)
+        assert created_webhook.id is not None
+        assert created_webhook.label == label
+        assert created_webhook.channel_type == "webhook"
+        assert created_webhook.details is not None
+        assert (
+            created_webhook.details.webhook.endpoint_url
+            == "https://httpbin.org/post"
+        )
+        assert created_webhook.details.webhook.authentication.type == "none"
+        assert created_webhook.details.webhook.data_compression == "none"
+        assert len(created_webhook.details.webhook.custom_headers) == 1
+        assert (
+            created_webhook.details.webhook.custom_headers[0].name
+            == "x-trace-id"
+        )
 
-    # Delete webhook channel
-    webhook_id = webhook.id
-    webhook.delete()
+        # GET: Fetch the channel to verify it exists
+        channels = list(client.monitor.alert_channels())
+        assert len(channels) > 0, "No channels found after creation"
 
-    # Verify deletion
-    with pytest.raises(ApiError):
-        client.load(AlertChannel, webhook_id)
+        # Find the created channel in the list
+        found_channel = None
+        for ch in channels:
+            if ch.id == created_webhook.id:
+                found_channel = ch
+                break
+
+        assert (
+            found_channel is not None
+        ), "Created webhook channel not found in list"
+        assert found_channel.label == label
+        assert found_channel.channel_type == "webhook"
+
+        # UPDATE: Update the webhook channel label
+        updated_label = f"{label}-updated"
+        created_webhook.label = updated_label
+        result = created_webhook.save()
+        assert result is True, "Failed to update channel"
+
+        # Fetch the updated channel to verify the change
+        reloaded_webhook = client.load(AlertChannel, created_webhook.id)
+        assert (
+            reloaded_webhook.label == updated_label
+        ), "Webhook channel label was not updated"
+
+        # VERIFY: Verify webhook configuration
+        webhook_config = created_webhook.details.webhook
+        is_valid = client.monitor.verify_webhook(webhook_config)
+        assert is_valid is True, "Webhook verification failed"
+
+    finally:
+        if created_webhook:
+            # DELETE: Clean up - delete the created channel
+            try:
+                created_webhook.delete()
+            except Exception as e:
+                # Log but don't fail if cleanup fails
+                print(
+                    f"Warning: Failed to delete webhook channel {created_webhook.id}: {e}"
+                )

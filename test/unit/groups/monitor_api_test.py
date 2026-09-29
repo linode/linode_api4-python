@@ -326,7 +326,7 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
 
         create_response = {
             "id": channel_id,
-            "label": "Webhook Test Channel",
+            "label": "python-sdk-webhook-change",
             "type": "user",
             "channel_type": "webhook",
             "details": {
@@ -358,7 +358,7 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
 
         with self.mock_post(create_response) as mock_post:
             webhook_channel = self.client.monitor.channel_create(
-                label="Webhook Test Channel",
+                label="python-sdk-webhook-change",
                 channel_type="webhook",
                 details=ChannelDetails(
                     webhook=WebhookDetails(
@@ -380,7 +380,7 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             assert mock_post.call_url == create_url
             assert isinstance(webhook_channel, AlertChannel)
             assert webhook_channel.id == channel_id
-            assert webhook_channel.label == "Webhook Test Channel"
+            assert webhook_channel.label == "python-sdk-webhook-change"
             assert webhook_channel.channel_type == "webhook"
             assert (
                 webhook_channel.details.webhook.endpoint_url
@@ -413,3 +413,61 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             )
             assert mock_verify.call_url == verify_url
             assert is_valid is True
+
+    def test_update_webhook_channel(self):
+        """
+        Test updating a webhook channel via PUT request.
+        Verifies that AlertChannel.save() properly sends updated channel data.
+        """
+        channel_id = 123
+        update_url = f"/monitor/alert-channels/{channel_id}"
+
+        channel = self.client.load(AlertChannel, channel_id)
+
+        update_response = {
+            "id": channel_id,
+            "label": "python-sdk-webhook-change-updated",
+            "type": "user",
+            "channel_type": "email",
+            "details": {
+                "email": {
+                    "usernames": ["admin-user1", "admin-user2"],
+                    "recipient_type": "user",
+                }
+            },
+            "alerts": {
+                "url": f"{update_url}/alerts",
+                "type": "alerts-definitions",
+                "alert_count": 0,
+            },
+            "created": "2024-01-01T00:00:00",
+            "updated": "2024-01-02T00:00:00",
+            "created_by": "user1",
+            "updated_by": "user1",
+        }
+
+        with self.mock_put(update_response) as mock_put:
+            channel.label = "python-sdk-webhook-change-updated"
+            channel.save()
+
+            assert mock_put.call_url == update_url
+            assert (
+                mock_put.call_data["label"]
+                == "python-sdk-webhook-change-updated"
+            )
+
+    def test_delete_webhook_channel(self):
+        """
+        Test deleting a webhook channel via DELETE request.
+        Verifies that AlertChannel.delete() properly removes the channel.
+        """
+        channel_id = 123
+        delete_url = f"/monitor/alert-channels/{channel_id}"
+
+        channel = self.client.load(AlertChannel, channel_id)
+
+        with self.mock_delete() as mock_delete:
+            result = channel.delete()
+
+            assert mock_delete.call_url == delete_url
+            assert result is True

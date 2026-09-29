@@ -288,10 +288,14 @@ class MonitorTest(ClientBaseCase):
             self.client.monitor._validate_webhook_details(webhook_details)
         self.assertIn("Content-Type", str(cm.exception))
 
-    def test_create_verify_delete_webhook_channel(self):
+    def test_create_update_verify_delete_webhook_channel(self):
         """
-        Test webhook channel create, verify, and delete operations.
-        Verifies the full lifecycle of a webhook alert channel object.
+        Test webhook channel create, update, verify, and delete operations.
+        Verifies the full lifecycle of a webhook alert channel object:
+        1. POST /monitor/alert-channels - Create webhook channel
+        2. PUT /monitor/alert-channels/{id} - Update channel label
+        3. POST /monitor/alert-channels/verify - Verify webhook configuration
+        4. DELETE /monitor/alert-channels/{id} - Delete the channel
         """
         create_url = "/monitor/alert-channels"
         channel_id = 888
@@ -300,7 +304,7 @@ class MonitorTest(ClientBaseCase):
         # CREATE: Create the webhook channel via channel_create()
         create_response = {
             "id": channel_id,
-            "label": "Webhook Test Channel",
+            "label": "python-sdk-webhook-change",
             "type": "user",
             "channel_type": "webhook",
             "details": {
@@ -332,7 +336,7 @@ class MonitorTest(ClientBaseCase):
 
         with self.mock_post(create_response) as m_post:
             webhook_channel = self.client.monitor.channel_create(
-                label="Webhook Test Channel",
+                label="python-sdk-webhook-change",
                 channel_type="webhook",
                 details=ChannelDetails(
                     webhook=WebhookDetails(
@@ -354,7 +358,7 @@ class MonitorTest(ClientBaseCase):
             self.assertEqual(m_post.call_url, create_url)
             self.assertIsInstance(webhook_channel, AlertChannel)
             self.assertEqual(webhook_channel.id, channel_id)
-            self.assertEqual(webhook_channel.label, "Webhook Test Channel")
+            self.assertEqual(webhook_channel.label, "python-sdk-webhook-change")
             self.assertEqual(
                 webhook_channel.details.webhook.endpoint_url,
                 "https://example.com/webhook",
@@ -363,9 +367,25 @@ class MonitorTest(ClientBaseCase):
                 webhook_channel.details.webhook.authentication.type, "basic"
             )
 
+        # UPDATE: Update the webhook channel label
+        update_response = create_response.copy()
+        update_response["label"] = "python-sdk-webhook-change-updated"
+
+        with self.mock_put(update_response) as m_put:
+            webhook_channel.label = "python-sdk-webhook-change-updated"
+            webhook_channel.save()
+
+            self.assertEqual(m_put.call_url, channel_url)
+            self.assertEqual(
+                m_put.call_data["label"], "python-sdk-webhook-change-updated"
+            )
+            self.assertEqual(
+                webhook_channel.label, "python-sdk-webhook-change-updated"
+            )
+
         # VERIFY: Verify the webhook configuration
         verify_url = "/monitor/alert-channels/verify"
-        verify_response = {"valid": True}
+        verify_response = {"success": True}
 
         with self.mock_post(verify_response) as m_verify:
             is_valid = self.client.monitor.verify_webhook(
@@ -389,6 +409,47 @@ class MonitorTest(ClientBaseCase):
 
             self.assertEqual(m_delete.call_url, channel_url)
             self.assertTrue(result)
+
+    def test_get_alert_channel(self):
+        """
+        Test retrieving a single alert channel by ID.
+        Verifies that a specific alert channel can be loaded with all properties.
+        """
+        channel_id = 123
+        channel = self.client.load(AlertChannel, channel_id)
+
+        self.assertIsInstance(channel, AlertChannel)
+        self.assertEqual(channel.id, channel_id)
+        self.assertEqual(channel.label, "alert notification channel")
+        self.assertEqual(channel.type, "user")
+        self.assertEqual(channel.channel_type, "email")
+        self.assertIsNotNone(channel.details)
+        self.assertIsNotNone(channel.details.email)
+        self.assertEqual(
+            channel.details.email.usernames, ["admin-user1", "admin-user2"]
+        )
+        self.assertEqual(channel.details.email.recipient_type, "user")
+
+    def test_update_email_alert_channel(self):
+        """
+        Test updating an email alert channel.
+        Verifies that channel properties can be modified and persisted via save().
+        """
+        channel_id = 123
+        update_url = f"/monitor/alert-channels/{channel_id}"
+
+        channel = self.client.load(AlertChannel, channel_id)
+        original_label = channel.label
+
+        with self.mock_put(f"monitor/alert-channels/{channel_id}") as m_put:
+            channel.label = "Updated Alert Channel Label"
+            channel.save()
+
+            self.assertEqual(m_put.call_url, update_url)
+            self.assertEqual(
+                m_put.call_data["label"], "Updated Alert Channel Label"
+            )
+            self.assertNotEqual(channel.label, original_label)
 
 
 class LogsDestinationTest(ClientBaseCase):
