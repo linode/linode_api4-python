@@ -3,8 +3,7 @@
 ## Source of Truth
 
 - This is the official synchronous Python SDK for the Linode API. Supported
-  Python versions come from [pyproject.toml](pyproject.toml) (`>=3.10`); do not
-  infer support from the older environment names still present in [tox.ini](tox.ini).
+  Python versions come from [pyproject.toml](pyproject.toml) (`>=3.10`).
 - Make changes only in canonical source trees such as `linode_api4/`, `test/`,
   `docs/`, `examples/`, and `.github/`. Do not edit generated copies or output in
   `build/`, `dist/`, `docs/build/`, `docs/_build/`, or `linode_api4.egg-info/`.
