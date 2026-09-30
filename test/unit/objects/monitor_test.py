@@ -18,6 +18,7 @@ from linode_api4.objects.monitor import (
     CustomHeader,
     CustomHTTPSLogsDestinationDetails,
     DestinationAuthentication,
+    EmailDetails,
     LogsDestinationDetailsBase,
     LogsStreamDetails,
     LogsStreamType,
@@ -195,6 +196,61 @@ class MonitorTest(ClientBaseCase):
         )
         self.assertEqual(channels[0].alerts.alert_count, 0)
 
+    def test_create_update_delete_channel(self):
+        """Test the parent email channel create, update, and delete lifecycle."""
+        create_url = "/monitor/alert-channels"
+        channel_id = 999
+        channel_url = f"{create_url}/{channel_id}"
+        create_response = {
+            "id": channel_id,
+            "label": "CRUD Test Channel",
+            "type": "user",
+            "channel_type": "email",
+            "details": {
+                "email": {
+                    "usernames": ["crud_user1", "crud_user2"],
+                    "recipient_type": "user",
+                }
+            },
+            "alerts": {
+                "url": f"{channel_url}/alerts",
+                "type": "alerts-definitions",
+                "alert_count": 0,
+            },
+            "created": "2024-01-01T00:00:00",
+            "updated": "2024-01-01T00:00:00",
+            "created_by": "crud_user1",
+            "updated_by": "crud_user1",
+        }
+
+        with self.mock_post(create_response) as mock_post:
+            channel = self.client.monitor.channel_create(
+                label="CRUD Test Channel",
+                channel_type="email",
+                details=ChannelDetails(
+                    email=EmailDetails(
+                        recipient_type="user",
+                        usernames=["crud_user1", "crud_user2"],
+                    )
+                ),
+            )
+            self.assertEqual(mock_post.call_url, create_url)
+            self.assertIsInstance(channel, AlertChannel)
+            self.assertEqual(channel.channel_type, "email")
+
+        updated_response = create_response.copy()
+        updated_response["label"] = "CRUD Test Channel Updated"
+        with self.mock_put(updated_response) as mock_put:
+            channel.label = "CRUD Test Channel Updated"
+            self.assertTrue(channel.save())
+
+            self.assertEqual(mock_put.call_url, channel_url)
+            self.assertEqual(channel.label, "CRUD Test Channel Updated")
+
+        with self.mock_delete() as mock_delete:
+            self.assertTrue(channel.delete())
+            self.assertEqual(mock_delete.call_url, channel_url)
+
     def test_webhook_channel_validation(self):
         """
         Test webhook channel validation constraints for create and verify operations.
@@ -288,14 +344,15 @@ class MonitorTest(ClientBaseCase):
             self.client.monitor._validate_webhook_details(webhook_details)
         self.assertIn("Content-Type", str(cm.exception))
 
-    def test_create_update_verify_delete_webhook_channel(self):
+    def test_create_get_update_verify_delete_webhook_channel(self):
         """
-        Test webhook channel create, update, verify, and delete operations.
+        Test webhook channel create, get, update, verify, and delete operations.
         Verifies the full lifecycle of a webhook alert channel object:
         1. POST /monitor/alert-channels - Create webhook channel
-        2. PUT /monitor/alert-channels/{id} - Update channel label
-        3. POST /monitor/alert-channels/verify - Verify webhook configuration
-        4. DELETE /monitor/alert-channels/{id} - Delete the channel
+        2. GET /monitor/alert-channels/{id} - Retrieve webhook channel
+        3. PUT /monitor/alert-channels/{id} - Update channel label
+        4. POST /monitor/alert-channels/verify - Verify webhook configuration
+        5. DELETE /monitor/alert-channels/{id} - Delete the channel
         """
         create_url = "/monitor/alert-channels"
         channel_id = 888
@@ -365,6 +422,17 @@ class MonitorTest(ClientBaseCase):
             )
             self.assertEqual(
                 webhook_channel.details.webhook.authentication.type, "basic"
+            )
+
+        # GET: Retrieve the webhook channel by ID
+        with self.mock_get(create_response) as m_get:
+            webhook_channel = self.client.load(AlertChannel, channel_id)
+
+            self.assertEqual(m_get.call_url, channel_url)
+            self.assertEqual(webhook_channel.channel_type, "webhook")
+            self.assertEqual(
+                webhook_channel.details.webhook.endpoint_url,
+                "https://example.com/webhook",
             )
 
         # UPDATE: Update the webhook channel label

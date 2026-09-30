@@ -266,10 +266,10 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             assert mock_post.call_data["channel_ids"] == [1, 2]
             assert mock_post.call_data["group_by"] == ["entity_id"]
 
-    def test_create_email_channel(self):
+    def test_create_update_delete_alert_channel(self):
         """
-        Test creating an email alert channel.
-        Verifies that channel_create() properly handles email channel details.
+        E2E test for alert channel CRUD: create, update, and delete.
+        Verifies the full lifecycle of an alert channel.
         """
         create_url = "/monitor/alert-channels"
         channel_id = 789
@@ -313,6 +313,63 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             assert channel.id == channel_id
             assert channel.label == "Email Test Channel"
             assert channel.channel_type == "email"
+
+        updated_response = create_response.copy()
+        updated_response["label"] = "Email Test Channel Updated"
+        updated_response["updated"] = "2024-01-02T00:00:00"
+
+        with self.mock_put(updated_response) as mock_put:
+            channel.label = "Email Test Channel Updated"
+            result = channel.save()
+
+            assert mock_put.call_url == channel_url
+            assert result is True
+            assert channel.label == "Email Test Channel Updated"
+
+        with self.mock_delete() as mock_delete:
+            result = channel.delete()
+
+            assert mock_delete.call_url == channel_url
+            assert result is True
+
+    def test_alert_channel_alerts(self):
+        """Test retrieval of alerts associated with an alert channel."""
+        channel_id = 123
+        alerts_url = f"/monitor/alert-channels/{channel_id}/alerts"
+        alerts_response = {
+            "data": [
+                {
+                    "id": 12345,
+                    "label": "DBAAS Alert 1",
+                    "service_type": "dbaas",
+                    "type": "alerts-definitions",
+                    "url": "/monitor/services/dbaas/alerts-definitions/12345",
+                },
+                {
+                    "id": 12346,
+                    "label": "DBAAS Alert 2",
+                    "service_type": "dbaas",
+                    "type": "alerts-definitions",
+                    "url": "/monitor/services/dbaas/alerts-definitions/12346",
+                },
+            ],
+            "page": 1,
+            "pages": 1,
+            "results": 2,
+        }
+
+        with self.mock_get(alerts_response) as mock_get:
+            alerts = self.client.monitor.alert_channel_alerts(channel_id)
+
+            assert mock_get.call_url == alerts_url
+            assert isinstance(alerts, PaginatedList)
+            assert len(alerts) == 2
+            assert isinstance(alerts[0], AlertDefinition)
+            assert alerts[0].id == 12345
+            assert alerts[0].service_type == "dbaas"
+            assert isinstance(alerts[1], AlertDefinition)
+            assert alerts[1].id == 12346
+            assert alerts[1].service_type == "dbaas"
 
     def test_create_webhook_channel(self):
         """
@@ -422,17 +479,16 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
         channel_id = 123
         update_url = f"/monitor/alert-channels/{channel_id}"
 
-        channel = self.client.load(AlertChannel, channel_id)
-
         update_response = {
             "id": channel_id,
             "label": "python-sdk-webhook-change-updated",
             "type": "user",
-            "channel_type": "email",
+            "channel_type": "webhook",
             "details": {
-                "email": {
-                    "usernames": ["admin-user1", "admin-user2"],
-                    "recipient_type": "user",
+                "webhook": {
+                    "endpoint_url": "https://example.com/webhook",
+                    "authentication": {"type": "none"},
+                    "data_compression": "none",
                 }
             },
             "alerts": {
@@ -445,6 +501,9 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             "created_by": "user1",
             "updated_by": "user1",
         }
+        channel_data = update_response.copy()
+        channel_data["label"] = "python-sdk-webhook-change"
+        channel = AlertChannel(self.client, channel_id, channel_data)
 
         with self.mock_put(update_response) as mock_put:
             channel.label = "python-sdk-webhook-change-updated"
@@ -454,6 +513,11 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             assert (
                 mock_put.call_data["label"]
                 == "python-sdk-webhook-change-updated"
+            )
+            assert channel.channel_type == "webhook"
+            assert (
+                channel.details.webhook.endpoint_url
+                == "https://example.com/webhook"
             )
 
     def test_delete_webhook_channel(self):
