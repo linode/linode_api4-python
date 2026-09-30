@@ -188,6 +188,7 @@ class NodeBalancerTest(ClientBaseCase):
         self.assertEqual(nb._populated, True)
         self.assertEqual(nb.type, "premium")
         self.assertEqual(nb.backend_connectivity, "ipv6")
+        self.assertEqual(nb.backend_ipv6_prefix, "2600:3c22:1:20:0:3039::/96")
 
     def test_update(self):
         """
@@ -244,6 +245,7 @@ class NodeBalancerTest(ClientBaseCase):
             self.assertEqual(m.call_url, "/nodebalancers/123456")
             self.assertNotIn("type", m.call_data)
             self.assertNotIn("backend_connectivity", m.call_data)
+            self.assertNotIn("backend_ipv6_prefix", m.call_data)
             self.assertEqual(m.call_data["label"], "new-label")
 
     def test_firewalls(self):
@@ -257,6 +259,13 @@ class NodeBalancerTest(ClientBaseCase):
             result = nb.firewalls()
             self.assertEqual(m.call_url, firewalls_url)
             self.assertEqual(len(result), 1)
+
+    def test_backend_ipv6_prefix_null(self):
+        """
+        Test that a NodeBalancer can have a null backend IPv6 prefix.
+        """
+        nb = NodeBalancer(self.client, 123457)
+        self.assertIsNone(nb.backend_ipv6_prefix)
 
     def test_config_rebuild(self):
         """
