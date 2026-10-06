@@ -26,6 +26,8 @@ from linode_api4.objects import (
     Disk,
     Image,
     Instance,
+    InstanceBackups,
+    InstanceBackupSchedule,
     StackScript,
     Type,
     VPCSubnet,
@@ -58,6 +60,14 @@ class LinodeTest(ClientBaseCase):
         )
         self.assertEqual(linode.lke_cluster_id, None)
         self.assertEqual(linode.maintenance_policy, "linode/migrate")
+
+        self.assertIsInstance(linode.backups, InstanceBackups)
+        self.assertTrue(linode.backups.enabled)
+        self.assertTrue(linode.backups.available)
+        self.assertEqual(linode.backups.last_successful, "2018-01-01T00:01:01")
+        self.assertIsInstance(linode.backups.schedule, InstanceBackupSchedule)
+        self.assertEqual(linode.backups.schedule.day, "Scheduling")
+        self.assertEqual(linode.backups.schedule.window, "W02")
 
         json = linode._raw_json
         self.assertIsNotNone(json)
@@ -226,6 +236,22 @@ class LinodeTest(ClientBaseCase):
                     "tags": ["something"],
                     "watchdog_enabled": True,
                     "maintenance_policy": "linode/power_off_on",
+                },
+            )
+
+    def test_update_linode_backups_disabled(self):
+        """
+        Tests that an unset backup schedule is sent as explicit nulls
+        """
+        with self.mock_put("linode/instances/456") as m:
+            linode = self.client.load(Instance, 456)
+            linode.save()
+
+            self.assertEqual(
+                m.call_data["backups"],
+                {
+                    "enabled": False,
+                    "schedule": {"day": None, "window": None},
                 },
             )
 
