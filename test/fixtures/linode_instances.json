@@ -19,6 +19,8 @@
       "label": "linode123",
       "backups": {
         "enabled": true,
+        "available": true,
+        "last_successful": "2018-01-01T00:01:01",
         "schedule": {
           "window": "W02",
           "day": "Scheduling"
