@@ -681,7 +681,6 @@ class TrafficPeakLogsDestinationDetails(LogsDestinationDetailsBase):
     authentication: Optional[TrafficPeakDestinationAuthentication] = None
     data_compression: Optional[DataCompressionType] = None
     content_type: Optional[ContentType] = None
-    custom_headers: Optional[List[CustomHeader]] = None
 
 
 @dataclass

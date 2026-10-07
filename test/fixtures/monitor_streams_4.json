@@ -17,13 +17,7 @@
           }
         },
         "data_compression": "none",
-        "content_type": "application/json",
-        "custom_headers": [
-          {
-            "name": "header",
-            "value": "header_value"
-          }
-        ]
+        "content_type": "application/json"
       }
     }
   ],

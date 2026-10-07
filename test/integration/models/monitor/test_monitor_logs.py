@@ -18,7 +18,6 @@ from linode_api4.objects import (
 from linode_api4.objects.monitor import (
     AkamaiObjectStorageLogsDestinationDetails,
     BasicAuthenticationDetails,
-    CustomHeader,
     LogsDestination,
     LogsStream,
     LogsStreamStatus,
@@ -344,9 +343,6 @@ def create_traffic_peak_destination(test_linode_client: LinodeClient):
             ),
             data_compression="none",
             content_type="application/json",
-            custom_headers=[
-                CustomHeader(name="X-Source", value="linode-api4-python")
-            ],
         ),
     )
     yield destination
@@ -377,7 +373,6 @@ def test_create_and_get_traffic_peak_destination(
     assert destination.details.authentication.details is not None
     assert destination.details.data_compression == "none"
     assert destination.details.content_type == "application/json"
-    assert destination.details.custom_headers[0].name == "X-Source"
 
 
 @_SKIP_TRAFFIC_PEAK_TESTS

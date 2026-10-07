@@ -512,9 +512,6 @@ class MonitorGroup(Group):
                    ),
                    data_compression="gzip",
                    content_type="application/json",
-                   custom_headers=[
-                       CustomHeader(name="header", value="header_value")
-                   ],
                )
            )
 

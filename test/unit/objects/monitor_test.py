@@ -13,7 +13,6 @@ from linode_api4.objects import (
 from linode_api4.objects.monitor import (
     AkamaiObjectStorageLogsDestinationDetails,
     BasicAuthenticationDetails,
-    CustomHeader,
     CustomHTTPSLogsDestinationDetails,
     DestinationAuthentication,
     LogsDestinationDetailsBase,
@@ -499,10 +498,6 @@ class TrafficPeakLogsDestinationTest(ClientBaseCase):
         )
         self.assertEqual(destination.details.data_compression, "none")
         self.assertEqual(destination.details.content_type, "application/json")
-        self.assertEqual(destination.details.custom_headers[0].name, "header")
-        self.assertEqual(
-            destination.details.custom_headers[0].value, "header_value"
-        )
 
     def test_stream_with_traffic_peak_destination(self):
         """
@@ -538,7 +533,6 @@ class TrafficPeakLogsDestinationTest(ClientBaseCase):
                 },
                 "data_compression": "none",
                 "content_type": "application/json",
-                "custom_headers": [{"name": "header", "value": "header_value"}],
             },
             "created": "2026-09-01T00:00:00",
             "updated": "2026-09-01T00:00:00",
@@ -561,9 +555,6 @@ class TrafficPeakLogsDestinationTest(ClientBaseCase):
                     ),
                     data_compression="none",
                     content_type="application/json",
-                    custom_headers=[
-                        CustomHeader(name="header", value="header_value")
-                    ],
                 ),
             )
 
@@ -581,7 +572,6 @@ class TrafficPeakLogsDestinationTest(ClientBaseCase):
                 },
                 "data_compression": "none",
                 "content_type": "application/json",
-                "custom_headers": [{"name": "header", "value": "header_value"}],
             },
         )
         self.assertIsInstance(result, LogsDestination)
