@@ -5,6 +5,7 @@ from test.integration.helpers import get_test_label
 import pytest
 
 from linode_api4.objects import (
+    Capability,
     Image,
     ImageShareGroup,
     ImageShareGroupImagesToAdd,
@@ -36,7 +37,11 @@ def wait_for_image_status(
 @pytest.fixture(scope="module")
 def sample_linode(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    region = get_region(
+        client,
+        {Capability.linodes, Capability.firewall},
+        site_type="core",
+    )
     label = get_test_label(length=8)
 
     linode_instance = client.linode.instance_create(

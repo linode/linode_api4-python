@@ -11,6 +11,7 @@ import pytest
 
 from linode_api4 import LinodeClient, LogsStreamType, PaginatedList, Region
 from linode_api4.objects import (
+    Capability,
     ObjectStorageACL,
     ObjectStorageBucket,
     ObjectStorageKeys,
@@ -34,7 +35,7 @@ _STREAM_FIXTURE_PROVISIONING_WAIT = 3600
 
 @pytest.fixture(scope="session")
 def region(test_linode_client: LinodeClient):
-    region = get_region(test_linode_client, {"Object Storage"})
+    region = get_region(test_linode_client, {Capability.object_storage})
     yield region
 
 
