@@ -22,6 +22,7 @@ from linode_api4.objects.monitor import (
     AkamaiObjectStorageLogsDestinationDetails,
     CustomHTTPSLogsDestinationDetails,
     LogsStreamDetails,
+    LogsStreamQuota,
 )
 
 __all__ = [
@@ -625,3 +626,18 @@ class MonitorGroup(Group):
             )
 
         return LogsStream(self.client, result["id"], result)
+
+    def stream_quotas(self) -> PaginatedList:
+        """
+        Retrieve quota definitions available for the authenticated account's streams.
+
+        This reads from ``/monitor/streams/quotas`` on the API v4 endpoint.
+
+        API Documentation: TODO
+
+        :returns: A paginated list of stream quota definitions.
+        :rtype: PaginatedList[LogsStreamQuota]
+        """
+        return self.client._get_objects(
+            "/monitor/streams/quotas", LogsStreamQuota
+        )
