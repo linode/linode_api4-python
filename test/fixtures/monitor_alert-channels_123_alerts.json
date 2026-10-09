@@ -1,0 +1,21 @@
+{
+    "data": [
+        {
+            "id": 12345,
+            "label": "DBAAS Alert 1",
+            "service_type": "dbaas",
+            "type": "alerts-definitions",
+            "url": "/monitor/services/dbaas/alerts-definitions/12345"
+        },
+        {
+            "id": 12346,
+            "label": "DBAAS Alert 2",
+            "service_type": "dbaas",
+            "type": "alerts-definitions",
+            "url": "/monitor/services/dbaas/alerts-definitions/12346"
+        }
+    ],
+    "page": 1,
+    "pages": 1,
+    "results": 2
+}
