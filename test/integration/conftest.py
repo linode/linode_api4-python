@@ -2,7 +2,6 @@ import ipaddress
 import logging
 import os
 import random
-import subprocess
 import time
 from test.integration.helpers import (
     get_test_label,
@@ -14,6 +13,8 @@ from typing import Optional, Set
 
 import pytest
 import requests
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import ed25519
 from requests.exceptions import ConnectionError, RequestException
 
 from linode_api4 import (
@@ -263,16 +264,27 @@ def create_linode_for_pass_reset(test_linode_client, e2e_test_firewall):
 
 
 @pytest.fixture(scope="session")
-def ssh_key_gen(tmp_path_factory):
-    key_path = tmp_path_factory.mktemp("ssh-key-gen") / "sdk-sshkey"
+def ssh_key_gen():
+    key = ed25519.Ed25519PrivateKey.generate()
 
-    subprocess.run(
-        ["ssh-keygen", "-q", "-t", "rsa", "-f", str(key_path), "-N", ""],
-        check=True,
+    pub_key = (
+        key.public_key()
+        .public_bytes(
+            encoding=serialization.Encoding.OpenSSH,
+            format=serialization.PublicFormat.OpenSSH,
+        )
+        .decode()
+        .rstrip()
     )
-
-    pub_key = key_path.with_suffix(".pub").read_text().rstrip()
-    priv_key = key_path.read_text().rstrip()
+    priv_key = (
+        key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.OpenSSH,
+            encryption_algorithm=serialization.NoEncryption(),
+        )
+        .decode()
+        .rstrip()
+    )
 
     yield pub_key, priv_key
 
