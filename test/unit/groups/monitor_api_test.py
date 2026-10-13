@@ -1,4 +1,6 @@
-from test.unit.base import ClientBaseCase, MonitorClientBaseCase
+from test.unit.base import ClientBaseCase, MockResponse, MonitorClientBaseCase
+
+from mock import patch
 
 from linode_api4 import PaginatedList
 from linode_api4.objects import (
@@ -309,6 +311,44 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             assert alerts[1].id == 12346
             assert alerts[1].label == "DBAAS Alert 2"
             assert alerts[1].service_type == "dbaas"
+
+    def test_alert_channel_alerts_preserves_service_type_across_pages(self):
+        first_page = {
+            "data": [
+                {
+                    "id": 12345,
+                    "label": "DBAAS Alert",
+                    "service_type": "dbaas",
+                }
+            ],
+            "page": 1,
+            "pages": 2,
+            "results": 2,
+        }
+        second_page = {
+            "data": [
+                {
+                    "id": 12346,
+                    "label": "Linode Alert",
+                    "service_type": "linode",
+                }
+            ],
+            "page": 2,
+            "pages": 2,
+            "results": 2,
+        }
+
+        with patch(
+            "linode_api4.linode_client.requests.Session.get",
+            side_effect=[
+                MockResponse(200, first_page),
+                MockResponse(200, second_page),
+            ],
+        ):
+            alerts = self.client.monitor.alert_channel_alerts(channel_id=123)
+
+            assert alerts[0].service_type == "dbaas"
+            assert alerts[1].service_type == "linode"
 
     def test_clone_alert_definition(self):
         service_type = "dbaas"

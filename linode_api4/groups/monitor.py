@@ -18,7 +18,6 @@ from linode_api4.objects import (
     MonitorService,
     MonitorServiceToken,
 )
-from linode_api4.objects.filtering import and_
 from linode_api4.objects.monitor import (
     AkamaiObjectStorageLogsDestinationDetails,
     ChannelDetails,
@@ -29,6 +28,21 @@ from linode_api4.objects.monitor import (
 __all__ = [
     "MonitorGroup",
 ]
+
+
+class _AlertChannelAlertDefinition(AlertDefinition):
+    """Build channel alerts with each response item's service parent."""
+
+    @classmethod
+    def make_instance(cls, id, client, parent_id=None, json=None):
+        if parent_id is None and json:
+            parent_id = json.get(cls.parent_id_name)
+        return super().make_instance(
+            id,
+            client,
+            parent_id=parent_id,
+            json=json,
+        )
 
 
 class MonitorGroup(Group):
@@ -490,41 +504,10 @@ class MonitorGroup(Group):
         :returns: A paginated list of alert definitions associated with this channel.
         :rtype: PaginatedList[AlertDefinition]
         """
-        endpoint = f"/monitor/alert-channels/{channel_id}/alerts"
-
-        parsed_filters = None
-        if filters:
-            parsed_filters = (
-                and_(*filters).dct if len(filters) > 1 else filters[0].dct
-            )
-
-        response_json = self.client.get(endpoint, filters=parsed_filters)
-
-        if "data" not in response_json:
-            raise UnexpectedResponseError(
-                "Unexpected response when retrieving alert channel alerts!",
-                json=response_json,
-            )
-
-        result = [
-            AlertDefinition.make_instance(
-                obj["id"],
-                self.client,
-                parent_id=obj.get("service_type"),
-                json=obj,
-            )
-            for obj in response_json.get("data", [])
-            if "id" in obj
-        ]
-
-        return PaginatedList(
-            self.client,
-            endpoint[1:],
-            page=result,
-            max_pages=response_json.get("pages", 1),
-            total_items=response_json.get("results", len(result)),
-            parent_id=None,
-            filters=parsed_filters,
+        return self.client._get_and_filter(
+            _AlertChannelAlertDefinition,
+            *filters,
+            endpoint=f"/monitor/alert-channels/{channel_id}/alerts",
         )
 
     def destinations(self, *filters) -> PaginatedList:
