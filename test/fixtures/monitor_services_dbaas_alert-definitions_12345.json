@@ -5,11 +5,24 @@
   "severity": 1,
   "type": "user",
   "description": "A test alert for dbaas service",
-  "entity_ids": [
-    "13217"
+  "scope": "entity",
+  "regions": [],
+  "group_by": [
+    "entity_id"
   ],
-  "alert_channels": [],
-  "has_more_resources": false,
+  "entities": {
+    "url": "/monitor/services/dbaas/alert-definitions/12345/entities",
+    "count": 1,
+    "has_more_resources": false
+  },
+  "alert_channels": [
+    {
+      "id": 10000,
+      "label": "Read-Write Channel",
+      "type": "email",
+      "url": "/monitor/alert-channels/10000"
+    }
+  ],
   "rule_criteria": {
     "rules": [
       {
@@ -36,8 +49,8 @@
     "polling_interval_seconds": 60,
     "trigger_occurrences": 3
   },
-  "class": "alert",
-  "status": "active",
+  "class": "",
+  "status": "enabled",
   "created": "2024-01-01T00:00:00",
   "updated": "2024-01-01T00:00:00",
   "updated_by": "tester"

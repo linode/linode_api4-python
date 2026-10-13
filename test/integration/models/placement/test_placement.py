@@ -92,7 +92,7 @@ def test_pg_migration(
 
     # Says it could take up to ~6 hrs for migration to fully complete
     send_request_when_resource_available(
-        300,
+        400,
         linode.initiate_migration,
         placement_group=pg_inbound.id,
         migration_type=MigrationType.COLD,

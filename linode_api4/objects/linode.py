@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import copy
 import string
 import sys
+import warnings
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -39,9 +42,16 @@ from linode_api4.objects.region import Region
 from linode_api4.objects.serializable import JSONObject, StrEnum
 from linode_api4.objects.vpc import VPC, VPCSubnet
 from linode_api4.paginated_list import PaginatedList
-from linode_api4.util import drop_null_keys
+from linode_api4.util import (
+    drop_null_keys,
+    generate_device_suffixes,
+    normalize_as_list,
+)
 
 PASSWORD_CHARS = string.ascii_letters + string.digits + string.punctuation
+MIN_DEVICE_LIMIT = 8
+MB_PER_GB = 1024
+MAX_DEVICE_LIMIT = 64
 
 
 class InstanceDiskEncryptionType(StrEnum):
@@ -217,7 +227,7 @@ class Disk(DerivedBase):
 class Kernel(Base):
     """
     The primary component of every Linux system. The kernel interfaces
-    with the system’s hardware and it controls the operating system’s core functionality.
+    with the system’s hardware, and it controls the operating system’s core functionality.
 
     Your Compute Instance is capable of running one of three kinds of kernels:
 
@@ -237,6 +247,10 @@ class Kernel(Base):
           to compile the kernel from source than to download it from your package manager. For more
           information on custom compiled kernels, review our guides for Debian, Ubuntu, and CentOS.
 
+    .. note::
+        The ``xen`` property is deprecated and is no longer returned by the API.
+        It is maintained for backward compatibility only.
+
     API Documentation: https://techdocs.akamai.com/linode-api/reference/get-kernel
     """
 
@@ -255,6 +269,16 @@ class Kernel(Base):
         "built": Property(),
         "pvops": Property(),
     }
+
+    def __getattribute__(self, name: str) -> object:
+        if name == "xen":
+            warnings.warn(
+                "The 'xen' property of Kernel is deprecated and is no longer "
+                "returned by the API. It is maintained for backward compatibility only.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        return super().__getattribute__(name)
 
 
 class Type(Base):
@@ -791,6 +815,42 @@ class InstanceACLPAlertsOptions(JSONObject):
     user_alerts: Optional[List[int]] = None
 
 
+@dataclass
+class InstanceBackupSchedule(JSONObject):
+    """
+    InstanceBackupSchedule represents when automatic backups of a Linode Instance are taken.
+    """
+
+    include_none_values = True
+
+    day: Optional[str] = None
+    window: Optional[str] = None
+
+
+@dataclass
+class InstanceBackupsOptions(JSONObject):
+    """
+    InstanceBackupsOptions is used to update the backup settings of a Linode Instance.
+    """
+
+    enabled: bool = False
+    schedule: Optional[InstanceBackupSchedule] = None
+
+
+@dataclass
+class InstanceBackups(JSONObject):
+    """
+    InstanceBackups represents the backup settings and status of a Linode Instance.
+    """
+
+    put_class = InstanceBackupsOptions
+
+    enabled: bool = False
+    available: bool = False
+    schedule: Optional[InstanceBackupSchedule] = None
+    last_successful: Optional[str] = None
+
+
 class Instance(Base):
     """
     A Linode Instance.
@@ -812,7 +872,7 @@ class Instance(Base):
         "disks": Property(derived_class=Disk),
         "configs": Property(derived_class=Config),
         "type": Property(slug_relationship=Type),
-        "backups": Property(mutable=True),
+        "backups": Property(mutable=True, json_object=InstanceBackups),
         "ipv4": Property(unordered=True),
         "ipv6": Property(),
         "hypervisor": Property(),
@@ -1253,14 +1313,14 @@ class Instance(Base):
     # create derived objects
     def config_create(
         self,
-        kernel=None,
-        label=None,
-        devices=[],
-        disks=[],
-        volumes=[],
-        interfaces=[],
+        kernel: Kernel | str | None = None,
+        label: str | None = None,
+        devices: "Disk | Volume | dict[str, Any] | list[Disk | Volume | dict[str, Any]] | None" = None,
+        disks: Disk | int | list[Disk | int] | None = None,
+        volumes: "Volume | int | list[Volume | int] | None" = None,
+        interfaces: list[ConfigInterface | dict[str, Any]] | None = None,
         **kwargs,
-    ):
+    ) -> Config:
         """
         Creates a Linode Config with the given attributes.
 
@@ -1270,10 +1330,13 @@ class Instance(Base):
         :param label: The config label
         :param disks: The list of disks, starting at sda, to map to this config.
         :param volumes: The volumes, starting after the last disk, to map to this
-            config
+                        config.
         :param devices: A list of devices to assign to this config, in device
-            index order.  Values must be of type Disk or Volume. If this is
-            given, you may not include disks or volumes.
+                        index order, a raw device mapping dict to pass directly to the API
+                        (e.g. ``{"sda": {"disk_id": 123}, "sdb": Volume(...)}``), or
+                        a single Disk or Volume.
+                        If this is given, you may not include disks or volumes.
+        :param interfaces: A list of ConfigInterface objects or dicts to assign to this config.
         :param **kwargs: Any other arguments accepted by the api.
 
         :returns: A new Linode Config
@@ -1281,56 +1344,99 @@ class Instance(Base):
         # needed here to avoid circular imports
         from .volume import Volume  # pylint: disable=import-outside-toplevel
 
-        hypervisor_prefix = "sd" if self.hypervisor == "kvm" else "xvd"
-        device_names = [
-            hypervisor_prefix + string.ascii_lowercase[i] for i in range(0, 8)
-        ]
-        device_map = {
-            device_names[i]: None for i in range(0, len(device_names))
-        }
+        interfaces = [] if interfaces is None else interfaces
 
+        hypervisor_prefix = "sd" if self.hypervisor == "kvm" else "xvd"
+
+        device_limit = int(
+            max(
+                MIN_DEVICE_LIMIT,
+                min(self.specs.memory // MB_PER_GB, MAX_DEVICE_LIMIT),
+            )
+        )
+
+        device_names = [
+            hypervisor_prefix + suffix
+            for suffix in generate_device_suffixes(device_limit)
+        ]
+
+        def _flatten_device(device: Disk | Volume | dict | None):
+            if device is None:
+                return None
+            elif isinstance(device, Disk):
+                return {"disk_id": device.id}
+            elif isinstance(device, Volume):
+                return {"volume_id": device.id}
+            elif isinstance(device, dict):
+                return device
+
+            raise TypeError("Disk, Volume, or dict expected!")
+
+        def _device_entry(device: Disk | Volume | int, key: str):
+            if isinstance(device, (Disk, Volume)):
+                return _flatten_device(device)
+
+            try:
+                device_id = int(device)
+            except (TypeError, ValueError):
+                raise TypeError(
+                    "Disk, Volume, or integer ID expected!"
+                ) from None
+
+            return {key: device_id}
+
+        def _build_devices():
+            # Devices is a dict, flatten and pass through
+            if isinstance(devices, dict):
+                return {
+                    k: (
+                        _flatten_device(v)
+                        if isinstance(v, (Disk, Volume))
+                        else v
+                    )
+                    for k, v in devices.items()
+                }
+
+            device_list = []
+
+            if devices:
+                device_list += [
+                    _flatten_device(device)
+                    for device in normalize_as_list(devices)
+                ]
+
+            if disks:
+                device_list += [
+                    _device_entry(disk, "disk_id") if disk is not None else None
+                    for disk in normalize_as_list(disks)
+                ]
+
+            if volumes:
+                device_list += [
+                    (
+                        _device_entry(volume, "volume_id")
+                        if volume is not None
+                        else None
+                    )
+                    for volume in normalize_as_list(volumes)
+                ]
+
+            return {
+                device_names[i]: device for i, device in enumerate(device_list)
+            }
+
+        # This validation is enforced for backwards compatibility but isn't
+        # technically needed anymore
         if devices and (disks or volumes):
             raise ValueError(
                 'You may not call config_create with "devices" and '
                 'either of "disks" or "volumes" specified!'
             )
 
-        if not devices:
-            if not isinstance(disks, list):
-                disks = [disks]
-            if not isinstance(volumes, list):
-                volumes = [volumes]
+        device_map = _build_devices()
 
-            devices = []
-
-            for d in disks:
-                if d is None:
-                    devices.append(None)
-                elif isinstance(d, Disk):
-                    devices.append(d)
-                else:
-                    devices.append(Disk(self._client, int(d), self.id))
-
-            for v in volumes:
-                if v is None:
-                    devices.append(None)
-                elif isinstance(v, Volume):
-                    devices.append(v)
-                else:
-                    devices.append(Volume(self._client, int(v)))
-
-        if not devices:
+        if len(device_map) < 1:
             raise ValueError("Must include at least one disk or volume!")
-
-        for i, d in enumerate(devices):
-            if d is None:
-                pass
-            elif isinstance(d, Disk):
-                device_map[device_names[i]] = {"disk_id": d.id}
-            elif isinstance(d, Volume):
-                device_map[device_names[i]] = {"volume_id": d.id}
-            else:
-                raise TypeError("Disk or Volume expected!")
 
         param_interfaces = []
         for interface in interfaces:
@@ -1392,29 +1498,36 @@ class Instance(Base):
                            for the image deployed the disk will be used.  Required
                            if creating a disk without an image.
         :param read_only: If True, creates a read-only disk
-        :param image: The Image to deploy to the disk.
+        :param image: The Image to deploy to the disk.  If provided, at least one of
+                      root_pass, authorized_users or authorized_keys must also be given.
         :param root_pass: The password to configure for the root user when deploying an
-                          image to this disk.  Not used if image is not given.  If an
-                          image is given and root_pass is not, a password will be
-                          generated and returned alongside the new disk.
+                          image to this disk.  Not used if image is not given.
         :param authorized_keys: A list of SSH keys to install as trusted for the root user.
         :param authorized_users: A list of usernames whose keys should be installed
                                  as trusted for the root user.  These user's keys
                                  should already be set up, see :any:`ProfileGroup.ssh_keys`
                                  for details.
         :param disk_encryption: The disk encryption policy for this Linode.
-                                NOTE: Disk encryption may not currently be available to all users.
         :type disk_encryption: InstanceDiskEncryptionType or str
         :param stackscript: A StackScript object, or the ID of one, to deploy to this
                             disk.  Requires deploying a compatible image.
         :param **stackscript_args: Any arguments to pass to the StackScript, as defined
                                    by its User Defined Fields.
+
+        :returns: A new Disk object.
+        :rtype: Disk
         """
 
-        gen_pass = None
-        if image and not root_pass:
-            gen_pass = Instance.generate_root_password()
-            root_pass = gen_pass
+        if (
+            image
+            and not root_pass
+            and not authorized_keys
+            and not authorized_users
+        ):
+            raise ValueError(
+                "When creating a Disk from an Image, at least one of "
+                "root_pass, authorized_users, or authorized_keys must be provided."
+            )
 
         authorized_keys = load_and_validate_keys(authorized_keys)
 
@@ -1461,11 +1574,7 @@ class Instance(Base):
                 "Unexpected response creating disk!", json=result
             )
 
-        d = Disk(self._client, result["id"], self.id, result)
-
-        if gen_pass:
-            return d, gen_pass
-        return d
+        return Disk(self._client, result["id"], self.id, result)
 
     def enable_backups(self):
         """
@@ -1536,7 +1645,7 @@ class Instance(Base):
         b = Backup(self._client, result["id"], self.id, result)
         return b
 
-    def ip_allocate(self, public=False):
+    def ip_allocate(self, public=False, address=None):
         """
         Allocates a new :any:`IPAddress` for this Instance.  Additional public
         IPs require justification, and you may need to open a :any:`SupportTicket`
@@ -1548,17 +1657,26 @@ class Instance(Base):
         :param public: If the new IP should be public or private.  Defaults to
                        private.
         :type public: bool
+        :param address: A reserved IPv4 address to assign to this Instance instead
+                        of allocating a new ephemeral IP.  The address must be an
+                        unassigned reserved IP owned by this account.
+                        NOTE: Reserved IP feature may not currently be available to all users.
+        :type address: str
 
         :returns: The new IPAddress
         :rtype: IPAddress
         """
+        data = {
+            "type": "ipv4",
+            "public": public,
+        }
+        if address is not None:
+            data["address"] = address
+
         result = self._client.post(
             "{}/ips".format(Instance.api_endpoint),
             model=self,
-            data={
-                "type": "ipv4",
-                "public": public,
-            },
+            data=data,
         )
 
         if not "address" in result:
@@ -1577,6 +1695,7 @@ class Instance(Base):
         disk_encryption: Optional[
             Union[InstanceDiskEncryptionType, str]
         ] = None,
+        authorized_users: Optional[List[str]] = None,
         **kwargs,
     ):
         """
@@ -1588,26 +1707,30 @@ class Instance(Base):
 
         :param image: The Image to deploy to this Instance
         :type image: str or Image
-        :param root_pass: The root password for the newly rebuilt Instance.  If
-                          omitted, a password will be generated and returned.
+        :param root_pass: The root password for the newly rebuilt Instance.  At least
+                          one of root_pass, authorized_users, or authorized_keys must be provided.
         :type root_pass: str
         :param authorized_keys: The ssh public keys to install in the linode's
                                 /root/.ssh/authorized_keys file.  Each entry may
                                 be a single key, or a path to a file containing
                                 the key.
         :type authorized_keys: list or str
+        :param authorized_users: A list of usernames whose keys should be installed
+                                 as trusted for the root user.  These user's keys
+                                 should already be set up, see :any:`ProfileGroup.ssh_keys`
+                                 for details.
+        :type authorized_users: list[str]
         :param disk_encryption: The disk encryption policy for this Linode.
-                                NOTE: Disk encryption may not currently be available to all users.
         :type disk_encryption: InstanceDiskEncryptionType or str
 
-        :returns: The newly generated password, if one was not provided
-                  (otherwise True)
-        :rtype: str or bool
+        :returns: True.
+        :rtype: bool
         """
-        ret_pass = None
-        if not root_pass:
-            ret_pass = Instance.generate_root_password()
-            root_pass = ret_pass
+        if not root_pass and not authorized_keys and not authorized_users:
+            raise ValueError(
+                "When rebuilding an Instance, at least one of "
+                "root_pass, authorized_users, or authorized_keys must be provided."
+            )
 
         authorized_keys = load_and_validate_keys(authorized_keys)
 
@@ -1618,6 +1741,7 @@ class Instance(Base):
             "disk_encryption": (
                 str(disk_encryption) if disk_encryption else None
             ),
+            "authorized_users": authorized_users,
         }
 
         params.update(kwargs)
@@ -1636,10 +1760,7 @@ class Instance(Base):
         # update ourself with the newly-returned information
         self._populate(result)
 
-        if not ret_pass:
-            return True
-        else:
-            return ret_pass
+        return True
 
     def rescue(self, *disks):
         """
@@ -1842,8 +1963,8 @@ class Instance(Base):
         to_linode=None,
         region=None,
         instance_type=None,
-        configs=[],
-        disks=[],
+        configs=None,
+        disks=None,
         label=None,
         group=None,
         with_backups=None,
@@ -1906,7 +2027,10 @@ class Instance(Base):
                 'You may only specify one of "to_linode" and "region"'
             )
 
-        if region and not type:
+        configs = [] if configs is None else configs
+        disks = [] if disks is None else disks
+
+        if region and not instance_type:
             raise ValueError('Specifying a region requires a "service" as well')
 
         if not isinstance(configs, list) and not isinstance(
@@ -2017,8 +2141,6 @@ class Instance(Base):
         Creates a new interface under this Linode.
         Linode interfaces are not interchangeable with Config interfaces.
 
-        NOTE: Linode interfaces may not currently be available to all users.
-
         API Documentation: https://techdocs.akamai.com/linode-api/reference/post-linode-interface
 
         Example: Creating a simple public interface for this Linode::
@@ -2062,9 +2184,21 @@ class Instance(Base):
         :param vpc: The VPC-specific configuration of the new interface.
                     If set, the new instance will be a VPC interface.
 
+        .. note::
+           RDMA VPC interfaces (``rdma_vpc``) cannot be added via this
+           endpoint. They may only be specified at instance creation time via
+           :func:`linode_api4.LinodeGroup.instance_create`.
+
         :returns: The newly created Linode Interface.
         :rtype: LinodeInterface
         """
+
+        if kwargs.get("rdma_vpc") is not None:
+            raise ValueError(
+                "RDMA VPC interfaces (rdma_vpc) cannot be added via "
+                "interface_create(). They may only be specified at instance "
+                "creation time via LinodeGroup.instance_create()."
+            )
 
         params = {
             "firewall_id": firewall,
@@ -2093,8 +2227,6 @@ class Instance(Base):
     def interfaces_settings(self) -> LinodeInterfacesSettings:
         """
         The settings for all interfaces under this Linode.
-
-        NOTE: Linode interfaces may not currently be available to all users.
 
         :returns: The settings for instance-level interface settings for this Linode.
         :rtype: LinodeInterfacesSettings
@@ -2163,8 +2295,6 @@ class Instance(Base):
 
         NOTE: If dry_run is True, interfaces in the result will be
               of type MappedObject rather than LinodeInterface.
-
-        NOTE: Linode interfaces may not currently be available to all users.
 
         API Documentation: https://techdocs.akamai.com/linode-api/reference/post-upgrade-linode-interfaces
 

@@ -5,9 +5,48 @@ from linode_api4.errors import UnexpectedResponseError
 from linode_api4.objects import Base, DerivedBase, Property, Region
 from linode_api4.objects.base import _flatten_request_body_recursive
 from linode_api4.objects.networking import VPCIPAddress
-from linode_api4.objects.serializable import JSONObject
+from linode_api4.objects.serializable import JSONObject, StrEnum
 from linode_api4.paginated_list import PaginatedList
 from linode_api4.util import drop_null_keys
+
+
+class VPCType(StrEnum):
+    """
+    VPCType represents the supported VPC types.
+    """
+
+    regular = "regular"
+    rdma = "rdma"
+
+
+@dataclass
+class VPCIPv4DefaultRange(JSONObject):
+    """
+    VPCIPv4DefaultRange represents the default settings for the internal and forbidden IPv4 address ranges in VPCs.
+    """
+
+    default_ipv4_ranges: Optional[List[str]] = None
+    forbidden_ipv4_ranges: Optional[List[str]] = None
+
+
+@dataclass
+class VPCIPv4RangeOptions(JSONObject):
+    """
+    VPCIPv4RangeOptions is used to specify an IPv4 range when creating or updating a VPC.
+    """
+
+    range: Optional[str] = None
+
+
+@dataclass
+class VPCIPv4Range(JSONObject):
+    """
+    VPCIPv4Range represents a single VPC IPv4 range.
+    """
+
+    put_class = VPCIPv4RangeOptions
+
+    range: str = ""
 
 
 @dataclass
@@ -89,6 +128,7 @@ class VPCSubnet(DerivedBase):
         "ipv6": Property(json_object=VPCSubnetIPv6Range, unordered=True),
         "linodes": Property(json_object=VPCSubnetLinode, unordered=True),
         "databases": Property(json_object=VPCSubnetDatabase, unordered=True),
+        "vpc_type": Property(),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),
     }
@@ -108,8 +148,13 @@ class VPC(Base):
         "label": Property(mutable=True),
         "description": Property(mutable=True),
         "region": Property(slug_relationship=Region),
+        # Note that IPv4 VPCs may not currently be available to all users.
+        "ipv4": Property(
+            json_object=VPCIPv4Range, mutable=True, unordered=True
+        ),
         "ipv6": Property(json_object=VPCIPv6Range, unordered=True),
         "subnets": Property(derived_class=VPCSubnet),
+        "vpc_type": Property(),
         "created": Property(is_datetime=True),
         "updated": Property(is_datetime=True),
     }

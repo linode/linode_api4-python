@@ -5,6 +5,7 @@ from linode_api4 import FirewallCreateDevicesOptions, LongviewSubscription
 from linode_api4.objects.beta import BetaProgram
 from linode_api4.objects.linode import Instance
 from linode_api4.objects.networking import IPAddress
+from linode_api4.objects.nodebalancer import NodeBalancerBackendConnectivity
 from linode_api4.objects.object_storage import (
     ObjectStorageACL,
     ObjectStorageCluster,
@@ -686,11 +687,14 @@ class LinodeGroupTest(ClientBaseCase):
 
     def test_instance_create_with_image(self):
         """
-        Tests that a Linode Instance can be created with an image, and a password generated
+        Tests that a Linode Instance can be created with an image and root_pass
         """
         with self.mock_post("linode/instances/123") as m:
-            l, pw = self.client.linode.instance_create(
-                "g6-standard-1", "us-east-1a", image="linode/debian9"
+            l = self.client.linode.instance_create(
+                "g6-standard-1",
+                "us-east-1a",
+                image="linode/debian9",
+                root_pass="aComplex@Password123",
             )
 
             self.assertIsNotNone(l)
@@ -704,7 +708,133 @@ class LinodeGroupTest(ClientBaseCase):
                     "region": "us-east-1a",
                     "type": "g6-standard-1",
                     "image": "linode/debian9",
-                    "root_pass": pw,
+                    "root_pass": "aComplex@Password123",
+                },
+            )
+
+    def test_instance_create_with_image_authorized_keys(self):
+        """
+        Tests that a Linode Instance can be created with an image and authorized_keys only
+        """
+        with self.mock_post("linode/instances/123") as m:
+            l = self.client.linode.instance_create(
+                "g6-standard-1",
+                "us-east-1a",
+                image="linode/debian9",
+                authorized_keys="ssh-rsa AAAA",
+            )
+
+            self.assertIsNotNone(l)
+            self.assertEqual(l.id, 123)
+
+            self.assertEqual(m.call_url, "/linode/instances")
+
+            self.assertEqual(
+                m.call_data,
+                {
+                    "region": "us-east-1a",
+                    "type": "g6-standard-1",
+                    "image": "linode/debian9",
+                    "authorized_keys": ["ssh-rsa AAAA"],
+                },
+            )
+
+    def test_instance_create_with_image_requires_auth(self):
+        """
+        Tests that creating an Instance from an Image without root_pass or
+        authorized_keys raises a ValueError
+        """
+        with self.assertRaises(ValueError):
+            self.client.linode.instance_create(
+                "g6-standard-1", "us-east-1a", image="linode/debian9"
+            )
+
+    def test_instance_create_with_kernel(self):
+        """
+        Tests that a Linode Instance can be created with a kernel
+        """
+        with self.mock_post("linode/instances/123") as m:
+            l = self.client.linode.instance_create(
+                "g6-standard-1",
+                "us-east-1a",
+                image="linode/debian9",
+                root_pass="aComplex@Password123",
+                kernel="linode/latest-64bit",
+            )
+
+            self.assertIsNotNone(l)
+            self.assertEqual(l.id, 123)
+
+            self.assertEqual(m.call_url, "/linode/instances")
+
+            self.assertEqual(
+                m.call_data,
+                {
+                    "region": "us-east-1a",
+                    "type": "g6-standard-1",
+                    "image": "linode/debian9",
+                    "root_pass": "aComplex@Password123",
+                    "kernel": "linode/latest-64bit",
+                },
+            )
+
+    def test_instance_create_with_boot_size(self):
+        """
+        Tests that a Linode Instance can be created with a boot_size
+        """
+        with self.mock_post("linode/instances/123") as m:
+            l = self.client.linode.instance_create(
+                "g6-standard-1",
+                "us-east-1a",
+                image="linode/debian9",
+                root_pass="aComplex@Password123",
+                boot_size=8192,
+            )
+
+            self.assertIsNotNone(l)
+            self.assertEqual(l.id, 123)
+
+            self.assertEqual(m.call_url, "/linode/instances")
+
+            self.assertEqual(
+                m.call_data,
+                {
+                    "region": "us-east-1a",
+                    "type": "g6-standard-1",
+                    "image": "linode/debian9",
+                    "root_pass": "aComplex@Password123",
+                    "boot_size": 8192,
+                },
+            )
+
+    def test_instance_create_with_kernel_and_boot_size(self):
+        """
+        Tests that a Linode Instance can be created with both kernel and boot_size
+        """
+        with self.mock_post("linode/instances/123") as m:
+            l = self.client.linode.instance_create(
+                "g6-standard-1",
+                "us-east-1a",
+                image="linode/debian9",
+                root_pass="aComplex@Password123",
+                kernel="linode/latest-64bit",
+                boot_size=8192,
+            )
+
+            self.assertIsNotNone(l)
+            self.assertEqual(l.id, 123)
+
+            self.assertEqual(m.call_url, "/linode/instances")
+
+            self.assertEqual(
+                m.call_data,
+                {
+                    "region": "us-east-1a",
+                    "type": "g6-standard-1",
+                    "image": "linode/debian9",
+                    "root_pass": "aComplex@Password123",
+                    "kernel": "linode/latest-64bit",
+                    "boot_size": 8192,
                 },
             )
 
@@ -1205,6 +1335,7 @@ class ObjectStorageGroupTest(ClientBaseCase):
                 "us-east-1", "example-bucket", ObjectStorageACL.PRIVATE, True
             )
             self.assertIsNotNone(b)
+            self.assertEqual(b.region, "us-east-1")
             self.assertEqual(m.call_url, "/object-storage/buckets")
             self.assertEqual(
                 m.call_data,
@@ -1407,13 +1538,13 @@ class NetworkingGroupTest(ClientBaseCase):
 
         with self.mock_post({}) as m:
             self.client.networking.ip_addresses_assign(
-                {"assignments": [{"address": "192.0.2.1", "linode_id": 123}]},
+                [{"address": "192.0.2.1", "linode_id": 123}],
                 "us-east",
             )
             self.assertEqual(m.call_url, "/networking/ips/assign")
             self.assertEqual(
                 m.call_data["assignments"],
-                {"assignments": [{"address": "192.0.2.1", "linode_id": 123}]},
+                [{"address": "192.0.2.1", "linode_id": 123}],
             )
             self.assertEqual(m.call_data["region"], "us-east")
 
@@ -1458,6 +1589,84 @@ class NodeBalancerGroupTest(ClientBaseCase):
         self.assertEqual(types[0].region_prices[0].id, "id-cgk")
         self.assertEqual(types[0].region_prices[0].hourly, 0.018)
         self.assertEqual(types[0].region_prices[0].monthly, 12)
+
+    def test_create_with_type_and_backend_connectivity(self):
+        """
+        Tests that creating a NodeBalancer forwards type, backend_connectivity,
+        vpcs, and config node addresses.
+        """
+        with self.mock_post(
+            {
+                "id": 1234,
+                "label": "my-premium-nb",
+                "type": "premium",
+                "backend_connectivity": "ipv6",
+                "backend_ipv6_prefix": "2600:3c22:1:20:0:3039::/96",
+                "region": "us-east",
+            }
+        ) as m:
+            nb = self.client.nodebalancers.create(
+                "us-east",
+                label="my-premium-nb",
+                type="premium",
+                backend_connectivity=NodeBalancerBackendConnectivity.IPV6,
+                configs=[
+                    {
+                        "port": 80,
+                        "nodes": [
+                            {
+                                "address": "[2001:db8:abcd:0012::1]:80",
+                                "label": "node1",
+                            }
+                        ],
+                    }
+                ],
+            )
+
+            self.assertEqual(m.call_url, "/nodebalancers")
+            self.assertEqual(m.call_data["region"], "us-east")
+            self.assertEqual(m.call_data["type"], "premium")
+            self.assertEqual(m.call_data["backend_connectivity"], "ipv6")
+            self.assertIs(type(m.call_data["backend_connectivity"]), str)
+            self.assertEqual(
+                m.call_data["configs"][0]["nodes"][0]["address"],
+                "[2001:db8:abcd:0012::1]:80",
+            )
+            self.assertEqual(nb.id, 1234)
+            self.assertEqual(nb.type, "premium")
+            self.assertEqual(nb.backend_connectivity, "ipv6")
+            self.assertEqual(
+                nb.backend_ipv6_prefix, "2600:3c22:1:20:0:3039::/96"
+            )
+            self.assertNotIn("backend_ipv6_prefix", m.call_data)
+
+    def test_create_with_vpc_backend_connectivity(self):
+        """
+        Tests that creating a NodeBalancer forwards vpc backend connectivity.
+        """
+        with self.mock_post(
+            {
+                "id": 1234,
+                "label": "my-nb",
+                "type": "common",
+                "backend_connectivity": "vpc",
+                "region": "us-east",
+            }
+        ) as m:
+            nb = self.client.nodebalancers.create(
+                "us-east",
+                label="my-nb",
+                backend_connectivity="vpc",
+                vpcs=[{"subnet_id": 123456, "ipv4_range": "10.0.250.4/30"}],
+            )
+
+            self.assertEqual(m.call_url, "/nodebalancers")
+            self.assertEqual(m.call_data["backend_connectivity"], "vpc")
+            self.assertEqual(
+                m.call_data["vpcs"],
+                [{"subnet_id": 123456, "ipv4_range": "10.0.250.4/30"}],
+            )
+            self.assertEqual(nb.backend_connectivity, "vpc")
 
 
 class VolumeGroupTest(ClientBaseCase):

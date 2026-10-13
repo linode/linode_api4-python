@@ -1,0 +1,31 @@
+{
+  "data": [
+    {
+      "id": 1,
+      "label": "my-logs-stream",
+      "type": "audit_logs",
+      "status": "active",
+      "destinations": [
+        {
+          "id": 1,
+          "label": "my-logs-destination",
+          "type": "akamai_object_storage",
+          "details": {
+            "access_key_id": "1ABCD23EFG4HIJKLMNO5",
+            "bucket_name": "primary-bucket",
+            "host": "primary-bucket.us-east-1.linodeobjects.com",
+            "path": "audit-logs"
+          }
+        }
+      ],
+      "created": "2024-06-01T12:00:00",
+      "updated": "2024-06-02T09:00:00",
+      "created_by": "tester",
+      "updated_by": "tester",
+      "version": 2
+    }
+  ],
+  "page": 1,
+  "pages": 1,
+  "results": 1
+}

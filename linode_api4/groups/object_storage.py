@@ -19,6 +19,7 @@ from linode_api4.objects import (
     ObjectStorageACL,
     ObjectStorageBucket,
     ObjectStorageCluster,
+    ObjectStorageGlobalQuota,
     ObjectStorageKeyPermission,
     ObjectStorageKeys,
     ObjectStorageQuota,
@@ -428,8 +429,8 @@ class ObjectStorageGroup(Group):
                 json=result,
             )
 
-        return ObjectStorageBucket(
-            self.client, result["label"], result["cluster"], result
+        return ObjectStorageBucket.make_instance(
+            result["label"], self.client, json=result
         )
 
     def object_acl_config(self, cluster_or_region_id: str, bucket, name=None):
@@ -533,3 +534,18 @@ class ObjectStorageGroup(Group):
         :rtype: PaginatedList of ObjectStorageQuota
         """
         return self.client._get_and_filter(ObjectStorageQuota, *filters)
+
+    def global_quotas(self, *filters):
+        """
+        Lists the active account-level Object Storage quotas applied to your account.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-object-storage-global-quotas
+
+        :param filters: Any number of filters to apply to this query.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>`
+                        for more details on filtering.
+
+        :returns: A list of account-level Object Storage Quotas that matched the query.
+        :rtype: PaginatedList of ObjectStorageGlobalQuota
+        """
+        return self.client._get_and_filter(ObjectStorageGlobalQuota, *filters)

@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 from urllib import parse
 
 from linode_api4.common import Price, RegionPrice
@@ -7,6 +7,16 @@ from linode_api4.objects.base import Base, MappedObject, Property
 from linode_api4.objects.dbase import DerivedBase
 from linode_api4.objects.networking import Firewall, IPAddress
 from linode_api4.objects.region import Region
+from linode_api4.objects.serializable import StrEnum
+
+
+class NodeBalancerBackendConnectivity(StrEnum):
+    """Backend connectivity modes accepted when creating a NodeBalancer."""
+
+    IPV6 = "ipv6"
+    LEGACY = "legacy"
+    UNDEFINED = "undefined"
+    VPC = "vpc"
 
 
 class NodeBalancerType(Base):
@@ -162,8 +172,10 @@ class NodeBalancerConfig(DerivedBase):
 
         API documentation: https://techdocs.akamai.com/linode-api/reference/post-node-balancer-node
 
-        :param address: The private IP Address where this backend can be reached.
-                        This must be a private IP address.
+        :param address: The address and port where this backend can be reached.
+                        The address may be a private IPv4 address, a public
+                        IPv6 address, or a VPC address. The address type must
+                        match this NodeBalancer's ``backend_connectivity``.
         :type address: str
 
         :param label: The label for this node. This is for display purposes only.
@@ -220,12 +232,14 @@ class NodeBalancerConfig(DerivedBase):
 
         # we're disabling warnings here because these attributes are defined dynamically
         # through linode.objects.Base, and pylint isn't privy
-        if os.path.isfile(os.path.expanduser(cert_file)):
-            with open(os.path.expanduser(cert_file)) as f:
+        cert_path = Path(cert_file).expanduser()
+        if cert_path.is_file():
+            with open(cert_path) as f:
                 self.ssl_cert = f.read()
 
-        if os.path.isfile(os.path.expanduser(key_file)):
-            with open(os.path.expanduser(key_file)) as f:
+        key_path = Path(key_file).expanduser()
+        if key_path.is_file():
+            with open(key_path) as f:
                 self.ssl_key = f.read()
 
 
@@ -253,6 +267,9 @@ class NodeBalancer(Base):
         "tags": Property(mutable=True, unordered=True),
         "client_udp_sess_throttle": Property(mutable=True),
         "locks": Property(unordered=True),
+        "type": Property(),
+        "backend_connectivity": Property(),
+        "backend_ipv6_prefix": Property(),
     }
 
     # create derived objects

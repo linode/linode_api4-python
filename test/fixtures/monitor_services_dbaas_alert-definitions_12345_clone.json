@@ -1,0 +1,57 @@
+{
+  "id": 67891,
+  "label": "Cloned Alert",
+  "service_type": "dbaas",
+  "severity": 1,
+  "type": "user",
+  "description": "Cloned from source alert",
+  "scope": "entity",
+  "regions": [],
+  "group_by": [
+    "entity_id"
+  ],
+  "entities": {
+    "url": "/monitor/services/dbaas/alert-definitions/67891/entities",
+    "count": 1,
+    "has_more_resources": false
+  },
+  "alert_channels": [
+    {
+      "id": 10000,
+      "label": "Read-Write Channel",
+      "type": "email",
+      "url": "/monitor/alert-channels/10000"
+    }
+  ],
+  "rule_criteria": {
+    "rules": [
+      {
+        "aggregate_function": "avg",
+        "dimension_filters": [
+          {
+            "dimension_label": "node_type",
+            "label": "Node Type",
+            "operator": "eq",
+            "value": "primary"
+          }
+        ],
+        "label": "High CPU Usage",
+        "metric": "cpu_usage",
+        "operator": "gt",
+        "threshold": 90,
+        "unit": "percent"
+      }
+    ]
+  },
+  "trigger_conditions": {
+    "criteria_condition": "ALL",
+    "evaluation_period_seconds": 300,
+    "polling_interval_seconds": 60,
+    "trigger_occurrences": 3
+  },
+  "class": "",
+  "status": "enabled",
+  "created": "2024-01-01T00:00:00",
+  "updated": "2024-01-01T00:00:00",
+  "updated_by": "tester"
+}

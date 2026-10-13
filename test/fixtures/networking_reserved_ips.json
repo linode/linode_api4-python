@@ -1,0 +1,35 @@
+{
+  "page": 1,
+  "pages": 1,
+  "results": 2,
+  "data": [
+    {
+      "address": "66.175.209.100",
+      "gateway": "66.175.209.1",
+      "linode_id": null,
+      "prefix": 24,
+      "public": true,
+      "rdns": "66-175-209-100.ip.linodeusercontent.com",
+      "region": "us-east",
+      "reserved": true,
+      "subnet_mask": "255.255.255.0",
+      "tags": ["lb"],
+      "type": "ipv4",
+      "assigned_entity": null
+    },
+    {
+      "address": "66.175.209.101",
+      "gateway": "66.175.209.1",
+      "linode_id": null,
+      "prefix": 24,
+      "public": true,
+      "rdns": "66-175-209-101.ip.linodeusercontent.com",
+      "region": "us-east",
+      "reserved": true,
+      "subnet_mask": "255.255.255.0",
+      "tags": [],
+      "type": "ipv4",
+      "assigned_entity": null
+    }
+  ]
+}

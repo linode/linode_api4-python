@@ -3,6 +3,7 @@ from test.unit.base import ClientBaseCase
 from test.unit.objects.linode_interface_test import (
     LinodeInterfaceTest,
     build_interface_options_public,
+    build_interface_options_rdma_vpc,
     build_interface_options_vlan,
     build_interface_options_vpc,
 )
@@ -26,6 +27,8 @@ from linode_api4.objects import (
     Image,
     Instance,
     InstanceACLPAlertsOptions,
+    InstanceBackups,
+    InstanceBackupSchedule,
     StackScript,
     Type,
     VPCSubnet,
@@ -67,6 +70,14 @@ class LinodeTest(ClientBaseCase):
         self.assertEqual(linode.alerts.system_alerts, [123, 456])
         self.assertEqual(linode.alerts.user_alerts, [555])
 
+        self.assertIsInstance(linode.backups, InstanceBackups)
+        self.assertTrue(linode.backups.enabled)
+        self.assertTrue(linode.backups.available)
+        self.assertEqual(linode.backups.last_successful, "2018-01-01T00:01:01")
+        self.assertIsInstance(linode.backups.schedule, InstanceBackupSchedule)
+        self.assertEqual(linode.backups.schedule.day, "Scheduling")
+        self.assertEqual(linode.backups.schedule.window, "W02")
+
         json = linode._raw_json
         self.assertIsNotNone(json)
         self.assertEqual(json["id"], 123)
@@ -97,18 +108,16 @@ class LinodeTest(ClientBaseCase):
 
     def test_rebuild(self):
         """
-        Tests that you can rebuild with an image
+        Tests that you can rebuild with an image and root_pass
         """
         linode = Instance(self.client, 123)
 
         with self.mock_post("/linode/instances/123") as m:
-            pw = linode.rebuild(
+            linode.rebuild(
                 "linode/debian9",
+                root_pass="aComplex@Password123",
                 disk_encryption=InstanceDiskEncryptionType.enabled,
             )
-
-            self.assertIsNotNone(pw)
-            self.assertTrue(isinstance(pw, str))
 
             self.assertEqual(m.call_url, "/linode/instances/123/rebuild")
 
@@ -116,10 +125,44 @@ class LinodeTest(ClientBaseCase):
                 m.call_data,
                 {
                     "image": "linode/debian9",
-                    "root_pass": pw,
+                    "root_pass": "aComplex@Password123",
                     "disk_encryption": "enabled",
                 },
             )
+
+    def test_rebuild_with_authorized_keys(self):
+        """
+        Tests that you can rebuild with an image and authorized_keys only
+        """
+        linode = Instance(self.client, 123)
+
+        with self.mock_post("/linode/instances/123") as m:
+            result = linode.rebuild(
+                "linode/debian9",
+                authorized_keys="ssh-rsa AAAA",
+            )
+
+            self.assertTrue(result)
+
+            self.assertEqual(m.call_url, "/linode/instances/123/rebuild")
+
+            self.assertEqual(
+                m.call_data,
+                {
+                    "image": "linode/debian9",
+                    "authorized_keys": ["ssh-rsa AAAA"],
+                },
+            )
+
+    def test_rebuild_requires_auth(self):
+        """
+        Tests that rebuild raises ValueError when neither root_pass nor
+        authorized_keys is provided
+        """
+        linode = Instance(self.client, 123)
+
+        with self.assertRaises(ValueError):
+            linode.rebuild("linode/debian9")
 
     def test_available_backups(self):
         """
@@ -204,6 +247,22 @@ class LinodeTest(ClientBaseCase):
                     "tags": ["something"],
                     "watchdog_enabled": True,
                     "maintenance_policy": "linode/power_off_on",
+                },
+            )
+
+    def test_update_linode_backups_disabled(self):
+        """
+        Tests that an unset backup schedule is sent as explicit nulls
+        """
+        with self.mock_put("linode/instances/456") as m:
+            linode = self.client.load(Instance, 456)
+            linode.save()
+
+            self.assertEqual(
+                m.call_data["backups"],
+                {
+                    "enabled": False,
+                    "schedule": {"day": None, "window": None},
                 },
             )
 
@@ -448,11 +507,12 @@ class LinodeTest(ClientBaseCase):
         linode = Instance(self.client, 123)
 
         with self.mock_post("/linode/instances/123/disks/12345") as m:
-            disk, gen_pass = linode.disk_create(
+            disk = linode.disk_create(
                 1234,
                 label="test",
                 authorized_users=["test"],
                 image="linode/debian12",
+                root_pass="aComplex@Password123",
             )
             self.assertEqual(m.call_url, "/linode/instances/123/disks")
             self.assertEqual(
@@ -460,7 +520,7 @@ class LinodeTest(ClientBaseCase):
                 {
                     "size": 1234,
                     "label": "test",
-                    "root_pass": gen_pass,
+                    "root_pass": "aComplex@Password123",
                     "image": "linode/debian12",
                     "authorized_users": ["test"],
                     "read_only": False,
@@ -469,6 +529,88 @@ class LinodeTest(ClientBaseCase):
 
         assert disk.id == 12345
         assert disk.disk_encryption == InstanceDiskEncryptionType.disabled
+
+    def test_create_disk_with_authorized_keys(self):
+        """
+        Tests that disk_create works with authorized_keys and no root_pass
+        """
+        linode = Instance(self.client, 123)
+
+        with self.mock_post("/linode/instances/123/disks/12345") as m:
+            disk = linode.disk_create(
+                1234,
+                label="test",
+                image="linode/debian12",
+                authorized_keys="ssh-rsa AAAA",
+            )
+            self.assertEqual(m.call_url, "/linode/instances/123/disks")
+            self.assertEqual(
+                m.call_data,
+                {
+                    "size": 1234,
+                    "label": "test",
+                    "image": "linode/debian12",
+                    "authorized_keys": ["ssh-rsa AAAA"],
+                    "read_only": False,
+                },
+            )
+
+        assert disk.id == 12345
+
+    def test_create_disk_with_image_requires_auth(self):
+        """
+        Tests that disk_create raises ValueError when image is provided
+        without root_pass or authorized_keys
+        """
+        linode = Instance(self.client, 123)
+
+        with self.assertRaises(ValueError):
+            linode.disk_create(
+                1234,
+                label="test",
+                image="linode/debian12",
+            )
+
+    def test_create_config_with_device_map(self):
+        """
+        Tests that config_create passes through a raw device map unchanged.
+        """
+        linode = Instance(self.client, 123)
+        devices = {
+            "sda": {"disk_id": 111},
+            "sdb": {"volume_id": 222},
+            "sdc": None,
+        }
+
+        with self.mock_post(
+            {"id": 456, "devices": devices, "interfaces": []}
+        ) as m:
+            config = linode.config_create(label="test-config", devices=devices)
+
+            self.assertEqual(m.call_url, "/linode/instances/123/configs")
+            self.assertEqual(
+                m.call_data,
+                {
+                    "label": "test-config",
+                    "devices": devices,
+                    "interfaces": [],
+                },
+            )
+
+        self.assertEqual(config.id, 456)
+
+    def test_create_config_without_devices_raises_error(self):
+        """
+        Tests that config_create raises ValueError when no devices, disks, or volumes are specified.
+        """
+        linode = Instance(self.client, 123)
+
+        with self.assertRaises(ValueError) as context:
+            linode.config_create(label="test-config")
+
+        assert "Must include at least one disk or volume!" in str(
+            context.exception
+        )
 
     def test_get_placement_group(self):
         """
@@ -669,6 +811,21 @@ class LinodeTest(ClientBaseCase):
             "system_alerts": [123, 456],
             "user_alerts": [555],
         }
+
+    def test_create_interface_rdma_vpc_rejected(self):
+        """
+        Tests that attempting to create an RDMA VPC interface via
+        interface_create() raises a clear ValueError instead of sending an
+        invalid request to the API.
+        """
+        instance = Instance(self.client, 124)
+
+        iface = build_interface_options_rdma_vpc()
+
+        with self.assertRaises(ValueError) as ctx:
+            instance.interface_create(**vars(iface))
+
+        assert "rdma_vpc" in str(ctx.exception)
 
 
 class DiskTest(ClientBaseCase):

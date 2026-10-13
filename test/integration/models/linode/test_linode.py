@@ -19,9 +19,11 @@ from linode_api4.objects import (
     Instance,
     InterfaceGeneration,
     LinodeInterface,
+    ReservedIPAddress,
     Type,
 )
 from linode_api4.objects.linode import InstanceDiskEncryptionType, MigrationType
+from linode_api4.objects.region import RegionAvailabilityEntry
 
 
 @pytest.fixture(scope="session")
@@ -37,11 +39,12 @@ def linode_with_volume_firewall(test_linode_client):
         "inbound_policy": "DROP",
     }
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         region,
         image="linode/debian12",
         label=label + "_modlinode",
+        root_pass="aComplex@Password123",
     )
 
     volume = client.volume_create(
@@ -75,13 +78,14 @@ def linode_for_legacy_interface_tests(test_linode_client, e2e_test_firewall):
     region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label(length=8)
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         region,
         image="linode/debian12",
         label=label,
         firewall=e2e_test_firewall,
         interface_generation=InterfaceGeneration.LEGACY_CONFIG,
+        root_pass="aComplex@Password123",
     )
 
     yield linode_instance
@@ -97,17 +101,18 @@ def linode_and_vpc_for_legacy_interface_tests_offline(
 
     label = get_test_label(length=8)
 
-    instance, password = test_linode_client.linode.instance_create(
-        "g6-standard-1",
+    instance = test_linode_client.linode.instance_create(
+        "g5-standard-1",
         vpc.region,
         booted=False,
         image="linode/debian11",
         label=label,
         firewall=e2e_test_firewall,
         interface_generation=InterfaceGeneration.LEGACY_CONFIG,
+        root_pass="aComplex@Password123",
     )
 
-    yield vpc, subnet, instance, password
+    yield vpc, subnet, instance
 
     instance.delete()
 
@@ -115,17 +120,35 @@ def linode_and_vpc_for_legacy_interface_tests_offline(
 @pytest.fixture(scope="session")
 def linode_for_vpu_tests(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    region = "us-lax"
+    vpu_type = "g1-accelerated-netint-vpu-t1u1-s"
+
+    availability = client.regions.availability(
+        RegionAvailabilityEntry.filters.plan == vpu_type
+    )
+
+    region = next(
+        (entry.region for entry in availability if entry.available), None
+    )
+
+    if region is None:
+        pytest.skip("No VPU capacity is currently available")
 
     label = get_test_label(length=8)
-
-    linode_instance, password = client.linode.instance_create(
-        "g1-accelerated-netint-vpu-t1u1-s",
-        region,
-        image="linode/debian12",
-        label=label,
-        firewall=e2e_test_firewall,
-    )
+    try:
+        linode_instance = client.linode.instance_create(
+            vpu_type,
+            region,
+            image="linode/debian12",
+            label=label,
+            firewall=e2e_test_firewall,
+            root_pass="aComplex@Password123",
+        )
+    except ApiError as e:
+        reasons = e.errors or [str(e)]
+        unavailable_msg = "not currently available in the selected region"
+        if e.status == 400 and any(unavailable_msg in r for r in reasons):
+            pytest.skip("No VPU capacity is currently available")
+        raise
 
     yield linode_instance
 
@@ -138,12 +161,13 @@ def linode_for_disk_tests(test_linode_client, e2e_test_firewall):
     region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label()
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         region,
-        image="linode/alpine3.19",
+        image="linode/ubuntu24.04",
         label=label + "_long_tests",
         firewall=e2e_test_firewall,
+        root_pass="aComplex@Password123",
     )
 
     # Provisioning time
@@ -171,12 +195,13 @@ def linode_with_block_storage_encryption(test_linode_client, e2e_test_firewall):
     region = get_region(client, {"Linodes", "Block Storage Encryption"})
     label = get_test_label()
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         region,
-        image="linode/alpine3.19",
+        image="linode/ubuntu24.04",
         label=label + "block-storage-encryption",
         firewall=e2e_test_firewall,
+        root_pass="aComplex@Password123",
     )
 
     yield linode_instance
@@ -190,12 +215,13 @@ def create_linode_for_long_running_tests(test_linode_client, e2e_test_firewall):
     region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label()
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         region,
         image="linode/debian12",
         label=label + "_long_tests",
         firewall=e2e_test_firewall,
+        root_pass="aComplex@Password123",
     )
 
     yield linode_instance
@@ -212,13 +238,36 @@ def linode_with_disk_encryption(test_linode_client, request):
 
     disk_encryption = request.param
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         target_region,
-        image="linode/ubuntu24.10",
+        image="linode/ubuntu24.04",
         label=label,
         booted=False,
         disk_encryption=disk_encryption,
+        root_pass="aComplex@Password123",
+    )
+
+    yield linode_instance
+
+    linode_instance.delete()
+
+
+@pytest.fixture(scope="session")
+def create_linode_with_authorized_key(test_linode_client, ssh_key_gen):
+    client = test_linode_client
+
+    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    label = get_test_label(length=8)
+
+    linode_instance = client.linode.instance_create(
+        "g6-nanode-1",
+        region,
+        image="linode/debian12",
+        label=label,
+        kernel="linode/latest-64bit",
+        boot_size=9000,
+        authorized_keys=ssh_key_gen[0],
     )
 
     yield linode_instance
@@ -292,16 +341,21 @@ def test_linode_rebuild(test_linode_client):
 
     label = get_test_label() + "_rebuild"
 
-    linode, password = client.linode.instance_create(
-        "g6-nanode-1", region, image="linode/debian12", label=label
+    linode = client.linode.instance_create(
+        "g6-nanode-1",
+        region,
+        image="linode/debian12",
+        label=label,
+        root_pass="aComplex@Password123",
     )
 
-    wait_for_condition(10, 100, get_status, linode, "running")
+    wait_for_condition(10, 150, get_status, linode, "running")
 
     retry_sending_request(
         3,
         linode.rebuild,
         "linode/debian12",
+        root_pass="aComplex@Password123",
         disk_encryption=InstanceDiskEncryptionType.disabled,
     )
 
@@ -350,11 +404,12 @@ def test_delete_linode(test_linode_client):
     region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label()
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         region,
         image="linode/debian12",
         label=label + "_linode",
+        root_pass="aComplex@Password123",
     )
 
     linode_instance.delete()
@@ -689,24 +744,45 @@ def test_linode_ips(create_linode):
 
 def test_linode_initate_migration(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
     label = get_test_label() + "_migration"
+    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    region_migrate = get_region(
+        client, {"Linodes", "Cloud Firewall"}, site_type="core"
+    )
 
-    linode, _ = client.linode.instance_create(
+    # Cannot migrate linode to the same region
+    for _ in range(5):
+        if region_migrate.id != region.id:
+            break
+
+        region_migrate = get_region(
+            client, {"Linodes", "Cloud Firewall"}, site_type="core"
+        )
+    else:
+        pytest.skip("No alternative region to be used for linode migration")
+
+    linode = client.linode.instance_create(
         "g6-nanode-1",
         region,
         image="linode/debian12",
         label=label,
         firewall=e2e_test_firewall,
+        root_pass="aComplex@Password123",
     )
 
     # Says it could take up to ~6 hrs for migration to fully complete
     send_request_when_resource_available(
         300,
         linode.initiate_migration,
-        region="us-central",
+        region=region_migrate,
         migration_type=MigrationType.COLD,
     )
+
+    def get_linode_status():
+        return linode.status == "offline"
+
+    # To verify that Linode's status changed before deletion (during migration status is set to 'offline')
+    wait_for_condition(5, 120, get_linode_status)
 
     res = linode.delete()
 
@@ -717,7 +793,7 @@ def test_linode_upgrade_interfaces(
     linode_for_legacy_interface_tests,
     linode_and_vpc_for_legacy_interface_tests_offline,
 ):
-    vpc, subnet, linode, _ = linode_and_vpc_for_legacy_interface_tests_offline
+    vpc, subnet, linode = linode_and_vpc_for_legacy_interface_tests_offline
     config = linode.configs[0]
 
     new_interfaces = [
@@ -881,6 +957,15 @@ def test_get_config(test_linode_client, create_linode):
     assert config.id == linode.configs[0].id
 
 
+def test_config_create_without_devices_raises_error(create_linode):
+    linode = create_linode
+
+    with pytest.raises(ValueError) as err:
+        linode.config_create(label="test-config-no-devices")
+
+    assert "Must include at least one disk or volume!" in str(err.value)
+
+
 def test_get_linode_types(test_linode_client):
     types = test_linode_client.linode.types()
 
@@ -892,21 +977,14 @@ def test_get_linode_types(test_linode_client):
     for linode_type in types:
         assert hasattr(linode_type, "accelerated_devices")
 
-
-def test_get_linode_types_overrides(test_linode_client):
-    types = test_linode_client.linode.types()
-
-    target_types = [
+    regional_priced_types = [
         v
         for v in types
         if len(v.region_prices) > 0 and v.region_prices[0].hourly > 0
     ]
 
-    assert len(target_types) > 0
-
-    for linode_type in target_types:
-        assert linode_type.region_prices[0].hourly >= 0
-        assert linode_type.region_prices[0].monthly >= 0
+    assert any(v.region_prices[0].hourly > 0 for v in regional_priced_types)
+    assert any(v.region_prices[0].monthly > 0 for v in regional_priced_types)
 
 
 @pytest.mark.flaky(reruns=3, reruns_delay=2)
@@ -1000,9 +1078,7 @@ class TestNetworkInterface:
         test_linode_client,
         linode_and_vpc_for_legacy_interface_tests_offline,
     ):
-        vpc, subnet, linode, _ = (
-            linode_and_vpc_for_legacy_interface_tests_offline
-        )
+        vpc, subnet, linode = linode_and_vpc_for_legacy_interface_tests_offline
 
         config: Config = linode.configs[0]
 
@@ -1046,18 +1122,24 @@ class TestNetworkInterface:
 
         # TODO:: Add `VPCIPAddress.filters.linode_id == linode.id` filter back
 
-        # Attempt to resolve the IP from /vpcs/ips
-        all_vpc_ips = test_linode_client.vpcs.ips()
-        matched_ip = next(
-            (
-                ip
-                for ip in all_vpc_ips
-                if ip.address == vpc_ip.address
-                and ip.vpc_id == vpc_ip.vpc_id
-                and ip.linode_id == vpc_ip.linode_id
-            ),
-            None,
-        )
+        # Attempt to resolve the IP from /vpcs/ips. The account-wide listing
+        # may lag behind instance creation, so poll until the IP appears.
+        def resolve_vpc_ip():
+            return next(
+                (
+                    ip
+                    for ip in test_linode_client.vpcs.ips()
+                    if ip.address == vpc_ip.address
+                    and ip.vpc_id == vpc_ip.vpc_id
+                    and ip.linode_id == vpc_ip.linode_id
+                ),
+                None,
+            )
+
+        try:
+            matched_ip = wait_for_condition(5, 120, resolve_vpc_ip)
+        except TimeoutError:
+            matched_ip = None
 
         assert (
             matched_ip is not None
@@ -1072,21 +1154,26 @@ class TestNetworkInterface:
         assert vpc_ips[0].linode_id == linode.id
         assert vpc_ips[0].nat_1_1 == linode.ips.ipv4.public[0].address
 
-        # Validate VPC IPv6 IPs from /vpcs/ips
-        all_vpc_ipv6 = test_linode_client.get("/vpcs/ipv6s")["data"]
+        # Validate VPC IPv6 IPs from /vpcs/ipv6s. The account-wide listing may
+        # lag behind instance creation, so poll until the entry appears.
+        def resolve_vpc_ipv6():
+            all_vpc_ipv6 = test_linode_client.get("/vpcs/ipv6s")["data"]
+            return next(
+                (
+                    ip
+                    for ip in all_vpc_ipv6
+                    if ip["vpc_id"] == vpc.id
+                    and ip["linode_id"] == linode.id
+                    and ip["interface_id"] == interface.id
+                    and ip["subnet_id"] == subnet.id
+                ),
+                None,
+            )
 
-        # Find matching VPC IPv6 entry
-        matched_ipv6 = next(
-            (
-                ip
-                for ip in all_vpc_ipv6
-                if ip["vpc_id"] == vpc.id
-                and ip["linode_id"] == linode.id
-                and ip["interface_id"] == interface.id
-                and ip["subnet_id"] == subnet.id
-            ),
-            None,
-        )
+        try:
+            matched_ipv6 = wait_for_condition(5, 120, resolve_vpc_ipv6)
+        except TimeoutError:
+            matched_ipv6 = None
 
         assert (
             matched_ipv6
@@ -1110,9 +1197,7 @@ class TestNetworkInterface:
         self,
         linode_and_vpc_for_legacy_interface_tests_offline,
     ):
-        vpc, subnet, linode, _ = (
-            linode_and_vpc_for_legacy_interface_tests_offline
-        )
+        vpc, subnet, linode = linode_and_vpc_for_legacy_interface_tests_offline
 
         config: Config = linode.configs[0]
 
@@ -1173,7 +1258,7 @@ class TestNetworkInterface:
     def test_delete_interface_containing_vpc(
         self, create_vpc_with_subnet_and_linode
     ):
-        vpc, subnet, linode, _ = create_vpc_with_subnet_and_linode
+        vpc, subnet, linode = create_vpc_with_subnet_and_linode
 
         config: Config = linode.configs[0]
 
@@ -1207,12 +1292,13 @@ def test_create_linode_with_maintenance_policy(test_linode_client):
     non_default_policy = next((p for p in policies if not p.is_default), None)
     assert non_default_policy, "No non-default maintenance policy available"
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         region,
         image="linode/debian12",
         label=label + "_with_policy",
         maintenance_policy=non_default_policy.slug,
+        root_pass="aComplex@Password123",
     )
 
     assert linode_instance.id is not None
@@ -1238,3 +1324,96 @@ def test_update_linode_maintenance_policy(create_linode, test_linode_client):
     linode.invalidate()
     assert result
     assert linode.maintenance_policy_id == non_default_policy.slug
+
+
+def test_expected_error_if_fields_authorized_users_authorized_keys_root_pass_are_not_set(
+    test_linode_client,
+):
+    client = test_linode_client
+    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    label = get_test_label(length=8)
+
+    with pytest.raises(ValueError) as create_instance_error:
+        client.linode.instance_create(
+            "g6-nanode-1",
+            region,
+            image="linode/debian12",
+            label=label,
+            kernel="linode/latest-64bit",
+            boot_size=9000,
+        )
+    assert (
+        "When creating an Instance from an Image, at least one of root_pass, authorized_users, or authorized_keys must be provided."
+        in str(create_instance_error.value)
+    )
+
+
+def test_create_linode_with_kernel_and_boot_size_then_add_disk_and_rebuild(
+    create_linode_with_authorized_key,
+    ssh_key_gen,
+):
+    linode_create = create_linode_with_authorized_key
+    assert linode_create.image.id == "linode/debian12"
+
+    wait_for_condition(10, 300, get_status, linode_create, "running")
+    disk_create = send_request_when_resource_available(
+        300,
+        linode_create.disk_create,
+        size=2000,
+        image="linode/debian12",
+        label="python-disk-test-" + get_test_label(),
+        root_pass="aComplex@Password123",
+    )
+    wait_for_disk_status(disk_create, 120)
+    assert disk_create.status == "ready"
+
+    retry_sending_request(
+        3,
+        linode_create.rebuild,
+        "linode/debian12",
+        authorized_keys=ssh_key_gen[0],
+    )
+    wait_for_condition(10, 300, get_status, linode_create, "rebuilding")
+    assert linode_create.status == "rebuilding"
+    wait_for_condition(10, 300, get_status, linode_create, "running")
+    assert linode_create.image.id == "linode/debian12"
+
+
+def test_update_linode_with_reserved_ip_in_address(
+    test_linode_client, e2e_test_firewall, create_reserved_ip, ssh_key_gen
+):
+    label = get_test_label(length=8)
+    client = test_linode_client
+    reserved_ip = create_reserved_ip
+
+    linode = client.linode.instance_create(
+        "g6-nanode-1",
+        reserved_ip.region,
+        image="linode/debian12",
+        label=label,
+        firewall=e2e_test_firewall,
+        authorized_keys=ssh_key_gen[0],
+    )
+
+    linode_ips = linode.ips.ipv4.public
+    assert len(linode_ips) == 1
+    assert linode_ips[0].address != reserved_ip.address
+
+    linode.ip_allocate(True, reserved_ip.address)
+    delattr(linode, "_ips")
+    linode_ips = linode.ips.ipv4.public
+    assert len(linode_ips) == 2
+    assert reserved_ip.address in [ip.address for ip in linode_ips]
+
+    reserved_ip = client.networking.reserved_ips(
+        ReservedIPAddress.address == reserved_ip.address
+    )[0]
+    assert reserved_ip.linode_id == linode.id
+    assert reserved_ip.assigned_entity.id == linode.id
+    assert reserved_ip.assigned_entity.type == "linode"
+    assert reserved_ip.assigned_entity.label == linode.label
+    assert (
+        reserved_ip.assigned_entity.url == f"/v4/linode/instances/{linode.id}"
+    )
+
+    linode.delete()

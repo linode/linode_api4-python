@@ -1,5 +1,5 @@
-import os
 from dataclasses import dataclass
+from pathlib import Path
 
 from linode_api4.objects import JSONObject
 
@@ -47,9 +47,9 @@ def load_and_validate_keys(authorized_keys):
             ret.append(k)
         else:
             # it doesn't appear to be a key.. is it a path to the key?
-            k = os.path.expanduser(k)
-            if os.path.isfile(k):
-                with open(k) as f:
+            k_path = Path(k).expanduser()
+            if k_path.is_file():
+                with open(k_path) as f:
                     ret.append(f.read().rstrip())
             else:
                 raise ValueError(
