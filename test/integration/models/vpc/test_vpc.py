@@ -3,6 +3,7 @@ from test.integration.conftest import get_region
 import pytest
 
 from linode_api4 import VPC, ApiError, VPCIPv4DefaultRange, VPCSubnet
+from linode_api4.objects import Capability
 
 
 @pytest.mark.smoke
@@ -60,7 +61,7 @@ def test_fails_create_vpc_invalid_data(test_linode_client):
     with pytest.raises(ApiError) as excinfo:
         test_linode_client.vpcs.create(
             label="invalid_label!!",
-            region=get_region(test_linode_client, {"VPCs"}),
+            region=get_region(test_linode_client, {Capability.vpcs}),
             description="test description",
         )
     assert excinfo.value.status == 400

@@ -11,6 +11,7 @@ import pytest
 
 from linode_api4 import ApiError, LinodeClient, NodeBalancer
 from linode_api4.objects import (
+    Capability,
     NodeBalancerConfig,
     NodeBalancerNode,
     NodeBalancerType,
@@ -24,7 +25,7 @@ TEST_REGION = get_region(
         base_url=get_api_url(),
         ca_path=get_api_ca_file(),
     ),
-    {"Linodes", "Cloud Firewall", "NodeBalancers"},
+    {Capability.linodes, Capability.firewall, Capability.nodebalancers},
     site_type="core",
 )
 

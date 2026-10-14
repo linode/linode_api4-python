@@ -6,7 +6,12 @@ from test.integration.helpers import get_test_label, wait_for_condition
 import pytest
 
 from linode_api4 import ApiError
-from linode_api4.objects import ConfigInterface, ObjectStorageKeys, Region
+from linode_api4.objects import (
+    Capability,
+    ConfigInterface,
+    ObjectStorageKeys,
+    Region,
+)
 
 
 def is_tag_created(client, tag_label):
@@ -19,7 +24,11 @@ def is_tag_created(client, tag_label):
 @pytest.fixture(scope="session")
 def setup_client_and_linode(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    region = get_region(client, {"Kubernetes", "NodeBalancers"}, "core").id
+    region = get_region(
+        client,
+        {Capability.lke, Capability.nodebalancers},
+        "core",
+    ).id
 
     label = get_test_label()
 
@@ -228,7 +237,7 @@ def test_get_account_settings(test_linode_client):
 # LinodeGroupTests
 def test_create_linode_instance_without_image(test_linode_client):
     client = test_linode_client
-    region = get_region(client, {"Linodes"}, "core").id
+    region = get_region(client, {Capability.linodes}, "core").id
     label = get_test_label()
 
     linode_instance = client.linode.instance_create(
@@ -252,7 +261,11 @@ def test_create_linode_instance_with_image(setup_client_and_linode):
 
 def test_create_linode_with_interfaces(test_linode_client):
     client = test_linode_client
-    region = get_region(client, {"Vlans", "Linodes"}, site_type="core").id
+    region = get_region(
+        client,
+        {Capability.vlans, Capability.linodes},
+        site_type="core",
+    ).id
     label = get_test_label()
 
     linode_instance = client.linode.instance_create(
@@ -325,7 +338,7 @@ def test_cluster_create_with_api_objects(test_linode_client):
     client = test_linode_client
     node_type = client.linode.types()[1]  # g6-standard-1
     version = client.lke.versions()[0]
-    region = get_region(client, {"Kubernetes"})
+    region = get_region(client, {Capability.lke})
     node_pool = client.lke.node_pool(node_type, 3)
     label = get_test_label()
 
@@ -342,7 +355,7 @@ def test_cluster_create_with_api_objects(test_linode_client):
 def test_fails_to_create_cluster_with_invalid_version(test_linode_client):
     invalid_version = "a.12"
     client = test_linode_client
-    region = get_region(client, {"Kubernetes"}).id
+    region = get_region(client, {Capability.lke}).id
 
     with pytest.raises(ApiError, match="not valid") as exc_info:
         client.lke.cluster_create(
