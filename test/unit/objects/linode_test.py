@@ -26,6 +26,7 @@ from linode_api4.objects import (
     Disk,
     Image,
     Instance,
+    InstanceACLPAlertsOptions,
     InstanceBackups,
     InstanceBackupSchedule,
     StackScript,
@@ -60,6 +61,14 @@ class LinodeTest(ClientBaseCase):
         )
         self.assertEqual(linode.lke_cluster_id, None)
         self.assertEqual(linode.maintenance_policy, "linode/migrate")
+
+        self.assertEqual(linode.alerts.cpu, 90)
+        self.assertEqual(linode.alerts.io, 5000)
+        self.assertEqual(linode.alerts.network_in, 5)
+        self.assertEqual(linode.alerts.network_out, 5)
+        self.assertEqual(linode.alerts.transfer_quota, 80)
+        self.assertEqual(linode.alerts.system_alerts, [123, 456])
+        self.assertEqual(linode.alerts.user_alerts, [555])
 
         self.assertIsInstance(linode.backups, InstanceBackups)
         self.assertTrue(linode.backups.enabled)
@@ -226,6 +235,8 @@ class LinodeTest(ClientBaseCase):
                         "network_in": 5,
                         "network_out": 5,
                         "transfer_quota": 80,
+                        "system_alerts": [123, 456],
+                        "user_alerts": [555],
                     },
                     "backups": {
                         "enabled": True,
@@ -782,6 +793,24 @@ class LinodeTest(ClientBaseCase):
             assert m.call_data == {"vlan": iface.vlan._serialize()}
 
         LinodeInterfaceTest.assert_linode_124_interface_789(result)
+
+    def test_instance_clone_with_alerts(self):
+        src = Instance(self.client, 123)
+
+        with self.mock_post("linode/instances/123/clone") as m:
+            src.clone(
+                region="us-east",
+                instance_type="g6-standard-1",
+                alerts=InstanceACLPAlertsOptions(
+                    system_alerts=[123, 456],
+                    user_alerts=[555],
+                ),
+            )
+
+        assert m.call_data["alerts"] == {
+            "system_alerts": [123, 456],
+            "user_alerts": [555],
+        }
 
     def test_create_interface_rdma_vpc_rejected(self):
         """
