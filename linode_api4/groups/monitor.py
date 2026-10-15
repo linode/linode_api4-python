@@ -20,6 +20,7 @@ from linode_api4.objects import (
 )
 from linode_api4.objects.monitor import (
     AkamaiObjectStorageLogsDestinationDetails,
+    ChannelDetails,
     CustomHTTPSLogsDestinationDetails,
     LogsStreamDetails,
 )
@@ -27,6 +28,21 @@ from linode_api4.objects.monitor import (
 __all__ = [
     "MonitorGroup",
 ]
+
+
+class _AlertChannelAlertDefinition(AlertDefinition):
+    """Build channel alerts with each response item's service parent."""
+
+    @classmethod
+    def make_instance(cls, id, client, parent_id=None, json=None):
+        if parent_id is None and json:
+            parent_id = json.get(cls.parent_id_name)
+        return super().make_instance(
+            id,
+            client,
+            parent_id=parent_id,
+            json=json,
+        )
 
 
 class MonitorGroup(Group):
@@ -421,6 +437,77 @@ class MonitorGroup(Group):
             AlertDefinitionEntity,
             *filters,
             endpoint=endpoint,
+        )
+
+    def channel_create(
+        self,
+        label: str,
+        channel_type: str,
+        details: ChannelDetails,
+    ) -> AlertChannel:
+        """
+        Creates a new alert channel for the authenticated account.
+
+        An alert channel defines a notification destination (for example: an
+        email list) that can be associated with one or more alert definitions.
+        Currently only ``email`` is supported as a ``channel_type``.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-notification-channel
+
+        :param label: Human-readable name for the new alert channel.
+        :type label: str
+        :param channel_type: The type of notification channel (e.g. ``"email"``).
+        :type channel_type: str
+        :param details: Notification-type-specific configuration.
+        :type details: ChannelDetails
+
+        :returns: The newly created :class:`AlertChannel`.
+        :rtype: AlertChannel
+
+        .. note::
+           If you need to obtain a single :class:`AlertChannel`, use :meth:`LinodeClient.load`.
+           Example: ``client.load(AlertChannel, channel_id)``.
+           For updating an alert channel, use the ``save()`` method on the :class:`AlertChannel` object.
+           For deleting an alert channel, use the ``delete()`` method directly on the :class:`AlertChannel` object.
+        """
+        params = {
+            "label": label,
+            "channel_type": channel_type,
+            "details": details.dict,
+        }
+
+        result = self.client.post("/monitor/alert-channels", data=params)
+
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating alert channel!",
+                json=result,
+            )
+
+        return AlertChannel(self.client, result["id"], result)
+
+    def alert_channel_alerts(self, channel_id: int, *filters) -> PaginatedList:
+        """
+        Retrieve all alerts associated with a specific alert channel.
+
+        Returns a paginated collection of alert definitions associated with the
+        specified alert channel. This allows you to see which alert definitions
+        are configured to notify this specific channel.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-notification-channel-alerts
+
+        :param channel_id: The ID of the alert channel to retrieve alerts for.
+        :type channel_id: int
+        :param filters: Optional filter expressions to apply to the collection.
+                        See :doc:`Filtering Collections</linode_api4/objects/filtering>` for details.
+
+        :returns: A paginated list of alert definitions associated with this channel.
+        :rtype: PaginatedList[AlertDefinition]
+        """
+        return self.client._get_and_filter(
+            _AlertChannelAlertDefinition,
+            *filters,
+            endpoint=f"/monitor/alert-channels/{channel_id}/alerts",
         )
 
     def destinations(self, *filters) -> PaginatedList:
