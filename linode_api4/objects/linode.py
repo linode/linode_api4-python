@@ -790,6 +790,42 @@ class UpgradeInterfacesResult(JSONObject):
     )
 
 
+@dataclass
+class InstanceBackupSchedule(JSONObject):
+    """
+    InstanceBackupSchedule represents when automatic backups of a Linode Instance are taken.
+    """
+
+    include_none_values = True
+
+    day: Optional[str] = None
+    window: Optional[str] = None
+
+
+@dataclass
+class InstanceBackupsOptions(JSONObject):
+    """
+    InstanceBackupsOptions is used to update the backup settings of a Linode Instance.
+    """
+
+    enabled: bool = False
+    schedule: Optional[InstanceBackupSchedule] = None
+
+
+@dataclass
+class InstanceBackups(JSONObject):
+    """
+    InstanceBackups represents the backup settings and status of a Linode Instance.
+    """
+
+    put_class = InstanceBackupsOptions
+
+    enabled: bool = False
+    available: bool = False
+    schedule: Optional[InstanceBackupSchedule] = None
+    last_successful: Optional[str] = None
+
+
 class Instance(Base):
     """
     A Linode Instance.
@@ -811,7 +847,7 @@ class Instance(Base):
         "disks": Property(derived_class=Disk),
         "configs": Property(derived_class=Config),
         "type": Property(slug_relationship=Type),
-        "backups": Property(mutable=True),
+        "backups": Property(mutable=True, json_object=InstanceBackups),
         "ipv4": Property(unordered=True),
         "ipv6": Property(),
         "hypervisor": Property(),

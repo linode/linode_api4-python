@@ -11,6 +11,7 @@ import pytest
 
 from linode_api4 import ApiError, LinodeClient, NodeBalancer
 from linode_api4.objects import (
+    Capability,
     NodeBalancerConfig,
     NodeBalancerNode,
     NodeBalancerType,
@@ -24,7 +25,7 @@ TEST_REGION = get_region(
         base_url=get_api_url(),
         ca_path=get_api_ca_file(),
     ),
-    {"Linodes", "Cloud Firewall", "NodeBalancers"},
+    {Capability.linodes, Capability.firewall, Capability.nodebalancers},
     site_type="core",
 )
 
@@ -106,11 +107,18 @@ def test_create_nb(test_linode_client, e2e_test_firewall):
         label=label,
         firewall=e2e_test_firewall.id,
         client_udp_sess_throttle=5,
+        type="premium",
+        backend_connectivity="ipv6",
     )
 
     assert TEST_REGION, nb.region
     assert label == nb.label
     assert 5 == nb.client_udp_sess_throttle
+    assert nb.type == "premium"
+    assert nb.backend_connectivity == "ipv6"
+    assert nb.backend_ipv6_prefix is None or isinstance(
+        nb.backend_ipv6_prefix, str
+    )
 
     nb.delete()
 

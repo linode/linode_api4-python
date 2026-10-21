@@ -2,12 +2,17 @@ from test.integration.conftest import get_region
 from test.integration.helpers import get_test_label, retry_sending_request
 
 from linode_api4 import Instance
+from linode_api4.objects import Capability
 
 
 def test_config_create_with_extended_volume_limit(test_linode_client):
     client = test_linode_client
 
-    region = get_region(client, {"Linodes", "Block Storage"}, site_type="core")
+    region = get_region(
+        client,
+        {Capability.linodes, Capability.block_storage},
+        site_type="core",
+    )
     label = get_test_label()
 
     linode = client.linode.instance_create(
@@ -46,7 +51,11 @@ def test_config_create_with_extended_volume_limit(test_linode_client):
 def test_config_create_with_device_map(test_linode_client):
     client = test_linode_client
 
-    region = get_region(client, {"Linodes", "Block Storage"}, site_type="core")
+    region = get_region(
+        client,
+        {Capability.linodes, Capability.block_storage},
+        site_type="core",
+    )
     label = get_test_label()
 
     linode = client.linode.instance_create(

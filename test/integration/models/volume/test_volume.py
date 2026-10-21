@@ -15,7 +15,7 @@ from test.integration.helpers import (
 import pytest
 
 from linode_api4 import LinodeClient
-from linode_api4.objects import RegionPrice, Volume, VolumeType
+from linode_api4.objects import Capability, RegionPrice, Volume, VolumeType
 
 TEST_REGION = get_region(
     LinodeClient(
@@ -23,7 +23,7 @@ TEST_REGION = get_region(
         base_url=get_api_url(),
         ca_path=get_api_ca_file(),
     ),
-    {"Linodes", "Cloud Firewall"},
+    {Capability.linodes, Capability.firewall},
     site_type="core",
 )
 
