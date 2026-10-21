@@ -19,6 +19,7 @@ from linode_api4.objects.monitor import (
     AkamaiObjectStorageLogsDestinationDetails,
     LogsDestination,
     LogsStream,
+    LogsStreamQuota,
     LogsStreamStatus,
 )
 
@@ -519,3 +520,21 @@ def test_update_stream_destinations(
     assert (
         snapshot_updated.destinations[0].id == create_secondary_destination.id
     )
+
+
+@_SKIP_STREAM_TESTS
+def test_list_stream_quotas(test_linode_client: LinodeClient):
+    """Test that stream quota definitions can be retrieved from the API."""
+    quotas = test_linode_client.monitor.stream_quotas()
+
+    assert isinstance(quotas, PaginatedList)
+    assert len(quotas) > 0
+    assert all(isinstance(quota, LogsStreamQuota) for quota in quotas)
+    assert all(
+        quota.quota_id
+        and quota.quota_name
+        and quota.quota_type
+        and quota.description
+        for quota in quotas
+    )
+    assert all(quota.quota_limit >= 0 for quota in quotas)
