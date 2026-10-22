@@ -3,6 +3,7 @@
   "id": 123456,
   "description": "A very real VPC.",
   "region": "us-southeast",
+  "vpc_type": "regular",
   "ipv4": [
     {
       "range": "10.0.0.0/8"

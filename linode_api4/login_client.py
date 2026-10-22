@@ -30,10 +30,11 @@ class OAuthScopes:
     Lists of OAuth Scopes are accepted when calling the :any:`generate_login_url`
     method of the :any:`LinodeLoginClient`.
 
-    All contained enumerations of OAuth Scopes have two levels, "read_only" and
+    Most contained enumerations of OAuth Scopes have two levels, "read_only" and
     "read_write".  "read_only" access grants you the ability to get resources and
     of that type, but not to change, create, or delete them.  "read_write" access
-    allows to full access to resources of the requested type.  In the above
+    allows to full access to resources of the requested type.  :any:`OAuthScopes.VPC`
+    is the exception and exposes only "read_write" and "all".  In the above
     example, you are requesting access to view, modify, create, and delete
     Linodes, and to view Domains.
     """
@@ -254,6 +255,47 @@ class OAuthScopes:
                 return "longview:*"
             return "longview:{}".format(self.name)
 
+    class Images(Enum):
+        """
+        Access to Images
+        """
+
+        read_only = 0
+        read_write = 1
+        all = 2
+
+        def __repr__(self):
+            if self.name == "all":
+                return "images:*"
+            return "images:{}".format(self.name)
+
+    class Databases(Enum):
+        """
+        Access to Managed Databases
+        """
+
+        read_only = 0
+        read_write = 1
+        all = 2
+
+        def __repr__(self):
+            if self.name == "all":
+                return "databases:*"
+            return "databases:{}".format(self.name)
+
+    class VPC(Enum):
+        """
+        Access to VPCs and subnets
+        """
+
+        read_write = 1
+        all = 2
+
+        def __repr__(self):
+            if self.name == "all":
+                return "vpc:*"
+            return "vpc:{}".format(self.name)
+
     _scope_families = {
         "linodes": Linodes,
         "domains": Domains,
@@ -271,6 +313,9 @@ class OAuthScopes:
         "object_storage": ObjectStorage,
         "nodebalancers": NodeBalancers,
         "longview": Longview,
+        "images": Images,
+        "databases": Databases,
+        "vpc": VPC,
     }
 
     @staticmethod

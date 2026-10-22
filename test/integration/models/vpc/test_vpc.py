@@ -3,6 +3,7 @@ from test.integration.conftest import get_region
 import pytest
 
 from linode_api4 import VPC, ApiError, VPCIPv4DefaultRange, VPCSubnet
+from linode_api4.objects import Capability
 
 
 @pytest.mark.smoke
@@ -11,6 +12,7 @@ def test_get_vpc(test_linode_client, create_vpc):
     test_linode_client.vpcs()
     assert vpc.id == create_vpc.id
     assert isinstance(vpc.ipv6[0].range, str)
+    assert vpc.vpc_type == "regular"
 
 
 @pytest.mark.smoke
@@ -38,6 +40,8 @@ def test_get_subnet(test_linode_client, create_vpc_with_subnet):
         vpc.ipv6[0].range.split("::")[0]
     )
     assert loaded_subnet.id == subnet.id
+    assert loaded_subnet.vpc_type == "regular"
+    assert loaded_subnet.vpc_type == vpc.vpc_type
 
 
 @pytest.mark.smoke
@@ -57,7 +61,7 @@ def test_fails_create_vpc_invalid_data(test_linode_client):
     with pytest.raises(ApiError) as excinfo:
         test_linode_client.vpcs.create(
             label="invalid_label!!",
-            region=get_region(test_linode_client, {"VPCs"}),
+            region=get_region(test_linode_client, {Capability.vpcs}),
             description="test description",
         )
     assert excinfo.value.status == 400
@@ -139,6 +143,34 @@ def test_get_vpc_ipv6s(test_linode_client):
         assert "vpc_id" in ipv6
         assert isinstance(ipv6["ipv6_range"], str)
         assert isinstance(ipv6["ipv6_addresses"], list)
+
+
+def test_get_vpc_with_rdma_type(test_linode_client, create_vpc_with_rdma_type):
+    vpc_rdma = create_vpc_with_rdma_type
+    assert vpc_rdma.vpc_type == "rdma"
+    assert vpc_rdma.ipv6 is None
+
+    vpc = test_linode_client.load(VPC, vpc_rdma.id)
+    assert vpc.id == vpc_rdma.id
+    assert vpc.vpc_type == vpc_rdma.vpc_type
+
+    vpcs = test_linode_client.vpcs(VPC.vpc_type == "rdma")
+    assert vpc_rdma.id in [vpc.id for vpc in vpcs]
+    assert all(vpc.vpc_type == "rdma" for vpc in vpcs)
+
+
+def test_get_subnet_with_rdma_type(
+    test_linode_client, create_vpc_with_subnet_and_rdma_type
+):
+    vpc_rdma, subnet_rdma = create_vpc_with_subnet_and_rdma_type
+
+    assert subnet_rdma.vpc_type == vpc_rdma.vpc_type
+    assert subnet_rdma.ipv6 is None
+
+    subnet = test_linode_client.load(VPCSubnet, subnet_rdma.id, vpc_rdma.id)
+    assert subnet.id == subnet_rdma.id
+    assert subnet.vpc_type == vpc_rdma.vpc_type
+    assert subnet.ipv6 is None
 
 
 def test_get_vpc_default_ranges(test_linode_client):

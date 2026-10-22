@@ -12,6 +12,7 @@ import pytest
 from linode_api4.objects import (
     Account,
     AccountSettings,
+    Capability,
     ChildAccount,
     Event,
     Login,
@@ -39,6 +40,9 @@ def test_get_account(test_linode_client):
     assert account_get.tax_id == account.tax_id
 
 
+@pytest.mark.skip(
+    reason="Test fails for E2E test user with [504] Server Timeout due to enormous amount of logins. More details: ARB-7420"
+)
 def test_get_login(test_linode_client):
     client = test_linode_client
     login = retry_sending_request(3, client.load, Login(client, "", {}), "")
@@ -91,11 +95,17 @@ def test_update_maintenance_policy(test_linode_client):
     assert updated.maintenance_policy == original_policy
 
 
+# May fail due to multiple events occurring on the test user in the same time
+@pytest.mark.flaky(reruns=2, reruns_delay=5)
 @pytest.mark.smoke
 def test_latest_get_event(test_linode_client, e2e_test_firewall):
     client = test_linode_client
 
-    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    region = get_region(
+        client,
+        {Capability.linodes, Capability.firewall},
+        site_type="core",
+    )
     label = get_test_label()
 
     linode = client.linode.instance_create(
@@ -115,7 +125,7 @@ def test_latest_get_event(test_linode_client, e2e_test_firewall):
     wait_for_condition(5, 150, get_linode_status)
 
     events = client.load(Event, "")
-    latest_events = events._raw_json.get("data")[:15]
+    latest_events = events._raw_json.get("data")[:50]
 
     linode.delete()
 
@@ -123,7 +133,7 @@ def test_latest_get_event(test_linode_client, e2e_test_firewall):
         if label == event["entity"]["label"]:
             break
     else:
-        assert False, f"Linode '{label}' not found in the last 15 events"
+        assert False, f"Linode '{label}' not found in the last 50 events"
 
 
 def test_get_user(test_linode_client):

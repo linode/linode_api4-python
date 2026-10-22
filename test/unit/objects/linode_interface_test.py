@@ -10,6 +10,9 @@ from linode_api4 import (
     LinodeInterfacePublicIPv6Options,
     LinodeInterfacePublicIPv6RangeOptions,
     LinodeInterfacePublicOptions,
+    LinodeInterfaceRDMAVPCIPv4AddressOptions,
+    LinodeInterfaceRDMAVPCIPv4Options,
+    LinodeInterfaceRDMAVPCOptions,
     LinodeInterfaceVLANOptions,
     LinodeInterfaceVPCIPv4AddressOptions,
     LinodeInterfaceVPCIPv4Options,
@@ -73,6 +76,22 @@ def build_interface_options_vlan():
     return LinodeInterfaceOptions(
         vlan=LinodeInterfaceVLANOptions(
             vlan_label="my_vlan", ipam_address="10.0.0.1/24"
+        ),
+    )
+
+
+def build_interface_options_rdma_vpc():
+    return LinodeInterfaceOptions(
+        firewall_id=None,
+        rdma_vpc=LinodeInterfaceRDMAVPCOptions(
+            subnet_id=1234,
+            ipv4=LinodeInterfaceRDMAVPCIPv4Options(
+                addresses=[
+                    LinodeInterfaceRDMAVPCIPv4AddressOptions(
+                        address="auto", primary=True
+                    )
+                ]
+            ),
         ),
     )
 
@@ -330,3 +349,70 @@ class LinodeInterfaceTest(ClientBaseCase):
         assert firewalls[0].label == "firewall123"
         assert firewalls[0].rules.inbound[0].action == "ACCEPT"
         assert firewalls[0].status == "enabled"
+
+    # ------------------------------------------------------------------
+    # RDMA VPC interface tests
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def assert_linode_124_interface_999_rdma(iface: LinodeInterface):
+        """Asserts a GET on an RDMA VPC interface deserializes correctly."""
+        assert iface.id == 999
+        assert iface.mac_address == "22:00:f2:9e:d3:48"
+        assert iface.version == 1
+
+        # RDMA VPC interfaces never have default routes
+        assert iface.default_route.ipv4 is False
+        assert iface.default_route.ipv6 is False
+
+        # Only rdma_vpc is populated
+        assert iface.public is None
+        assert iface.vpc is None
+        assert iface.vlan is None
+
+        assert iface.rdma_vpc is not None
+        assert iface.rdma_vpc.vpc_id == 7
+        assert iface.rdma_vpc.subnet_id == 8
+
+        assert len(iface.rdma_vpc.ipv4.addresses) == 1
+        assert iface.rdma_vpc.ipv4.addresses[0].address == "10.0.0.2"
+        assert iface.rdma_vpc.ipv4.addresses[0].primary is True
+
+    def test_get_rdma_vpc(self):
+        iface = LinodeInterface(self.client, 999, 124)
+
+        self.assert_linode_124_interface_999_rdma(iface)
+        iface.invalidate()
+        self.assert_linode_124_interface_999_rdma(iface)
+
+    def test_update_rdma_vpc(self):
+        """
+        Tests that PUT serialization works for RDMA VPC fields.
+        """
+        iface = LinodeInterface(self.client, 999, 124)
+        self.assert_linode_124_interface_999_rdma(iface)
+
+        # Mutate the RDMA interface
+        iface.rdma_vpc.subnet_id = 4321
+        iface.rdma_vpc.ipv4.addresses = [
+            LinodeInterfaceRDMAVPCIPv4AddressOptions(
+                address="10.0.0.25", primary=True
+            )
+        ]
+
+        with self.mock_put("/linode/instances/124/interfaces/999") as m:
+            iface.save()
+
+            assert m.called
+            assert m.call_data == {
+                "default_route": {
+                    "ipv4": False,
+                    "ipv6": False,
+                },
+                "rdma_vpc": {
+                    "subnet_id": 4321,
+                    "ipv4": {
+                        "addresses": [{"address": "10.0.0.25", "primary": True}]
+                    },
+                },
+            }

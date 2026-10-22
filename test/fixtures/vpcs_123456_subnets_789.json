@@ -7,6 +7,7 @@
       "range": "fd71:1140:a9d0::/52"
     }
   ],
+  "vpc_type": "regular",
   "linodes": [
     {
       "id": 12345,

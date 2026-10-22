@@ -35,31 +35,37 @@ dependencies = ["requests", "polling", "deprecated"]
 dynamic = ["version"]
 
 [project.optional-dependencies]
-test = ["tox>=4.4.0"]
-
-dev = [
-    "tox>=4.4.0",
-    "mock>=5.0.0",
+test-shared = [
     "pytest>=7.3.1",
     "httpretty>=1.1.4",
+    "pytest-rerunfailures",
+]
+unit-test = [
+    "linode_api4[test-shared]",
+    "mock>=5.0.0",
+]
+int-test = [
+    "linode_api4[test-shared]",
+    "cryptography",
+]
+lint = [
     "black>=23.1.0",
     "isort>=5.12.0",
     "autoflake>=2.0.1",
     "pylint",
     "twine>=4.0.2",
     "build>=0.10.0",
-    "Sphinx>=6.0.0",
-    "sphinx-autobuild>=2021.3.14",
-    "sphinxcontrib-fulltoc>=1.2.0",
-    "build>=0.10.0",
-    "twine>=4.0.2",
-    "pytest-rerunfailures",
 ]
-
 doc = [
     "Sphinx>=6.0.0",
     "sphinx-autobuild>=2021.3.14",
     "sphinxcontrib-fulltoc>=1.2.0",
+]
+dev = [
+    "linode_api4[unit-test]",
+    "linode_api4[int-test]",
+    "linode_api4[lint]",
+    "linode_api4[doc]",
 ]
 
 [project.urls]

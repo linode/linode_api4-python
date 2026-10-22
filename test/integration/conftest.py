@@ -2,7 +2,6 @@ import ipaddress
 import logging
 import os
 import random
-import subprocess
 import time
 from test.integration.helpers import (
     get_test_label,
@@ -14,6 +13,8 @@ from typing import Optional, Set
 
 import pytest
 import requests
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import ed25519
 from requests.exceptions import ConnectionError, RequestException
 
 from linode_api4 import (
@@ -32,7 +33,7 @@ from linode_api4 import (
 )
 from linode_api4.errors import ApiError
 from linode_api4.linode_client import LinodeClient, MonitorClient
-from linode_api4.objects import Region
+from linode_api4.objects import Capability, Region
 
 ENV_TOKEN_NAME = "LINODE_TOKEN"
 ENV_API_URL_NAME = "LINODE_API_URL"
@@ -42,10 +43,10 @@ RUN_LONG_TESTS = "RUN_LONG_TESTS"
 SKIP_E2E_FIREWALL = "SKIP_E2E_FIREWALL"
 
 ALL_ACCOUNT_AVAILABILITIES = {
-    "Linodes",
-    "NodeBalancers",
-    "Block Storage",
-    "Kubernetes",
+    Capability.linodes,
+    Capability.nodebalancers,
+    Capability.block_storage,
+    Capability.lke,
 }
 
 logger = logging.getLogger(__name__)
@@ -61,7 +62,7 @@ def get_api_url():
 
 def get_regions(
     client: LinodeClient,
-    capabilities: Optional[Set[str]] = None,
+    capabilities: Optional[Set[Capability]] = None,
     site_type: Optional[str] = None,
 ):
     region_override = os.environ.get(ENV_REGION_OVERRIDE)
@@ -115,7 +116,9 @@ def get_regions(
 
 
 def get_region(
-    client: LinodeClient, capabilities: Set[str] = None, site_type: str = "core"
+    client: LinodeClient,
+    capabilities: Optional[Set[Capability]] = None,
+    site_type: str = "core",
 ):
     return random.choice(get_regions(client, capabilities, site_type))
 
@@ -223,7 +226,11 @@ def e2e_test_firewall(test_linode_client):
 def create_linode(test_linode_client, e2e_test_firewall):
     client = test_linode_client
 
-    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    region = get_region(
+        client,
+        {Capability.linodes, Capability.firewall},
+        site_type="core",
+    )
     label = get_test_label(length=8)
 
     linode_instance = client.linode.instance_create(
@@ -244,7 +251,11 @@ def create_linode(test_linode_client, e2e_test_firewall):
 def create_linode_for_pass_reset(test_linode_client, e2e_test_firewall):
     client = test_linode_client
 
-    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    region = get_region(
+        client,
+        {Capability.linodes, Capability.firewall},
+        site_type="core",
+    )
     label = get_test_label(length=8)
     password = "aComplex@Password123"
 
@@ -263,16 +274,27 @@ def create_linode_for_pass_reset(test_linode_client, e2e_test_firewall):
 
 
 @pytest.fixture(scope="session")
-def ssh_key_gen(tmp_path_factory):
-    key_path = tmp_path_factory.mktemp("ssh-key-gen") / "sdk-sshkey"
+def ssh_key_gen():
+    key = ed25519.Ed25519PrivateKey.generate()
 
-    subprocess.run(
-        ["ssh-keygen", "-q", "-t", "rsa", "-f", str(key_path), "-N", ""],
-        check=True,
+    pub_key = (
+        key.public_key()
+        .public_bytes(
+            encoding=serialization.Encoding.OpenSSH,
+            format=serialization.PublicFormat.OpenSSH,
+        )
+        .decode()
+        .rstrip()
     )
-
-    pub_key = key_path.with_suffix(".pub").read_text().rstrip()
-    priv_key = key_path.read_text().rstrip()
+    priv_key = (
+        key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.OpenSSH,
+            encryption_algorithm=serialization.NoEncryption(),
+        )
+        .decode()
+        .rstrip()
+    )
 
     yield pub_key, priv_key
 
@@ -286,6 +308,7 @@ def test_linode_client():
         token,
         base_url=api_url,
         ca_path=api_ca_file,
+        retry_statuses=[504],
     )
     return client
 
@@ -316,7 +339,7 @@ def test_domain(test_linode_client):
         domain.invalidate()
         return domain.status == "active"
 
-    wait_for_condition(3, 30, get_domain_status)
+    wait_for_condition(3, 45, get_domain_status)
 
     # Create a SRV record
     domain.record_create(
@@ -336,7 +359,11 @@ def test_domain(test_linode_client):
 @pytest.fixture(scope="session")
 def test_volume(test_linode_client):
     client = test_linode_client
-    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    region = get_region(
+        client,
+        {Capability.linodes, Capability.firewall},
+        site_type="core",
+    )
     label = get_test_label(length=8)
 
     volume = client.volume_create(label=label, region=region)
@@ -355,7 +382,7 @@ def test_volume(test_linode_client):
 @pytest.fixture(scope="session")
 def test_volume_with_encryption(test_linode_client):
     client = test_linode_client
-    region = get_region(client, {"Block Storage Encryption"})
+    region = get_region(client, {Capability.blockstorage_encryption})
     label = get_test_label(length=8)
 
     volume = client.volume_create(
@@ -387,7 +414,8 @@ def test_nodebalancer(test_linode_client):
     label = get_test_label(length=8)
 
     nodebalancer = client.nodebalancer_create(
-        region=get_region(client, capabilities={"NodeBalancers"}), label=label
+        region=get_region(client, capabilities={Capability.nodebalancers}),
+        label=label,
     )
 
     yield nodebalancer
@@ -467,7 +495,6 @@ def test_oauth_client(test_linode_client):
 @pytest.fixture(scope="session")
 def create_vpc(test_linode_client):
     client = test_linode_client
-
     label = get_test_label(length=10)
 
     vpc = client.vpcs.create(
@@ -475,14 +502,41 @@ def create_vpc(test_linode_client):
         region=get_region(
             test_linode_client,
             {
-                "VPCs",
-                "VPC IPv6 Stack",
-                "Linode Interfaces",
-                "Custom VPC IPv4 Ranges",
+                Capability.vpcs,
+                Capability.vpc_ipv6_stack,
+                Capability.linode_interfaces,
+                Capability.vpc_custom_ipv4_ranges,
+                Capability.linodes,
             },
         ),
         description="test description",
         ipv6=[{"range": "auto"}],
+    )
+    yield vpc
+
+    vpc.delete()
+
+
+@pytest.fixture
+def create_vpc_with_rdma_type(test_linode_client):
+    client = test_linode_client
+    label = get_test_label(length=10)
+
+    # GPUDirect RDMA capability not available for now
+    region = get_region(
+        test_linode_client,
+        {
+            Capability.vpcs,
+            Capability.vpc_ipv6_stack,
+            Capability.linode_interfaces,
+        },
+    )
+
+    vpc = client.vpcs.create(
+        label=label,
+        region=region,
+        description="test description",
+        vpc_type="rdma",
     )
     yield vpc
 
@@ -525,12 +579,30 @@ def create_vpc_with_subnet_and_linode(
 
 
 @pytest.fixture
+def create_vpc_with_subnet_and_rdma_type(create_vpc_with_rdma_type):
+    vpc_rdma = create_vpc_with_rdma_type
+    label = get_test_label(length=10)
+
+    subnet_rdma = vpc_rdma.subnet_create(
+        label=label,
+        ipv4="10.0.0.0/24",
+    )
+
+    yield vpc_rdma, subnet_rdma
+
+    subnet_rdma.delete()
+
+
+@pytest.fixture
 def create_vpc_with_ipv4(test_linode_client):
     client = test_linode_client
 
     vpc = client.vpcs.create(
         label=get_test_label(length=10),
-        region=get_region(client, {"VPCs", "Custom VPC IPv4 Ranges"}),
+        region=get_region(
+            client,
+            {Capability.vpcs, Capability.vpc_custom_ipv4_ranges},
+        ),
         description="integration test vpc with ipv4",
         ipv4=[{"range": "10.0.0.0/8"}],
     )
@@ -550,13 +622,13 @@ def create_multiple_vpcs(test_linode_client):
 
     vpc_1 = client.vpcs.create(
         label,
-        get_region(test_linode_client, {"VPCs"}),
+        get_region(test_linode_client, {Capability.vpcs}),
         description="test description",
     )
 
     vpc_2 = client.vpcs.create(
         label_2,
-        get_region(test_linode_client, {"VPCs"}),
+        get_region(test_linode_client, {Capability.vpcs}),
         description="test description",
     )
 
@@ -575,7 +647,7 @@ def create_placement_group(test_linode_client):
 
     pg = client.placement.group_create(
         label,
-        get_region(test_linode_client, {"Placement Group"}),
+        get_region(test_linode_client, {Capability.placement_group}),
         PlacementGroupType.anti_affinity_local,
         PlacementGroupPolicy.flexible,
     )
@@ -615,7 +687,11 @@ def pytest_configure(config):
 @pytest.fixture(scope="session")
 def linode_for_vlan_tests(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    region = get_region(client, {"Linodes", "Vlans"}, site_type="core")
+    region = get_region(
+        client,
+        {Capability.linodes, Capability.vlans},
+        site_type="core",
+    )
     label = get_test_label(length=8)
 
     linode_instance = client.linode.instance_create(
@@ -774,7 +850,11 @@ def test_monitor_client(get_monitor_token_for_db_entities):
 @pytest.fixture
 def create_reserved_ip(test_linode_client):
     client = test_linode_client
-    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    region = get_region(
+        client,
+        {Capability.linodes, Capability.firewall},
+        site_type="core",
+    )
     reserved_ip = client.networking.reserved_ip_create(
         region=region, tags=["test"]
     )
