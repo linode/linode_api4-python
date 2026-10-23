@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 from linode_api4 import PaginatedList
 from linode_api4.errors import UnexpectedResponseError
@@ -457,9 +457,6 @@ class MonitorGroup(Group):
            For updating an alert channel, use the ``save()`` method on the :class:`AlertChannel` object.
            For deleting an alert channel, use the ``delete()`` method directly on the :class:`AlertChannel` object.
         """
-        if channel_type == "webhook":
-            self._validate_webhook_details(details)
-
         params = {
             "label": label,
             "channel_type": channel_type,
@@ -476,95 +473,30 @@ class MonitorGroup(Group):
 
         return AlertChannel(self.client, result["id"], result)
 
-    def verify_webhook(self, webhook: WebhookDetails) -> bool:
+    def verify_webhook(
+        self, webhook: Union[WebhookDetails, Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """
         Verify that a webhook configuration can receive alert notifications.
 
-        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-verify-webhook
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/verify-notification-channel
 
         :param webhook: The webhook configuration to verify.
-        :type webhook: WebhookDetails
+        :type webhook: WebhookDetails or dict
 
-        :returns: Whether webhook verification succeeded.
-        :rtype: bool
-
-        :raises ValueError: If the webhook configuration is invalid.
+        :returns: The API response containing the verification result.
+        :rtype: dict
         """
-        self._validate_webhook_details(ChannelDetails(webhook=webhook))
-        result = self.client.post(
+        params = {
+            "webhook": (
+                webhook.dict if isinstance(webhook, WebhookDetails) else webhook
+            )
+        }
+
+        return self.client.post(
             "/monitor/alert-channels/verify",
-            data=webhook.dict,
+            data=params,
         )
-        return result.get("success", False)
-
-    @staticmethod
-    def _validate_webhook_details(details: ChannelDetails) -> None:
-        """Validate webhook channel details before sending an API request."""
-        if not details or not details.webhook:
-            raise ValueError(
-                "Webhook details are required for webhook channel type"
-            )
-
-        webhook = details.webhook
-        if not webhook.endpoint_url:
-            raise ValueError(
-                "Webhook channel requires 'endpoint_url' to be specified"
-            )
-
-        if not webhook.authentication or not webhook.authentication.type:
-            raise ValueError(
-                "Webhook channel requires 'authentication.type' to be specified "
-                "('basic' or 'none')"
-            )
-
-        auth_type = webhook.authentication.type
-        if auth_type not in ("basic", "none"):
-            raise ValueError(
-                "Webhook authentication.type must be 'basic' or 'none'"
-            )
-
-        if auth_type == "basic":
-            auth_details = webhook.authentication.details
-            if not auth_details:
-                raise ValueError(
-                    "Basic authentication requires 'authentication.details'"
-                )
-            if not auth_details.basic_authentication_user:
-                raise ValueError(
-                    "Basic authentication requires 'basic_authentication_user'"
-                )
-            if not auth_details.basic_authentication_password:
-                raise ValueError(
-                    "Basic authentication requires 'basic_authentication_password'"
-                )
-
-        if webhook.data_compression not in (None, "gzip", "none"):
-            raise ValueError(
-                "Webhook data_compression must be 'gzip' or 'none'"
-            )
-
-        if webhook.client_certificate_details:
-            certificate_details = webhook.client_certificate_details
-            if not all(
-                (
-                    certificate_details.client_ca_certificate,
-                    certificate_details.client_certificate,
-                    certificate_details.client_private_key,
-                )
-            ):
-                raise ValueError(
-                    "Client certificate configuration requires "
-                    "'client_ca_certificate', 'client_certificate', and "
-                    "'client_private_key'; 'tls_hostname' is optional"
-                )
-
-        if webhook.custom_headers:
-            for header in webhook.custom_headers:
-                if header.name and header.name.lower() == "content-type":
-                    raise ValueError(
-                        "Custom headers must not include 'Content-Type'; "
-                        "it is managed by the API"
-                    )
 
     def alert_channel_alerts(self, channel_id: int, *filters) -> PaginatedList:
         """

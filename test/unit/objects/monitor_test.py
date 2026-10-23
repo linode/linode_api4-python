@@ -12,10 +12,7 @@ from linode_api4.objects import (
 )
 from linode_api4.objects.monitor import (
     AkamaiObjectStorageLogsDestinationDetails,
-    BasicAuthenticationDetails,
     ChannelDetails,
-    ClientCertificateDetails,
-    CustomHeader,
     CustomHTTPSLogsDestinationDetails,
     DestinationAuthentication,
     EmailDetails,
@@ -300,95 +297,6 @@ class MonitorTest(ClientBaseCase):
                 channel.details.webhook.custom_headers[0].name,
                 "X-Trace-ID",
             )
-
-    def test_webhook_channel_validation(self):
-        valid_authentication = DestinationAuthentication(type="none")
-
-        invalid_details = [
-            (
-                WebhookDetails(
-                    endpoint_url=None,
-                    authentication=valid_authentication,
-                ),
-                "endpoint_url",
-            ),
-            (
-                WebhookDetails(
-                    endpoint_url="https://example.com/webhook",
-                    authentication=DestinationAuthentication(type=None),
-                ),
-                "authentication.type",
-            ),
-            (
-                WebhookDetails(
-                    endpoint_url="https://example.com/webhook",
-                    authentication=DestinationAuthentication(type="oauth2"),
-                ),
-                "'basic' or 'none'",
-            ),
-            (
-                WebhookDetails(
-                    endpoint_url="https://example.com/webhook",
-                    authentication=DestinationAuthentication(
-                        type="basic",
-                        details=BasicAuthenticationDetails(
-                            basic_authentication_user=None,
-                            basic_authentication_password="password",
-                        ),
-                    ),
-                ),
-                "basic_authentication_user",
-            ),
-            (
-                WebhookDetails(
-                    endpoint_url="https://example.com/webhook",
-                    authentication=DestinationAuthentication(
-                        type="basic",
-                        details=BasicAuthenticationDetails(
-                            basic_authentication_user="user",
-                            basic_authentication_password=None,
-                        ),
-                    ),
-                ),
-                "basic_authentication_password",
-            ),
-            (
-                WebhookDetails(
-                    endpoint_url="https://example.com/webhook",
-                    authentication=valid_authentication,
-                    data_compression="brotli",
-                ),
-                "data_compression",
-            ),
-            (
-                WebhookDetails(
-                    endpoint_url="https://example.com/webhook",
-                    authentication=valid_authentication,
-                    client_certificate_details=ClientCertificateDetails(),
-                ),
-                "client_ca_certificate",
-            ),
-            (
-                WebhookDetails(
-                    endpoint_url="https://example.com/webhook",
-                    authentication=valid_authentication,
-                    custom_headers=[
-                        CustomHeader(
-                            name="Content-Type",
-                            value="application/json",
-                        )
-                    ],
-                ),
-                "Content-Type",
-            ),
-        ]
-
-        for webhook, message in invalid_details:
-            with self.subTest(message=message):
-                with self.assertRaisesRegex(ValueError, message):
-                    self.client.monitor._validate_webhook_details(
-                        ChannelDetails(webhook=webhook)
-                    )
 
 
 class LogsDestinationTest(ClientBaseCase):

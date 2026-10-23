@@ -443,11 +443,22 @@ class MonitorAlertDefinitionsTest(ClientBaseCase):
             data_compression="gzip",
         )
 
-        with self.mock_post({"success": True}) as mock_post:
-            assert self.client.monitor.verify_webhook(webhook) is True
+        api_response = {"webhook": {"http_status": 200, "response": "OK"}}
+
+        with self.mock_post(api_response) as mock_post:
+            result = self.client.monitor.verify_webhook(webhook)
 
             assert mock_post.call_url == "/monitor/alert-channels/verify"
-            assert mock_post.call_data == webhook.dict
+            assert mock_post.call_data == {"webhook": webhook.dict}
+            assert result == api_response
+
+        webhook_data = webhook.dict
+        with self.mock_post(api_response) as mock_post:
+            result = self.client.monitor.verify_webhook(webhook_data)
+
+            assert mock_post.call_url == "/monitor/alert-channels/verify"
+            assert mock_post.call_data == {"webhook": webhook_data}
+            assert result == api_response
 
     def test_update_webhook_channel(self):
         channel_id = 123

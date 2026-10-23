@@ -365,10 +365,10 @@ def test_webhook_channel_crud(test_linode_client):
         reloaded_webhook = client.load(AlertChannel, created_webhook.id)
         assert reloaded_webhook.label == updated_label
 
-        assert (
-            client.monitor.verify_webhook(created_webhook.details.webhook)
-            is True
+        verification = client.monitor.verify_webhook(
+            created_webhook.details.webhook
         )
+        assert verification["webhook"]["http_status"] == 200
     finally:
         if created_webhook:
             created_webhook.delete()
