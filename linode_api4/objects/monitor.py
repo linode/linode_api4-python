@@ -40,6 +40,7 @@ __all__ = [
     "LogsStreamStatus",
     "LogsStreamDetails",
     "LogsStreamDestination",
+    "LogsStreamQuota",
 ]
 
 
@@ -904,3 +905,16 @@ class LogsStream(Base):
             "{}/history".format(LogsStream.api_endpoint.format(id=self.id)),
             LogsStreamHistory,
         )
+
+
+@dataclass
+class LogsStreamQuota(JSONObject):
+    """
+    Represents a quota definition for logs streams.
+    """
+
+    quota_id: str = ""
+    quota_name: str = ""
+    quota_limit: int = 0
+    quota_type: str = ""
+    description: str = ""
