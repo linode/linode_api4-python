@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import datetime
+from typing import Optional
 
 import requests
 from deprecated import deprecated
@@ -17,7 +19,7 @@ from linode_api4.objects.longview import LongviewClient, LongviewSubscription
 from linode_api4.objects.networking import Firewall
 from linode_api4.objects.nodebalancer import NodeBalancer
 from linode_api4.objects.profile import PersonalAccessToken
-from linode_api4.objects.serializable import StrEnum
+from linode_api4.objects.serializable import JSONObject, StrEnum
 from linode_api4.objects.support import SupportTicket
 from linode_api4.objects.volume import Volume
 from linode_api4.objects.vpc import VPC
@@ -203,6 +205,10 @@ class AccountSettings(Base):
     """
     Information related to your Account settings.
 
+    ``tfa_enforced`` is the mutable account-wide default for MFA enforcement.
+    User exemptions are managed with :meth:`AccountGroup.tfa_optional_users_update`
+    and are retained when account-wide enforcement is disabled.
+
     API Documentation: https://techdocs.akamai.com/linode-api/reference/get-account-settings
     """
 
@@ -219,6 +225,7 @@ class AccountSettings(Base):
         "backups_enabled": Property(mutable=True),
         "interfaces_for_new_linodes": Property(mutable=True),
         "maintenance_policy": Property(mutable=True),
+        "tfa_enforced": Property(mutable=True),
     }
 
 
@@ -531,9 +538,26 @@ class Payment(Base):
     }
 
 
+@dataclass
+class TFAOptionalUser(JSONObject):
+    """
+    A reference to an account user exempted from MFA enforcement.
+
+    Returned by :meth:`AccountGroup.tfa_optional_users`. The ``username`` and
+    ``url`` fields identify the user; load a :class:`User` for full details.
+    """
+
+    username: Optional[str] = None
+    url: Optional[str] = None
+
+
 class User(Base):
     """
     An object representing a single user on this account.
+
+    ``tfa_enforced`` is the read-only effective MFA enforcement policy for this
+    user, distinct from whether MFA is enabled (``tfa_enabled``). It can be used
+    to filter :meth:`AccountGroup.users`.
 
     API Documentation: https://techdocs.akamai.com/linode-api/reference/get-user
     """
@@ -548,6 +572,7 @@ class User(Base):
         "restricted": Property(mutable=True),
         "ssh_keys": Property(),
         "tfa_enabled": Property(),
+        "tfa_enforced": Property(),
     }
 
     @property

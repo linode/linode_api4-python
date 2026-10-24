@@ -1,7 +1,16 @@
+import json
+from copy import deepcopy
 from datetime import datetime
-from test.unit.base import ClientBaseCase
+from test.unit.base import ClientBaseCase, load_json
 
-from linode_api4 import FirewallCreateDevicesOptions, LongviewSubscription
+from linode_api4 import (
+    ApiError,
+    FirewallCreateDevicesOptions,
+    LongviewSubscription,
+    TFAOptionalUser,
+    UnexpectedResponseError,
+    User,
+)
 from linode_api4.objects.beta import BetaProgram
 from linode_api4.objects.linode import Instance
 from linode_api4.objects.networking import IPAddress
@@ -391,6 +400,140 @@ class AccountGroupTest(ClientBaseCase):
         self.assertEqual(type(s.longview_subscription), LongviewSubscription)
         self.assertEqual(s.longview_subscription.id, "longview-100")
         self.assertEqual(s.object_storage, "active")
+        self.assertFalse(s.tfa_enforced)
+
+    def test_get_users_tfa_enforced_filter(self):
+        for enforced in (True, False):
+            with self.subTest(enforced=enforced):
+                user = deepcopy(load_json("/account/users/test-user"))
+                user["tfa_enforced"] = enforced
+                with self.mock_get(
+                    {"data": [user], "page": 1, "pages": 1, "results": 1}
+                ) as mock:
+                    users = self.client.account.users(
+                        User.tfa_enforced == enforced
+                    )
+
+                    self.assertEqual(mock.call_url, "/account/users")
+                    self.assertEqual(
+                        json.loads(mock.call_headers["X-Filter"]),
+                        {"tfa_enforced": enforced},
+                    )
+                    self.assertEqual(users[0].tfa_enforced, enforced)
+
+    def test_user_create_tfa_enforced(self):
+        for enforced in (True, False):
+            with self.subTest(enforced=enforced):
+                response = deepcopy(load_json("/account/users/test-user"))
+                response["tfa_enforced"] = enforced
+                with self.mock_post(response) as mock:
+                    user = self.client.account.user_create(
+                        response["email"], response["username"]
+                    )
+
+                    self.assertEqual(user.tfa_enforced, enforced)
+                    self.assertEqual(mock.call_url, "/account/users")
+                    self.assertEqual(
+                        mock.call_data,
+                        {
+                            "email": response["email"],
+                            "username": response["username"],
+                            "restricted": True,
+                        },
+                    )
+
+    def test_get_tfa_optional_users_pagination(self):
+        with self.mock_get("/account/tfa-optional-users") as mock:
+            first_page = deepcopy(mock.return_dct)
+            first_page.update(pages=2, results=2)
+            mock.mock.return_value._json = first_page
+            users = self.client.account.tfa_optional_users()
+            self.assertEqual(mock.call_url, "/account/tfa-optional-users")
+            self.assertEqual(mock.call_count, 1)
+            self.assertEqual(len(users), 2)
+            self.assertIsInstance(users[0], TFAOptionalUser)
+            self.assertEqual(users[0].username, "test-user")
+            self.assertEqual(users[0].url, "/account/users/test-user")
+
+            second_page = deepcopy(first_page)
+            second_page["page"] = 2
+            second_page["data"][0] = {
+                "username": "second-user",
+                "url": "/account/users/second-user",
+            }
+            mock.mock.return_value._json = second_page
+
+            self.assertEqual(users[1].username, "second-user")
+            self.assertEqual(users[1].url, "/account/users/second-user")
+            self.assertEqual(
+                mock.call_url,
+                "/account/tfa-optional-users?page=2&page_size=1",
+            )
+            self.assertEqual(mock.call_count, 2)
+
+    def test_get_tfa_optional_users_empty(self):
+        with self.mock_get({"data": [], "page": 1, "pages": 1, "results": 0}):
+            self.assertEqual(list(self.client.account.tfa_optional_users()), [])
+
+    def test_update_tfa_optional_users(self):
+        for usernames in (["user1", "user2"], []):
+            with self.subTest(usernames=usernames):
+                response = {
+                    "tfa_optional_users_count": len(usernames),
+                    "url": "/account/tfa-optional-users",
+                }
+                with self.mock_put(response) as mock:
+                    result = self.client.account.tfa_optional_users_update(
+                        usernames
+                    )
+
+                    self.assertEqual(
+                        mock.call_url, "/account/tfa-optional-users"
+                    )
+                    self.assertEqual(mock.call_data, {"usernames": usernames})
+                    self.assertEqual(
+                        result.tfa_optional_users_count, len(usernames)
+                    )
+                    self.assertEqual(result.url, response["url"])
+
+    def test_update_tfa_optional_users_unexpected_response(self):
+        for response in (
+            {},
+            {"url": "/account/tfa-optional-users"},
+            {"tfa_optional_users_count": 0},
+        ):
+            with self.subTest(response=response):
+                with self.mock_put(response):
+                    with self.assertRaises(UnexpectedResponseError):
+                        self.client.account.tfa_optional_users_update([])
+
+    def test_update_tfa_optional_users_api_error(self):
+        response = {"errors": [{"reason": "Invalid user or access denied."}]}
+        for status_code in (400, 403):
+            with self.subTest(status_code=status_code):
+                with self.mock_put(response) as mock:
+                    mock.mock.return_value.status_code = status_code
+                    mock.mock.return_value.request = None
+
+                    with self.assertRaises(ApiError) as raised:
+                        self.client.account.tfa_optional_users_update(
+                            ["test-user"]
+                        )
+
+                    self.assertEqual(raised.exception.status, status_code)
+                    self.assertEqual(raised.exception.json, response)
+
+    def test_get_tfa_optional_users_access_denied(self):
+        response = {"errors": [{"reason": "Access denied."}]}
+        with self.mock_get(response) as mock:
+            mock.mock.return_value.status_code = 403
+            mock.mock.return_value.request = None
+
+            with self.assertRaises(ApiError) as raised:
+                self.client.account.tfa_optional_users()
+
+            self.assertEqual(raised.exception.status, 403)
+            self.assertEqual(raised.exception.json, response)
 
     def test_get_invoices(self):
         """
