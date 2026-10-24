@@ -1,0 +1,11 @@
+{
+  "data": [
+    {
+      "username": "test-user",
+      "url": "/account/users/test-user"
+    }
+  ],
+  "page": 1,
+  "pages": 1,
+  "results": 1
+}
