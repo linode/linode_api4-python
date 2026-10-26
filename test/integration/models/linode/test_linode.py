@@ -458,6 +458,7 @@ def test_linode_alerts_workflow(test_linode_client, create_linode):
     }
     linode_save_status = linode.save()
     assert linode_save_status == True
+    linode = test_linode_client.load(Instance, parent_linode_id)
     assert linode.alerts["cpu"] == 50
     assert linode.alerts["io"] == 6000
     assert linode.alerts["network_in"] == 20
@@ -472,15 +473,17 @@ def test_linode_alerts_workflow(test_linode_client, create_linode):
         instance_type=linode.type.id,
         label=get_test_label(),
     )
-    assert new_linode.alerts.cpu == 90
-    assert new_linode.alerts.io == 10000
-    assert new_linode.alerts.network_in == 10
-    assert new_linode.alerts.network_out == 10
-    assert new_linode.alerts.transfer_quota == 80
-    assert isinstance(new_linode.alerts.system_alerts, list)
-    assert isinstance(new_linode.alerts.user_alerts, list)
 
-    wait_for_clone_complete_and_delete_linode(10, 100, new_linode)
+    try:
+        assert new_linode.alerts.cpu == 90
+        assert new_linode.alerts.io == 10000
+        assert new_linode.alerts.network_in == 10
+        assert new_linode.alerts.network_out == 10
+        assert new_linode.alerts.transfer_quota == 80
+        assert isinstance(new_linode.alerts.system_alerts, list)
+        assert isinstance(new_linode.alerts.user_alerts, list)
+    finally:
+        wait_for_clone_complete_and_delete_linode(10, 100, new_linode)
 
 
 def test_update_linode_aclp_alerts(
@@ -494,6 +497,7 @@ def test_update_linode_aclp_alerts(
         "system_alerts": [sample_system_alert],
     }
     linode.save()
+    linode = test_linode_client.load(Instance, linode.id)
     assert linode.alerts["user_alerts"] == [create_alert_service_definition.id]
     assert linode.alerts["system_alerts"] == [sample_system_alert]
 

@@ -163,14 +163,14 @@ class LinodeGroup(Group):
         interface_generation: Optional[Union[InterfaceGeneration, str]] = None,
         network_helper: Optional[bool] = None,
         maintenance_policy: Optional[str] = None,
-        alerts: Optional[
-            Union[Dict[str, Any], InstanceACLPAlertsOptions]
-        ] = None,
         root_pass: Optional[str] = None,
         kernel: Optional[str] = None,
         boot_size: Optional[int] = None,
         authorized_users: Optional[List[str]] = None,
         ipv4: Optional[List[str]] = None,
+        alerts: Optional[
+            Union[Dict[str, Any], InstanceACLPAlertsOptions]
+        ] = None,
         **kwargs,
     ):
         """
@@ -354,9 +354,6 @@ class LinodeGroup(Group):
         :param maintenance_policy: The slug of the maintenance policy to apply during maintenance.
                                       If not provided, the default policy (linode/migrate) will be applied.
         :type maintenance_policy: str
-        :param alerts: ACLP alerts available to define during instance creation.
-                        This is v4beta only and may not be available to all users.
-        :type alerts: dict[str, Any] or InstanceACLPAlertsOptions
         :param kernel: The kernel to boot the Instance with. If provided, this will be used as the
                        kernel for the default configuration profile.
         :type kernel: str
@@ -366,6 +363,9 @@ class LinodeGroup(Group):
         :param ipv4: A list of reserved IPv4 addresses to assign to this Instance.
                      NOTE: Reserved IP feature may not currently be available to all users.
         :type ipv4: list[str]
+        :param alerts: ACLP alerts available to define during instance creation.
+                        This is v4beta only and may not be available to all users.
+        :type alerts: dict[str, Any] or InstanceACLPAlertsOptions
 
         :returns: A new Instance object
         :rtype: Instance
