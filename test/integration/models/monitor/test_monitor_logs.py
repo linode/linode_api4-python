@@ -250,7 +250,7 @@ def test_fails_to_create_destination_invalid_type(
         )
     assert excinfo.value.status == 400
     assert excinfo.value.errors == [
-        "Must be one of akamai_object_storage, custom_https"
+        "Must be one of akamai_object_storage, custom_https, traffic_peak"
     ]
 
 
