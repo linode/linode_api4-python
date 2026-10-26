@@ -25,7 +25,12 @@ TEST_REGION = get_region(
         base_url=get_api_url(),
         ca_path=get_api_ca_file(),
     ),
-    {Capability.linodes, Capability.firewall, Capability.nodebalancers},
+    {
+        Capability.linodes,
+        Capability.firewall,
+        Capability.nodebalancers,
+        Capability.premium_nodebalancers,
+    },
     site_type="core",
 )
 
