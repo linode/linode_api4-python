@@ -775,7 +775,6 @@ def test_get_nat_gateway_settings(test_linode_client):
     assert gateway_settings.maximum_reserved_addresses_per_natgateway > 0
 
 
-@pytest.mark.skip(reason="VPC-6253")
 @pytest.mark.parametrize("create_nat_gateway", [False], indirect=True)
 def test_assign_nat_gateway_ip_address_in_diff_region_fail(
     test_linode_client, create_nat_gateway
@@ -786,16 +785,16 @@ def test_assign_nat_gateway_ip_address_in_diff_region_fail(
         client, {Capability.linodes, Capability.firewall}, site_type="core"
     )
 
-    while region == gateway.region:
+    while region.id == gateway.region.id:
         region = get_region(
             client, {Capability.linodes, Capability.firewall}, site_type="core"
         )
 
     reserved_ip = client.networking.reserved_ip_create(region=region)
 
-    with pytest.raises(RuntimeError) as err:
+    with pytest.raises(ApiError) as err:
         gateway.address_assignment_create(reserved_ip.address)
-    assert "[400] ..." in str(err.value)
+    assert "[400] address: The provided IP was not found" in str(err.value)
 
     addresses = gateway.address_assignments()
     assert len(addresses) == 0
