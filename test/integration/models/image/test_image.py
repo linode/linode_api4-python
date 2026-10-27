@@ -6,7 +6,7 @@ import polling
 import pytest
 
 from linode_api4 import LinodeClient
-from linode_api4.objects import Image
+from linode_api4.objects import Capability, Image
 
 DISALLOWED_IMAGE_REGIONS = {
     "gb-lon",
@@ -30,7 +30,7 @@ def get_image_upload_regions(client: LinodeClient):
         region
         for region in get_regions(
             client,
-            capabilities={"Linodes", "Object Storage"},
+            capabilities={Capability.linodes, Capability.object_storage},
             site_type="core",
         )
         if region.id not in DISALLOWED_IMAGE_REGIONS

@@ -46,6 +46,7 @@ unit-test = [
 ]
 int-test = [
     "linode_api4[test-shared]",
+    "cryptography",
 ]
 lint = [
     "black>=23.1.0",

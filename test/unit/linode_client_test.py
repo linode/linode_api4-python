@@ -10,6 +10,7 @@ from linode_api4.objects.object_storage import (
     ObjectStorageACL,
     ObjectStorageCluster,
 )
+from linode_api4.objects.region import Capability
 
 
 class LinodeClientGeneralTest(ClientBaseCase):
@@ -46,11 +47,11 @@ class LinodeClientGeneralTest(ClientBaseCase):
         self.assertEqual(
             a.capabilities,
             [
-                "Linodes",
-                "NodeBalancers",
-                "Block Storage",
-                "Object Storage",
-                "Linode Interfaces",
+                Capability.linodes,
+                Capability.nodebalancers,
+                Capability.block_storage,
+                Capability.object_storage,
+                Capability.linode_interfaces,
             ],
         )
 
@@ -66,21 +67,21 @@ class LinodeClientGeneralTest(ClientBaseCase):
                 self.assertEqual(
                     region.capabilities,
                     [
-                        "Linodes",
-                        "NodeBalancers",
-                        "Block Storage",
-                        "Object Storage",
-                        "Linode Interfaces",
+                        Capability.linodes,
+                        Capability.nodebalancers,
+                        Capability.block_storage,
+                        Capability.object_storage,
+                        Capability.linode_interfaces,
                     ],
                 )
             else:
                 self.assertEqual(
                     region.capabilities,
                     [
-                        "Linodes",
-                        "NodeBalancers",
-                        "Block Storage",
-                        "Linode Interfaces",
+                        Capability.linodes,
+                        Capability.nodebalancers,
+                        Capability.block_storage,
+                        Capability.linode_interfaces,
                     ],
                 )
             self.assertEqual(region.status, "ok")
