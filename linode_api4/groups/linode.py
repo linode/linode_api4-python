@@ -18,6 +18,7 @@ from linode_api4.objects.base import _flatten_request_body_recursive
 from linode_api4.objects.filtering import Filter
 from linode_api4.objects.linode import (
     Backup,
+    InstanceACLPAlertsOptions,
     InstancePlacementGroupAssignment,
     InterfaceGeneration,
     NetworkInterface,
@@ -167,6 +168,9 @@ class LinodeGroup(Group):
         boot_size: Optional[int] = None,
         authorized_users: Optional[List[str]] = None,
         ipv4: Optional[List[str]] = None,
+        alerts: Optional[
+            Union[Dict[str, Any], InstanceACLPAlertsOptions]
+        ] = None,
         **kwargs,
     ):
         """
@@ -359,6 +363,9 @@ class LinodeGroup(Group):
         :param ipv4: A list of reserved IPv4 addresses to assign to this Instance.
                      NOTE: Reserved IP feature may not currently be available to all users.
         :type ipv4: list[str]
+        :param alerts: ACLP alerts available to define during instance creation.
+                        This is v4beta only and may not be available to all users.
+        :type alerts: dict[str, Any] or InstanceACLPAlertsOptions
 
         :returns: A new Instance object
         :rtype: Instance
@@ -385,6 +392,7 @@ class LinodeGroup(Group):
             "image": image,
             "root_pass": root_pass,
             "authorized_keys": load_and_validate_keys(authorized_keys),
+            "alerts": alerts,
             "authorized_users": authorized_users,
             # These will automatically be flattened below
             "firewall_id": firewall,
