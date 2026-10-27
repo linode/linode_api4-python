@@ -123,6 +123,7 @@ class InvoiceTest(ClientBaseCase):
         self.assertEqual(settings.network_helper, False)
         self.assertEqual(settings.object_storage, "active")
         self.assertEqual(settings.backups_enabled, True)
+        self.assertFalse(settings.tfa_enforced)
         self.assertEqual(
             settings.interfaces_for_new_linodes,
             AccountSettingsInterfacesForNewLinodes.linode_default_but_legacy_config_allowed,
@@ -148,6 +149,7 @@ class InvoiceTest(ClientBaseCase):
                 "backups_enabled": False,
                 "interfaces_for_new_linodes": AccountSettingsInterfacesForNewLinodes.linode_only,
                 "maintenance_policy": "linode/migrate",
+                "tfa_enforced": False,
             }
 
     def test_update_account_settings(self):
@@ -167,6 +169,23 @@ class InvoiceTest(ClientBaseCase):
                     "maintenance_policy": "linode/migrate",
                 },
             )
+
+    def test_update_account_settings_tfa_enforced(self):
+        for enforced in (True, False):
+            with self.subTest(enforced=enforced):
+                settings = AccountSettings(
+                    self.client,
+                    False,
+                    {"managed": False, "tfa_enforced": not enforced},
+                )
+                self.assertEqual(settings.tfa_enforced, not enforced)
+                settings.tfa_enforced = enforced
+
+                with self.mock_put({}) as mock:
+                    settings.save()
+
+                    self.assertEqual(mock.call_url, "/account/settings")
+                    self.assertEqual(mock.call_data, {"tfa_enforced": enforced})
 
     def test_get_event(self):
         """
@@ -252,7 +271,29 @@ class InvoiceTest(ClientBaseCase):
         self.assertEqual(user.email, "test-user@linode.com")
         self.assertTrue(user.restricted)
         self.assertTrue(user.tfa_enabled)
+        self.assertTrue(user.tfa_enforced)
         self.assertIsNotNone(user.ssh_keys)
+
+    def test_user_tfa_enforced_read_only(self):
+        for enforced in (True, False):
+            with self.subTest(enforced=enforced):
+                user = User(
+                    self.client,
+                    "test-user",
+                    {"username": "test-user", "tfa_enforced": enforced},
+                )
+                self.assertEqual(user.tfa_enforced, enforced)
+                with self.assertRaises(AttributeError):
+                    user.tfa_enforced = not enforced
+
+                user.restricted = False
+                with self.mock_put({}) as mock:
+                    user.save()
+                    self.assertEqual(mock.call_url, "/account/users/test-user")
+                    self.assertEqual(
+                        mock.call_data,
+                        {"username": "test-user", "restricted": False},
+                    )
 
     def test_get_service_transfer(self):
         """

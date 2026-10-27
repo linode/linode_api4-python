@@ -1,6 +1,7 @@
 from datetime import datetime
 from test.unit.base import ClientBaseCase
 
+from linode_api4 import ApiError
 from linode_api4.objects import Profile, ProfileLogin, SSHKey
 from linode_api4.objects.profile import TrustedDevice
 
@@ -91,8 +92,54 @@ class ProfileTest(ClientBaseCase):
         self.assertFalse(profile.restricted)
         self.assertEqual(profile.timezone, "US/Eastern")
         self.assertTrue(profile.two_factor_auth)
+        self.assertFalse(profile.tfa_enforced)
         self.assertEqual(profile.uid, 1234)
         self.assertEqual(profile.verified_phone_number, "+5555555555")
+
+    def test_profile_tfa_enforced_read_only(self):
+        for enforced in (True, False):
+            with self.subTest(enforced=enforced):
+                profile = Profile(
+                    self.client,
+                    "exampleUser",
+                    {"username": "exampleUser", "tfa_enforced": enforced},
+                )
+                self.assertEqual(profile.tfa_enforced, enforced)
+                with self.assertRaises(AttributeError):
+                    profile.tfa_enforced = not enforced
+
+                profile.email_notifications = False
+                with self.mock_put({}) as mock:
+                    profile.save()
+                    self.assertEqual(mock.call_url, "/profile")
+                    self.assertEqual(
+                        mock.call_data, {"email_notifications": False}
+                    )
+
+    def test_disable_tfa(self):
+        profile = Profile(self.client, "exampleUser")
+
+        with self.mock_post({}) as mock:
+            self.assertTrue(profile.disable_tfa())
+            self.assertEqual(mock.call_url, "/profile/tfa-disable")
+
+    def test_disable_tfa_enforced(self):
+        profile = Profile(
+            self.client,
+            "exampleUser",
+            {"username": "exampleUser", "tfa_enforced": True},
+        )
+        response = {"errors": [{"reason": "MFA is enforced for this user."}]}
+        with self.mock_post(response) as mock:
+            mock.mock.return_value.status_code = 400
+            mock.mock.return_value.request = None
+
+            with self.assertRaises(ApiError) as raised:
+                profile.disable_tfa()
+
+            self.assertEqual(mock.call_url, "/profile/tfa-disable")
+            self.assertEqual(raised.exception.status, 400)
+            self.assertEqual(raised.exception.json, response)
 
     def test_get_trusted_device(self):
         device = TrustedDevice(self.client, 123)
