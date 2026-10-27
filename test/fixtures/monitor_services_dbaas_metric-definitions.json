@@ -22,7 +22,7 @@
         "metric": "cpu_usage",
         "metric_type": "gauge",
         "scrape_interval": "60s",
-        "unit": "percent"
+        "unit": "%"
       },
       {
         "available_aggregate_functions": [
