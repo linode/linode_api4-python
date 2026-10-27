@@ -77,6 +77,7 @@ def test_get_volume(test_linode_client, test_volume):
     volume = test_linode_client.load(Volume, test_volume.id)
 
     assert volume.id == test_volume.id
+    assert isinstance(volume.io_ready, bool)
 
 
 def test_get_volume_with_encryption(
