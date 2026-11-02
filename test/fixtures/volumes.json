@@ -12,7 +12,8 @@
       "tags": ["something"],
       "filesystem_path": "this/is/a/file/path",
       "hardware_type": "hdd",
-      "linode_label": null
+      "linode_label": null,
+      "io_ready": true
     },
     {
       "id": 2,
@@ -26,7 +27,8 @@
       "tags": [],
       "filesystem_path": "this/is/a/file/path",
       "hardware_type": "nvme",
-      "linode_label": null
+      "linode_label": null,
+      "io_ready": true
     },
     {
       "id": 3,
@@ -40,7 +42,8 @@
       "tags": ["attached"],
       "filesystem_path": "this/is/a/file/path",
       "hardware_type": "nvme",
-      "linode_label": "some_label"
+      "linode_label": "some_label",
+      "io_ready": true
     },
     {
       "id": 4,
@@ -55,7 +58,8 @@
       "filesystem_path": "this/is/a/file/path",
       "hardware_type": "hdd",
       "linode_label": null,
-      "encryption": "enabled"
+      "encryption": "enabled",
+      "io_ready": false
     }
   ],
   "results": 4,
