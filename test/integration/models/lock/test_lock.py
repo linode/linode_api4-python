@@ -6,7 +6,7 @@ from test.integration.helpers import (
 
 import pytest
 
-from linode_api4.objects import Lock, LockType
+from linode_api4.objects import Capability, Lock, LockType
 
 
 @pytest.fixture(scope="function")
@@ -15,7 +15,11 @@ def linode_for_lock(test_linode_client, e2e_test_firewall):
     Create a Linode instance for testing locks.
     """
     client = test_linode_client
-    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    region = get_region(
+        client,
+        {Capability.linodes, Capability.firewall},
+        site_type="core",
+    )
     label = get_test_label(length=8)
 
     linode_instance = client.linode.instance_create(

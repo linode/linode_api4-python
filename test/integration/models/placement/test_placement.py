@@ -13,6 +13,7 @@ from linode_api4 import (
     PlacementGroupPolicy,
     PlacementGroupType,
 )
+from linode_api4.objects import Capability
 
 
 @pytest.mark.smoke
@@ -76,7 +77,7 @@ def test_pg_migration(
 
     pg_outbound = client.placement.group_create(
         label_pg,
-        get_region(test_linode_client, {"Placement Group"}),
+        get_region(test_linode_client, {Capability.placement_group}),
         PlacementGroupType.anti_affinity_local,
         PlacementGroupPolicy.flexible,
     )

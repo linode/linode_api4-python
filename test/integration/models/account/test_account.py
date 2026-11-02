@@ -12,6 +12,7 @@ import pytest
 from linode_api4.objects import (
     Account,
     AccountSettings,
+    Capability,
     ChildAccount,
     Event,
     Login,
@@ -100,7 +101,11 @@ def test_update_maintenance_policy(test_linode_client):
 def test_latest_get_event(test_linode_client, e2e_test_firewall):
     client = test_linode_client
 
-    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    region = get_region(
+        client,
+        {Capability.linodes, Capability.firewall},
+        site_type="core",
+    )
     label = get_test_label()
 
     linode = client.linode.instance_create(

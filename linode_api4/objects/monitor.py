@@ -42,6 +42,7 @@ __all__ = [
     "LogsStreamStatus",
     "LogsStreamDetails",
     "LogsStreamDestination",
+    "LogsStreamQuota",
 ]
 
 
@@ -279,8 +280,8 @@ class MonitorDashboard(Base):
         "id": Property(identifier=True),
         "created": Property(is_datetime=True),
         "label": Property(),
-        "service_type": Property(ServiceType),
-        "type": Property(DashboardType),
+        "service_type": Property(),
+        "type": Property(),
         "group_by": Property(),
         "widgets": Property(json_object=DashboardWidget),
         "updated": Property(is_datetime=True),
@@ -297,7 +298,7 @@ class MonitorService(Base):
     api_endpoint = "/monitor/services/{service_type}"
     id_attribute = "service_type"
     properties = {
-        "service_type": Property(ServiceType),
+        "service_type": Property(),
         "label": Property(),
         "alert": Property(json_object=ServiceAlert),
     }
@@ -498,7 +499,7 @@ class AlertDefinition(DerivedBase):
         "entity_ids": Property(mutable=True),
         "description": Property(mutable=True),
         "service_class": Property(alias_of="class"),
-        "scope": Property(AlertScope),
+        "scope": Property(),
         "regions": Property(mutable=True),
         "entities": Property(json_object=AlertEntities),
         "channel_ids": Property(mutable=True),
@@ -931,3 +932,16 @@ class LogsStream(Base):
             "{}/history".format(LogsStream.api_endpoint.format(id=self.id)),
             LogsStreamHistory,
         )
+
+
+@dataclass
+class LogsStreamQuota(JSONObject):
+    """
+    Represents a quota definition for logs streams.
+    """
+
+    quota_id: str = ""
+    quota_name: str = ""
+    quota_limit: int = 0
+    quota_type: str = ""
+    description: str = ""

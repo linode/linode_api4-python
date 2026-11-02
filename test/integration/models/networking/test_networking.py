@@ -17,6 +17,7 @@ import requests
 
 from linode_api4 import ApiError, Instance, LinodeClient
 from linode_api4.objects import (
+    Capability,
     Config,
     ConfigInterfaceIPv4,
     Firewall,
@@ -35,7 +36,7 @@ TEST_REGION = get_region(
         base_url=get_api_url(),
         ca_path=get_api_ca_file(),
     ),
-    {"Linodes", "Cloud Firewall"},
+    {Capability.linodes, Capability.firewall},
     site_type="core",
 )
 
@@ -94,7 +95,7 @@ def create_linode_without_firewall(test_linode_client):
     """
 
     client = test_linode_client
-    region = get_region(client, {"Cloud Firewall"}, "core").id
+    region = get_region(client, {Capability.firewall}, "core").id
 
     label = get_test_label()
 

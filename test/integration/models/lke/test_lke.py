@@ -18,6 +18,7 @@ from linode_api4 import (
 from linode_api4.common import RegionPrice
 from linode_api4.errors import ApiError
 from linode_api4.objects import (
+    Capability,
     LKECluster,
     LKENodePool,
     LKENodePoolTaint,
@@ -31,7 +32,10 @@ def lke_cluster(test_linode_client):
     node_type = test_linode_client.linode.types()[1]  # g6-standard-1
     version = test_linode_client.lke.versions()[0]
 
-    region = get_region(test_linode_client, {"Kubernetes", "Disk Encryption"})
+    region = get_region(
+        test_linode_client,
+        {Capability.lke, Capability.disk_encryption},
+    )
 
     node_pools = test_linode_client.lke.node_pool(node_type, 3)
     label = get_test_label() + "_cluster"
@@ -49,7 +53,7 @@ def lke_cluster(test_linode_client):
 def lke_cluster_with_acl(test_linode_client):
     node_type = test_linode_client.linode.types()[1]  # g6-standard-1
     version = test_linode_client.lke.versions()[0]
-    region = get_region(test_linode_client, {"Kubernetes"})
+    region = get_region(test_linode_client, {Capability.lke})
     node_pools = test_linode_client.lke.node_pool(node_type, 1)
     label = get_test_label() + "_cluster"
 
@@ -79,7 +83,7 @@ def lke_cluster_with_labels_and_taints(test_linode_client):
     node_type = test_linode_client.linode.types()[1]  # g6-standard-1
     version = test_linode_client.lke.versions()[0]
 
-    region = get_region(test_linode_client, {"Kubernetes"})
+    region = get_region(test_linode_client, {Capability.lke})
 
     node_pools = test_linode_client.lke.node_pool(
         node_type,
@@ -114,7 +118,10 @@ def lke_cluster_with_labels_and_taints(test_linode_client):
 def lke_cluster_with_apl(test_linode_client):
     version = test_linode_client.lke.versions()[0]
 
-    region = get_region(test_linode_client, {"Kubernetes", "Disk Encryption"})
+    region = get_region(
+        test_linode_client,
+        {Capability.lke, Capability.disk_encryption},
+    )
 
     # NOTE: g6-dedicated-4 is the minimum APL-compatible Linode type
     node_pools = test_linode_client.lke.node_pool("g6-dedicated-4", 3)
@@ -144,7 +151,8 @@ def lke_cluster_enterprise(e2e_test_firewall, test_linode_client):
     )[0]
 
     region = get_region(
-        test_linode_client, {"Kubernetes Enterprise", "Disk Encryption"}
+        test_linode_client,
+        {Capability.lke_e, Capability.disk_encryption},
     )
 
     node_pools = test_linode_client.lke.node_pool(

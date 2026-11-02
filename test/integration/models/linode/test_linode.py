@@ -1,6 +1,6 @@
 import ipaddress
 import time
-from test.integration.conftest import get_region
+from test.integration.conftest import get_region, get_system_alerts
 from test.integration.helpers import (
     get_test_label,
     retry_sending_request,
@@ -10,8 +10,9 @@ from test.integration.helpers import (
 
 import pytest
 
-from linode_api4.errors import ApiError
+from linode_api4.errors import ApiError, UnexpectedResponseError
 from linode_api4.objects import (
+    Capability,
     Config,
     ConfigInterface,
     ConfigInterfaceIPv4,
@@ -29,7 +30,11 @@ from linode_api4.objects.region import RegionAvailabilityEntry
 @pytest.fixture(scope="session")
 def linode_with_volume_firewall(test_linode_client):
     client = test_linode_client
-    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    region = get_region(
+        client,
+        {Capability.linodes, Capability.firewall},
+        site_type="core",
+    )
     label = get_test_label()
 
     rules = {
@@ -75,7 +80,11 @@ def linode_with_volume_firewall(test_linode_client):
 @pytest.fixture(scope="function")
 def linode_for_legacy_interface_tests(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    region = get_region(
+        client,
+        {Capability.linodes, Capability.firewall},
+        site_type="core",
+    )
     label = get_test_label(length=8)
 
     linode_instance = client.linode.instance_create(
@@ -158,7 +167,11 @@ def linode_for_vpu_tests(test_linode_client, e2e_test_firewall):
 @pytest.fixture
 def linode_for_disk_tests(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    region = get_region(
+        client,
+        {Capability.linodes, Capability.firewall},
+        site_type="core",
+    )
     label = get_test_label()
 
     linode_instance = client.linode.instance_create(
@@ -192,7 +205,10 @@ def linode_for_disk_tests(test_linode_client, e2e_test_firewall):
 @pytest.fixture
 def linode_with_block_storage_encryption(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    region = get_region(client, {"Linodes", "Block Storage Encryption"})
+    region = get_region(
+        client,
+        {Capability.linodes, Capability.blockstorage_encryption},
+    )
     label = get_test_label()
 
     linode_instance = client.linode.instance_create(
@@ -212,7 +228,11 @@ def linode_with_block_storage_encryption(test_linode_client, e2e_test_firewall):
 @pytest.fixture
 def create_linode_for_long_running_tests(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    region = get_region(
+        client,
+        {Capability.linodes, Capability.firewall},
+        site_type="core",
+    )
     label = get_test_label()
 
     linode_instance = client.linode.instance_create(
@@ -233,7 +253,7 @@ def create_linode_for_long_running_tests(test_linode_client, e2e_test_firewall):
 def linode_with_disk_encryption(test_linode_client, request):
     client = test_linode_client
 
-    target_region = get_region(client, {"Disk Encryption"})
+    target_region = get_region(client, {Capability.disk_encryption})
     label = get_test_label(length=8)
 
     disk_encryption = request.param
@@ -257,7 +277,11 @@ def linode_with_disk_encryption(test_linode_client, request):
 def create_linode_with_authorized_key(test_linode_client, ssh_key_gen):
     client = test_linode_client
 
-    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    region = get_region(
+        client,
+        {Capability.linodes, Capability.firewall},
+        site_type="core",
+    )
     label = get_test_label(length=8)
 
     linode_instance = client.linode.instance_create(
@@ -280,8 +304,34 @@ def get_status(linode: Instance, status: str):
     return linode.status == status
 
 
+def wait_for_clone_complete_and_delete_linode(
+    interval: int, timeout: int, linode: Instance
+) -> object:
+    end_time = time.time() + timeout
+    while time.time() < end_time:
+        try:
+            return linode.delete()
+        except ApiError as err:
+            if "[400] Linode is the target of an ongoing clone" not in str(err):
+                raise UnexpectedResponseError(f"Unexpected delete linode error")
+        time.sleep(interval)
+    raise TimeoutError(
+        f"Timeout Error: not possible to delete just cloned linode in {timeout} seconds"
+    )
+
+
 def instance_type_condition(linode: Instance, type: str):
     return type in str(linode.type)
+
+
+def test_get_linodes_verify_alerts(test_linode_client, create_linode):
+    linodes_list = test_linode_client.linode.instances().lists[0]
+    assert len(linodes_list) > 0
+    assert linodes_list[0].alerts.cpu
+    assert linodes_list[0].alerts.io
+    assert linodes_list[0].alerts.network_in
+    assert linodes_list[0].alerts.network_out
+    assert linodes_list[0].alerts.transfer_quota
 
 
 def test_get_linode(test_linode_client, linode_with_volume_firewall):
@@ -311,7 +361,7 @@ def test_linode_transfer(test_linode_client, linode_with_volume_firewall):
 def test_linode_rebuild(test_linode_client):
     client = test_linode_client
 
-    region = get_region(client, {"Disk Encryption"})
+    region = get_region(client, {Capability.disk_encryption})
 
     label = get_test_label() + "_rebuild"
 
@@ -337,6 +387,8 @@ def test_linode_rebuild(test_linode_client):
 
     assert linode.status == "rebuilding"
     assert linode.image.id == "linode/debian12"
+    assert linode.alerts.cpu
+    assert linode.alerts.io
 
     assert linode.disk_encryption == InstanceDiskEncryptionType.disabled
 
@@ -373,7 +425,11 @@ def test_update_linode(create_linode):
 
 def test_delete_linode(test_linode_client):
     client = test_linode_client
-    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    region = get_region(
+        client,
+        {Capability.linodes, Capability.firewall},
+        site_type="core",
+    )
     label = get_test_label()
 
     linode_instance = client.linode.instance_create(
@@ -399,6 +455,79 @@ def test_linode_reboot(create_linode):
 
     wait_for_condition(3, 100, get_status, linode, "running")
     assert linode.status == "running"
+
+
+def test_linode_alerts_workflow(test_linode_client, create_linode):
+    linode = create_linode
+    parent_linode_id = create_linode.id
+    assert linode.alerts.cpu == 90
+    assert linode.alerts.io == 10000
+    assert linode.alerts.network_in == 10
+    assert linode.alerts.network_out == 10
+    assert linode.alerts.transfer_quota == 80
+    assert isinstance(linode.alerts.system_alerts, list)
+    assert isinstance(linode.alerts.user_alerts, list)
+
+    linode = test_linode_client.load(Instance, parent_linode_id)
+    assert linode.alerts.cpu == 90
+    assert linode.alerts.io == 10000
+    assert linode.alerts.network_in == 10
+    assert linode.alerts.network_out == 10
+    assert linode.alerts.transfer_quota == 80
+    assert isinstance(linode.alerts.system_alerts, list)
+    assert isinstance(linode.alerts.user_alerts, list)
+
+    linode.alerts = {
+        "cpu": 50,
+        "io": 6000,
+        "network_in": 20,
+        "network_out": 20,
+        "transfer_quota": 40,
+    }
+    linode_save_status = linode.save()
+    assert linode_save_status == True
+    linode = test_linode_client.load(Instance, parent_linode_id)
+    assert linode.alerts["cpu"] == 50
+    assert linode.alerts["io"] == 6000
+    assert linode.alerts["network_in"] == 20
+    assert linode.alerts["network_out"] == 20
+    assert linode.alerts["transfer_quota"] == 40
+
+    wait_for_condition(10, 100, get_status, linode, "running")
+    new_linode = retry_sending_request(
+        5,
+        linode.clone,
+        region=linode.region.id,
+        instance_type=linode.type.id,
+        label=get_test_label(),
+    )
+
+    try:
+        assert new_linode.alerts.cpu == 90
+        assert new_linode.alerts.io == 10000
+        assert new_linode.alerts.network_in == 10
+        assert new_linode.alerts.network_out == 10
+        assert new_linode.alerts.transfer_quota == 80
+        assert isinstance(new_linode.alerts.system_alerts, list)
+        assert isinstance(new_linode.alerts.user_alerts, list)
+    finally:
+        wait_for_clone_complete_and_delete_linode(10, 100, new_linode)
+
+
+def test_update_linode_aclp_alerts(
+    test_linode_client, create_linode, create_alert_service_definition
+):
+    linode = create_linode
+    sample_system_alert = get_system_alerts(test_linode_client)[0].id
+
+    linode.alerts = {
+        "user_alerts": [create_alert_service_definition.id],
+        "system_alerts": [sample_system_alert],
+    }
+    linode.save()
+    linode = test_linode_client.load(Instance, linode.id)
+    assert linode.alerts["user_alerts"] == [create_alert_service_definition.id]
+    assert linode.alerts["system_alerts"] == [sample_system_alert]
 
 
 def test_linode_shutdown(create_linode):
@@ -568,7 +697,7 @@ def test_linode_with_block_storage_encryption(
     linode_with_block_storage_encryption,
 ):
     linode = linode_with_block_storage_encryption
-    assert "Block Storage Encryption" in linode.capabilities
+    assert Capability.blockstorage_encryption in linode.capabilities
 
 
 def wait_for_disk_status(disk: Disk, timeout):
@@ -648,9 +777,15 @@ def test_linode_ips(create_linode):
 def test_linode_initate_migration(test_linode_client, e2e_test_firewall):
     client = test_linode_client
     label = get_test_label() + "_migration"
-    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    region = get_region(
+        client,
+        {Capability.linodes, Capability.firewall},
+        site_type="core",
+    )
     region_migrate = get_region(
-        client, {"Linodes", "Cloud Firewall"}, site_type="core"
+        client,
+        {Capability.linodes, Capability.firewall},
+        site_type="core",
     )
 
     # Cannot migrate linode to the same region
@@ -659,7 +794,9 @@ def test_linode_initate_migration(test_linode_client, e2e_test_firewall):
             break
 
         region_migrate = get_region(
-            client, {"Linodes", "Cloud Firewall"}, site_type="core"
+            client,
+            {Capability.linodes, Capability.firewall},
+            site_type="core",
         )
     else:
         pytest.skip("No alternative region to be used for linode migration")
@@ -1186,7 +1323,11 @@ class TestNetworkInterface:
 
 def test_create_linode_with_maintenance_policy(test_linode_client):
     client = test_linode_client
-    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    region = get_region(
+        client,
+        {Capability.linodes, Capability.firewall},
+        site_type="core",
+    )
     label = get_test_label()
 
     policies = client.maintenance.maintenance_policies()
@@ -1233,7 +1374,11 @@ def test_expected_error_if_fields_authorized_users_authorized_keys_root_pass_are
     test_linode_client,
 ):
     client = test_linode_client
-    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    region = get_region(
+        client,
+        {Capability.linodes, Capability.firewall},
+        site_type="core",
+    )
     label = get_test_label(length=8)
 
     with pytest.raises(ValueError) as create_instance_error:

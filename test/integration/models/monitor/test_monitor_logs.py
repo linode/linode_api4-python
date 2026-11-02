@@ -11,6 +11,7 @@ import pytest
 
 from linode_api4 import LinodeClient, LogsStreamType, PaginatedList, Region
 from linode_api4.objects import (
+    Capability,
     ObjectStorageACL,
     ObjectStorageBucket,
     ObjectStorageKeys,
@@ -20,6 +21,7 @@ from linode_api4.objects.monitor import (
     BasicAuthenticationDetails,
     LogsDestination,
     LogsStream,
+    LogsStreamQuota,
     LogsStreamStatus,
     TrafficPeakDestinationAuthentication,
     TrafficPeakLogsDestinationDetails,
@@ -43,7 +45,7 @@ _STREAM_FIXTURE_PROVISIONING_WAIT = 3600
 
 @pytest.fixture(scope="session")
 def region(test_linode_client: LinodeClient):
-    region = get_region(test_linode_client, {"Object Storage"})
+    region = get_region(test_linode_client, {Capability.object_storage})
     yield region
 
 
@@ -296,7 +298,7 @@ def test_fails_to_create_destination_invalid_type(
         )
     assert excinfo.value.status == 400
     assert excinfo.value.errors == [
-        "Must be one of akamai_object_storage, custom_https"
+        "Must be one of akamai_object_storage, custom_https, traffic_peak"
     ]
 
 
@@ -636,3 +638,21 @@ def test_update_stream_destinations(
     assert (
         snapshot_updated.destinations[0].id == create_secondary_destination.id
     )
+
+
+@_SKIP_STREAM_TESTS
+def test_list_stream_quotas(test_linode_client: LinodeClient):
+    """Test that stream quota definitions can be retrieved from the API."""
+    quotas = test_linode_client.monitor.stream_quotas()
+
+    assert isinstance(quotas, PaginatedList)
+    assert len(quotas) > 0
+    assert all(isinstance(quota, LogsStreamQuota) for quota in quotas)
+    assert all(
+        quota.quota_id
+        and quota.quota_name
+        and quota.quota_type
+        and quota.description
+        for quota in quotas
+    )
+    assert all(quota.quota_limit >= 0 for quota in quotas)

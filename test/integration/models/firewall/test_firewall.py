@@ -4,13 +4,17 @@ from test.integration.helpers import get_test_label
 
 import pytest
 
-from linode_api4.objects import Firewall, FirewallDevice
+from linode_api4.objects import Capability, Firewall, FirewallDevice
 
 
 @pytest.fixture(scope="session")
 def linode_fw(test_linode_client):
     client = test_linode_client
-    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    region = get_region(
+        client,
+        {Capability.linodes, Capability.firewall},
+        site_type="core",
+    )
     label = get_test_label()
 
     linode_instance = client.linode.instance_create(

@@ -3,6 +3,8 @@ from test.integration.helpers import get_test_label
 
 import pytest
 
+from linode_api4.objects import Capability
+
 
 @pytest.fixture(scope="package")
 def domain_instance(test_linode_client):
@@ -23,7 +25,10 @@ def lke_cluster_instance(test_linode_client):
     node_type = test_linode_client.linode.types()[1]  # g6-standard-1
     version = test_linode_client.lke.versions()[0]
 
-    region = get_region(test_linode_client, {"Kubernetes", "Disk Encryption"})
+    region = get_region(
+        test_linode_client,
+        {Capability.lke, Capability.disk_encryption},
+    )
 
     node_pool = test_linode_client.lke.node_pool(node_type, 3)
     label = get_test_label() + "_cluster"
