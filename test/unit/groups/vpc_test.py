@@ -158,13 +158,6 @@ class VPCTest(ClientBaseCase):
         assert ip.gateway == "10.0.0.1"
         assert ip.prefix == 24
         assert ip.subnet_mask == "255.255.255.0"
-        assert ip.natgateway.id == 42
-        assert ip.natgateway.addresses == ["203.0.113.42"]
-        assert ip.natgateway.portset_assignments == 15
-        assert ip.natgateway.portset_capacity == 30
-        assert ip.natgateway.portsets[0].address == "203.0.113.42"
-        assert ip.natgateway.portsets[0].ports[0].start == 2048
-        assert ip.natgateway.portsets[0].ports[0].end == 3071
 
     def validate_vpc_123456(self, vpc: VPC):
         expected_dt = datetime.datetime.strptime(

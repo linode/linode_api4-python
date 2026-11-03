@@ -248,15 +248,6 @@ class VPCTest(ClientBaseCase):
 
         self.assertEqual(subnet.ipv6[0].range, "fd71:1140:a9d0::/52")
 
-        assert subnet.natgateway.id == 42
-        assert subnet.natgateway.label == "my-nat-gateway"
-        assert subnet.natgateway.addresses == ["203.0.113.42"]
-        assert subnet.natgateway.portset_assignments == 15
-        assert subnet.natgateway.portset_capacity == 30
-        assert subnet.natgateway.portsets[0].address == "203.0.113.42"
-        assert subnet.natgateway.portsets[0].ports[0].start == 2048
-        assert subnet.natgateway.portsets[0].ports[0].end == 3071
-
     def test_list_vpc_ips(self):
         """
         Test that the ips under a specific VPC can be listed.
@@ -281,14 +272,6 @@ class VPCTest(ClientBaseCase):
         self.assertEqual(vpc_ip.gateway, "10.0.0.1")
         self.assertEqual(vpc_ip.prefix, 8)
         self.assertEqual(vpc_ip.subnet_mask, "255.0.0.0")
-
-        self.assertEqual(vpc_ip.natgateway.id, 42)
-        self.assertEqual(vpc_ip.natgateway.addresses, ["203.0.113.42"])
-        self.assertEqual(vpc_ip.natgateway.portset_assignments, 15)
-        self.assertEqual(vpc_ip.natgateway.portset_capacity, 30)
-        self.assertEqual(vpc_ip.natgateway.portsets[0].address, "203.0.113.42")
-        self.assertEqual(vpc_ip.natgateway.portsets[0].ports[0].start, 2048)
-        self.assertEqual(vpc_ip.natgateway.portsets[0].ports[0].end, 3071)
 
         vpc_ip_2 = vpc_ips[2]
 

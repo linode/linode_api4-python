@@ -212,33 +212,6 @@ class VPCIPAddressIPv6(JSONObject):
 
 
 @dataclass
-class VPCIPAddressNATGatewayPortsetPort(JSONObject):
-    start: int = 0
-    end: int = 0
-
-
-@dataclass
-class VPCIPAddressNATGatewayPortset(JSONObject):
-    address: str = ""
-    ports: List[VPCIPAddressNATGatewayPortsetPort] = field(default_factory=list)
-
-
-@dataclass
-class VPCIPAddressNATGateway(JSONObject):
-    """
-    A NAT gateway under a VPC IP Address.
-    """
-
-    id: int = 0
-    addresses: List[str] = field(default_factory=list)
-    portset_assignments: int = 0
-    portset_capacity: int = 0
-    portsets: List[VPCIPAddressNATGatewayPortset] = field(
-        default_factory=list
-    )  # NOTE: This field may not be available to all users.
-
-
-@dataclass
 class VPCIPAddress(JSONObject):
     """
     VPCIPAddress represents the IP address of a VPC.
@@ -266,7 +239,6 @@ class VPCIPAddress(JSONObject):
     ipv6_range: Optional[str] = None
     ipv6_is_public: Optional[bool] = None
     ipv6_addresses: Optional[List[VPCIPAddressIPv6]] = None
-    natgateway: Optional[VPCIPAddressNATGateway] = None
 
 
 class VLAN(Base):
