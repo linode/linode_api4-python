@@ -60,6 +60,9 @@ class Profile(Base):
     """
     A Profile containing information about the current User.
 
+    ``tfa_enforced`` is the read-only effective MFA enforcement policy, distinct
+    from whether MFA is enabled (``two_factor_auth``).
+
     API Documentation: https://techdocs.akamai.com/linode-api/reference/get-profile
     """
 
@@ -77,6 +80,7 @@ class Profile(Base):
         "lish_auth_method": Property(mutable=True),
         "authorized_keys": Property(mutable=True),
         "two_factor_auth": Property(),
+        "tfa_enforced": Property(),
         "restricted": Property(),
         "authentication_type": Property(),
         "authorized_keys": Property(),
@@ -120,10 +124,14 @@ class Profile(Base):
         """
         Turns off TFA for this user's account.
 
+        The API rejects this operation when account-wide enforcement applies
+        and the user is not exempted.
+
         API Documentation: https://techdocs.akamai.com/linode-api/reference/post-tfa-disable
 
         :returns: Returns true if operation was successful
         :rtype: bool
+        :raises ApiError: If the API disallows disabling MFA.
         """
         self._client.post("/profile/tfa-disable")
 

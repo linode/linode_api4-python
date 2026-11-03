@@ -17,6 +17,7 @@ from linode_api4.objects import (
     Payment,
     PaymentMethod,
     ServiceTransfer,
+    TFAOptionalUser,
     User,
 )
 
@@ -184,6 +185,46 @@ class AccountGroup(Group):
         :rtype: PaginatedList of User
         """
         return self.client._get_and_filter(User, *filters)
+
+    def tfa_optional_users(self):
+        """
+        Lists users exempted from MFA enforcement, regardless of the current
+        account-wide policy, using ``GET /account/tfa-optional-users``.
+
+        :returns: References containing each exempted user's username and URL.
+        :rtype: PaginatedList of TFAOptionalUser
+        """
+        return self.client._get_and_filter(
+            TFAOptionalUser, endpoint="/account/tfa-optional-users"
+        )
+
+    def tfa_optional_users_update(self, usernames):
+        """
+        Replaces the entire list of users exempted from MFA enforcement using
+        ``PUT /account/tfa-optional-users``. Omitted users lose their exemptions.
+        This does not change the account-wide ``tfa_enforced`` setting.
+
+        :param usernames: Usernames to exempt. Pass an empty list to remove all
+                          exemptions.
+        :type usernames: list[str]
+
+        :returns: The API's ``tfa_optional_users_count`` and collection ``url``.
+        :rtype: MappedObject
+        :raises ApiError: If a username is invalid or access is denied.
+        """
+        result = self.client.put(
+            "/account/tfa-optional-users", data={"usernames": usernames}
+        )
+
+        if not all(
+            key in result for key in ("tfa_optional_users_count", "url")
+        ):
+            raise UnexpectedResponseError(
+                "Unexpected response when updating TFA optional users!",
+                json=result,
+            )
+
+        return MappedObject(**result)
 
     def logins(self):
         """

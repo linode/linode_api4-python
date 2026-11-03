@@ -9,6 +9,7 @@ from test.integration.helpers import (
 
 import pytest
 
+from linode_api4.errors import ApiError
 from linode_api4.objects import (
     Account,
     AccountSettings,
@@ -16,6 +17,7 @@ from linode_api4.objects import (
     ChildAccount,
     Event,
     Login,
+    TFAOptionalUser,
     User,
 )
 
@@ -69,6 +71,80 @@ def test_get_account_settings(test_linode_client):
     assert "object_storage" in str(account_settings._raw_json)
     assert isinstance(account_settings.interfaces_for_new_linodes, str)
     assert "maintenance_policy" in str(account_settings._raw_json)
+
+
+def test_account_tfa_enforced_round_trip(test_linode_client):
+    enforced = test_linode_client.account.settings().tfa_enforced
+    assert isinstance(enforced, bool)
+
+    settings = AccountSettings(test_linode_client, "")
+    settings.tfa_enforced = enforced
+
+    assert settings.save()
+    assert test_linode_client.account.settings().tfa_enforced is enforced
+
+
+def test_get_user_tfa_enforced(test_linode_client):
+    profile = test_linode_client.profile()
+    user = test_linode_client.load(User, profile.username)
+
+    assert isinstance(user.tfa_enforced, bool)
+    assert user.tfa_enforced is profile.tfa_enforced
+
+
+@pytest.mark.parametrize("enforced", [True, False])
+def test_list_users_tfa_enforced(test_linode_client, enforced):
+    profile = test_linode_client.profile()
+    users = list(
+        test_linode_client.account.users(User.tfa_enforced == enforced)
+    )
+
+    assert all(user.tfa_enforced is enforced for user in users)
+    if profile.tfa_enforced is enforced:
+        assert profile.username in {user.username for user in users}
+
+
+def test_tfa_optional_users_round_trip(test_linode_client):
+    client = test_linode_client
+    enforced = client.account.settings().tfa_enforced
+    usernames = sorted(
+        user.username for user in client.account.tfa_optional_users()
+    )
+
+    result = client.account.tfa_optional_users_update(usernames)
+
+    assert result.tfa_optional_users_count == len(usernames)
+    assert result.url in (
+        "/account/tfa-optional-users",
+        "/v4/account/tfa-optional-users",
+    )
+    users = list(client.account.tfa_optional_users())
+    assert sorted(user.username for user in users) == usernames
+    for user in users:
+        assert isinstance(user, TFAOptionalUser)
+        assert isinstance(user.username, str)
+        assert user.url in (
+            f"/account/users/{user.username}",
+            f"/v4/account/users/{user.username}",
+        )
+    assert client.account.settings().tfa_enforced is enforced
+
+
+def test_tfa_optional_users_invalid_username(test_linode_client):
+    client = test_linode_client
+    usernames = sorted(
+        user.username for user in client.account.tfa_optional_users()
+    )
+    invalid_username = f"missing-{time.time_ns()}"
+
+    with pytest.raises(ApiError) as error:
+        client.account.tfa_optional_users_update(usernames + [invalid_username])
+
+    assert error.value.status == 400
+    assert (
+        sorted(user.username for user in client.account.tfa_optional_users())
+        == usernames
+    )
 
 
 def test_update_maintenance_policy(test_linode_client):

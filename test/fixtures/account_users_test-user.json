@@ -6,5 +6,6 @@
       "laptop"
     ],
     "tfa_enabled": true,
+    "tfa_enforced": true,
     "username": "test-user"
   }
