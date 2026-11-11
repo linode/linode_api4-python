@@ -141,6 +141,18 @@ Export Linode API token as `LINODE_TOKEN` before running integration tests::
 
     export LINODE_TOKEN = $(your_token)
 
+Integration tests use ``LINODE_URL`` for the unversioned API base URL
+(default: ``https://api.linode.com``) and ``LINODE_API_VERSION`` for the API
+version (default: ``v4beta``), matching linodego and the Terraform provider.
+The base URL accepts an optional trailing slash. For example::
+
+    export LINODE_URL="https://api.linode.com"
+    export LINODE_API_VERSION="v4beta"
+
+``LINODE_API_URL`` is no longer read by the integration tests. Replace a
+versioned value such as ``https://api.linode.com/v4beta`` with the two variables
+above.
+
 Running the tests
 ^^^^^^^^^^^^^^^^^
 Run the tests locally using the make command. Run the entire test suite using command below::
