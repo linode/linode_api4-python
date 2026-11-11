@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import copy
 import string
-import sys
 import warnings
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -1292,15 +1291,10 @@ class Instance(Base):
 
     @staticmethod
     def generate_root_password():
-        def _func(value):
-            if sys.version_info[0] < 3:
-                value = int(value.encode("hex"), 16)
-            return value
-
         password = "".join(
             [
-                PASSWORD_CHARS[_func(c) % len(PASSWORD_CHARS)]
-                for c in urandom(randint(50, 110))
+                PASSWORD_CHARS[value % len(PASSWORD_CHARS)]
+                for value in urandom(randint(50, 110))
             ]
         )
 

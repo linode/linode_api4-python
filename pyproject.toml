@@ -8,7 +8,7 @@ name = "linode_api4"
 authors = [{ name = "Linode", email = "devs@linode.com" }]
 description = "The official Python SDK for Linode API v4"
 readme = "README.rst"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 keywords = [
     "akamai",
     "Akamai Connected Cloud",
@@ -25,11 +25,11 @@ classifiers = [
     "License :: OSI Approved :: BSD License",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
 ]
 dependencies = ["requests", "polling", "deprecated"]
 dynamic = ["version"]
@@ -49,7 +49,7 @@ int-test = [
     "cryptography",
 ]
 lint = [
-    "black>=23.1.0",
+    "black>=26.10.1",
     "isort>=5.12.0",
     "autoflake>=2.0.1",
     "pylint",
@@ -85,7 +85,7 @@ line_length = 80
 
 [tool.black]
 line-length = 80
-target-version = ["py310", "py311", "py312", "py313", "py314"]
+target-version = ["py311", "py312", "py313", "py314", "py315"]
 
 [tool.autoflake]
 expand-star-imports = true
