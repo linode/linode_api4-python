@@ -272,9 +272,6 @@ class StrEnum(str, Enum):
     """
     Used for enums that are of type string, which is necessary
     for implicit JSON serialization.
-
-    NOTE: Replace this with StrEnum once Python 3.10 has been EOL'd.
-    See: https://docs.python.org/3/library/enum.html#enum.StrEnum
     """
 
     def __new__(cls, *values):
