@@ -35,14 +35,17 @@ class TimeoutContext:
         self._start_time = datetime.datetime.now()
         self._timeout_seconds = timeout_seconds
 
-    def start(self, start_time=datetime.datetime.now()):
+    def start(self, start_time=None):
         """
         Sets the timeout start time to the current time.
 
-        :param start_time: The moment when the context started.
+        :param start_time: The moment when the context started. If omitted,
+                           use the current time when this method is called.
         :type start_time: datetime
         """
-        self._start_time = start_time
+        self._start_time = (
+            datetime.datetime.now() if start_time is None else start_time
+        )
 
     def extend(self, seconds: int):
         """
