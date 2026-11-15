@@ -177,6 +177,8 @@ class LinodeClientGeneralTest(ClientBaseCase):
         self.assertEqual(v[1].linode_label, None)
         self.assertEqual(v[2].filesystem_path, "this/is/a/file/path")
         self.assertEqual(v[2].hardware_type, "nvme")
+        self.assertEqual(v[0].io_ready, True)
+        self.assertEqual(v[3].io_ready, False)
 
         assert v[0].tags == ["something"]
         assert v[1].tags == []
