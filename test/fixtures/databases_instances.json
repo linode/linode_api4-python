@@ -9,6 +9,7 @@
       "created": "2022-01-01T00:01:01",
       "encrypted": false,
       "engine": "mysql",
+      "available_restore_times": null,
       "hosts": {
         "primary": "lin-123-456-mysql-mysql-primary.servers.linodedb.net",
         "standby": "lin-123-456-mysql-primary-private.servers.linodedb.net"
@@ -33,9 +34,21 @@
         "subnet_id": 5678,
         "public_access": true
       }
+    },
+    {
+      "id": 123,
+      "label": "example-valkey",
+      "engine": "valkey",
+      "instance_uri": "/v4/databases/valkey/instances/123",
+      "available_restore_times": ["2026-01-01T01:00:00"],
+      "region": "us-east",
+      "status": "active",
+      "type": "g7-dedicated-4-2",
+      "version": "8.1",
+      "private_network": null
     }
   ],
   "page": 1,
   "pages": 1,
-  "results": 1
+  "results": 2
 }

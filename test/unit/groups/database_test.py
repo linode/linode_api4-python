@@ -28,7 +28,7 @@ class DatabaseTest(ClientBaseCase):
         """
         engines = self.client.database.engines()
 
-        self.assertEqual(len(engines), 2)
+        self.assertEqual(len(engines), 3)
 
         self.assertEqual(engines[0].engine, "mysql")
         self.assertEqual(engines[0].id, "mysql/8.0.26")
@@ -44,7 +44,7 @@ class DatabaseTest(ClientBaseCase):
         """
         dbs = self.client.database.instances()
 
-        self.assertEqual(len(dbs), 1)
+        self.assertEqual(len(dbs), 2)
         self.assertEqual(dbs[0].allow_list[1], "192.0.1.0/24")
         self.assertEqual(dbs[0].cluster_size, 3)
         self.assertEqual(dbs[0].encrypted, False)

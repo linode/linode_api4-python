@@ -1,18 +1,22 @@
-from typing import Any, Dict, Union
+from datetime import datetime, timezone
+from typing import Any, Dict, Optional, Union
 
 from linode_api4 import (
     MySQLDatabaseConfigOptions,
     PostgreSQLDatabaseConfigOptions,
+    ValkeyDatabaseConfigOptions,
 )
 from linode_api4.errors import UnexpectedResponseError
 from linode_api4.groups import Group
 from linode_api4.objects import (
+    DATE_FORMAT,
     Database,
     DatabaseEngine,
     DatabasePrivateNetwork,
     DatabaseType,
     MySQLDatabase,
     PostgreSQLDatabase,
+    ValkeyDatabase,
     drop_null_keys,
 )
 from linode_api4.objects.base import _flatten_request_body_recursive
@@ -384,3 +388,152 @@ class DatabaseGroup(Group):
 
         d = PostgreSQLDatabase(self.client, result["id"], result)
         return d
+
+    def valkey_config_options(self):
+        """
+        Return the advanced-parameter catalog for Valkey (limited availability).
+
+        Metadata is returned unchanged, including scalar or array ``type``
+        values, enums, examples, and defaults.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-databases-valkey-config
+
+        :returns: Configuration option metadata.
+        :rtype: dict
+        """
+        return self.client.get("/databases/valkey/config", model=self)
+
+    def valkey_instances(self, *filters):
+        """
+        List Valkey Managed Databases on this account (limited availability).
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-databases-valkey-instances
+
+        :param filters: Filters to apply to the collection.
+        :returns: The matching clusters.
+        :rtype: PaginatedList of ValkeyDatabase
+        """
+        return self.client._get_and_filter(ValkeyDatabase, *filters)
+
+    def valkey_create(
+        self,
+        label,
+        region,
+        engine,
+        ltype,
+        engine_config: Optional[
+            Union[ValkeyDatabaseConfigOptions, Dict[str, Any]]
+        ] = None,
+        private_network: Optional[
+            Union[DatabasePrivateNetwork, Dict[str, Any]]
+        ] = None,
+        **kwargs,
+    ):
+        """
+        Create a Valkey Managed Database (limited availability).
+
+        Discover available engine versions and plans using :any:`engines`
+        and :any:`types`. Advanced options use flat keys, for example::
+
+            db = client.database.valkey_create(
+                "example-valkey", region, engine, node_type,
+                engine_config=ValkeyDatabaseConfigOptions(
+                    valkey_persistence="rdb", frequent_snapshots=True
+                ),
+            )
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-databases-valkey-instances
+
+        :param label: Cluster label.
+        :type label: str
+        :param region: Deployment region.
+        :type region: str or Region
+        :param engine: Versioned engine ID.
+        :type engine: str or DatabaseEngine
+        :param ltype: Database node type.
+        :type ltype: str or DatabaseType
+        :param engine_config: Flat advanced configuration.
+        :type engine_config: ValkeyDatabaseConfigOptions or dict
+        :param private_network: VPC configuration.
+        :type private_network: DatabasePrivateNetwork or dict
+        :param kwargs: Additional API create options, such as ``cluster_size``
+                      and ``allow_list``. ``ssl_connection`` must be true.
+        :returns: The created cluster.
+        :rtype: ValkeyDatabase
+        :raises UnexpectedResponseError: If the response lacks an ID.
+        """
+        params = {
+            "label": label,
+            "region": region,
+            "engine": engine,
+            "type": ltype,
+            "engine_config": engine_config,
+            "private_network": private_network,
+        }
+        params.update(kwargs)
+        result = self.client.post(
+            "/databases/valkey/instances",
+            data=_flatten_request_body_recursive(drop_null_keys(params)),
+        )
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when creating Valkey Database", json=result
+            )
+        return ValkeyDatabase(self.client, result["id"], result)
+
+    def valkey_fork(
+        self,
+        source: int,
+        restore_time: Optional[Union[str, datetime]] = None,
+        **kwargs,
+    ):
+        """
+        Restore a Valkey snapshot into a new cluster (limited availability).
+
+        Use a string from the source cluster's ``available_restore_times``,
+        or omit ``restore_time`` to use the latest snapshot. Unlike SQL
+        engines, Valkey does not support arbitrary point-in-time recovery.
+        Persistence must be enabled on the source cluster.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-databases-valkey-instances
+
+        :param source: Source cluster ID.
+        :type source: int
+        :param restore_time: Exact snapshot timestamp. Strings are sent
+                             unchanged; naive datetimes are UTC and aware
+                             datetimes are converted to UTC.
+        :type restore_time: str or datetime or None
+        :param kwargs: Optional create overrides such as ``label``, ``region``,
+                       ``engine``, ``ltype``, and ``engine_config``.
+        :returns: The new cluster.
+        :rtype: ValkeyDatabase
+        :raises TypeError: If restore_time is not a string, datetime, or None.
+        :raises ValueError: If both ltype and type, or a fork override, are given.
+        :raises UnexpectedResponseError: If the response lacks an ID.
+        """
+        if "ltype" in kwargs and "type" in kwargs:
+            raise ValueError("Specify only one of ltype and type")
+        if "fork" in kwargs:
+            raise ValueError("Use source and restore_time to specify the fork")
+        if isinstance(restore_time, datetime):
+            if restore_time.tzinfo is not None:
+                restore_time = restore_time.astimezone(timezone.utc)
+            restore_time = restore_time.strftime(DATE_FORMAT)
+        elif restore_time is not None and not isinstance(restore_time, str):
+            raise TypeError("restore_time must be a string, datetime, or None")
+
+        if "ltype" in kwargs:
+            kwargs["type"] = kwargs.pop("ltype")
+        params = {
+            **kwargs,
+            "fork": {"source": source, "restore_time": restore_time},
+        }
+        result = self.client.post(
+            "/databases/valkey/instances",
+            data=_flatten_request_body_recursive(drop_null_keys(params)),
+        )
+        if "id" not in result:
+            raise UnexpectedResponseError(
+                "Unexpected response when forking Valkey Database", json=result
+            )
+        return ValkeyDatabase(self.client, result["id"], result)
