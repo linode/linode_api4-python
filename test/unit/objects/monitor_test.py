@@ -3,10 +3,12 @@ from test.unit.base import ClientBaseCase
 
 from linode_api4.objects import (
     AlertChannel,
+    AuditLogsStreamDetails,
     LogsDestination,
     LogsDestinationHistory,
     LogsStream,
     LogsStreamDestination,
+    LogsStreamHistory,
     MonitorDashboard,
     MonitorService,
 )
@@ -795,3 +797,111 @@ class LkeAuditLogsStreamTest(ClientBaseCase):
             )
 
         self.assertNotIn("details", m.call_data)
+
+
+class AuditLogsStreamTest(ClientBaseCase):
+    def test_create_audit_logs_stream_categories(self):
+        for categories in (
+            ["config"],
+            ["login"],
+            ["data_plane"],
+            ["config", "data_plane", "login"],
+            [],
+            None,
+        ):
+            with self.subTest(categories=categories):
+                requested_details = (
+                    {} if categories is None else {"categories": categories}
+                )
+                response_categories = categories or ["config", "login"]
+                response = {
+                    "id": 5,
+                    "type": "audit_logs",
+                    "details": {"categories": response_categories},
+                }
+
+                with self.mock_post(response) as mock:
+                    stream = self.client.monitor.stream_create(
+                        destinations=[1],
+                        label="Audit stream",
+                        type=LogsStreamType.audit_logs,
+                        details=AuditLogsStreamDetails(categories=categories),
+                    )
+
+                self.assertEqual(mock.call_url, "/monitor/streams")
+                self.assertEqual(
+                    mock.call_data,
+                    {
+                        "destinations": [1],
+                        "label": "Audit stream",
+                        "type": "audit_logs",
+                        "details": requested_details,
+                    },
+                )
+                self.assertIsInstance(stream.details, AuditLogsStreamDetails)
+                self.assertEqual(stream.details.categories, response_categories)
+
+    def test_create_audit_logs_stream_defaults_from_api(self):
+        response = {
+            "id": 5,
+            "type": "audit_logs",
+            "details": {"categories": ["config", "login"]},
+        }
+        with self.mock_post(response) as mock:
+            stream = self.client.monitor.stream_create(
+                destinations=[1],
+                label="Audit stream",
+                type="audit_logs",
+            )
+
+        self.assertNotIn("details", mock.call_data)
+        self.assertIsInstance(stream.details, AuditLogsStreamDetails)
+        self.assertEqual(stream.details.categories, ["config", "login"])
+
+    def test_load_audit_logs_stream_and_history_categories(self):
+        for model in (LogsStream, LogsStreamHistory):
+            with self.subTest(model=model.__name__):
+                stream = model(
+                    self.client,
+                    5,
+                    {
+                        "id": 5,
+                        "type": "audit_logs",
+                        "details": {
+                            "categories": ["config", "data_plane", "login"],
+                        },
+                    },
+                )
+
+                self.assertIsInstance(stream.details, AuditLogsStreamDetails)
+                self.assertEqual(
+                    stream.details.categories,
+                    ["config", "data_plane", "login"],
+                )
+
+    def test_update_audit_logs_stream_categories(self):
+        stream = LogsStream(
+            self.client,
+            5,
+            {
+                "id": 5,
+                "label": "Audit stream",
+                "status": "active",
+                "type": "audit_logs",
+                "details": {"categories": ["config", "login"]},
+            },
+        )
+        stream.details = AuditLogsStreamDetails(categories=["data_plane"])
+
+        with self.mock_put({}) as mock:
+            self.assertTrue(stream.save())
+
+        self.assertEqual(mock.call_url, "/monitor/streams/5")
+        self.assertEqual(
+            mock.call_data,
+            {
+                "label": "Audit stream",
+                "status": "active",
+                "details": {"categories": ["data_plane"]},
+            },
+        )
