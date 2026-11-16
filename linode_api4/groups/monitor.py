@@ -20,6 +20,7 @@ from linode_api4.objects import (
 )
 from linode_api4.objects.monitor import (
     AkamaiObjectStorageLogsDestinationDetails,
+    AuditLogsStreamDetails,
     CustomHTTPSLogsDestinationDetails,
     LogsStreamDetails,
     LogsStreamQuota,
@@ -557,7 +558,9 @@ class MonitorGroup(Group):
         label: str,
         type: Union[LogsStreamType, str],
         status: Optional[Union[LogsStreamStatus, str]] = None,
-        details: Optional[LogsStreamDetails] = None,
+        details: Optional[
+            Union[LogsStreamDetails, AuditLogsStreamDetails]
+        ] = None,
     ) -> LogsStream:
         """
         Creates a new :any:`LogsStream` for logs on this account. For example::
@@ -570,6 +573,16 @@ class MonitorGroup(Group):
                label="Linode_services",
                status="active",
                type="audit_logs"
+           )
+
+           # audit_logs stream with data plane logs
+           data_plane_stream = client.monitor.stream_create(
+               destinations=[1234],
+               label="Data_plane_logs",
+               type="audit_logs",
+               details=AuditLogsStreamDetails(
+                   categories=["data_plane"],
+               )
            )
 
            # lke_audit_logs stream with specific clusters
@@ -597,9 +610,12 @@ class MonitorGroup(Group):
         :param status: (Optional) The availability status of the stream. Possible values are: ``active``, ``inactive``.
                         Defaults to ``active``.
         :type status: str
-        :param details: (Optional) Additional stream details. Only applicable for
-                        ``lke_audit_logs`` streams. Omit for ``audit_logs`` streams.
-        :type details: LogsStreamDetails
+        :param details: (Optional) Use AuditLogsStreamDetails to select categories
+                        for ``audit_logs``, or LogsStreamDetails for
+                        ``lke_audit_logs``. For audit logs, the API defaults to
+                        ``config`` and ``login`` when categories are omitted
+                        or empty.
+        :type details: LogsStreamDetails or AuditLogsStreamDetails
 
         :returns: The newly created logs stream.
         :rtype: LogsStream
