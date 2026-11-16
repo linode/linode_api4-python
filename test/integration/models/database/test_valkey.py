@@ -1,5 +1,6 @@
 import os
 from dataclasses import fields
+from test.integration.conftest import get_region
 from test.integration.helpers import (
     get_test_label,
     send_request_when_resource_available,
@@ -9,6 +10,7 @@ from test.integration.helpers import (
 import pytest
 
 from linode_api4 import (
+    Capability,
     DatabaseEngine,
     DatabasePrivateNetwork,
     ExplicitNullValue,
@@ -159,12 +161,27 @@ def test_valkey_fork(
 
 
 def test_valkey_private_network(
-    test_linode_client, create_valkey_database, create_vpc_with_subnet
+    test_linode_client, create_valkey_database, request
 ):
     client = test_linode_client
-    vpc, subnet = create_vpc_with_subnet
+    region = get_region(client, {Capability.vpcs, Capability.linodes})
+    vpc = client.vpcs.create(
+        label=get_test_label(),
+        region=region,
+        description="Valkey private-network integration test",
+    )
+    request.addfinalizer(
+        lambda: send_request_when_resource_available(600, vpc.delete)
+    )
+    subnet = vpc.subnet_create(
+        label=get_test_label(),
+        ipv4="10.0.0.0/24",
+    )
+    request.addfinalizer(
+        lambda: send_request_when_resource_available(600, subnet.delete)
+    )
     database = create_valkey_database(
-        region=vpc.region,
+        region=region,
         private_network=DatabasePrivateNetwork(
             vpc_id=vpc.id, subnet_id=subnet.id, public_access=False
         ),
