@@ -36,7 +36,8 @@ from linode_api4.linode_client import LinodeClient, MonitorClient
 from linode_api4.objects import Capability, Region
 
 ENV_TOKEN_NAME = "LINODE_TOKEN"
-ENV_API_URL_NAME = "LINODE_API_URL"
+ENV_API_URL_NAME = "LINODE_URL"
+ENV_API_VERSION_NAME = "LINODE_API_VERSION"
 ENV_REGION_OVERRIDE = "LINODE_TEST_REGION_OVERRIDE"
 ENV_API_CA_NAME = "LINODE_API_CA"
 RUN_LONG_TESTS = "RUN_LONG_TESTS"
@@ -57,7 +58,9 @@ def get_token():
 
 
 def get_api_url():
-    return os.environ.get(ENV_API_URL_NAME, "https://api.linode.com/v4beta")
+    api_url = os.environ.get(ENV_API_URL_NAME, "https://api.linode.com")
+    api_version = os.environ.get(ENV_API_VERSION_NAME, "v4beta")
+    return f"{api_url.rstrip('/')}/{api_version}"
 
 
 def get_regions(
