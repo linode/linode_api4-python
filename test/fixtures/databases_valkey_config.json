@@ -1,0 +1,58 @@
+{
+  "backup_hour": {
+    "description": "UTC hour to start a backup.",
+    "example": 3, "minimum": 0, "maximum": 23, "requires_restart": false,
+    "type": ["integer", "null"]
+  },
+  "backup_minute": {
+    "description": "Minute to start a backup.",
+    "example": 30, "minimum": 0, "maximum": 59, "requires_restart": false,
+    "type": ["integer", "null"]
+  },
+  "frequent_snapshots": {
+    "description": "Enable frequent RDB snapshots.",
+    "default": true, "requires_restart": false, "type": "boolean"
+  },
+  "valkey_acl_channels_default": {
+    "description": "Default ACL for pub/sub channels.",
+    "enum": ["allchannels", "resetchannels"], "requires_restart": false, "type": "string"
+  },
+  "valkey_active_expire_effort": {
+    "description": "Effort used to reclaim expired keys.",
+    "default": 1, "minimum": 1, "maximum": 10, "requires_restart": false, "type": "integer"
+  },
+  "valkey_activedefrag": {
+    "description": "Enable active memory defragmentation.",
+    "default": false, "example": false, "requires_restart": false, "type": "boolean"
+  },
+  "valkey_lfu_decay_time": {
+    "description": "LFU counter decay time in minutes.",
+    "default": 1, "minimum": 1, "maximum": 120, "requires_restart": false, "type": "integer"
+  },
+  "valkey_lfu_log_factor": {
+    "description": "LFU counter logarithm factor.",
+    "default": 10, "minimum": 0, "maximum": 100, "requires_restart": false, "type": "integer"
+  },
+  "valkey_maxmemory_policy": {
+    "description": "Policy used when memory is full.",
+    "default": "noeviction",
+    "enum": ["noeviction", "allkeys-lru", "volatile-lru", "allkeys-random", "volatile-random", "volatile-ttl", "volatile-lfu", "allkeys-lfu"],
+    "requires_restart": false, "type": ["string", "null"]
+  },
+  "valkey_number_of_databases": {
+    "description": "Number of logical Valkey databases.",
+    "example": 16, "minimum": 1, "maximum": 128, "requires_restart": true, "type": "integer"
+  },
+  "valkey_persistence": {
+    "description": "RDB persistence mode; off disables backups and forking.",
+    "enum": ["off", "rdb"], "requires_restart": true, "type": "string"
+  },
+  "valkey_pubsub_client_output_buffer_limit": {
+    "description": "Pub/sub client output buffer limit in MB.",
+    "example": 64, "minimum": 32, "maximum": 262144, "requires_restart": false, "type": "integer"
+  },
+  "valkey_timeout": {
+    "description": "Idle connection timeout in seconds.",
+    "default": 300, "minimum": 0, "maximum": 2073600, "requires_restart": false, "type": "integer"
+  }
+}
