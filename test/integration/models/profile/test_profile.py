@@ -10,6 +10,7 @@ def test_user_profile(test_linode_client):
     profile = client.profile()
 
     assert isinstance(profile, Profile)
+    assert isinstance(profile.tfa_enforced, bool)
 
 
 def test_get_personal_access_token_objects(test_linode_client):
