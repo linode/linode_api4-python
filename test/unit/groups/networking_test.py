@@ -313,6 +313,11 @@ class NetworkingGroupTest(ClientBaseCase):
         assert t.label == "NAT Gateway"
         assert t.price.hourly == 0.035
         assert t.price.monthly == 25
+        assert len(t.region_prices) == 2
+        assert t.region_prices[0].id == "us-east"
+        assert t.region_prices[0].hourly == 0.036
+        assert t.region_prices[0].monthly == 26
+        assert t.transfer == 1000
 
     def test_natgateway_settings(self):
         """

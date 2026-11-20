@@ -548,14 +548,22 @@ class NATGatewayInterface(JSONObject):
     )  # NOTE: This field may not be available to all users.
 
 
-@dataclass
-class NATGatewayType(JSONObject):
-    id: str = ""
-    label: str = ""
-    price: Optional[Price] = None
+class NATGatewayType(Base):
+    """
+    Represents a NAT Gateway type with pricing information.
 
+    NOTE: NAT Gateways may not currently be available to all users.
 
-# TODO: replace with base once the region_prices and transfer fields are in use and returned by the API
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-natgateway-types
+    """
+
+    properties = {
+        "id": Property(identifier=True),
+        "label": Property(),
+        "price": Property(json_object=Price),
+        "region_prices": Property(json_object=RegionPrice),
+        "transfer": Property(),
+    }
 
 
 @dataclass

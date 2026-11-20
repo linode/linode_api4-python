@@ -758,9 +758,8 @@ def test_get_nat_gateway_types(test_linode_client):
         gateway_types[0].price.hourly >= 0
         or gateway_types[0].price.monthly >= 0
     )
-    # TODO region_prices and transfer fields are not in use at the moment
-    # assert isinstance(gateway_types[0].region_prices, list)
-    # assert isinstance(gateway_types[0].transfer, int)
+    assert isinstance(gateway_types[0].region_prices, list)
+    assert isinstance(gateway_types[0].transfer, int)
 
 
 def test_get_nat_gateway_settings(test_linode_client):
