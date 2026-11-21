@@ -317,9 +317,7 @@ class BaseClient:
         parsed_filters = None
         if filters:
             if len(filters) > 1:
-                parsed_filters = and_(
-                    *filters
-                ).dct  # pylint: disable=no-value-for-parameter
+                parsed_filters = and_(*filters).dct
             else:
                 parsed_filters = filters[0].dct
 
