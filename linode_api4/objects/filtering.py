@@ -66,20 +66,25 @@ def or_(a, b):
     return a.__or__(b)
 
 
-def and_(a, b):
+def and_(a, b, *filters):
     """
-    Combines two :any:`Filters<Filter>` with an "and" operation, matching
-    any results that match both of the given filters.
+    Combines two or more :any:`Filters<Filter>` with an "and" operation,
+    matching any results that match all of the given filters.
 
     :param a: The first filter to consider.
     :type a: Filter
     :param b: The second filter to consider.
     :type b: Filter
+    :param filters: Any additional filters to consider.
+    :type filters: Filter
 
-    :returns: A filter that matches both a and b
+    :returns: A filter that matches all of the given filters
     :rtype: Filter
     """
-    return a.__and__(b)
+    result = a.__and__(b)
+    for f in filters:
+        result = result.__and__(f)
+    return result
 
 
 def order_by(field, desc=False):
