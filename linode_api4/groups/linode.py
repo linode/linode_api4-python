@@ -97,7 +97,6 @@ class LinodeGroup(Group):
         :returns: A list of StackScripts matching the query.
         :rtype: PaginatedList of StackScript
         """
-        # python2 can't handle *args and a single keyword argument, so this is a workaround
         if "mine_only" in kwargs:
             if kwargs["mine_only"]:
                 new_filter = Filter({"mine": True})
