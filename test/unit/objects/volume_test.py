@@ -30,9 +30,11 @@ class VolumeTest(ClientBaseCase):
         self.assertEqual(volume.filesystem_path, "this/is/a/file/path")
         self.assertEqual(volume.hardware_type, "hdd")
         self.assertEqual(volume.linode_label, None)
+        self.assertEqual(volume.io_ready, True)
 
     def test_get_volume_with_encryption(self):
         volume = Volume(self.client, 4)
+        self.assertEqual(volume.io_ready, False)
         self.assertEqual(volume.encryption, "enabled")
 
     def test_update_volume_tags(self):
