@@ -61,7 +61,7 @@ def create_valkey_database(test_linode_client, request):
         }
         params.update(kwargs)
         database = client.database.valkey_create(**params)
-        request.addfinalizer(
+        request.node.addfinalizer(
             lambda: send_request_when_resource_available(600, database.delete)
         )
         wait_for_valkey_status(client, database, "active")
