@@ -133,7 +133,7 @@ def test_get_engines(test_linode_client):
     engines = client.database.engines()
 
     for e in engines:
-        assert e.engine in ["mysql", "postgresql"]
+        assert e.engine in ["mysql", "postgresql", "valkey"]
         # assert re.search("[0-9]+.[0-9]+", e.version)
         assert e.id == e.engine + "/" + e.version
 

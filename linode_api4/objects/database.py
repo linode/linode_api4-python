@@ -1,7 +1,13 @@
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Optional, Union
 
-from linode_api4.objects import Base, JSONObject, MappedObject, Property
+from linode_api4.objects import (
+    Base,
+    ExplicitNullValue,
+    JSONObject,
+    MappedObject,
+    Property,
+)
 
 
 class DatabaseType(Base):
@@ -42,6 +48,7 @@ class DatabaseEngine(Base):
 
         - MySQL
         - PostgreSQL
+        - Valkey
 
     API Documentation: https://techdocs.akamai.com/linode-api/reference/get-databases-engine
     """
@@ -210,6 +217,36 @@ class PostgreSQLDatabaseConfigOptions(JSONObject):
     pglookout: Optional[PostgreSQLDatabaseConfigPGLookoutOptions] = None
     shared_buffers_percentage: Optional[float] = None
     work_mem: Optional[int] = None
+
+
+@dataclass
+class ValkeyDatabaseConfigOptions(JSONObject):
+    """
+    Advanced configuration for a Valkey Managed Database.
+
+    All fields are flat keys within ``engine_config``. Unset (``None``)
+    options are omitted. Use an ``ExplicitNullValue`` instance to send
+    JSON null for a nullable option. Zero and false values are preserved.
+
+    Disabling ``valkey_persistence`` (``"off"``) disables snapshots and
+    restoring the cluster, and causes data loss on service restarts.
+
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-databases-valkey-config
+    """
+
+    backup_hour: Optional[Union[int, ExplicitNullValue]] = None
+    backup_minute: Optional[Union[int, ExplicitNullValue]] = None
+    frequent_snapshots: Optional[bool] = None
+    valkey_acl_channels_default: Optional[str] = None
+    valkey_active_expire_effort: Optional[int] = None
+    valkey_activedefrag: Optional[bool] = None
+    valkey_lfu_decay_time: Optional[int] = None
+    valkey_lfu_log_factor: Optional[int] = None
+    valkey_maxmemory_policy: Optional[Union[str, ExplicitNullValue]] = None
+    valkey_number_of_databases: Optional[int] = None
+    valkey_persistence: Optional[str] = None
+    valkey_pubsub_client_output_buffer_limit: Optional[int] = None
+    valkey_timeout: Optional[int] = None
 
 
 class MySQLDatabase(Base):
@@ -501,9 +538,152 @@ class PostgreSQLDatabase(Base):
         return self.invalidate()
 
 
+class ValkeyDatabase(Base):
+    """
+    A Valkey Managed Database (limited availability).
+
+    ``available_restore_times`` contains API-format UTC timestamp strings for
+    discrete snapshots, not a continuous point-in-time recovery window. Pass
+    one to :any:`DatabaseGroup.valkey_fork`, or omit the restore time to use
+    the latest snapshot. Use ``client.load(ValkeyDatabase, id)`` to fetch an
+    existing cluster, and ``db.save()`` / ``db.delete()`` to update or delete it.
+
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-databases-valkey-instance
+    """
+
+    api_endpoint = "/databases/valkey/instances/{id}"
+
+    properties = {
+        "id": Property(identifier=True),
+        "label": Property(mutable=True),
+        "allow_list": Property(mutable=True, unordered=True),
+        "cluster_size": Property(mutable=True),
+        "created": Property(is_datetime=True),
+        "encrypted": Property(),
+        "engine": Property(),
+        "hosts": Property(),
+        "port": Property(),
+        "region": Property(mutable=True),
+        "ssl_connection": Property(),
+        "status": Property(volatile=True),
+        "type": Property(mutable=True),
+        "fork": Property(),
+        "available_restore_times": Property(),
+        "updated": Property(volatile=True, is_datetime=True),
+        "updates": Property(mutable=True),
+        "version": Property(mutable=True),
+        "members": Property(),
+        "used_disk_size_gb": Property(),
+        "total_disk_size_gb": Property(),
+        "engine_config": Property(
+            mutable=True, json_object=ValkeyDatabaseConfigOptions
+        ),
+        "private_network": Property(
+            mutable=True, json_object=DatabasePrivateNetwork, nullable=True
+        ),
+    }
+
+    @property
+    def credentials(self):
+        """
+        Return cached root credentials for an active Valkey Managed Database.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-databases-valkey-instance-credentials
+
+        :returns: The root username and password.
+        :rtype: MappedObject
+        """
+        if not hasattr(self, "_credentials"):
+            resp = self._client.get(
+                "{}/credentials".format(ValkeyDatabase.api_endpoint),
+                model=self,
+            )
+            self._set("_credentials", MappedObject(**resp))
+
+        return self._credentials
+
+    @property
+    def ssl(self):
+        """
+        Return the cached base64-encoded SSL CA certificate.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/get-databases-valkey-instance-ssl
+
+        :returns: An object containing ``ca_certificate``.
+        :rtype: MappedObject
+        """
+        if not hasattr(self, "_ssl"):
+            resp = self._client.get(
+                "{}/ssl".format(ValkeyDatabase.api_endpoint), model=self
+            )
+            self._set("_ssl", MappedObject(**resp))
+
+        return self._ssl
+
+    def credentials_reset(self):
+        """
+        Reset the root password and invalidate cached cluster data.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-databases-valkey-instance-credentials-reset
+
+        :returns: The API response.
+        :rtype: dict
+        """
+        self.invalidate()
+        return self._client.post(
+            "{}/credentials/reset".format(ValkeyDatabase.api_endpoint),
+            model=self,
+        )
+
+    def patch(self):
+        """
+        Apply operating system security patches and updates.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/post-databases-valkey-instance-patch
+
+        :returns: The API response.
+        :rtype: dict
+        """
+        self.invalidate()
+        return self._client.post(
+            "{}/patch".format(ValkeyDatabase.api_endpoint), model=self
+        )
+
+    def suspend(self):
+        """
+        Suspend the cluster, releasing idle resources while retaining data.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/suspend-databases-valkey-instance
+        """
+        self._client.post(
+            "{}/suspend".format(ValkeyDatabase.api_endpoint), model=self
+        )
+        return self.invalidate()
+
+    def resume(self):
+        """
+        Resume a suspended cluster. Resume before attempting updates.
+
+        API Documentation: https://techdocs.akamai.com/linode-api/reference/resume-databases-valkey-instance
+        """
+        self._client.post(
+            "{}/resume".format(ValkeyDatabase.api_endpoint), model=self
+        )
+        return self.invalidate()
+
+    def invalidate(self):
+        """Clear cached properties, credentials, and SSL certificate."""
+        for attr in ["_ssl", "_credentials"]:
+            if hasattr(self, attr):
+                delattr(self, attr)
+
+        Base.invalidate(self)
+
+
 ENGINE_TYPE_TRANSLATION = {
     "mysql": MySQLDatabase,
     "postgresql": PostgreSQLDatabase,
+    "valkey": ValkeyDatabase,
 }
 
 
@@ -512,7 +692,7 @@ class Database(Base):
     A generic Database instance.
 
     Note: This class does not have a corresponding GET endpoint. For detailed information
-    about the database, use the .instance() property method instead.
+    about the database, use the ``.instance`` property instead.
     """
 
     api_endpoint = "/databases/instances/{id}"
@@ -531,6 +711,7 @@ class Database(Base):
         "status": Property(),
         "type": Property(),
         "fork": Property(),
+        "available_restore_times": Property(),
         "updated": Property(),
         "updates": Property(),
         "version": Property(),
