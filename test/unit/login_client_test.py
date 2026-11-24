@@ -53,3 +53,21 @@ class OAuthScopesTest(TestCase):
             scopes,
             [getattr(c, "all") for c in OAuthScopes._scope_families.values()],
         )
+
+    def test_parse_scopes_databases_and_vpc(self):
+        """
+        Tests parsing documented databases and vpc scopes
+        """
+        scopes = OAuthScopes.parse(
+            "databases:read_only,databases:read_write,vpc:read_write,vpc:*"
+        )
+        self.assertEqual(
+            scopes,
+            [
+                OAuthScopes.Databases.read_only,
+                OAuthScopes.Databases.read_write,
+                OAuthScopes.VPC.read_write,
+                OAuthScopes.VPC.all,
+            ],
+        )
+        self.assertEqual(OAuthScopes.parse("vpc:read_only"), [])

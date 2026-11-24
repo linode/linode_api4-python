@@ -1,12 +1,71 @@
 import re
 import time
-from test.integration.conftest import get_region
+from test.integration.conftest import get_api_url, get_region
 from test.integration.helpers import get_test_label, wait_for_condition
 
 import pytest
 
 from linode_api4 import ApiError
-from linode_api4.objects import ConfigInterface, ObjectStorageKeys, Region
+from linode_api4.objects import (
+    Capability,
+    ConfigInterface,
+    ObjectStorageKeys,
+    Region,
+)
+
+
+@pytest.mark.parametrize(
+    "environment, expected_url",
+    [
+        ({}, "https://api.linode.com/v4beta"),
+        (
+            {"LINODE_URL": "https://api.example.test"},
+            "https://api.example.test/v4beta",
+        ),
+        (
+            {"LINODE_URL": "https://api.example.test/"},
+            "https://api.example.test/v4beta",
+        ),
+        (
+            {"LINODE_API_VERSION": "v4"},
+            "https://api.linode.com/v4",
+        ),
+        (
+            {
+                "LINODE_URL": "https://api.example.test/",
+                "LINODE_API_VERSION": "v4",
+            },
+            "https://api.example.test/v4",
+        ),
+        (
+            {
+                "LINODE_URL": "http://localhost:8080/proxy///",
+                "LINODE_API_VERSION": "v4beta",
+            },
+            "http://localhost:8080/proxy/v4beta",
+        ),
+        (
+            {"LINODE_API_URL": "https://legacy.example.test/v4"},
+            "https://api.linode.com/v4beta",
+        ),
+        (
+            {
+                "LINODE_API_URL": "https://legacy.example.test/v4",
+                "LINODE_URL": "https://api.example.test",
+                "LINODE_API_VERSION": "v4",
+            },
+            "https://api.example.test/v4",
+        ),
+    ],
+)
+def test_api_url_environment(monkeypatch, environment, expected_url):
+    for name in ("LINODE_URL", "LINODE_API_VERSION", "LINODE_API_URL"):
+        monkeypatch.delenv(name, raising=False)
+
+    for name, value in environment.items():
+        monkeypatch.setenv(name, value)
+
+    assert get_api_url() == expected_url
 
 
 def is_tag_created(client, tag_label):
@@ -19,7 +78,11 @@ def is_tag_created(client, tag_label):
 @pytest.fixture(scope="session")
 def setup_client_and_linode(test_linode_client, e2e_test_firewall):
     client = test_linode_client
-    region = get_region(client, {"Kubernetes", "NodeBalancers"}, "core").id
+    region = get_region(
+        client,
+        {Capability.lke, Capability.nodebalancers},
+        "core",
+    ).id
 
     label = get_test_label()
 
@@ -228,7 +291,7 @@ def test_get_account_settings(test_linode_client):
 # LinodeGroupTests
 def test_create_linode_instance_without_image(test_linode_client):
     client = test_linode_client
-    region = get_region(client, {"Linodes"}, "core").id
+    region = get_region(client, {Capability.linodes}, "core").id
     label = get_test_label()
 
     linode_instance = client.linode.instance_create(
@@ -252,7 +315,11 @@ def test_create_linode_instance_with_image(setup_client_and_linode):
 
 def test_create_linode_with_interfaces(test_linode_client):
     client = test_linode_client
-    region = get_region(client, {"Vlans", "Linodes"}, site_type="core").id
+    region = get_region(
+        client,
+        {Capability.vlans, Capability.linodes},
+        site_type="core",
+    ).id
     label = get_test_label()
 
     linode_instance = client.linode.instance_create(
@@ -325,7 +392,7 @@ def test_cluster_create_with_api_objects(test_linode_client):
     client = test_linode_client
     node_type = client.linode.types()[1]  # g6-standard-1
     version = client.lke.versions()[0]
-    region = get_region(client, {"Kubernetes"})
+    region = get_region(client, {Capability.lke})
     node_pool = client.lke.node_pool(node_type, 3)
     label = get_test_label()
 
@@ -342,7 +409,7 @@ def test_cluster_create_with_api_objects(test_linode_client):
 def test_fails_to_create_cluster_with_invalid_version(test_linode_client):
     invalid_version = "a.12"
     client = test_linode_client
-    region = get_region(client, {"Kubernetes"}).id
+    region = get_region(client, {Capability.lke}).id
 
     with pytest.raises(ApiError, match="not valid") as exc_info:
         client.lke.cluster_create(

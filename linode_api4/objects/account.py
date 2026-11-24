@@ -494,7 +494,6 @@ class OAuthClient(Base):
             "Content-type": "image/png",
         }
 
-        # TODO this check needs to be smarter - python2 doesn't do it right
         if not isinstance(thumbnail, bytes):
             with open(thumbnail, "rb") as f:
                 thumbnail = f.read()

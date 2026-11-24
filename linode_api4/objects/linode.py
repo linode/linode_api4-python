@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import copy
 import string
-import sys
 import warnings
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -790,6 +789,67 @@ class UpgradeInterfacesResult(JSONObject):
     )
 
 
+@dataclass
+class InstanceAlerts(JSONObject):
+    """
+    Represents both legacy and ACLP alerts for a Linode Instance.
+    """
+
+    cpu: int = 0
+    io: int = 0
+    network_in: int = 0
+    network_out: int = 0
+    transfer_quota: int = 0
+    system_alerts: Optional[List[int]] = None
+    user_alerts: Optional[List[int]] = None
+
+
+@dataclass
+class InstanceACLPAlertsOptions(JSONObject):
+    """
+    Represents the ACLP alerts available to define during instance creation and cloning.
+    """
+
+    system_alerts: Optional[List[int]] = None
+    user_alerts: Optional[List[int]] = None
+
+
+@dataclass
+class InstanceBackupSchedule(JSONObject):
+    """
+    InstanceBackupSchedule represents when automatic backups of a Linode Instance are taken.
+    """
+
+    include_none_values = True
+
+    day: Optional[str] = None
+    window: Optional[str] = None
+
+
+@dataclass
+class InstanceBackupsOptions(JSONObject):
+    """
+    InstanceBackupsOptions is used to update the backup settings of a Linode Instance.
+    """
+
+    enabled: bool = False
+    schedule: Optional[InstanceBackupSchedule] = None
+
+
+@dataclass
+class InstanceBackups(JSONObject):
+    """
+    InstanceBackups represents the backup settings and status of a Linode Instance.
+    """
+
+    put_class = InstanceBackupsOptions
+
+    enabled: bool = False
+    available: bool = False
+    schedule: Optional[InstanceBackupSchedule] = None
+    last_successful: Optional[str] = None
+
+
 class Instance(Base):
     """
     A Linode Instance.
@@ -806,12 +866,12 @@ class Instance(Base):
         "created": Property(is_datetime=True),
         "updated": Property(volatile=True, is_datetime=True),
         "region": Property(slug_relationship=Region),
-        "alerts": Property(mutable=True),
+        "alerts": Property(mutable=True, json_object=InstanceAlerts),
         "image": Property(slug_relationship=Image),
         "disks": Property(derived_class=Disk),
         "configs": Property(derived_class=Config),
         "type": Property(slug_relationship=Type),
-        "backups": Property(mutable=True),
+        "backups": Property(mutable=True, json_object=InstanceBackups),
         "ipv4": Property(unordered=True),
         "ipv6": Property(),
         "hypervisor": Property(),
@@ -1231,15 +1291,10 @@ class Instance(Base):
 
     @staticmethod
     def generate_root_password():
-        def _func(value):
-            if sys.version_info[0] < 3:
-                value = int(value.encode("hex"), 16)
-            return value
-
         password = "".join(
             [
-                PASSWORD_CHARS[_func(c) % len(PASSWORD_CHARS)]
-                for c in urandom(randint(50, 110))
+                PASSWORD_CHARS[value % len(PASSWORD_CHARS)]
+                for value in urandom(randint(50, 110))
             ]
         )
 
@@ -1913,6 +1968,9 @@ class Instance(Base):
             Dict[str, Any],
             int,
         ] = None,
+        alerts: Optional[
+            Union[Dict[str, Any], InstanceACLPAlertsOptions]
+        ] = None,
     ):
         """
         Clones this linode into a new linode or into a new linode in the given region
@@ -1951,6 +2009,10 @@ class Instance(Base):
         :param placement_group: Information about the placement group to create this instance under.
         :type placement_group: Union[InstancePlacementGroupAssignment, PlacementGroup, Dict[str, Any], int]
 
+        :param alerts: ACLP monitor alert definitions associated with the cloned Instance.
+                       This is under v4beta and may not be available to all users.
+        :type alerts: dict[str, Any] or InstanceACLPAlertsOptions
+
         :returns: The cloned Instance.
         :rtype: Instance
         """
@@ -1981,6 +2043,7 @@ class Instance(Base):
             "label": label,
             "group": group,
             "with_backups": with_backups,
+            "alerts": alerts,
             "placement_group": _expand_placement_group_assignment(
                 placement_group
             ),
@@ -2115,9 +2178,21 @@ class Instance(Base):
         :param vpc: The VPC-specific configuration of the new interface.
                     If set, the new instance will be a VPC interface.
 
+        .. note::
+           RDMA VPC interfaces (``rdma_vpc``) cannot be added via this
+           endpoint. They may only be specified at instance creation time via
+           :func:`linode_api4.LinodeGroup.instance_create`.
+
         :returns: The newly created Linode Interface.
         :rtype: LinodeInterface
         """
+
+        if kwargs.get("rdma_vpc") is not None:
+            raise ValueError(
+                "RDMA VPC interfaces (rdma_vpc) cannot be added via "
+                "interface_create(). They may only be specified at instance "
+                "creation time via LinodeGroup.instance_create()."
+            )
 
         params = {
             "firewall_id": firewall,

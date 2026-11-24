@@ -23,6 +23,7 @@ from linode_api4 import (
     LinodeClient,
 )
 from linode_api4.objects import (
+    Capability,
     Config,
     ConfigInterfaceIPv4,
     Firewall,
@@ -95,7 +96,7 @@ def create_linode_without_firewall(test_linode_client):
     """
 
     client = test_linode_client
-    region = get_region(client, {"Cloud Firewall"}, "core").id
+    region = get_region(client, {Capability.firewall}, "core").id
 
     label = get_test_label()
 

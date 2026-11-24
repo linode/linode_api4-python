@@ -67,6 +67,8 @@ class Capability(StrEnum):
     ruleset = "Cloud Firewall Rule Set"
     prefixlists = "Cloud Firewall Prefix Lists"
     current_prefixlists = "Cloud Firewall Prefix List Current References"
+    gpudirect_rdma = "GPUDirect RDMA"
+    premium_nodebalancers = "Premium NodeBalancers"
 
 
 @dataclass

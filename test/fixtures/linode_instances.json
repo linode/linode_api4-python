@@ -14,11 +14,15 @@
         "network_out": 5,
         "cpu": 90,
         "transfer_quota": 80,
-        "io": 5000
+        "io": 5000,
+        "system_alerts": [123,456],
+        "user_alerts": [555]
       },
       "label": "linode123",
       "backups": {
         "enabled": true,
+        "available": true,
+        "last_successful": "2018-01-01T00:01:01",
         "schedule": {
           "window": "W02",
           "day": "Scheduling"
@@ -64,7 +68,9 @@
         "network_out": 5,
         "cpu": 90,
         "transfer_quota": 80,
-        "io": 5000
+        "io": 5000,
+        "system_alerts": [123,456],
+        "user_alerts": [555]
       },
       "label": "linode456",
       "backups": {
@@ -104,7 +110,9 @@
         "network_out": 5,
         "cpu": 90,
         "transfer_quota": 80,
-        "io": 5000
+        "io": 5000,
+        "system_alerts": [123,456],
+        "user_alerts": [555]
       },
       "group": "test",
       "hypervisor": "kvm",

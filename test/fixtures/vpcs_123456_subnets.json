@@ -35,6 +35,7 @@
           ]
         }
       ],
+      "vpc_type": "regular",
       "natgateway": {
         "id": 42,
         "label": "my-nat-gateway",
