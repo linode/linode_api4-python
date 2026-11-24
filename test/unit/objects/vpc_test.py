@@ -4,6 +4,7 @@ from test.unit.base import ClientBaseCase
 from linode_api4 import DATE_FORMAT, VPC, VPCSubnet, VPCSubnetNATGatewayOptions
 from linode_api4.objects.vpc import VPCType
 
+
 class VPCTest(ClientBaseCase):
     """
     Tests methods of the VPC Group

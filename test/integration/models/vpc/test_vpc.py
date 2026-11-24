@@ -2,13 +2,8 @@ from test.integration.conftest import get_region
 
 import pytest
 
-from linode_api4 import (
-    VPC,
-    ApiError,
-    VPCIPv4DefaultRange,
-    VPCSubnet,
-)
-from linode_api4.objects import VPCSubnetNATGatewayOptions, Capability
+from linode_api4 import VPC, ApiError, VPCIPv4DefaultRange, VPCSubnet
+from linode_api4.objects import Capability, VPCSubnetNATGatewayOptions
 
 
 @pytest.mark.smoke
