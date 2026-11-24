@@ -1,0 +1,23 @@
+{
+  "data": [
+    {
+      "id": 142,
+      "linode": {
+        "id": 1001,
+        "label": "linode1001",
+        "type": "linode",
+        "url": "/v4/linode/instances/1001"
+      },
+      "addresses": ["203.0.113.42"],
+      "portsets": [
+        {
+          "address": "203.0.113.42",
+          "ports": [{"start": 2048, "end": 3071}]
+        }
+      ]
+    }
+  ],
+  "page": 1,
+  "pages": 1,
+  "results": 1
+}

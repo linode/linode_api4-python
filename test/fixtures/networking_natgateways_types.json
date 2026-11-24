@@ -1,0 +1,29 @@
+{
+  "data": [
+    {
+      "id": "g1-natgateway",
+      "label": "NAT Gateway",
+      "price": {
+        "hourly": 0.035,
+        "monthly": 25
+      },
+      "region_prices": [
+        {
+          "id": "us-east",
+          "hourly": 0.036,
+          "monthly": 26
+        },
+        {
+          "id": "br-gru",
+          "hourly": 0.041,
+          "monthly": 30
+        }
+      ],
+      "transfer": 1000
+    }
+  ],
+  "page": 1,
+  "pages": 1,
+  "results": 1
+}
+

@@ -1,0 +1,40 @@
+{
+  "data": [
+    {
+      "id": 142,
+      "linode": {
+        "id": 1001,
+        "label": "linode1001",
+        "type": "linode",
+        "url": "/v4/linode/instances/1001"
+      },
+      "addresses": ["203.0.113.42"],
+      "portsets": [
+        {
+          "address": "203.0.113.42",
+          "ports": [{"start": 2048, "end": 3071}]
+        }
+      ]
+    },
+    {
+      "id": 143,
+      "linode": {
+        "id": 1002,
+        "label": "linode1002",
+        "type": "linode",
+        "url": "/v4/linode/instances/1002"
+      },
+      "addresses": ["203.0.113.43"],
+      "portsets": [
+        {
+          "address": "203.0.113.43",
+          "ports": [{"start": 3072, "end": 4095}]
+        }
+      ]
+    }
+  ],
+  "page": 1,
+  "pages": 1,
+  "results": 2
+}
+
