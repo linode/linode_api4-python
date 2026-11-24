@@ -792,9 +792,13 @@ def test_assign_nat_gateway_ip_address_in_diff_region_fail(
 
     reserved_ip = client.networking.reserved_ip_create(region=region)
 
-    with pytest.raises(ApiError) as err:
-        gateway.address_assignment_create(reserved_ip.address)
-    assert "[400] address: The provided IP was not found" in str(err.value)
+    try:
+        with pytest.raises(ApiError) as err:
+            gateway.address_assignment_create(reserved_ip.address)
+        assert "[400] address: The provided IP was not found" in str(err.value)
 
-    addresses = gateway.address_assignments()
-    assert len(addresses) == 0
+        addresses = gateway.address_assignments()
+        assert len(addresses) == 0
+
+    finally:
+        reserved_ip.delete()
