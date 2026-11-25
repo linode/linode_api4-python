@@ -9,12 +9,14 @@ from test.integration.helpers import get_test_label
 
 import pytest
 
-from linode_api4 import ApiError, LinodeClient
+from linode_api4 import ApiError, LinodeClient, NodeBalancer
 from linode_api4.objects import (
+    Capability,
     NodeBalancerConfig,
     NodeBalancerNode,
     NodeBalancerType,
     RegionPrice,
+    ReservedIPAddress,
 )
 
 TEST_REGION = get_region(
@@ -23,7 +25,12 @@ TEST_REGION = get_region(
         base_url=get_api_url(),
         ca_path=get_api_ca_file(),
     ),
-    {"Linodes", "Cloud Firewall", "NodeBalancers"},
+    {
+        Capability.linodes,
+        Capability.firewall,
+        Capability.nodebalancers,
+        Capability.premium_nodebalancers,
+    },
     site_type="core",
 )
 
@@ -33,13 +40,14 @@ def linode_with_private_ip(test_linode_client, e2e_test_firewall):
     client = test_linode_client
     label = get_test_label(8)
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         TEST_REGION,
         image="linode/debian12",
         label=label,
         private_ip=True,
         firewall=e2e_test_firewall,
+        root_pass="aComplex@Password123",
     )
 
     yield linode_instance
@@ -64,12 +72,156 @@ def create_nb_config(test_linode_client, e2e_test_firewall):
     nb.delete()
 
 
+@pytest.fixture(scope="session")
+def create_nb_config_with_udp(test_linode_client, e2e_test_firewall):
+    client = test_linode_client
+    label = get_test_label(8)
+
+    nb = client.nodebalancer_create(
+        region=TEST_REGION, label=label, firewall=e2e_test_firewall.id
+    )
+
+    config = nb.config_create(protocol="udp", udp_check_port=1234)
+
+    yield config
+
+    config.delete()
+    nb.delete()
+
+
+@pytest.fixture(scope="session")
+def create_nb(test_linode_client, e2e_test_firewall):
+    client = test_linode_client
+    label = get_test_label(8)
+
+    nb = client.nodebalancer_create(
+        region=TEST_REGION, label=label, firewall=e2e_test_firewall.id
+    )
+
+    yield nb
+
+    nb.delete()
+
+
+def test_create_nb(test_linode_client, e2e_test_firewall):
+    client = test_linode_client
+    label = get_test_label(8)
+
+    nb = client.nodebalancer_create(
+        region=TEST_REGION,
+        label=label,
+        firewall=e2e_test_firewall.id,
+        client_udp_sess_throttle=5,
+        type="premium",
+        backend_connectivity="ipv6",
+    )
+
+    assert TEST_REGION, nb.region
+    assert label == nb.label
+    assert 5 == nb.client_udp_sess_throttle
+    assert nb.type == "premium"
+    assert nb.backend_connectivity == "ipv6"
+    assert nb.backend_ipv6_prefix is None or isinstance(
+        nb.backend_ipv6_prefix, str
+    )
+
+    nb.delete()
+
+
+def test_create_nb_with_reserved_ip(
+    test_linode_client, e2e_test_firewall, create_reserved_ip
+):
+    client = test_linode_client
+    reserved_ip = create_reserved_ip
+    label = get_test_label(8)
+
+    nb = client.nodebalancer_create(
+        region=reserved_ip.region,
+        label=label,
+        firewall=e2e_test_firewall.id,
+        client_udp_sess_throttle=5,
+        ipv4=reserved_ip.address,
+    )
+
+    assert label == nb.label
+    assert nb.ipv4.address == reserved_ip.address
+    assert nb.ipv4.public == True
+    assert nb.ipv4.reserved == True
+
+    nb.delete()
+    reserved_ip = client.networking.reserved_ips(
+        ReservedIPAddress.address == reserved_ip.address
+    )[0]
+    assert reserved_ip.assigned_entity is None
+
+
 def test_get_nodebalancer_config(test_linode_client, create_nb_config):
     config = test_linode_client.load(
         NodeBalancerConfig,
         create_nb_config.id,
         create_nb_config.nodebalancer_id,
     )
+
+
+def test_get_nb_config_with_udp(test_linode_client, create_nb_config_with_udp):
+    config = test_linode_client.load(
+        NodeBalancerConfig,
+        create_nb_config_with_udp.id,
+        create_nb_config_with_udp.nodebalancer_id,
+    )
+
+    assert "udp" == config.protocol
+    assert 1234 == config.udp_check_port
+    assert 2 == config.udp_session_timeout
+
+
+def test_update_nb_config(test_linode_client, create_nb_config_with_udp):
+    config = test_linode_client.load(
+        NodeBalancerConfig,
+        create_nb_config_with_udp.id,
+        create_nb_config_with_udp.nodebalancer_id,
+    )
+
+    config.udp_check_port = 4321
+    config.save()
+
+    config_updated = test_linode_client.load(
+        NodeBalancerConfig,
+        create_nb_config_with_udp.id,
+        create_nb_config_with_udp.nodebalancer_id,
+    )
+
+    assert 4321 == config_updated.udp_check_port
+
+
+def test_get_nb(test_linode_client, create_nb):
+    nb = test_linode_client.load(
+        NodeBalancer,
+        create_nb.id,
+    )
+
+    assert nb.id == create_nb.id
+
+
+def test_update_nb(test_linode_client, create_nb):
+    nb = test_linode_client.load(
+        NodeBalancer,
+        create_nb.id,
+    )
+
+    new_label = f"{nb.label}-ThisNewLabel"
+
+    nb.label = new_label
+    nb.client_udp_sess_throttle = 5
+    nb.save()
+
+    nb_updated = test_linode_client.load(
+        NodeBalancer,
+        create_nb.id,
+    )
+
+    assert new_label == nb_updated.label
+    assert 5 == nb_updated.client_udp_sess_throttle
 
 
 @pytest.mark.smoke
@@ -107,7 +259,10 @@ def test_update_nb_node(test_linode_client, create_nb_config):
         create_nb_config.nodebalancer_id,
     )
     node = config.nodes[0]
-    node.label = "ThisNewLabel"
+
+    new_label = f"{node.label}-ThisNewLabel"
+
+    node.label = new_label
     node.weight = 50
     node.mode = "accept"
     node.save()
@@ -118,7 +273,7 @@ def test_update_nb_node(test_linode_client, create_nb_config):
         (create_nb_config.id, create_nb_config.nodebalancer_id),
     )
 
-    assert "ThisNewLabel" == node_updated.label
+    assert new_label == node_updated.label
     assert 50 == node_updated.weight
     assert "accept" == node_updated.mode
 

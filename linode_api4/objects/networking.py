@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import Optional
+from dataclasses import dataclass, field
+from typing import List, Optional
 
 from linode_api4.common import Price, RegionPrice
 from linode_api4.errors import UnexpectedResponseError
@@ -57,6 +57,20 @@ class InstanceIPNAT1To1(JSONObject):
     vpc_id: int = 0
 
 
+@dataclass
+class ReservedIPAssignedEntity(JSONObject):
+    """
+    Represents the entity that a reserved IP is assigned to.
+
+    NOTE: Reserved IP feature may not currently be available to all users.
+    """
+
+    id: int = 0
+    label: str = ""
+    type: str = ""
+    url: str = ""
+
+
 class IPAddress(Base):
     """
     note:: This endpoint is in beta. This will only function if base_url is set to `https://api.linode.com/v4beta`.
@@ -87,8 +101,12 @@ class IPAddress(Base):
         "public": Property(),
         "rdns": Property(mutable=True),
         "linode_id": Property(),
+        "interface_id": Property(),
         "region": Property(slug_relationship=Region),
         "vpc_nat_1_1": Property(json_object=InstanceIPNAT1To1),
+        "reserved": Property(mutable=True),
+        "tags": Property(mutable=True, unordered=True),
+        "assigned_entity": Property(json_object=ReservedIPAssignedEntity),
     }
 
     @property
@@ -97,7 +115,33 @@ class IPAddress(Base):
 
         if not hasattr(self, "_linode"):
             self._set("_linode", Instance(self._client, self.linode_id))
+
         return self._linode
+
+    @property
+    def interface(self) -> Optional["LinodeInterface"]:
+        """
+        Returns the Linode Interface associated with this IP address.
+
+        NOTE: This function will only return Linode interfaces, not Config interfaces.
+
+        :returns: The Linode Interface associated with this IP address.
+        :rtype: LinodeInterface
+        """
+
+        from .linode_interfaces import LinodeInterface  # pylint: disable-all
+
+        if self.interface_id in (None, 0):
+            self._set("_interface", None)
+        elif not hasattr(self, "_interface"):
+            self._set(
+                "_interface",
+                LinodeInterface(
+                    self._client, self.linode_id, self.interface_id
+                ),
+            )
+
+        return self._interface
 
     def to(self, linode):
         """
@@ -127,6 +171,45 @@ class IPAddress(Base):
         return True
 
 
+class ReservedIPAddress(Base):
+    """
+    .. note:: This endpoint is in beta. This will only function if base_url is set to ``https://api.linode.com/v4beta``.
+
+    Represents a Linode Reserved IPv4 Address.
+
+    Update tags on a reserved IP by mutating the ``tags`` attribute and calling ``save()``.
+
+    NOTE: Reserved IP feature may not currently be available to all users.
+
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-reserved-ip
+    """
+
+    api_endpoint = "/networking/reserved/ips/{address}"
+    id_attribute = "address"
+
+    properties = {
+        "address": Property(identifier=True),
+        "gateway": Property(),
+        "linode_id": Property(),
+        "prefix": Property(),
+        "public": Property(),
+        "rdns": Property(),
+        "region": Property(slug_relationship=Region),
+        "reserved": Property(),
+        "subnet_mask": Property(),
+        "tags": Property(mutable=True, unordered=True),
+        "type": Property(),
+        "assigned_entity": Property(json_object=ReservedIPAssignedEntity),
+        "interface_id": Property(),
+        "vpc_nat_1_1": Property(json_object=InstanceIPNAT1To1),
+    }
+
+
+@dataclass
+class VPCIPAddressIPv6(JSONObject):
+    slaac_address: str = ""
+
+
 @dataclass
 class VPCIPAddress(JSONObject):
     """
@@ -152,6 +235,10 @@ class VPCIPAddress(JSONObject):
     address_range: Optional[str] = None
     nat_1_1: Optional[str] = None
 
+    ipv6_range: Optional[str] = None
+    ipv6_is_public: Optional[bool] = None
+    ipv6_addresses: Optional[List[VPCIPAddressIPv6]] = None
+
 
 class VLAN(Base):
     """
@@ -173,6 +260,53 @@ class VLAN(Base):
         "created": Property(is_datetime=True),
         "linodes": Property(unordered=True),
         "region": Property(slug_relationship=Region),
+    }
+
+
+@dataclass
+class FirewallCreateDevicesOptions(JSONObject):
+    """
+    Represents devices to create created alongside a Linode Firewall.
+    """
+
+    linodes: List[int] = field(default_factory=list)
+    nodebalancers: List[int] = field(default_factory=list)
+    linode_interfaces: List[int] = field(default_factory=list)
+
+
+@dataclass
+class FirewallSettingsDefaultFirewallIDs(JSONObject):
+    """
+    Contains the IDs of Linode Firewalls that should be used by default
+    when creating various interface types.
+
+    NOTE: This feature may not currently be available to all users.
+    """
+
+    include_none_values = True
+
+    vpc_interface: Optional[int] = None
+    public_interface: Optional[int] = None
+    linode: Optional[int] = None
+    nodebalancer: Optional[int] = None
+
+
+class FirewallSettings(Base):
+    """
+    Represents the Firewall settings for the current user.
+
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-firewall-settings
+
+    NOTE: This feature may not currently be available to all users.
+    """
+
+    api_endpoint = "/networking/firewalls/settings"
+
+    properties = {
+        "default_firewall_ids": Property(
+            json_object=FirewallSettingsDefaultFirewallIDs,
+            mutable=True,
+        ),
     }
 
 
@@ -307,6 +441,22 @@ class Firewall(Base):
         return c
 
 
+class FirewallTemplate(Base):
+    """
+    Represents a single Linode Firewall template.
+
+    API documentation: https://techdocs.akamai.com/linode-api/reference/get-firewall-template
+
+    NOTE: This feature may not currently be available to all users.
+    """
+
+    api_endpoint = "/networking/firewalls/templates/{slug}"
+
+    id_attribute = "slug"
+
+    properties = {"slug": Property(identifier=True), "rules": Property()}
+
+
 class NetworkTransferPrice(Base):
     """
     An NetworkTransferPrice represents the structure of a valid network transfer price.
@@ -322,4 +472,21 @@ class NetworkTransferPrice(Base):
         "price": Property(json_object=Price),
         "region_prices": Property(json_object=RegionPrice),
         "transfer": Property(),
+    }
+
+
+class ReservedIPType(Base):
+    """
+    Represents a reserved IP type with pricing information.
+
+    NOTE: Reserved IP feature may not currently be available to all users.
+
+    API Documentation: https://techdocs.akamai.com/linode-api/reference/get-reserved-ip-types
+    """
+
+    properties = {
+        "id": Property(identifier=True),
+        "label": Property(),
+        "price": Property(json_object=Price),
+        "region_prices": Property(json_object=RegionPrice),
     }

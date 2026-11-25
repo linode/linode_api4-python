@@ -1,0 +1,43 @@
+{
+  "id": 124,
+  "status": "running",
+  "type": "g6-standard-1",
+  "alerts": {
+    "network_in": 5,
+    "network_out": 5,
+    "cpu": 90,
+    "transfer_quota": 80,
+    "io": 5000
+  },
+  "group": "test",
+  "hypervisor": "kvm",
+  "label": "linode124",
+  "backups": {
+    "enabled": true,
+    "schedule": {
+      "window": "W02",
+      "day": "Scheduling"
+    }
+  },
+  "specs": {
+    "memory": 2048,
+    "disk": 30720,
+    "vcpus": 1,
+    "transfer": 2000
+  },
+  "ipv6": "1235:abcd::1234:abcd:89ef:67cd/64",
+  "created": "2017-01-01T00:00:00",
+  "region": "us-east-1",
+  "ipv4": [
+    "124.45.67.89"
+  ],
+  "updated": "2017-01-01T00:00:00",
+  "image": "linode/ubuntu24.04",
+  "tags": ["something"],
+  "host_uuid": "3b3ddd59d9a78bb8de041391075df44de62bfec8",
+  "watchdog_enabled": true,
+  "disk_encryption": "disabled",
+  "lke_cluster_id": null,
+  "placement_group": null,
+  "interface_generation": "linode"
+}

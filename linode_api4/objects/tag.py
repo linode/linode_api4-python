@@ -6,6 +6,7 @@ from linode_api4.objects import (
     Property,
     Volume,
 )
+from linode_api4.objects.networking import ReservedIPAddress
 from linode_api4.paginated_list import PaginatedList
 
 CLASS_MAP = {
@@ -13,6 +14,7 @@ CLASS_MAP = {
     "domain": Domain,
     "nodebalancer": NodeBalancer,
     "volume": Volume,
+    "reserved_ipv4_address": ReservedIPAddress,
 }
 
 
@@ -124,7 +126,8 @@ class TaggedObjectProxy:
 
         # discard the envelope
         real_json = json["data"]
-        real_id = real_json["id"]
+        id_attr = getattr(make_cls, "id_attribute", "id")
+        real_id = real_json[id_attr]
 
         # make the real object type
         return Base.make(

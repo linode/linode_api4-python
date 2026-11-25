@@ -1,0 +1,19 @@
+{
+  "data": [
+    {
+      "created": "2025-04-14T22:44:02",
+      "description": "My group of images to share with my team.",
+      "expiry": null,
+      "id": 1,
+      "images_count": 1,
+      "is_suspended": false,
+      "label": "My Shared Images",
+      "members_count": 0,
+      "updated": null,
+      "uuid": "1533863e-16a4-47b5-b829-ac0f35c13278"
+    }
+  ],
+  "page": 1,
+  "pages": 1,
+  "results": 1
+}

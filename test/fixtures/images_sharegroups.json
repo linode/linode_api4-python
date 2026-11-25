@@ -1,0 +1,31 @@
+{
+  "data": [
+    {
+      "created": "2025-04-14T22:44:02",
+      "description": "My group of images to share with my team.",
+      "expiry": null,
+      "id": 1,
+      "images_count": 0,
+      "is_suspended": false,
+      "label": "My Shared Images",
+      "members_count": 0,
+      "updated": null,
+      "uuid": "1533863e-16a4-47b5-b829-ac0f35c13278"
+    },
+    {
+      "created": "2025-04-14T22:44:03",
+      "description": "My other group of images to share with my team.",
+      "expiry": null,
+      "id": 2,
+      "images_count": 1,
+      "is_suspended": false,
+      "label": "My other Shared Images",
+      "members_count": 3,
+      "updated": null,
+      "uuid": "30ee6599-eb0f-478c-9e55-4073c6c24a39"
+    }
+  ],
+  "page": 1,
+  "pages": 1,
+  "results": 2
+}

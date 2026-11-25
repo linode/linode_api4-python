@@ -2,6 +2,7 @@ import datetime
 from test.unit.base import ClientBaseCase
 
 from linode_api4 import DATE_FORMAT, VPC, VPCSubnet
+from linode_api4.objects.vpc import VPCType
 
 
 class VPCTest(ClientBaseCase):
@@ -113,16 +114,37 @@ class VPCTest(ClientBaseCase):
         self.assertEqual(vpc.created, expected_dt)
         self.assertEqual(vpc.updated, expected_dt)
 
+        self.assertEqual(vpc.ipv4[0].range, "10.0.0.0/8")
+        self.assertEqual(vpc.ipv6[0].range, "fd71:1140:a9d0::/52")
+        self.assertEqual(vpc.vpc_type, "regular")
+
     def validate_vpc_subnet_789(self, subnet: VPCSubnet):
         expected_dt = datetime.datetime.strptime(
             "2018-01-01T00:01:01", DATE_FORMAT
         )
 
-        self.assertEqual(subnet.label, "test-subnet")
-        self.assertEqual(subnet.ipv4, "10.0.0.0/24")
-        self.assertEqual(subnet.linodes[0].id, 12345)
-        self.assertEqual(subnet.created, expected_dt)
-        self.assertEqual(subnet.updated, expected_dt)
+        assert subnet.label == "test-subnet"
+        assert subnet.ipv4 == "10.0.0.0/24"
+        assert subnet.linodes[0].id == 12345
+        assert subnet.created == expected_dt
+        assert subnet.updated == expected_dt
+
+        assert subnet.databases[0].id == 12345
+        assert subnet.databases[0].ipv4_range == "10.0.0.0/24"
+        assert subnet.databases[0].ipv6_ranges == ["2001:db8::/64"]
+
+        assert subnet.linodes[0].interfaces[0].id == 678
+        assert subnet.linodes[0].interfaces[0].active
+        assert subnet.linodes[0].interfaces[0].config_id is None
+
+        assert subnet.linodes[0].interfaces[1].id == 543
+        assert not subnet.linodes[0].interfaces[1].active
+        assert subnet.linodes[0].interfaces[1].config_id is None
+
+        # New RDMA-related fields
+        assert subnet.vpc_type == "regular"
+
+        self.assertEqual(subnet.ipv6[0].range, "fd71:1140:a9d0::/52")
 
     def test_list_vpc_ips(self):
         """
@@ -148,3 +170,47 @@ class VPCTest(ClientBaseCase):
         self.assertEqual(vpc_ip.gateway, "10.0.0.1")
         self.assertEqual(vpc_ip.prefix, 8)
         self.assertEqual(vpc_ip.subnet_mask, "255.0.0.0")
+
+        vpc_ip_2 = vpc_ips[2]
+
+        self.assertEqual(vpc_ip_2.ipv6_range, "fd71:1140:a9d0::/52")
+        self.assertEqual(vpc_ip_2.ipv6_is_public, True)
+        self.assertEqual(
+            vpc_ip_2.ipv6_addresses[0].slaac_address, "fd71:1140:a9d0::/52"
+        )
+
+    def test_create_vpc_with_vpc_type(self):
+        """
+        Tests that ``client.vpcs.create`` forwards ``vpc_type`` to the API.
+        """
+
+        with self.mock_post("/vpcs/123456") as m:
+            self.client.vpcs.create(
+                label="rdma-vpc",
+                region="us-cph",
+                description="rdma test vpc",
+                vpc_type=VPCType.rdma,
+            )
+
+            assert m.call_url == "/vpcs"
+            assert m.call_data == {
+                "label": "rdma-vpc",
+                "region": "us-cph",
+                "description": "rdma test vpc",
+                "vpc_type": "rdma",
+            }
+
+    def test_create_vpc_without_vpc_type(self):
+        """
+        Tests that ``vpc_type`` is omitted from the request body when not
+        provided, preserving the previous default behavior.
+        """
+
+        with self.mock_post("/vpcs/123456") as m:
+            self.client.vpcs.create(
+                label="regular-vpc",
+                region="us-east",
+            )
+
+            assert m.call_url == "/vpcs"
+            assert "vpc_type" not in m.call_data

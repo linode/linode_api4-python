@@ -25,10 +25,7 @@ class RegionTest(ClientBaseCase):
             for entry in avail_entries:
                 assert entry.region is not None
                 assert len(entry.region) > 0
-
-                assert entry.plan is not None
                 assert len(entry.plan) > 0
-
                 assert entry.available is not None
 
             # Ensure all three pages are read
@@ -49,3 +46,30 @@ class RegionTest(ClientBaseCase):
                 assert json.loads(call.get("headers").get("X-Filter")) == {
                     "+and": [{"region": "us-east"}, {"plan": "premium4096.7"}]
                 }
+
+    def test_list_vpc_availability(self):
+        """
+        Tests that region VPC availability can be listed.
+        """
+
+        with self.mock_get("/regions/vpc-availability") as m:
+            vpc_entries = self.client.regions.vpc_availability()
+
+            assert len(vpc_entries) > 0
+
+            for entry in vpc_entries:
+                assert len(entry.region) > 0
+                assert entry.available is not None
+                # available_ipv6_prefix_lengths may be empty list but should exist
+                assert entry.available_ipv6_prefix_lengths is not None
+
+            # Ensure both pages are read
+            assert m.call_count == 2
+            assert (
+                m.mock.call_args_list[0].args[0] == "//regions/vpc-availability"
+            )
+
+            assert (
+                m.mock.call_args_list[1].args[0]
+                == "//regions/vpc-availability?page=2&page_size=25"
+            )

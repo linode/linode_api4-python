@@ -1,0 +1,53 @@
+{
+  "created": "2025-01-01T00:01:01",
+  "default_route": {
+    "ipv4": true,
+    "ipv6": true
+  },
+  "id": 123,
+  "mac_address": "22:00:AB:CD:EF:01",
+  "public": {
+    "ipv4": {
+      "addresses": [
+        {
+          "address": "172.30.0.50",
+          "primary": true
+        }
+      ],
+      "shared": [
+        {
+          "address": "172.30.0.51",
+          "linode_id": 125
+        }
+      ]
+    },
+    "ipv6": {
+      "ranges": [
+        {
+          "range": "2600:3c09:e001:59::/64",
+          "route_target": "2600:3c09::ff:feab:cdef"
+        },
+        {
+          "range": "2600:3c09:e001:5a::/64",
+          "route_target": "2600:3c09::ff:feab:cdef"
+        }
+      ],
+      "shared": [
+        {
+          "range": "2600:3c09:e001:2a::/64",
+          "route_target": null
+        }
+      ],
+      "slaac": [
+        {
+          "address": "2600:3c09::ff:feab:cdef",
+          "prefix": 64
+        }
+      ]
+    }
+  },
+  "updated": "2025-01-01T00:01:01",
+  "version": 1,
+  "vlan": null,
+  "vpc": null
+}

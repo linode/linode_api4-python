@@ -51,6 +51,8 @@ class LKETest(ClientBaseCase):
         assert pool.id == 456
         assert pool.cluster_id == 18881
         assert pool.type.id == "g6-standard-4"
+        assert pool.label == "example-node-pool"
+        assert pool.firewall_id == 456
         assert pool.disk_encryption == InstanceDiskEncryptionType.enabled
 
         assert pool.disks is not None
@@ -65,17 +67,6 @@ class LKETest(ClientBaseCase):
         assert pool.taints[0].key == "foo"
         assert pool.taints[0].value == "bar"
         assert pool.taints[0].effect == "NoSchedule"
-
-    def test_cluster_dashboard_url_view(self):
-        """
-        Tests that you can submit a correct cluster dashboard url api request.
-        """
-        cluster = LKECluster(self.client, 18881)
-
-        with self.mock_get("/lke/clusters/18881/dashboard") as m:
-            result = cluster.cluster_dashboard_url_view()
-            self.assertEqual(m.call_url, "/lke/clusters/18881/dashboard")
-            self.assertEqual(result, "https://example.dashboard.linodelke.net")
 
     def test_kubeconfig_delete(self):
         """
@@ -162,6 +153,7 @@ class LKETest(ClientBaseCase):
         self.assertEqual(pool.id, 456)
         self.assertEqual(pool.cluster_id, 18881)
         self.assertEqual(pool.type.id, "g6-standard-4")
+        self.assertEqual(pool.label, "example-node-pool")
         self.assertIsNotNone(pool.disks)
         self.assertIsNotNone(pool.nodes)
         self.assertIsNotNone(pool.autoscaler)
@@ -251,6 +243,8 @@ class LKETest(ClientBaseCase):
 
         pool.tags = ["foobar"]
         pool.count = 5
+        pool.label = "testing-label"
+        pool.firewall_id = 852
         pool.autoscaler = {
             "enabled": True,
             "min": 2,
@@ -274,9 +268,11 @@ class LKETest(ClientBaseCase):
                     "min": 2,
                     "max": 10,
                 },
+                "label": "testing-label",
                 "labels": {
                     "updated-key": "updated-value",
                 },
+                "firewall_id": 852,
                 "taints": [
                     {
                         "key": "updated-key",
@@ -295,6 +291,7 @@ class LKETest(ClientBaseCase):
             self.client.lke.cluster_create(
                 "us-mia",
                 "test-acl-cluster",
+                "1.29",
                 [
                     self.client.lke.node_pool(
                         "g6-nanode-1",
@@ -310,7 +307,6 @@ class LKETest(ClientBaseCase):
                         ],
                     )
                 ],
-                "1.29",
             )
 
             assert m.call_data["node_pools"][0] == {
@@ -332,13 +328,13 @@ class LKETest(ClientBaseCase):
             cluster = self.client.lke.cluster_create(
                 "us-mia",
                 "test-aapl-cluster",
+                "1.29",
                 [
                     self.client.lke.node_pool(
                         "g6-dedicated-4",
                         3,
                     )
                 ],
-                "1.29",
                 apl_enabled=True,
                 control_plane=LKEClusterControlPlaneOptions(
                     high_availability=True,
@@ -546,6 +542,8 @@ class LKETest(ClientBaseCase):
         pool = LKENodePool(self.client, 789, 18882)
         assert pool.k8s_version == "1.31.1+lke1"
         assert pool.update_strategy == "rolling_update"
+        assert pool.label == "enterprise-node-pool"
+        assert pool.firewall_id == 789
 
     def test_lke_tiered_version(self):
         version = TieredKubeVersion(self.client, "1.32", "standard")

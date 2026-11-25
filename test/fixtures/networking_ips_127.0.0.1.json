@@ -2,6 +2,7 @@
   "address": "127.0.0.1",
   "gateway": "127.0.0.1",
   "linode_id": 123,
+  "interface_id": 456,
   "prefix": 24,
   "public": true,
   "rdns": "test.example.org",

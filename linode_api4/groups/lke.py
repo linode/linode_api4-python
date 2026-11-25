@@ -62,8 +62,8 @@ class LKEGroup(Group):
         self,
         region,
         label,
-        node_pools,
         kube_version,
+        node_pools: Optional[list] = None,
         control_plane: Union[
             LKEClusterControlPlaneOptions, Dict[str, Any]
         ] = None,
@@ -119,6 +119,15 @@ class LKEGroup(Group):
         :returns: The new LKE Cluster
         :rtype: LKECluster
         """
+        if node_pools is None:
+            node_pools = []
+
+        if len(node_pools) == 0 and (
+            tier is None or tier.lower() != "enterprise"
+        ):
+            raise ValueError(
+                "LKE standard clusters must have at least one node pool."
+            )
 
         params = {
             "label": label,

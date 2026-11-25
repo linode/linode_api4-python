@@ -1,3 +1,6 @@
+# Include all files under test/ directory in source distribution only
 graft test
+
+# Exclude Python bytecode
 global-exclude *.pyc
-include baked_version
+global-exclude __pycache__

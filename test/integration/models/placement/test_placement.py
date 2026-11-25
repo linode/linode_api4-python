@@ -13,6 +13,7 @@ from linode_api4 import (
     PlacementGroupPolicy,
     PlacementGroupType,
 )
+from linode_api4.objects import Capability
 
 
 @pytest.mark.smoke
@@ -76,7 +77,7 @@ def test_pg_migration(
 
     pg_outbound = client.placement.group_create(
         label_pg,
-        get_region(test_linode_client, {"Placement Group"}),
+        get_region(test_linode_client, {Capability.placement_group}),
         PlacementGroupType.anti_affinity_local,
         PlacementGroupPolicy.flexible,
     )
@@ -92,7 +93,7 @@ def test_pg_migration(
 
     # Says it could take up to ~6 hrs for migration to fully complete
     send_request_when_resource_available(
-        300,
+        400,
         linode.initiate_migration,
         placement_group=pg_inbound.id,
         migration_type=MigrationType.COLD,

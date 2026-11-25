@@ -15,7 +15,7 @@ from test.integration.helpers import (
 import pytest
 
 from linode_api4 import LinodeClient
-from linode_api4.objects import RegionPrice, Volume, VolumeType
+from linode_api4.objects import Capability, RegionPrice, Volume, VolumeType
 
 TEST_REGION = get_region(
     LinodeClient(
@@ -23,7 +23,7 @@ TEST_REGION = get_region(
         base_url=get_api_url(),
         ca_path=get_api_ca_file(),
     ),
-    {"Linodes", "Cloud Firewall"},
+    {Capability.linodes, Capability.firewall},
     site_type="core",
 )
 
@@ -46,12 +46,13 @@ def linode_for_volume(test_linode_client, e2e_test_firewall):
 
     label = get_test_label(length=8)
 
-    linode_instance, password = client.linode.instance_create(
+    linode_instance = client.linode.instance_create(
         "g6-nanode-1",
         TEST_REGION,
         image="linode/debian12",
         label=label,
         firewall=e2e_test_firewall,
+        root_pass="aComplex@Password123",
     )
 
     yield linode_instance

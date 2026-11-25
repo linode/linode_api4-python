@@ -1,0 +1,25 @@
+{
+  "data": [
+    {
+      "quota_id": "obj-access-keys-per-account",
+      "quota_type": "obj-access-keys",
+      "quota_name": "Object Storage Access Keys per Account",
+      "description": "Maximum number of access keys this customer is allowed to have on their account.",
+      "resource_metric": "access_key",
+      "quota_limit": 100,
+      "has_usage": true
+    },
+    {
+      "quota_id": "obj-total-capacity-per-account",
+      "quota_type": "obj-total-capacity",
+      "quota_name": "Object Storage Total Capacity per Account",
+      "description": "Maximum total storage capacity in bytes this customer is allowed on their account.",
+      "resource_metric": "byte",
+      "quota_limit": 1099511627776,
+      "has_usage": true
+    }
+  ],
+  "page": 1,
+  "pages": 1,
+  "results": 2
+}

@@ -5,11 +5,17 @@ from .account import *
 from .beta import *
 from .database import *
 from .domain import *
+from .iam import *
 from .image import *
+from .image_share_group import *
 from .linode import *
 from .lke import *
 from .lke_tier import *
+from .lock import *
 from .longview import *
+from .maintenance import *
+from .monitor import *
+from .monitor_api import *
 from .networking import *
 from .nodebalancer import *
 from .object_storage import *

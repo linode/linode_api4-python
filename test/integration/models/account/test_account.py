@@ -1,13 +1,18 @@
 import time
 from datetime import datetime
 from test.integration.conftest import get_region
-from test.integration.helpers import get_test_label
+from test.integration.helpers import (
+    get_test_label,
+    retry_sending_request,
+    wait_for_condition,
+)
 
 import pytest
 
 from linode_api4.objects import (
     Account,
     AccountSettings,
+    Capability,
     ChildAccount,
     Event,
     Login,
@@ -35,9 +40,12 @@ def test_get_account(test_linode_client):
     assert account_get.tax_id == account.tax_id
 
 
+@pytest.mark.skip(
+    reason="Test fails for E2E test user with [504] Server Timeout due to enormous amount of logins. More details: ARB-7420"
+)
 def test_get_login(test_linode_client):
     client = test_linode_client
-    login = client.load(Login(client, "", {}), "")
+    login = retry_sending_request(3, client.load, Login(client, "", {}), "")
 
     updated_time = int(time.mktime(getattr(login, "_last_updated").timetuple()))
 
@@ -59,34 +67,73 @@ def test_get_account_settings(test_linode_client):
     assert "longview_subscription" in str(account_settings._raw_json)
     assert "backups_enabled" in str(account_settings._raw_json)
     assert "object_storage" in str(account_settings._raw_json)
+    assert isinstance(account_settings.interfaces_for_new_linodes, str)
+    assert "maintenance_policy" in str(account_settings._raw_json)
 
 
+def test_update_maintenance_policy(test_linode_client):
+    client = test_linode_client
+    settings = client.load(AccountSettings(client, ""), "")
+
+    original_policy = settings.maintenance_policy
+    new_policy = (
+        "linode/power_off_on"
+        if original_policy == "linode/migrate"
+        else "linode/migrate"
+    )
+
+    settings.maintenance_policy = new_policy
+    settings.save()
+
+    updated = client.load(AccountSettings(client, ""), "")
+    assert updated.maintenance_policy == new_policy
+
+    settings.maintenance_policy = original_policy
+    settings.save()
+
+    updated = client.load(AccountSettings(client, ""), "")
+    assert updated.maintenance_policy == original_policy
+
+
+# May fail due to multiple events occurring on the test user in the same time
+@pytest.mark.flaky(reruns=2, reruns_delay=5)
 @pytest.mark.smoke
 def test_latest_get_event(test_linode_client, e2e_test_firewall):
     client = test_linode_client
 
-    region = get_region(client, {"Linodes", "Cloud Firewall"}, site_type="core")
+    region = get_region(
+        client,
+        {Capability.linodes, Capability.firewall},
+        site_type="core",
+    )
     label = get_test_label()
 
-    linode, password = client.linode.instance_create(
+    linode = client.linode.instance_create(
         "g6-nanode-1",
         region,
         image="linode/debian12",
         label=label,
         firewall=e2e_test_firewall,
+        root_pass="aComplex@Password123",
     )
 
-    events = client.load(Event, "")
+    def get_linode_status():
+        linode.invalidate()
+        return linode.status == "running"
 
-    latest_events = events._raw_json.get("data")
+    # To ensure the Linode is running and the 'event' key has been populated
+    wait_for_condition(5, 150, get_linode_status)
+
+    events = client.load(Event, "")
+    latest_events = events._raw_json.get("data")[:50]
 
     linode.delete()
 
-    for event in latest_events[:15]:
+    for event in latest_events:
         if label == event["entity"]["label"]:
             break
     else:
-        assert False, f"Linode '{label}' not found in the last 15 events"
+        assert False, f"Linode '{label}' not found in the last 50 events"
 
 
 def test_get_user(test_linode_client):

@@ -11,7 +11,7 @@
       "engine": "mysql",
       "hosts": {
         "primary": "lin-123-456-mysql-mysql-primary.servers.linodedb.net",
-        "secondary": "lin-123-456-mysql-primary-private.servers.linodedb.net"
+        "standby": "lin-123-456-mysql-primary-private.servers.linodedb.net"
       },
       "id": 123,
       "instance_uri": "/v4/databases/mysql/instances/123",
@@ -27,7 +27,12 @@
         "hour_of_day": 0,
         "week_of_month": null
       },
-      "version": "8.0.26"
+      "version": "8.0.26",
+      "private_network": {
+        "vpc_id": 1234,
+        "subnet_id": 5678,
+        "public_access": true
+      }
     }
   ],
   "page": 1,

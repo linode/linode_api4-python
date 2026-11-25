@@ -1,0 +1,8 @@
+{
+   "default_firewall_ids": {
+      "vpc_interface": 123,
+      "public_interface": 456,
+      "linode": 789,
+      "nodebalancer": 321
+   }
+}

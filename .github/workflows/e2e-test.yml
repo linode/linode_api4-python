@@ -3,6 +3,14 @@ name: Integration Tests
 on:
   workflow_dispatch:
     inputs:
+      run_aclp_logs_stream_tests:
+        description: 'Set this parameter to "true" to run ACLP logs stream related test cases'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
       run_db_fork_tests:
         description: 'Set this parameter to "true" to run fork database related test cases'
         required: false
@@ -41,14 +49,22 @@ on:
         options:
           - 'true'
           - 'false'
+      test_report_upload:
+        description: 'Indicates whether to upload the test report to object storage. Defaults to "false"'
+        type: choice
+        required: false
+        default: 'false'
+        options:
+          - 'true'
+          - 'false'
   push:
     branches:
       - main
       - dev
 
 env:
-  DEFAULT_PYTHON_VERSION: "3.10"
-  EOL_PYTHON_VERSION: "3.9"
+  DEFAULT_PYTHON_VERSION: "3.13"
+  EOL_PYTHON_VERSION: "3.10"
   EXIT_STATUS: 0
 
 jobs:
@@ -57,7 +73,7 @@ jobs:
     steps:
       - name: Clone Repository with SHA
         if: ${{ inputs.sha != '' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           submodules: 'recursive'
@@ -65,13 +81,13 @@ jobs:
 
       - name: Clone Repository without SHA
         if: ${{ inputs.sha == '' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           submodules: 'recursive'
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ inputs.run-eol-python-version == 'true' && env.EOL_PYTHON_VERSION || inputs.python-version || env.DEFAULT_PYTHON_VERSION }}
 
@@ -91,13 +107,17 @@ jobs:
         run: |
           timestamp=$(date +'%Y%m%d%H%M')
           report_filename="${timestamp}_sdk_test_report.xml"
-          make test-int RUN_DB_FORK_TESTS=${{ github.event.inputs.run_db_fork_tests }} RUN_DB_TESTS=${{ github.event.inputs.run_db_tests }} TEST_SUITE="${{ github.event.inputs.test_suite }}" TEST_ARGS="--junitxml=${report_filename}"
+          make test-int RUN_DB_FORK_TESTS="$RUN_DB_FORK_TESTS" RUN_DB_TESTS="$RUN_DB_TESTS" RUN_ACLP_LOGS_STREAM_TESTS="$RUN_ACLP_LOGS_STREAM_TESTS" TEST_SUITE="$TEST_SUITE" TEST_ARGS="--junitxml=${report_filename}"
         env:
           LINODE_TOKEN: ${{ env.LINODE_TOKEN }}
+          RUN_DB_FORK_TESTS: ${{ github.event.inputs.run_db_fork_tests }}
+          RUN_DB_TESTS: ${{ github.event.inputs.run_db_tests }}
+          RUN_ACLP_LOGS_STREAM_TESTS: ${{ github.event.inputs.run_aclp_logs_stream_tests }}
+          TEST_SUITE: ${{ github.event.inputs.test_suite }}
 
       - name: Upload Test Report as Artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-report-file
           if-no-files-found: ignore
@@ -111,7 +131,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           submodules: 'recursive'
@@ -141,7 +161,7 @@ jobs:
 
     steps:
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.x'
 
@@ -172,24 +192,25 @@ jobs:
   process-upload-report:
     runs-on: ubuntu-latest
     needs: [integration-tests]
-    if: always() && github.repository == 'linode/linode_api4-python' # Run even if integration tests fail and only on main repository
+    # Run even if integration tests fail on main repository AND push event OR test_report_upload is true in case of manual run
+    if: always() && github.repository == 'linode/linode_api4-python' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.test_report_upload == 'true'))
     outputs:
       summary: ${{ steps.set-test-summary.outputs.summary }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           submodules: 'recursive'
 
       - name: Download test report
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: test-report-file
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.x'
 
@@ -232,7 +253,7 @@ jobs:
     steps:
       - name: Notify Slack
         id: main_message
-        uses: slackapi/slack-github-action@v2.1.0
+        uses: slackapi/slack-github-action@v4
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -264,7 +285,7 @@ jobs:
 
       - name: Test summary thread
         if: success()
-        uses: slackapi/slack-github-action@v2.1.0
+        uses: slackapi/slack-github-action@v4
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}

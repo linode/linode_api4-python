@@ -1,0 +1,27 @@
+{
+  "data": [
+    {
+      "id": 1,
+      "lock_type": "cannot_delete",
+      "entity": {
+        "id": 123,
+        "type": "linode",
+        "label": "test-linode",
+        "url": "/v4/linode/instances/123"
+      }
+    },
+    {
+      "id": 2,
+      "lock_type": "cannot_delete_with_subresources",
+      "entity": {
+        "id": 456,
+        "type": "linode",
+        "label": "another-linode",
+        "url": "/v4/linode/instances/456"
+      }
+    }
+  ],
+  "page": 1,
+  "pages": 1,
+  "results": 2
+}

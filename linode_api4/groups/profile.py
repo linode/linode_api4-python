@@ -1,5 +1,5 @@
-import os
 from datetime import datetime
+from pathlib import Path
 
 from linode_api4 import UnexpectedResponseError
 from linode_api4.common import SSH_KEY_TYPES
@@ -322,9 +322,9 @@ class ProfileGroup(Group):
         """
         if not key.startswith(SSH_KEY_TYPES):
             # this might be a file path - look for it
-            path = os.path.expanduser(key)
-            if os.path.isfile(path):
-                with open(path) as f:
+            key_path = Path(key).expanduser()
+            if key_path.is_file():
+                with open(key_path) as f:
                     key = f.read().strip()
             if not key.startswith(SSH_KEY_TYPES):
                 raise ValueError("Invalid SSH Public Key")

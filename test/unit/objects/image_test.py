@@ -55,6 +55,8 @@ class ImageTest(ClientBaseCase):
         self.assertEqual(image.total_size, 1100)
         self.assertEqual(image.regions[0].region, "us-east")
         self.assertEqual(image.regions[0].status, "available")
+        self.assertEqual(image.is_shared, False)
+        self.assertIsNone(image.image_sharing)
 
     def test_image_create_upload(self):
         """

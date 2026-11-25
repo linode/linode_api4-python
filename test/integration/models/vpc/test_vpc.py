@@ -2,7 +2,8 @@ from test.integration.conftest import get_region
 
 import pytest
 
-from linode_api4 import VPC, ApiError, VPCSubnet
+from linode_api4 import VPC, ApiError, VPCIPv4DefaultRange, VPCSubnet
+from linode_api4.objects import Capability
 
 
 @pytest.mark.smoke
@@ -10,6 +11,8 @@ def test_get_vpc(test_linode_client, create_vpc):
     vpc = test_linode_client.load(VPC, create_vpc.id)
     test_linode_client.vpcs()
     assert vpc.id == create_vpc.id
+    assert isinstance(vpc.ipv6[0].range, str)
+    assert vpc.vpc_type == "regular"
 
 
 @pytest.mark.smoke
@@ -31,8 +34,14 @@ def test_update_vpc(test_linode_client, create_vpc):
 def test_get_subnet(test_linode_client, create_vpc_with_subnet):
     vpc, subnet = create_vpc_with_subnet
     loaded_subnet = test_linode_client.load(VPCSubnet, subnet.id, vpc.id)
-
+    assert loaded_subnet.ipv4 == subnet.ipv4
+    assert loaded_subnet.ipv6 is not None
+    assert loaded_subnet.ipv6[0].range.startswith(
+        vpc.ipv6[0].range.split("::")[0]
+    )
     assert loaded_subnet.id == subnet.id
+    assert loaded_subnet.vpc_type == "regular"
+    assert loaded_subnet.vpc_type == vpc.vpc_type
 
 
 @pytest.mark.smoke
@@ -52,20 +61,20 @@ def test_fails_create_vpc_invalid_data(test_linode_client):
     with pytest.raises(ApiError) as excinfo:
         test_linode_client.vpcs.create(
             label="invalid_label!!",
-            region=get_region(test_linode_client, {"VPCs"}),
+            region=get_region(test_linode_client, {Capability.vpcs}),
             description="test description",
         )
     assert excinfo.value.status == 400
-    assert "Label must include only ASCII" in str(excinfo.value.json)
 
 
 def test_get_all_vpcs(test_linode_client, create_multiple_vpcs):
     vpc_1, vpc_2 = create_multiple_vpcs
 
     all_vpcs = test_linode_client.vpcs()
+    all_vpc_ids = {vpc.id for vpc in all_vpcs}
 
-    assert str(vpc_1) in str(all_vpcs.lists)
-    assert str(vpc_2) in str(all_vpcs.lists)
+    assert vpc_1.id in all_vpc_ids
+    assert vpc_2.id in all_vpc_ids
 
 
 def test_fails_update_vpc_invalid_data(create_vpc):
@@ -78,7 +87,6 @@ def test_fails_update_vpc_invalid_data(create_vpc):
         vpc.save()
 
     assert excinfo.value.status == 400
-    assert "Label must include only ASCII" in str(excinfo.value.json)
 
 
 def test_fails_create_subnet_invalid_data(create_vpc):
@@ -88,7 +96,9 @@ def test_fails_create_subnet_invalid_data(create_vpc):
         create_vpc.subnet_create("test-subnet", ipv4=invalid_ipv4)
 
     assert excinfo.value.status == 400
-    assert "ipv4 must be an IPv4 network" in str(excinfo.value.json)
+    error_msg = str(excinfo.value.json)
+
+    assert "Must be an IPv4 network" in error_msg
 
 
 def test_fails_update_subnet_invalid_data(create_vpc_with_subnet):
@@ -100,4 +110,94 @@ def test_fails_update_subnet_invalid_data(create_vpc_with_subnet):
         subnet.save()
 
     assert excinfo.value.status == 400
-    assert "Label must include only ASCII" in str(excinfo.value.json)
+    assert "Must only use ASCII" in str(excinfo.value.json)
+
+
+def test_fails_create_subnet_with_invalid_ipv6_range(create_vpc):
+    valid_ipv4 = "10.0.0.0/24"
+    invalid_ipv6 = [{"range": "2600:3c11:e5b9::/5a"}]
+
+    with pytest.raises(ApiError) as excinfo:
+        create_vpc.subnet_create(
+            label="bad-ipv6-subnet",
+            ipv4=valid_ipv4,
+            ipv6=invalid_ipv6,
+        )
+
+    assert excinfo.value.status == 400
+    error = excinfo.value.json["errors"]
+
+    assert any(
+        e["field"] == "ipv6[0].range"
+        and "Must be an IPv6 network" in e["reason"]
+        for e in error
+    )
+
+
+def test_get_vpc_ipv6s(test_linode_client):
+    ipv6s = test_linode_client.get("/vpcs/ipv6s")["data"]
+
+    assert isinstance(ipv6s, list)
+
+    for ipv6 in ipv6s:
+        assert "vpc_id" in ipv6
+        assert isinstance(ipv6["ipv6_range"], str)
+        assert isinstance(ipv6["ipv6_addresses"], list)
+
+
+def test_get_vpc_with_rdma_type(test_linode_client, create_vpc_with_rdma_type):
+    vpc_rdma = create_vpc_with_rdma_type
+    assert vpc_rdma.vpc_type == "rdma"
+    assert vpc_rdma.ipv6 is None
+
+    vpc = test_linode_client.load(VPC, vpc_rdma.id)
+    assert vpc.id == vpc_rdma.id
+    assert vpc.vpc_type == vpc_rdma.vpc_type
+
+    vpcs = test_linode_client.vpcs(VPC.vpc_type == "rdma")
+    assert vpc_rdma.id in [vpc.id for vpc in vpcs]
+    assert all(vpc.vpc_type == "rdma" for vpc in vpcs)
+
+
+def test_get_subnet_with_rdma_type(
+    test_linode_client, create_vpc_with_subnet_and_rdma_type
+):
+    vpc_rdma, subnet_rdma = create_vpc_with_subnet_and_rdma_type
+
+    assert subnet_rdma.vpc_type == vpc_rdma.vpc_type
+    assert subnet_rdma.ipv6 is None
+
+    subnet = test_linode_client.load(VPCSubnet, subnet_rdma.id, vpc_rdma.id)
+    assert subnet.id == subnet_rdma.id
+    assert subnet.vpc_type == vpc_rdma.vpc_type
+    assert subnet.ipv6 is None
+
+
+def test_get_vpc_default_ranges(test_linode_client):
+    """
+    Tests that VPC default IPv4 ranges can be retrieved.
+    """
+    result = test_linode_client.vpcs.default_ranges()
+
+    assert isinstance(result, VPCIPv4DefaultRange)
+    assert isinstance(result.default_ipv4_ranges, list)
+    assert len(result.default_ipv4_ranges) > 0
+    assert isinstance(result.forbidden_ipv4_ranges, list)
+    assert len(result.forbidden_ipv4_ranges) > 0
+
+
+def test_vpc_with_ipv4(test_linode_client, create_vpc_with_ipv4):
+    client = test_linode_client
+    vpc = create_vpc_with_ipv4
+
+    assert vpc.id is not None
+    assert vpc.ipv4[0].range == "10.0.0.0/8"
+
+    loaded_vpc = client.load(VPC, vpc.id)
+    assert loaded_vpc.ipv4[0].range == "10.0.0.0/8"
+
+    vpc.ipv4 = [{"range": "192.168.0.0/17"}]
+    vpc.save()
+
+    updated_vpc = client.load(VPC, vpc.id)
+    assert updated_vpc.ipv4[0].range == "192.168.0.0/17"

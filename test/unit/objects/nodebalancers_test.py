@@ -42,6 +42,23 @@ class NodeBalancerConfigTest(ClientBaseCase):
         self.assertEqual(config.ssl_fingerprint, "")
         self.assertEqual(config.proxy_protocol, "none")
 
+        config_udp = NodeBalancerConfig(self.client, 65431, 123456)
+        self.assertEqual(config_udp.protocol, "udp")
+        self.assertEqual(config_udp.udp_check_port, 12345)
+
+    def test_update_config_udp(self):
+        """
+        Tests that a config with a protocol of udp can be updated and that cipher suite is properly excluded in save()
+        """
+        with self.mock_put("nodebalancers/123456/configs/65431") as m:
+            config = self.client.load(NodeBalancerConfig, 65431, 123456)
+            config.udp_check_port = 54321
+            config.save()
+
+            self.assertEqual(m.call_url, "/nodebalancers/123456/configs/65431")
+            self.assertEqual(m.call_data["udp_check_port"], 54321)
+            self.assertNotIn("cipher_suite", m.call_data)
+
 
 class NodeBalancerNodeTest(ClientBaseCase):
     """
@@ -65,6 +82,9 @@ class NodeBalancerNodeTest(ClientBaseCase):
         self.assertEqual(node.mode, "accept")
         self.assertEqual(node.config_id, 65432)
         self.assertEqual(node.nodebalancer_id, 123456)
+
+        node_udp = NodeBalancerNode(self.client, 12345, (65432, 123456))
+        self.assertEqual(node_udp.mode, "none")
 
     def test_create_node(self):
         """
@@ -91,6 +111,29 @@ class NodeBalancerNodeTest(ClientBaseCase):
                     "weight": 50,
                     "mode": "accept",
                 },
+            )
+
+    def test_create_ipv6_node(self):
+        """
+        Tests that a node can be created with a public IPv6 backend address.
+        """
+        with self.mock_post(
+            "nodebalancers/123456/configs/65432/nodes/54321"
+        ) as m:
+            config = NodeBalancerConfig(self.client, 65432, 123456)
+            node = config.node_create(
+                "node54321",
+                "[2001:db8:abcd:0012::1]:80",
+                weight=50,
+                mode="accept",
+            )
+
+            self.assertIsNotNone(node)
+            self.assertEqual(
+                m.call_url, "/nodebalancers/123456/configs/65432/nodes"
+            )
+            self.assertEqual(
+                m.call_data["address"], "[2001:db8:abcd:0012::1]:80"
             )
 
     def test_update_node(self):
@@ -134,6 +177,19 @@ class NodeBalancerNodeTest(ClientBaseCase):
 
 
 class NodeBalancerTest(ClientBaseCase):
+    def test_get(self):
+        """
+        Tests that a NodeBalancer is loaded correctly by ID.
+        """
+        nb = NodeBalancer(self.client, 123456)
+        self.assertEqual(nb._populated, False)
+
+        self.assertEqual(nb.label, "balancer123456")
+        self.assertEqual(nb._populated, True)
+        self.assertEqual(nb.type, "premium")
+        self.assertEqual(nb.backend_connectivity, "ipv6")
+        self.assertEqual(nb.backend_ipv6_prefix, "2600:3c22:1:20:0:3039::/96")
+
     def test_update(self):
         """
         Test that you can update a NodeBalancer.
@@ -155,6 +211,43 @@ class NodeBalancerTest(ClientBaseCase):
                 },
             )
 
+    def test_locks_not_in_put(self):
+        """
+        Test that locks are not included in PUT request when updating a NodeBalancer.
+        Locks are managed through the separate /v4/locks endpoint.
+        """
+        nb = NodeBalancer(self.client, 123456)
+        # Access locks to ensure it's loaded
+        self.assertEqual(nb.locks, ["cannot_delete_with_subresources"])
+
+        nb.label = "new-label"
+
+        with self.mock_put("nodebalancers/123456") as m:
+            nb.save()
+            self.assertEqual(m.call_url, "/nodebalancers/123456")
+            # Verify locks is NOT in the PUT data
+            self.assertNotIn("locks", m.call_data)
+            self.assertEqual(m.call_data["label"], "new-label")
+
+    def test_type_and_backend_connectivity_not_in_put(self):
+        """
+        Test that type and backend_connectivity are not included in PUT
+        requests. These fields cannot be changed after creation.
+        """
+        nb = NodeBalancer(self.client, 123456)
+        self.assertEqual(nb.type, "premium")
+        self.assertEqual(nb.backend_connectivity, "ipv6")
+
+        nb.label = "new-label"
+
+        with self.mock_put("nodebalancers/123456") as m:
+            nb.save()
+            self.assertEqual(m.call_url, "/nodebalancers/123456")
+            self.assertNotIn("type", m.call_data)
+            self.assertNotIn("backend_connectivity", m.call_data)
+            self.assertNotIn("backend_ipv6_prefix", m.call_data)
+            self.assertEqual(m.call_data["label"], "new-label")
+
     def test_firewalls(self):
         """
         Test that you can get the firewalls for the requested NodeBalancer.
@@ -166,6 +259,13 @@ class NodeBalancerTest(ClientBaseCase):
             result = nb.firewalls()
             self.assertEqual(m.call_url, firewalls_url)
             self.assertEqual(len(result), 1)
+
+    def test_backend_ipv6_prefix_null(self):
+        """
+        Test that a NodeBalancer can have a null backend IPv6 prefix.
+        """
+        nb = NodeBalancer(self.client, 123457)
+        self.assertIsNone(nb.backend_ipv6_prefix)
 
     def test_config_rebuild(self):
         """
@@ -211,6 +311,30 @@ class NodeBalancerTest(ClientBaseCase):
                         },
                     ],
                 },
+            )
+
+    def test_config_rebuild_ipv6(self):
+        """
+        Test that a config can be rebuilt with public IPv6 backend addresses.
+        """
+        config_rebuild_url = "/nodebalancers/12345/configs/4567/rebuild"
+        with self.mock_post(config_rebuild_url) as m:
+            nb = NodeBalancer(self.client, 12345)
+            nodes = [
+                {
+                    "address": "[2001:db8:abcd:0012::1]:80",
+                    "label": "node1",
+                    "weight": 50,
+                    "mode": "accept",
+                }
+            ]
+
+            result = nb.config_rebuild(4567, nodes, port=80, protocol="http")
+            self.assertIsNotNone(result)
+            self.assertEqual(m.call_url, config_rebuild_url)
+            self.assertEqual(
+                m.call_data["nodes"][0]["address"],
+                "[2001:db8:abcd:0012::1]:80",
             )
 
     def test_statistics(self):

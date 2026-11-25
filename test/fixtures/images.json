@@ -26,7 +26,9 @@
               "region": "us-east",
               "status": "available"
             }
-          ]
+          ],
+          "is_shared": false,
+          "image_sharing": null
         },
         {
           "created": "2017-01-01T00:01:01",
@@ -55,7 +57,9 @@
               "region": "us-mia",
               "status": "pending"
             }
-          ]
+          ],
+          "is_shared": false,
+          "image_sharing": null
         },
         {
           "created": "2017-01-01T00:01:01",
@@ -72,7 +76,9 @@
           "eol": "2026-07-01T04:00:00",
           "expiry": "2026-08-01T04:00:00",
           "updated": "2020-07-01T04:00:00",
-          "capabilities": []
+          "capabilities": [],
+          "is_shared": false,
+          "image_sharing": null
         },
         {
           "created": "2017-08-20T14:01:01",
@@ -89,7 +95,15 @@
           "eol": "2026-07-01T04:00:00",
           "expiry": "2026-08-01T04:00:00",
           "updated": "2020-07-01T04:00:00",
-          "capabilities": ["cloud-init"]
+          "capabilities": ["cloud-init"],
+          "is_shared": false,
+          "image_sharing": {
+            "shared_by": null,
+            "shared_with": {
+              "sharegroup_count": 0,
+              "sharegroup_list_url": "/images/private/123/sharegroups"
+            }
+          }
         }
     ]
 }

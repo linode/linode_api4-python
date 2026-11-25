@@ -8,6 +8,7 @@ from linode_api4.objects import (
     Base,
     DerivedBase,
     Instance,
+    InstanceDiskEncryptionType,
     JSONObject,
     MappedObject,
     Property,
@@ -187,6 +188,7 @@ class LKENodePool(DerivedBase):
     properties = {
         "id": Property(identifier=True),
         "cluster_id": Property(identifier=True),
+        "label": Property(mutable=True),
         "type": Property(slug_relationship=Type),
         "disks": Property(),
         "disk_encryption": Property(),
@@ -204,6 +206,7 @@ class LKENodePool(DerivedBase):
         # directly exposed in the node pool response.
         "k8s_version": Property(mutable=True),
         "update_strategy": Property(mutable=True),
+        "firewall_id": Property(mutable=True),
     }
 
     def _parse_raw_node(
@@ -419,6 +422,10 @@ class LKECluster(Base):
             Union[str, KubeVersion, TieredKubeVersion]
         ] = None,
         update_strategy: Optional[str] = None,
+        label: str = None,
+        disk_encryption: Optional[
+            Union[str, InstanceDiskEncryptionType]
+        ] = None,
         **kwargs,
     ):
         """
@@ -440,27 +447,27 @@ class LKECluster(Base):
         :param update_strategy: The strategy to use when updating this node pool.
                                 NOTE: This field is specific to enterprise clusters.
         :type update_strategy: str
+        :param disk_encryption: Local disk encryption setting for this LKE node pool.
+                                One of 'enabled' or 'disabled'. Defaults to 'disabled'.
+        :type disk_encryption: str or InstanceDiskEncryptionType
         :param kwargs: Any other arguments to pass to the API.  See the API docs
                        for possible values.
 
         :returns: The new Node Pool
+        :param label: The name of the node pool.
+        :type label: str
         :rtype: LKENodePool
         """
         params = {
             "type": node_type,
+            "label": label,
             "count": node_count,
             "labels": labels,
             "taints": taints,
             "k8s_version": k8s_version,
             "update_strategy": update_strategy,
+            "disk_encryption": disk_encryption,
         }
-
-        if labels is not None:
-            params["labels"] = labels
-
-        if taints is not None:
-            params["taints"] = taints
-
         params.update(kwargs)
 
         result = self._client.post(

@@ -1,5 +1,4 @@
 import base64
-import re
 from test.integration.conftest import get_region
 from test.integration.helpers import (
     get_test_label,
@@ -19,6 +18,7 @@ from linode_api4 import (
 from linode_api4.common import RegionPrice
 from linode_api4.errors import ApiError
 from linode_api4.objects import (
+    Capability,
     LKECluster,
     LKENodePool,
     LKENodePoolTaint,
@@ -33,14 +33,15 @@ def lke_cluster(test_linode_client):
     version = test_linode_client.lke.versions()[0]
 
     region = get_region(
-        test_linode_client, {"Kubernetes", "LA Disk Encryption"}
+        test_linode_client,
+        {Capability.lke, Capability.disk_encryption},
     )
 
     node_pools = test_linode_client.lke.node_pool(node_type, 3)
     label = get_test_label() + "_cluster"
 
     cluster = test_linode_client.lke.cluster_create(
-        region, label, node_pools, version
+        region, label, version, node_pools
     )
 
     yield cluster
@@ -52,15 +53,15 @@ def lke_cluster(test_linode_client):
 def lke_cluster_with_acl(test_linode_client):
     node_type = test_linode_client.linode.types()[1]  # g6-standard-1
     version = test_linode_client.lke.versions()[0]
-    region = get_region(test_linode_client, {"Kubernetes"})
+    region = get_region(test_linode_client, {Capability.lke})
     node_pools = test_linode_client.lke.node_pool(node_type, 1)
     label = get_test_label() + "_cluster"
 
     cluster = test_linode_client.lke.cluster_create(
         region,
         label,
-        node_pools,
         version,
+        node_pools,
         control_plane=LKEClusterControlPlaneOptions(
             acl=LKEClusterControlPlaneACLOptions(
                 enabled=True,
@@ -82,7 +83,7 @@ def lke_cluster_with_labels_and_taints(test_linode_client):
     node_type = test_linode_client.linode.types()[1]  # g6-standard-1
     version = test_linode_client.lke.versions()[0]
 
-    region = get_region(test_linode_client, {"Kubernetes"})
+    region = get_region(test_linode_client, {Capability.lke})
 
     node_pools = test_linode_client.lke.node_pool(
         node_type,
@@ -105,7 +106,7 @@ def lke_cluster_with_labels_and_taints(test_linode_client):
     label = get_test_label() + "_cluster"
 
     cluster = test_linode_client.lke.cluster_create(
-        region, label, node_pools, version
+        region, label, version, node_pools
     )
 
     yield cluster
@@ -118,7 +119,8 @@ def lke_cluster_with_apl(test_linode_client):
     version = test_linode_client.lke.versions()[0]
 
     region = get_region(
-        test_linode_client, {"Kubernetes", "LA Disk Encryption"}
+        test_linode_client,
+        {Capability.lke, Capability.disk_encryption},
     )
 
     # NOTE: g6-dedicated-4 is the minimum APL-compatible Linode type
@@ -128,8 +130,8 @@ def lke_cluster_with_apl(test_linode_client):
     cluster = test_linode_client.lke.cluster_create(
         region,
         label,
-        node_pools,
         version,
+        node_pools,
         control_plane=LKEClusterControlPlaneOptions(
             high_availability=True,
         ),
@@ -142,14 +144,15 @@ def lke_cluster_with_apl(test_linode_client):
 
 
 @pytest.fixture(scope="session")
-def lke_cluster_enterprise(test_linode_client):
+def lke_cluster_enterprise(e2e_test_firewall, test_linode_client):
     # We use the oldest version here so we can test upgrades
     version = sorted(
         v.id for v in test_linode_client.lke.tier("enterprise").versions()
     )[0]
 
     region = get_region(
-        test_linode_client, {"Kubernetes Enterprise", "LA Disk Encryption"}
+        test_linode_client,
+        {Capability.lke_e, Capability.disk_encryption},
     )
 
     node_pools = test_linode_client.lke.node_pool(
@@ -157,14 +160,15 @@ def lke_cluster_enterprise(test_linode_client):
         3,
         k8s_version=version,
         update_strategy="rolling_update",
+        firewall_id=e2e_test_firewall.id,
     )
     label = get_test_label() + "_cluster"
 
     cluster = test_linode_client.lke.cluster_create(
         region,
         label,
-        node_pools,
         version,
+        node_pools,
         tier="enterprise",
     )
 
@@ -214,14 +218,19 @@ def test_get_lke_pool(test_linode_client, lke_cluster):
     )
 
 
-def test_cluster_dashboard_url_view(lke_cluster):
-    cluster = lke_cluster
+def test_node_pool_create_with_disk_encryption(test_linode_client, lke_cluster):
+    node_type = test_linode_client.linode.types()[1]
 
-    url = send_request_when_resource_available(
-        300, cluster.cluster_dashboard_url_view
+    pool = lke_cluster.node_pool_create(
+        node_type,
+        1,
+        disk_encryption=InstanceDiskEncryptionType.enabled,
     )
 
-    assert re.search("https://+", url)
+    try:
+        assert pool.disk_encryption == InstanceDiskEncryptionType.enabled
+    finally:
+        pool.delete()
 
 
 def test_get_and_delete_kubeconfig(lke_cluster):
@@ -438,13 +447,18 @@ def test_lke_cluster_with_apl(lke_cluster_with_apl):
     )
 
 
-def test_lke_cluster_enterprise(test_linode_client, lke_cluster_enterprise):
+def test_lke_cluster_enterprise(
+    e2e_test_firewall,
+    test_linode_client,
+    lke_cluster_enterprise,
+):
     lke_cluster_enterprise.invalidate()
     assert lke_cluster_enterprise.tier == "enterprise"
 
     pool = lke_cluster_enterprise.pools[0]
     assert str(pool.k8s_version) == lke_cluster_enterprise.k8s_version.id
     assert pool.update_strategy == "rolling_update"
+    assert pool.firewall_id == e2e_test_firewall.id
 
     target_version = sorted(
         v.id for v in test_linode_client.lke.tier("enterprise").versions()

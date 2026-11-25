@@ -125,6 +125,15 @@ Includes methods for interacting with our Longview service.
    :members:
    :special-members:
 
+LockGroup
+^^^^^^^^^^^^^
+
+Includes methods for interacting with our Lock service.
+
+.. autoclass:: linode_api4.linode_client.LockGroup
+   :members:
+   :special-members:
+
 NetworkingGroup
 ^^^^^^^^^^^^^^^
 

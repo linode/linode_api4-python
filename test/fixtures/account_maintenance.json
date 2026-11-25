@@ -1,19 +1,41 @@
 {
-    "data": [
-      {
-        "entity": {
-          "id": 123,
-          "label": "demo-linode",
-          "type": "Linode",
-          "url": "https://api.linode.com/v4/linode/instances/{linodeId}"
-        },
-        "reason": "This maintenance will allow us to update the BIOS on the host's motherboard.",
-        "status": "started",
-        "type": "reboot",
-        "when": "2020-07-09T00:01:01"
-      }
-    ],
-    "page": 1,
-    "pages": 1,
-    "results": 1
+  "pages": 1,
+  "page": 1,
+  "results": 2,
+  "data": [
+    {
+      "entity": {
+        "id": 1234,
+        "label": "Linode #1234",
+        "type": "linode",
+        "url": "/linodes/1234"
+      },
+      "reason": "Scheduled upgrade to faster NVMe hardware.",
+      "type": "linode_migrate",
+      "maintenance_policy_set": "linode/power_off_on",
+      "description": "Scheduled Maintenance",
+      "source": "platform",
+      "not_before": "2025-03-25T10:00:00Z",
+      "start_time": "2025-03-25T12:00:00Z",
+      "complete_time": "2025-03-25T14:00:00Z",
+      "status": "scheduled"
+    },
+    {
+      "entity": {
+        "id": 1234,
+        "label": "Linode #1234",
+        "type": "linode",
+        "url": "/linodes/1234"
+      },
+      "reason": "Pending migration of Linode #1234 to a new host.",
+      "type": "linode_migrate",
+      "maintenance_policy_set": "linode/migrate",
+      "description": "Emergency Maintenance",
+      "source": "user",
+      "not_before": "2025-03-26T15:00:00Z",
+      "start_time": "2025-03-26T15:00:00Z",
+      "complete_time": "2025-03-26T17:00:00Z",
+      "status": "in-progress"
+    }
+  ]
 }
