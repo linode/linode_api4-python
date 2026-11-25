@@ -5,6 +5,7 @@ from .account import *
 from .beta import *
 from .database import *
 from .domain import *
+from .iam import *
 from .image import *
 from .image_share_group import *
 from .linode import *

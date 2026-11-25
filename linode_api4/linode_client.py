@@ -37,6 +37,7 @@ from linode_api4.groups import (
 )
 from linode_api4.objects import Image, and_
 
+from .groups.iam import IAMGroup
 from .groups.placement import PlacementAPIGroup
 from .paginated_list import PaginatedList
 
@@ -423,6 +424,9 @@ class LinodeClient(BaseClient):
 
         #: Access methods related to Managed Databases - see :any:`DatabaseGroup` for more information.
         self.database = DatabaseGroup(self)
+
+        #: Access methods related to IAM - see :any:`IAMGroup` for more information.
+        self.iam = IAMGroup(self)
 
         #: Access methods related to NodeBalancers - see :any:`NodeBalancerGroup` for more information.
         self.nodebalancers = NodeBalancerGroup(self)
