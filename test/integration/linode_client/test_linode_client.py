@@ -1,6 +1,6 @@
 import re
 import time
-from test.integration.conftest import get_region
+from test.integration.conftest import get_api_url, get_region
 from test.integration.helpers import get_test_label, wait_for_condition
 
 import pytest
@@ -12,6 +12,60 @@ from linode_api4.objects import (
     ObjectStorageKeys,
     Region,
 )
+
+
+@pytest.mark.parametrize(
+    "environment, expected_url",
+    [
+        ({}, "https://api.linode.com/v4beta"),
+        (
+            {"LINODE_URL": "https://api.example.test"},
+            "https://api.example.test/v4beta",
+        ),
+        (
+            {"LINODE_URL": "https://api.example.test/"},
+            "https://api.example.test/v4beta",
+        ),
+        (
+            {"LINODE_API_VERSION": "v4"},
+            "https://api.linode.com/v4",
+        ),
+        (
+            {
+                "LINODE_URL": "https://api.example.test/",
+                "LINODE_API_VERSION": "v4",
+            },
+            "https://api.example.test/v4",
+        ),
+        (
+            {
+                "LINODE_URL": "http://localhost:8080/proxy///",
+                "LINODE_API_VERSION": "v4beta",
+            },
+            "http://localhost:8080/proxy/v4beta",
+        ),
+        (
+            {"LINODE_API_URL": "https://legacy.example.test/v4"},
+            "https://api.linode.com/v4beta",
+        ),
+        (
+            {
+                "LINODE_API_URL": "https://legacy.example.test/v4",
+                "LINODE_URL": "https://api.example.test",
+                "LINODE_API_VERSION": "v4",
+            },
+            "https://api.example.test/v4",
+        ),
+    ],
+)
+def test_api_url_environment(monkeypatch, environment, expected_url):
+    for name in ("LINODE_URL", "LINODE_API_VERSION", "LINODE_API_URL"):
+        monkeypatch.delenv(name, raising=False)
+
+    for name, value in environment.items():
+        monkeypatch.setenv(name, value)
+
+    assert get_api_url() == expected_url
 
 
 def is_tag_created(client, tag_label):
