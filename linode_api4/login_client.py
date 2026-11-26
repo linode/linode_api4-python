@@ -1,17 +1,11 @@
 import re
 from datetime import datetime, timedelta
 from enum import Enum
+from urllib.parse import urlencode, urlparse, urlunparse
 
 import requests
 
 from linode_api4.errors import ApiError
-
-try:
-    from urllib.parse import urlencode, urlparse, urlunparse
-except ImportError:
-    from urllib import urlencode
-
-    from urlparse import urlparse, urlunparse
 
 
 class AllWrapper:
