@@ -23,7 +23,11 @@ from linode_api4.objects import (
     ReservedIPAddress,
     Type,
 )
-from linode_api4.objects.linode import InstanceDiskEncryptionType, MigrationType
+from linode_api4.objects.linode import (
+    InstanceCapability,
+    InstanceDiskEncryptionType,
+    MigrationType,
+)
 from linode_api4.objects.region import RegionAvailabilityEntry
 
 
@@ -697,7 +701,7 @@ def test_linode_with_block_storage_encryption(
     linode_with_block_storage_encryption,
 ):
     linode = linode_with_block_storage_encryption
-    assert Capability.blockstorage_encryption in linode.capabilities
+    assert InstanceCapability.blockstorage_encryption in linode.capabilities
 
 
 def wait_for_disk_status(disk: Disk, timeout):

@@ -55,7 +55,8 @@
         "placement_group_type": "anti_affinity:local",
         "placement_group_policy": "strict"
       },
-      "maintenance_policy" : "linode/migrate"
+      "maintenance_policy" : "linode/migrate",
+      "capabilities": ["Block Storage Encryption", "SMTP Enabled"]
     },
     {
       "group": "test",

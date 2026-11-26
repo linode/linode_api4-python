@@ -65,6 +65,20 @@ class InstanceDiskEncryptionType(StrEnum):
     disabled = "disabled"
 
 
+class InstanceCapability(StrEnum):
+    """
+    An enum class that represents the capabilities that a Linode instance
+    can support.
+
+    These capabilities indicate what features are available for a specific Linode.
+    """
+
+    blockstorage_encryption = "Block Storage Encryption"
+    blockstorage_perf_b1 = "Block Storage Performance B1"
+    maintenance_policy = "Maintenance Policy"
+    smtp_enabled = "SMTP Enabled"
+
+
 class Backup(DerivedBase):
     """
     A Backup of a Linode Instance.
