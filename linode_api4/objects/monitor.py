@@ -775,7 +775,7 @@ class LogsStreamDetails(JSONObject):
     Additional details for a logs stream.
 
     This object only applies to streams with a ``type`` of ``lke_audit_logs``.
-    For ``audit_logs`` categories, use :any:`AuditLogsStreamDetails` instead.
+    For ``audit_logs`` subtypes, use :any:`AuditLogsStreamDetails` instead.
 
     .. note::
         When updating a stream, any existing settings need to be included to
@@ -799,7 +799,7 @@ class LogsStreamDetails(JSONObject):
     def from_json(
         cls, json: Dict[str, Any]
     ) -> Optional[Union["LogsStreamDetails", "AuditLogsStreamDetails"]]:
-        if json is not None and "categories" in json:
+        if json is not None and "sub_types" in json:
             return AuditLogsStreamDetails.from_json(json)
 
         return super().from_json(json)
@@ -810,17 +810,18 @@ class AuditLogsStreamDetails(JSONObject):
     """
     Details for streams with a ``type`` of ``audit_logs``.
 
-    :param categories: Optional selection of ``config``, ``login``, and
-        ``data_plane`` categories. When creating a stream, omitting this field
-        or providing an empty list lets the API select ``config`` and ``login``.
-        When updating a stream, a non-empty list replaces the selection;
-        omitting this field or providing an empty list preserves it.
-        The API returns categories in alphabetical order. Selecting a disabled
-        category returns HTTP 400, unless the stream already uses that category.
-    :type categories: Optional[List[str]]
+    :param sub_types: Optional selection of ``management_events``,
+        ``login_events``, and ``data_events`` subtypes. When creating a stream,
+        omitting this field or providing an empty list lets the API select
+        ``management_events`` and ``login_events``. When updating a stream, a
+        non-empty list replaces the selection; omitting this field or providing
+        an empty list preserves it. The API returns subtypes in alphabetical
+        order. Selecting a disabled subtype returns HTTP 400, unless the stream
+        already uses that subtype.
+    :type sub_types: Optional[List[str]]
     """
 
-    categories: Optional[List[str]] = None
+    sub_types: Optional[List[str]] = None
 
 
 @dataclass

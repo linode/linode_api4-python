@@ -800,24 +800,27 @@ class LkeAuditLogsStreamTest(ClientBaseCase):
 
 
 class AuditLogsStreamTest(ClientBaseCase):
-    def test_create_audit_logs_stream_categories(self):
-        for categories in (
-            ["config"],
-            ["login"],
-            ["data_plane"],
-            ["config", "data_plane", "login"],
+    def test_create_audit_logs_stream_sub_types(self):
+        for sub_types in (
+            ["management_events"],
+            ["login_events"],
+            ["data_events"],
+            ["data_events", "login_events", "management_events"],
             [],
             None,
         ):
-            with self.subTest(categories=categories):
+            with self.subTest(sub_types=sub_types):
                 requested_details = (
-                    {} if categories is None else {"categories": categories}
+                    {} if sub_types is None else {"sub_types": sub_types}
                 )
-                response_categories = categories or ["config", "login"]
+                response_sub_types = sub_types or [
+                    "login_events",
+                    "management_events",
+                ]
                 response = {
                     "id": 5,
                     "type": "audit_logs",
-                    "details": {"categories": response_categories},
+                    "details": {"sub_types": response_sub_types},
                 }
 
                 with self.mock_post(response) as mock:
@@ -825,7 +828,7 @@ class AuditLogsStreamTest(ClientBaseCase):
                         destinations=[1],
                         label="Audit stream",
                         type=LogsStreamType.audit_logs,
-                        details=AuditLogsStreamDetails(categories=categories),
+                        details=AuditLogsStreamDetails(sub_types=sub_types),
                     )
 
                 self.assertEqual(mock.call_url, "/monitor/streams")
@@ -839,13 +842,13 @@ class AuditLogsStreamTest(ClientBaseCase):
                     },
                 )
                 self.assertIsInstance(stream.details, AuditLogsStreamDetails)
-                self.assertEqual(stream.details.categories, response_categories)
+                self.assertEqual(stream.details.sub_types, response_sub_types)
 
     def test_create_audit_logs_stream_defaults_from_api(self):
         response = {
             "id": 5,
             "type": "audit_logs",
-            "details": {"categories": ["config", "login"]},
+            "details": {"sub_types": ["login_events", "management_events"]},
         }
         with self.mock_post(response) as mock:
             stream = self.client.monitor.stream_create(
@@ -856,9 +859,11 @@ class AuditLogsStreamTest(ClientBaseCase):
 
         self.assertNotIn("details", mock.call_data)
         self.assertIsInstance(stream.details, AuditLogsStreamDetails)
-        self.assertEqual(stream.details.categories, ["config", "login"])
+        self.assertEqual(
+            stream.details.sub_types, ["login_events", "management_events"]
+        )
 
-    def test_load_audit_logs_stream_and_history_categories(self):
+    def test_load_audit_logs_stream_and_history_sub_types(self):
         for model in (LogsStream, LogsStreamHistory):
             with self.subTest(model=model.__name__):
                 stream = model(
@@ -868,18 +873,22 @@ class AuditLogsStreamTest(ClientBaseCase):
                         "id": 5,
                         "type": "audit_logs",
                         "details": {
-                            "categories": ["config", "data_plane", "login"],
+                            "sub_types": [
+                                "data_events",
+                                "login_events",
+                                "management_events",
+                            ],
                         },
                     },
                 )
 
                 self.assertIsInstance(stream.details, AuditLogsStreamDetails)
                 self.assertEqual(
-                    stream.details.categories,
-                    ["config", "data_plane", "login"],
+                    stream.details.sub_types,
+                    ["data_events", "login_events", "management_events"],
                 )
 
-    def test_update_audit_logs_stream_categories(self):
+    def test_update_audit_logs_stream_sub_types(self):
         stream = LogsStream(
             self.client,
             5,
@@ -888,10 +897,10 @@ class AuditLogsStreamTest(ClientBaseCase):
                 "label": "Audit stream",
                 "status": "active",
                 "type": "audit_logs",
-                "details": {"categories": ["config", "login"]},
+                "details": {"sub_types": ["login_events", "management_events"]},
             },
         )
-        stream.details = AuditLogsStreamDetails(categories=["data_plane"])
+        stream.details = AuditLogsStreamDetails(sub_types=["data_events"])
 
         with self.mock_put({}) as mock:
             self.assertTrue(stream.save())
@@ -902,6 +911,6 @@ class AuditLogsStreamTest(ClientBaseCase):
             {
                 "label": "Audit stream",
                 "status": "active",
-                "details": {"categories": ["data_plane"]},
+                "details": {"sub_types": ["data_events"]},
             },
         )

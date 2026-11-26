@@ -575,13 +575,13 @@ class MonitorGroup(Group):
                type="audit_logs"
            )
 
-           # audit_logs stream with data plane logs
-           data_plane_stream = client.monitor.stream_create(
+           # audit_logs stream with data events
+           data_stream = client.monitor.stream_create(
                destinations=[1234],
-               label="Data_plane_logs",
+               label="Data_events_logs",
                type="audit_logs",
                details=AuditLogsStreamDetails(
-                   categories=["data_plane"],
+                   sub_types=["data_events"],
                )
            )
 
@@ -610,11 +610,11 @@ class MonitorGroup(Group):
         :param status: (Optional) The availability status of the stream. Possible values are: ``active``, ``inactive``.
                         Defaults to ``active``.
         :type status: str
-        :param details: (Optional) Use AuditLogsStreamDetails to select categories
+        :param details: (Optional) Use AuditLogsStreamDetails to select subtypes
                         for ``audit_logs``, or LogsStreamDetails for
                         ``lke_audit_logs``. For audit logs, the API defaults to
-                        ``config`` and ``login`` when categories are omitted
-                        or empty.
+                        ``management_events`` and ``login_events`` when subtypes
+                        are omitted or empty.
         :type details: LogsStreamDetails or AuditLogsStreamDetails
 
         :returns: The newly created logs stream.
