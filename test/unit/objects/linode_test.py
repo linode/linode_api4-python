@@ -9,6 +9,7 @@ from test.unit.objects.linode_interface_test import (
 )
 
 from linode_api4 import (
+    InstanceCapability,
     InstanceDiskEncryptionType,
     InterfaceGeneration,
     NetworkInterface,
@@ -61,6 +62,10 @@ class LinodeTest(ClientBaseCase):
         )
         self.assertEqual(linode.lke_cluster_id, None)
         self.assertEqual(linode.maintenance_policy, "linode/migrate")
+        self.assertIn(
+            InstanceCapability.blockstorage_encryption, linode.capabilities
+        )
+        self.assertIn(InstanceCapability.smtp_enabled, linode.capabilities)
 
         self.assertEqual(linode.alerts.cpu, 90)
         self.assertEqual(linode.alerts.io, 5000)
