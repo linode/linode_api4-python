@@ -21,6 +21,7 @@ __all__ = [
     "RuleCriteria",
     "TriggerConditions",
     "AkamaiObjectStorageLogsDestinationDetails",
+    "AuditLogsStreamDetails",
     "AuthenticationType",
     "BasicAuthenticationDetails",
     "ClientCertificateDetails",
@@ -774,7 +775,7 @@ class LogsStreamDetails(JSONObject):
     Additional details for a logs stream.
 
     This object only applies to streams with a ``type`` of ``lke_audit_logs``.
-    Leave it out of requests that use a ``type`` of ``audit_logs``.
+    For ``audit_logs`` subtypes, use :any:`AuditLogsStreamDetails` instead.
 
     .. note::
         When updating a stream, any existing settings need to be included to
@@ -793,6 +794,34 @@ class LogsStreamDetails(JSONObject):
 
     cluster_ids: Optional[List[int]] = None
     is_auto_add_all_clusters_enabled: bool = False
+
+    @classmethod
+    def from_json(
+        cls, json: Dict[str, Any]
+    ) -> Optional[Union["LogsStreamDetails", "AuditLogsStreamDetails"]]:
+        if json is not None and "sub_types" in json:
+            return AuditLogsStreamDetails.from_json(json)
+
+        return super().from_json(json)
+
+
+@dataclass
+class AuditLogsStreamDetails(JSONObject):
+    """
+    Details for streams with a ``type`` of ``audit_logs``.
+
+    :param sub_types: Optional selection of ``management_events``,
+        ``login_events``, and ``data_events`` subtypes. When creating a stream,
+        omitting this field or providing an empty list lets the API select
+        ``management_events`` and ``login_events``. When updating a stream, a
+        non-empty list replaces the selection; omitting this field or providing
+        an empty list preserves it. The API returns subtypes in alphabetical
+        order. Selecting a disabled subtype returns HTTP 400, unless the stream
+        already uses that subtype.
+    :type sub_types: Optional[List[str]]
+    """
+
+    sub_types: Optional[List[str]] = None
 
 
 @dataclass

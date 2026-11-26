@@ -3,10 +3,12 @@ from test.unit.base import ClientBaseCase
 
 from linode_api4.objects import (
     AlertChannel,
+    AuditLogsStreamDetails,
     LogsDestination,
     LogsDestinationHistory,
     LogsStream,
     LogsStreamDestination,
+    LogsStreamHistory,
     MonitorDashboard,
     MonitorService,
 )
@@ -795,3 +797,120 @@ class LkeAuditLogsStreamTest(ClientBaseCase):
             )
 
         self.assertNotIn("details", m.call_data)
+
+
+class AuditLogsStreamTest(ClientBaseCase):
+    def test_create_audit_logs_stream_sub_types(self):
+        for sub_types in (
+            ["management_events"],
+            ["login_events"],
+            ["data_events"],
+            ["data_events", "login_events", "management_events"],
+            [],
+            None,
+        ):
+            with self.subTest(sub_types=sub_types):
+                requested_details = (
+                    {} if sub_types is None else {"sub_types": sub_types}
+                )
+                response_sub_types = sub_types or [
+                    "login_events",
+                    "management_events",
+                ]
+                response = {
+                    "id": 5,
+                    "type": "audit_logs",
+                    "details": {"sub_types": response_sub_types},
+                }
+
+                with self.mock_post(response) as mock:
+                    stream = self.client.monitor.stream_create(
+                        destinations=[1],
+                        label="Audit stream",
+                        type=LogsStreamType.audit_logs,
+                        details=AuditLogsStreamDetails(sub_types=sub_types),
+                    )
+
+                self.assertEqual(mock.call_url, "/monitor/streams")
+                self.assertEqual(
+                    mock.call_data,
+                    {
+                        "destinations": [1],
+                        "label": "Audit stream",
+                        "type": "audit_logs",
+                        "details": requested_details,
+                    },
+                )
+                self.assertIsInstance(stream.details, AuditLogsStreamDetails)
+                self.assertEqual(stream.details.sub_types, response_sub_types)
+
+    def test_create_audit_logs_stream_defaults_from_api(self):
+        response = {
+            "id": 5,
+            "type": "audit_logs",
+            "details": {"sub_types": ["login_events", "management_events"]},
+        }
+        with self.mock_post(response) as mock:
+            stream = self.client.monitor.stream_create(
+                destinations=[1],
+                label="Audit stream",
+                type="audit_logs",
+            )
+
+        self.assertNotIn("details", mock.call_data)
+        self.assertIsInstance(stream.details, AuditLogsStreamDetails)
+        self.assertEqual(
+            stream.details.sub_types, ["login_events", "management_events"]
+        )
+
+    def test_load_audit_logs_stream_and_history_sub_types(self):
+        for model in (LogsStream, LogsStreamHistory):
+            with self.subTest(model=model.__name__):
+                stream = model(
+                    self.client,
+                    5,
+                    {
+                        "id": 5,
+                        "type": "audit_logs",
+                        "details": {
+                            "sub_types": [
+                                "data_events",
+                                "login_events",
+                                "management_events",
+                            ],
+                        },
+                    },
+                )
+
+                self.assertIsInstance(stream.details, AuditLogsStreamDetails)
+                self.assertEqual(
+                    stream.details.sub_types,
+                    ["data_events", "login_events", "management_events"],
+                )
+
+    def test_update_audit_logs_stream_sub_types(self):
+        stream = LogsStream(
+            self.client,
+            5,
+            {
+                "id": 5,
+                "label": "Audit stream",
+                "status": "active",
+                "type": "audit_logs",
+                "details": {"sub_types": ["login_events", "management_events"]},
+            },
+        )
+        stream.details = AuditLogsStreamDetails(sub_types=["data_events"])
+
+        with self.mock_put({}) as mock:
+            self.assertTrue(stream.save())
+
+        self.assertEqual(mock.call_url, "/monitor/streams/5")
+        self.assertEqual(
+            mock.call_data,
+            {
+                "label": "Audit stream",
+                "status": "active",
+                "details": {"sub_types": ["data_events"]},
+            },
+        )
